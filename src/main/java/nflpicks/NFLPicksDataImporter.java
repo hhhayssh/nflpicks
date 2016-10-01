@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.BasicConfigurator;
+
 import nflpicks.model.Pick;
 
 public class NFLPicksDataImporter {
@@ -188,8 +190,11 @@ where g.week_id in (select w.id
 		String targetWeeks = args[2];
 		String targetPlayer = args[3];
 		String filename = args[4];
+		String propertiesFilename = args[5];
 		
-		ApplicationContext.getContext().initialize();
+		BasicConfigurator.configure();
+		
+		ApplicationContext.getContext().initialize(propertiesFilename);
 		DataSource dataSource = ApplicationContext.getContext().getDataSource();
 		NFLPicksDataImporter importer = new NFLPicksDataImporter(dataSource);
 		
@@ -244,7 +249,7 @@ where g.week_id in (select w.id
 			
 			String[] split = gameLine.split(",");
 			
-			if (split.length != 5){
+			if (split.length < 5){
 				System.out.println("Skipping result import.  Not enough info in line.  gameLine = " + gameLine);
 				continue;
 			}
