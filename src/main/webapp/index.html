@@ -1,0 +1,108 @@
+<html>
+	<head>
+		<base href="nflpicks"/>
+		<script src="javascript/jquery-3.1.1.min.js"></script>
+		<script src="javascript/nflpicks.js"></script>
+		<link rel="stylesheet" type="text/css" href="css/nflpicks.css">
+		<meta name="viewport" content="initial-scale=1.0, minimum-scale=0.25, maximum-scale=5.0, user-scalable=yes">
+		<!-- <meta name="viewport" content="width=device-width, initial-scale=0.75"> -->
+	</head>
+	<body>
+		<div class="top-header-container">
+			<h2>NFL Picks</h2>
+		</div>
+		<div class="selectors-container">
+			<div class="selector-container">
+				<div>What</div>
+				<select id="viewType" onChange="updateView();" class="criteria-selector">
+					<option value="picks">Picks</option>
+					<option value="records" selected>Standings</option>
+				</select>
+			</div>
+			<div id="recordsPlayerContainer" class="selector-container">
+				<div>Who</div>
+				<select id="recordsPlayer" onChange="updateRecords();" class="criteria-selector">
+					<option value="all">Everybody</option>
+					<option value="Benny boy">Benny boy</option>
+					<option value="Bruce">Bruce</option>
+					<option value="Chance">Chance</option>
+					<option value="Jonathan">Jonathan</option>
+					<option value="Mark">Mark</option>
+					<option value="Tim">Tim</option>
+				</select>
+			</div>
+			<div id="recordsYearContainer" class="selector-container">
+				<div>Year</div>
+				<select id="recordsYear" onChange="updateRecords();" class="criteria-selector">
+					<option value="all">All<option>
+					<option value="2016" selected>2016</option>
+				</select>
+			</div>
+			<div id="recordsWeekContainer" class="selector-container">
+				<div>Week</div>
+				<select id="recordsWeek" onChange="updateRecords();" class="criteria-selector">
+					<option value="all" selected>All</option>
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="12">12</option>
+					<option value="13">13</option>
+					<option value="14">14</option>
+					<option value="15">15</option>
+					<option value="16">16</option>
+					<option value="17">17</option>
+				</select>
+			</div>
+			<div id="picksPlayerContainer" class="selector-container">
+				<div>Who</div>
+				<select id="picksPlayer" onChange="updatePicks();" class="criteria-selector">
+					<option value="all">Everybody</option>
+					<option value="Benny boy">Benny boy</option>
+					<option value="Bruce">Bruce</option>
+					<option value="Chance">Chance</option>
+					<option value="Jonathan">Jonathan</option>
+					<option value="Mark">Mark</option>
+					<option value="Tim">Tim</option>
+				</select>
+			</div>
+			<div id="picksYearContainer" class="selector-container">
+				<div>Year</div>
+				<select id="picksYear" onChange="updatePicks();" class="criteria-selector">
+					<option value="2016" selected>2016</option>
+				</select>
+			</div>
+			<div id="picksWeekContainer" class="selector-container">
+				<div>Week</div>
+				<select id="picksWeek" onChange="updatePicks();" class="criteria-selector">
+					<option value="1">1</option>
+					<option value="2">2</option>
+					<option value="3">3</option>
+					<option value="4">4</option>
+					<option value="5">5</option>
+					<option value="6">6</option>
+					<option value="7">7</option>
+					<option value="8">8</option>
+					<option value="9">9</option>
+					<option value="10">10</option>
+					<option value="11">11</option>
+					<option value="12">12</option>
+					<option value="13">13</option>
+					<option value="14">14</option>
+					<option value="15">15</option>
+					<option value="16">16</option>
+					<option value="17">17</option>
+				</select>
+			</div>
+		</div>
+		<div id="contentContainer" class="content-container">
+		</div>
+	</body>
+</html>
