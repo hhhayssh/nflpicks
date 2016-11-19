@@ -3,27 +3,25 @@
 		<base href="nflpicks"/>
 		<script src="javascript/jquery-3.1.1.min.js"></script>
 		<script src="javascript/nflpicks-common.js?1"></script>
-		<script src="javascript/nflpicks.js?1"></script>
+		<script src="javascript/nflpicks-edit.js?1"></script>
 		<link rel="stylesheet" type="text/css" href="css/nflpicks.css?1">
 		<meta name="viewport" content="initial-scale=1.0, minimum-scale=0.25, maximum-scale=5.0, user-scalable=yes">
-		<!-- <meta name="viewport" content="width=device-width, initial-scale=0.75"> -->
 	</head>
 	<body>
 		<div class="top-header-container">
-			<h2>NFL Picks</h2>
+			<h2>Edit NFL Picks</h2>
 		</div>
 		<div class="selectors-container">
 			<div class="selector-container">
 				<div>What</div>
 				<select id="type" onChange="updateView();" class="criteria-selector">
+					<option value="games" selected>Games</option>
 					<option value="picks">Picks</option>
-					<option value="standings" selected>Standings</option>
 				</select>
 			</div>
 			<div id="playerContainer" class="selector-container">
 				<div>Who</div>
 				<select id="player" onChange="updateView();" class="criteria-selector">
-					<option value="all">Everybody</option>
 					<option value="Benny boy">Benny boy</option>
 					<option value="Bruce">Bruce</option>
 					<option value="Chance">Chance</option>
@@ -36,14 +34,12 @@
 			<div id="yearContainer" class="selector-container">
 				<div>Year</div>
 				<select id="year" onChange="updateView();" class="criteria-selector">
-					<option value="all">All<option>
 					<option value="2016" selected>2016</option>
 				</select>
 			</div>
 			<div id="weekContainer" class="selector-container">
 				<div>Week</div>
 				<select id="week" onChange="updateView();" class="criteria-selector">
-					<option value="all" selected>All</option>
 					<option value="1">1</option>
 					<option value="2">2</option>
 					<option value="3">3</option>

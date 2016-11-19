@@ -29,4 +29,12 @@ public class Player {
 	public void setName(String name) {
 		this.name = name;
 	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "id = " + id + 
+									 ", name = " + name;
+		
+		return thisObjectAsAString;
+	}
 }

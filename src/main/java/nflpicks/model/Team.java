@@ -62,4 +62,15 @@ public class Team {
 	public void setAbbreviation(String abbreviation) {
 		this.abbreviation = abbreviation;
 	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "id = " + id + 
+									 ", divisionId = " + divisionId +
+									 ", name = " + name +
+									 ", nickname = " + nickname +
+									 ", abbreviation = " + abbreviation;
+		
+		return thisObjectAsAString;
+	}
 }

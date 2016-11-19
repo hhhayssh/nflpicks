@@ -4,6 +4,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,6 +18,7 @@ import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
+import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
 
@@ -45,11 +47,26 @@ public class NFLPicksDataService {
 	protected static final String SELECT_SEASON = "select id, " +
 												  "year " +
 												  "from season ";
+	
+	protected static final String INSERT_SEASON = "insert into season (year) values (?) ";
+	
+	protected static final String UPDATE_SEASON = "update season " + 
+												  "set year = ? " +
+												  "where id = ? ";
+	
 	protected static final String SELECT_WEEK = "select id, " +
 												"season_id, " +
 												"week, " + 
 												"week_description " + 
 												"from week ";
+	//insert into week (season_id, week, description) values ((select s.id from season s where s.year = '2016'), 1, 'Week 1');
+	protected static final String INSERT_WEEK = "insert into week (season_id, week, description) values (?, ?, ?) ";
+	
+	protected static final String UPDATE_WEEK = "update week " + 
+												"set season_id = ?, " + 
+												"week = ?, " + 
+												"description = ? " + 
+												"where id = ? ";
 	
 	protected static final String SELECT_GAME = "select id, " +
 											    "week_id, " +
@@ -58,13 +75,36 @@ public class NFLPicksDataService {
 											    "winning_team_id " +
 											    "from game ";
 	
+	protected static final String INSERT_GAME = "insert into game (week_id, home_team_id, away_team_id, winning_team_id) values (?, ?, ?, ?) ";
+	
+	protected static final String UPDATE_GAME = "update game " + 
+												"set week_id = ?, " + 
+												"home_team_id = ?, " + 
+												"away_team_id = ?, " + 
+												"winning_team_id = ? " + 
+												"where id = ? ";
+	
 	protected static final String SELECT_PICK = "select id, " +
 												"game_id, " + 
 												"player_id, " + 
 												"team_id " + 
 												"from pick ";
 	
+	protected static final String INSERT_PICK = "insert into pick (game_id, player_id, team_id) values (?, ?, ?) ";
+	
+	protected static final String UPDATE_PICK = "update pick " +
+												"set game_id = ?, " +
+												"player_id = ?, " +
+												"team_id = ? " +
+												"where id = ? ";
+	
 	protected static final String SELECT_PLAYER = "select id, name from player ";
+	
+	protected static final String INSERT_PLAYER = "insert into player (name) values (?) ";
+	
+	protected static final String UPDATE_PLAYER = "update player " +
+											  	  "set name = ? " + 
+											  	  "where id = ? ";
 
 	protected static final String SELECT_RECORD = "select pick_totals.player_id, " + 
 													    "pick_totals.player_name, " + 
@@ -198,7 +238,37 @@ public class NFLPicksDataService {
 		return teams;
 	}
 	
-	protected Team getTeam(int id){
+	public Team getTeam(String abbreviation){
+		
+		Team team = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_TEAM + 
+						   "where abbreviation = ? ";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setString(1, abbreviation);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				team = mapTeamsResult(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting team! abbreviation = " + abbreviation, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return team;
+	}
+	
+	public Team getTeam(int id){
 		
 		Team team = null;
 		
@@ -237,6 +307,79 @@ public class NFLPicksDataService {
 		team.setAbbreviation(result.getString("abbreviation"));
 		
 		return team;
+	}
+	
+	public Season getSeason(int id){
+		
+		Season season = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			String query = SELECT_SEASON + 
+						   "where id = ? ";
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, id);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				season = mapSeason(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting season! id = " + id, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return season;
+	}
+	
+	public Season getSeason(String year){
+		
+		Season season = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			String query = SELECT_SEASON + 
+						   "where year = ? ";
+			statement = connection.prepareStatement(query);
+			statement.setString(1, year);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				season = mapSeason(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting season! year = " + year, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return season;
+	}
+	
+	protected Season mapSeason(ResultSet result) throws SQLException {
+		
+		Season season = new Season();
+		int id = result.getInt("id");
+		season.setId(id);
+		season.setYear(result.getString("year"));
+
+		List<Week> weeks = getWeeks(id);
+		season.setWeeks(weeks);
+		
+		return season;
 	}
 	
 	public List<Week> getWeeks(String year){
@@ -359,6 +502,119 @@ public class NFLPicksDataService {
 		}
 		
 		return week;
+	}
+	
+	public Week saveWeek(Week week){
+		
+		int id = week.getId();
+		
+		int numberOfRowsAffected = 0;
+		
+		if (id <= 0){
+			numberOfRowsAffected = insertWeek(week);
+		}
+		else {
+			numberOfRowsAffected = updateWeek(week);
+		}
+		
+		Week savedWeek = null;
+		
+		if (numberOfRowsAffected == 1){
+			savedWeek = getWeek(week.getSeasonId(), week.getWeek());
+		}
+		
+		return savedWeek;
+	}
+	
+	protected int insertWeek(Week week){
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(INSERT_WEEK);
+			statement.setInt(1, week.getSeasonId());
+			statement.setInt(2, week.getWeek());
+			statement.setString(3, week.getDescription());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting week! week = " + week, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	protected int updateWeek(Week week){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(UPDATE_WEEK);
+			statement.setInt(1, week.getSeasonId());
+			statement.setInt(2, week.getWeek());
+			statement.setString(3, week.getDescription());
+			statement.setInt(4, week.getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting week! week = " + week, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+		
+	}
+	
+	public Week getWeek(int seasonId, int week){
+		
+		Week retrievedWeek = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			String query = SELECT_WEEK + 
+						   "where season_id = ?" +
+						   		 "and week = ? ";
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, seasonId);
+			statement.setInt(2, week);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				retrievedWeek = mapWeek(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting week! seasonId = " + seasonId + ", week = " + week, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return retrievedWeek;
 	}
 	
 	public Week getWeek(String year, int week){
@@ -484,7 +740,8 @@ public class NFLPicksDataService {
 						   					  "where week = ? " + 
 						   					  	    "and season_id in (select id " +
 						   					  					      "from season " + 
-						   					  					      "where year = ?)) ";
+						   					  					      "where year = ?)) " +
+						   "order by id asc ";
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, week);
 			statement.setString(2, year);
@@ -505,7 +762,94 @@ public class NFLPicksDataService {
 		return games;
 	}
 	
-	protected Game getGame(int id){
+	public Game getGame(String year, int week, String teamAbbreviation){
+		
+		Game game = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_GAME + 
+						   "where week_id in (select w.id " +
+						   					 "from week w " + 
+						   					 "where w.week = ? " + 
+						   					 "and w.season_id in (select s.id " + 
+						   					 					 "from season s " + 
+						   					 					 "where s.year = ?)) " +
+						   		  "and (home_team_id in (select t.id " +
+						   					 		    "from team t " + 
+						   					 		    "where t.abbreviation = ?) " +
+						   			   "or away_team_id in (select t.id " + 
+						   					 		       "from team t " + 
+						   					 		       "where t.abbreviation = ?)) ";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, week);
+			statement.setString(2, year);
+			statement.setString(3, teamAbbreviation);
+			statement.setString(4, teamAbbreviation);
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				
+				if (game == null){
+					game = mapGame(results);
+				}
+				else {
+					log.error("Found more than one game for input! year = " + year + ", week = " + week + ", teamAbbreviation = " + teamAbbreviation);
+					return null;
+				}
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting game! year = " + year + ", week = " + week + ", teamAbbreviation = " + teamAbbreviation, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return game;
+	}
+	
+	public Game getGame(int weekId, int homeTeamId, int awayTeamId){
+		
+		Game game = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_GAME + 
+						   "where week_id = ? " +
+						   	     "and home_team_id = ? " +
+						   	     "and away_team_id = ? ";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, weekId);
+			statement.setInt(2, homeTeamId);
+			statement.setInt(3, awayTeamId);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				game = mapGame(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting game! weekId = " + weekId + ", homeTeamId = " + homeTeamId + ", awayTeamId = " + awayTeamId, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return game;
+		
+	}
+	
+	public Game getGame(int id){
 		
 		Game game = null;
 		
@@ -535,6 +879,118 @@ public class NFLPicksDataService {
 		return game;
 	}
 	
+	public Game saveGame(Game game){
+		
+		int id = game.getId();
+		
+		int numberOfAffectedRows = 0;
+		
+		if (id <= 0){
+			numberOfAffectedRows = insertGame(game);
+		}
+		else {
+			numberOfAffectedRows = updateGame(game);
+		}
+		
+		Game savedGame = null;
+		
+		if (numberOfAffectedRows == 1){
+			int weekId = game.getWeekId();
+			int homeTeamId = game.getHomeTeam().getId();
+			int awayTeamId = game.getAwayTeam().getId();
+			savedGame = getGame(weekId, homeTeamId, awayTeamId);
+		}
+		
+		return savedGame;
+	}
+	
+	protected int insertGame(Game game){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(INSERT_GAME);
+			statement.setInt(1, game.getWeekId());
+			statement.setInt(2, game.getHomeTeam().getId());
+			statement.setInt(3, game.getAwayTeam().getId());
+			
+			Team winningTeam = game.getWinningTeam();
+			if (winningTeam != null){
+				statement.setInt(4, winningTeam.getId());
+			}
+			else {
+				boolean tie = game.getTie();
+				if (tie){
+					statement.setInt(4, -1);
+				}
+				else {
+					statement.setNull(4, Types.INTEGER);
+				}
+			}
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting game! game = " + game, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	protected int updateGame(Game game){
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(UPDATE_GAME);
+			statement.setInt(1, game.getWeekId());
+			statement.setInt(2, game.getHomeTeam().getId());
+			statement.setInt(3, game.getAwayTeam().getId());
+			
+			Team winningTeam = game.getWinningTeam();
+			if (winningTeam != null){
+				statement.setInt(4, winningTeam.getId());
+			}
+			else {
+				boolean tie = game.getTie();
+				if (tie){
+					statement.setInt(4, -1);
+				}
+				else {
+					statement.setNull(4, Types.INTEGER);
+				}
+			}
+			
+			statement.setInt(5, game.getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error updating game! game = " + game, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
 	protected Game mapGame(ResultSet results) throws SQLException {
 		Game game = new Game();
 		
@@ -550,7 +1006,13 @@ public class NFLPicksDataService {
 		game.setAwayTeam(awayTeam);
 		
 		int winningTeamId = results.getInt("winning_team_id");
-		game.setWinningTeamId(winningTeamId);
+		if (winningTeamId == -1){
+			game.setTie(true);
+		}
+		else if (winningTeamId > 0) {
+			Team winningTeam = getTeam(winningTeamId);
+			game.setWinningTeam(winningTeam);
+		}
 
 		return game;
 	}
@@ -759,7 +1221,135 @@ public class NFLPicksDataService {
 		return picks;
 	}
 	
-	protected Pick getPick(int id){
+	public Pick savePick(Pick pick){
+		
+		int id = pick.getId();
+		
+		int numberOfAffectedRows = 0;
+		
+		if (id <= 0){
+			numberOfAffectedRows = insertPick(pick);
+		}
+		else {
+			numberOfAffectedRows = updatePick(pick);
+		}
+		
+		Pick savedPick = null;
+		
+		if (numberOfAffectedRows == 1){
+			savedPick = getPick(pick.getGame().getId(), pick.getPlayer().getId());
+		}
+		
+		return savedPick;
+	}
+	
+	protected int insertPick(Pick pick){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(INSERT_PICK);
+			statement.setInt(1, pick.getGame().getId());
+			statement.setInt(2, pick.getPlayer().getId());
+			
+			Team pickedTeam = pick.getTeam();
+			if (pickedTeam != null){
+				statement.setInt(3, pickedTeam.getId());
+			}
+			else {
+				statement.setNull(3, Types.INTEGER);
+			}
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting pick! pick = " + pick, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	protected int updatePick(Pick pick){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+	
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(UPDATE_PICK);
+			statement.setInt(1, pick.getGame().getId());
+			statement.setInt(2, pick.getPlayer().getId());
+			
+			Team pickedTeam = pick.getTeam();
+			if (pickedTeam != null){
+				statement.setInt(3, pickedTeam.getId());
+			}
+			else {
+				statement.setNull(3, Types.INTEGER);
+			}
+			
+			statement.setInt(4, pick.getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error updating pick! pick = " + pick, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	public Pick getPick(int gameId, int playerId){
+		
+		Pick pick = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_PICK + 
+						   "where game_id = ? " +
+						   	     "and player_id = ? ";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, gameId);
+			statement.setInt(2, playerId);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				pick = mapPick(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting pick! gameId = " + gameId + ", playerId = " + playerId, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return pick;
+	}
+	
+	public Pick getPick(int id){
 		
 		Pick pick = null;
 		
@@ -806,12 +1396,16 @@ public class NFLPicksDataService {
 		pick.setTeam(team);
 		
 		if (game != null && team != null){
-			int winningTeamId = game.getWinningTeamId();
-			if (winningTeamId != 0){
-				if (winningTeamId == -1){
-					pick.setResult("T");
-				}
-				else if (winningTeamId == pickedTeamId){
+			Team winningTeam = game.getWinningTeam();
+			boolean tie = game.getTie();
+			
+			if (tie){
+				pick.setResult("T");
+			}
+			else if (winningTeam != null){
+				int winningTeamId = winningTeam.getId();
+				
+				if (winningTeamId == pickedTeamId){
 					pick.setResult("W");
 				}
 				else {

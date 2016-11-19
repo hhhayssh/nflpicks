@@ -12,6 +12,18 @@ import org.apache.log4j.BasicConfigurator;
 import nflpicks.model.Pick;
 
 public class NFLPicksDataImporter {
+	
+	//need to make it so this happens...
+	//	Pick a type (results or picks): picks
+	//	Pick a week: 4
+	//	Pick players: all
+	//	Picks for Benny boy (enter to skip): IND, JAX, KC, ...
+	//	...
+	//
+	//
+	//	Pick a type (results or picks): results
+	//	Pick a week: 
+	//	Input winners: CIN, BUF, JAX, ...
 
 	/*
 	 insert into pick (game_id, player_id, team_id)  
@@ -184,7 +196,13 @@ where g.week_id in (select w.id
 	protected NFLPicksDataService dataService;
 	
 	public static void main(String[] args){
-		
+		//ask for year
+		//ask for week
+		//ask for game winners
+		//ask for winners from each player
+		//blank skips it
+		//either need to split it into a separate project, include the jar on the class path, or find some other way to do
+		//it.  i wonder if there's a way to do it in maven ... probably shouldn't do that.
 		String type = args[0];
 		String targetYear = args[1];
 		String targetWeeks = args[2];

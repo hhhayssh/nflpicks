@@ -42,4 +42,13 @@ public class Season {
 	public void setWeeks(List<Week> weeks){
 		this.weeks = weeks;
 	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "id = " + id + 
+									 ", year = " + year +
+									 ", weeks = " + weeks;
+		
+		return thisObjectAsAString;
+	}
 }

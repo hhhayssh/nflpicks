@@ -63,4 +63,15 @@ public class Pick {
 	public void setResult(String result){
 		this.result = result;
 	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "id = " + id + 
+									 ", game = " + game +
+									 ", player = " + player + 
+									 ", team = " + team +
+									 ", result = " + result;
+		
+		return thisObjectAsAString;
+	}
 }

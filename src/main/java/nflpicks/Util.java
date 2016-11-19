@@ -181,4 +181,18 @@ public class Util {
 		
 		return value;
 	}
+	
+	public static int parseInt(String intString, int defaultValue){
+		
+		int parsedInt = defaultValue;
+		
+		try {
+			parsedInt = Integer.parseInt(intString);
+		}
+		catch (Exception e){
+			parsedInt = defaultValue;
+		}
+		
+		return parsedInt;
+	}
 }

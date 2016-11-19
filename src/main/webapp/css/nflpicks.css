@@ -44,6 +44,10 @@ html, body {
 	color: red;
 }
 
+.tie {
+	color: yellow;
+}
+
 .picks-table {
 	border-spacing: 0px;
 	width: 100%;
@@ -118,3 +122,60 @@ html, body {
 	background-color: #d0d0d0;
 }
 
+.edit-games-table {
+	border-spacing: 0px;
+}
+
+.edit-game {
+	border-left: thin solid black;
+	border-right: thin solid black;
+	padding: 10px;
+}
+
+.edit-game-last {
+	border-left: thin solid black;
+	border-right: thin solid black;
+	border-bottom: thin solid black;
+	padding: 10px;
+}
+
+.team-select {
+	padding: 10px;
+}
+
+.edit-picks-table {
+	border-spacing: 0px;
+}
+
+.edit-pick-game {
+	padding: 10px;
+	border-left: thin solid black;
+	border-right: thin solid black;
+}
+
+.edit-pick-last-game {
+	padding: 10px;
+	border-left: thin solid black;
+	border-right: thin solid black;
+	border-bottom: thin solid black;
+}
+
+
+.edit-pick-team {
+	padding: 10px;
+	text-align: left;
+	border-left: thin solid black;
+	border-right: thin solid black;
+}
+
+.edit-pick-last-team {
+	padding: 10px;
+	text-align: left;
+	border-left: thin solid black;
+	border-right: thin solid black;
+	border-bottom: thin solid black;
+}
+
+.edit-pick-select {
+	padding: 10px;
+}

@@ -50,4 +50,14 @@ public class Record {
 	public void setTies(int ties) {
 		this.ties = ties;
 	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "player = " + player + 
+									 ", wins = " + wins +
+									 ", losses = " + losses + 
+									 ", ties = " + ties;
+		
+		return thisObjectAsAString;
+	}
 }

@@ -64,4 +64,15 @@ public class Week {
 	public void setGames(List<Game> games) {
 		this.games = games;
 	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "id = " + id + 
+									 ", seasonId = " + seasonId +
+									 ", week = " + week +
+									 ", description = " + description +
+									 ", games = " + games;
+		
+		return thisObjectAsAString;
+	}
 }

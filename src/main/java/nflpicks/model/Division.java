@@ -53,4 +53,14 @@ public class Division {
 	public void setTeams(List<Team> teams){
 		this.teams = teams;
 	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "id = " + id + 
+									 ", conferenceId = " + conferenceId +
+									 ", name = " + name + 
+									 ", teams = " + teams;
+		
+		return thisObjectAsAString;
+	}
 }

@@ -2,6 +2,7 @@ package nflpicks;
 
 import java.util.List;
 
+import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -12,6 +13,8 @@ import nflpicks.model.Record;
 import nflpicks.model.Team;
 
 public class JSONUtil {
+	
+	private static final Logger log = Logger.getLogger(JSONUtil.class);
 
 	public static String gamesToJSONString(List<Game> games){
 		
@@ -46,14 +49,7 @@ public class JSONUtil {
 	public static JSONObject gameToJSONObject(Game game){
 		
 		JSONObject jsonObject = new JSONObject();
-		/*
-		 protected int id;
-	protected int weekId;
-	protected Team homeTeam;
-	protected Team awayTeam;
-	protected int homeTeamScore;
-	protected int awayTeamScore;
-		 */
+		
 		jsonObject.put("id", game.getId());
 		jsonObject.put("weekId", game.getWeekId());
 		
@@ -63,7 +59,13 @@ public class JSONUtil {
 		JSONObject awayTeamJSONObject = teamToJSONObject(game.getAwayTeam());
 		jsonObject.put("awayTeam", awayTeamJSONObject);
 		
-		jsonObject.put("winningTeamId", game.getWinningTeamId());
+		Team winningTeam = game.getWinningTeam();
+		if (winningTeam != null){
+			JSONObject winningTeamJSONObject = teamToJSONObject(game.getWinningTeam());
+			jsonObject.put("winningTeam", winningTeamJSONObject);
+		}
+		
+		jsonObject.put("tie", game.getTie());
 		
 		return jsonObject;
 	}
@@ -149,15 +151,6 @@ public class JSONUtil {
 		
 		return jsonObject;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	
 	public static String picksToJSONString(List<Pick> picks){
 		
@@ -247,5 +240,19 @@ public class JSONUtil {
 		return jsonObject;
 	}
 	
+	
+	public static JSONObject createJSONObjectFromString(String json){
+		
+		JSONObject object = null;
+		
+		try {
+			object = new JSONObject(json);
+		}
+		catch (Exception e){
+			log.error("Error reading json! json = " + json, e);
+		}
+		
+		return object;
+	}
 	
 }

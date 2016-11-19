@@ -6,61 +6,128 @@ var picksGrid = null;
 
 $(document).ready(
 	function(){
+		setSelectionsFromUrlParameters();
 		updateView();
 });
 
-function showPicksCriteriaContainer(){
-	$('#picksPlayerContainer').show();
-	$('#picksYearContainer').show();
-	$('#picksWeekContainer').show();
+function setSelectionsFromUrlParameters(){
+	
+	var parameters = getUrlParameters();
+	
+	if (!isDefined(parameters)){
+		return;
+	}
+	
+	setSelectionsFromParameters(parameters);
 }
 
-function hidePicksCriteriaContainer(){
-	$('#picksPlayerContainer').hide();
-	$('#picksYearContainer').hide();
-	$('#picksWeekContainer').hide();
+function setSelectionsFromParameters(parameters){
+	
+	if (!isDefined(parameters)){
+		return;
+	}
+	
+	if (isDefined(parameters.type)){
+		setSelectedType(parameters.type);
+	}
+	
+	if (isDefined(parameters.player)){
+		setSelectedPlayer(parameters.player);
+	}
+	
+	if (isDefined(parameters.year)){
+		setSelectedYear(parameters.year);
+	}
+	
+	if (isDefined(parameters.week)){
+		setSelectedWeek(parameters.week);
+	}
 }
 
-function showRecordsCriteriaContainer(){
-	$('#recordsPlayerContainer').show();
-	$('#recordsYearContainer').show();
-	$('#recordsWeekContainer').show();
-}
-
-function hideRecordsCriteriaContainer(){
-	$('#recordsPlayerContainer').hide();
-	$('#recordsYearContainer').hide();
-	$('#recordsWeekContainer').hide();
+function getUrlParameters() {
+	
+	if (isBlank(location.search)){
+		return null;
+	}
+	
+    var parameterNamesAndValues = location.search.substring(1, location.search.length).split('&');
+    
+    var urlParameters = {};
+    
+    for (var index = 0; index < parameterNamesAndValues.length; index++) {
+        var split2 = parameterNamesAndValues[index].split('=');
+        var name = decodeURIComponent(split2[0]).toLowerCase();
+        var value = decodeURIComponent(split2[1]);
+        urlParameters[name] = value;
+    }
+    return urlParameters;
 }
 
 function updateView(){
 	
-	var viewType = $('#viewType option:selected').val();
+	var type = $('#type option:selected').val();
 
-	if ('picks' == viewType){
-		hideRecordsCriteriaContainer();
-		showPicksCriteriaContainer();
+	if ('picks' == type){
+		hideAllWeekOption();
 		updatePicks();
 	}
-	else if ('records' == viewType) {
-		showRecordsCriteriaContainer();
-		hidePicksCriteriaContainer();
+	else if ('standings' == type) {
+		showAllWeekOption();
 		updateRecords();
 	}
-	
+}
+
+function getSelectedType(){
+	return $('#type option:selected').val();
+}
+
+function setSelectedType(type){
+	if (doesSelectHaveOptionWithValue('type', type)){
+		$('#type').val(type);
+	}
+}
+
+function getSelectedPlayer(){
+	return $('#player option:selected').val();
+}
+
+function setSelectedPlayer(player){
+	if (doesSelectHaveOptionWithValue('player', player)){
+		$('#player').val(player);
+	}
+}
+
+function getSelectedYear(){
+	return $('#year option:selected').val();
+}
+
+function setSelectedYear(year){
+	if (doesSelectHaveOptionWithValue('year', year)){
+		$('#year').val(year);
+	}
+}
+
+function getSelectedWeek(){
+	return $('#week option:selected').val();
+}
+
+function setSelectedWeek(week){
+	if (doesSelectHaveOptionWithValue('week', week)){
+		$('#week').val(week);
+	}
 }
 
 function updateRecords(){
-	var player = $('#recordsPlayer option:selected').val();
-	var year = $('#recordsYear option:selected').val();
-	var week = $('#recordsWeek option:selected').val();
+	var player = getSelectedPlayer();
+	var year = getSelectedYear();
+	var week = getSelectedWeek();
 	
-	$.ajax({url: 'nflpicks?target=records&players=' + player + '&years=' + year + '&weeks=' + week,
+	$.ajax({url: 'nflpicks?target=standings&players=' + player + '&years=' + year + '&weeks=' + week,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
-		var recordsContainer = $.parseJSON(data);
-		var records = recordsContainer.records;
+		var standingsContainer = $.parseJSON(data);
+		var records = standingsContainer.records;
 
 		records.sort(function (a, b){
 			if (a.wins > b.wins){
@@ -72,9 +139,9 @@ function updateRecords(){
 			return 0;
 		});
 		
-		var recordsGridHtml = createRecordsGridHtml(recordsContainer.records);
+		var standingsGridHtml = createStandingsGridHtml(standingsContainer.records);
 		$('#contentContainer').empty();
-		$('#contentContainer').append(recordsGridHtml);
+		$('#contentContainer').append(standingsGridHtml);
 	})
 	.fail(function() {
 	})
@@ -82,10 +149,36 @@ function updateRecords(){
 	});
 }
 
+function hideAllPlayerOption(){
+	$('#player option[value=all]').hide();
+}
+
+function showAllPlayerOption(){
+	$('#player option[value=all]').show();
+}
+
+function hideAllWeekOption(){
+	$('#week option[value=all]').hide();
+}
+
+function showAllWeekOption(){
+	$('#week option[value=all]').show();
+}
+
 function updatePicks(){
-	var player = $('#picksPlayer option:selected').val();
-	var year = $('#picksYear option:selected').val();
-	var week = $('#picksWeek option:selected').val();
+	var player = getSelectedPlayer();
+//	if ('all' == player){
+//		//Get the first player option's value
+//		player = $('#player option')[1].value;
+//		setSelectedPlayer(player);
+//	}
+	var year = getSelectedYear();
+	var week = getSelectedWeek();
+	if ('all' == week){
+		//Get the first player option's value
+		week = $('#week option')[1].value;
+		setSelectedWeek(week);
+	}
 	
 	$.ajax({url: 'nflpicks?target=picksGrid&player=' + player + '&year=' + year + '&week=' + week,
 		contentType: 'application/json; charset=UTF-8'}
@@ -113,7 +206,6 @@ function getPickForGame(picksGrid, playerId, gameId){
 	}
 	
 	return null;
-	
 }
 
 function getPicksForGame(picksGrid, gameId){
@@ -149,33 +241,96 @@ function hasTies(records){
 	return false;
 }
 
-function createRecordsGridHtml(records){
+function createStandingsGridHtml(records){
 	
-	var recordsGridHtml = '';
-	
-	var gridHeaderHtml = '<thead>' +
-						 	'<th class="records-header"></th>' +
-						 	'<th class="records-header">Wins</th>' + 
-						 	'<th class="records-header">Losses</th>' +
-						 	'<th class="records-header">Win %</th>' + 
-						 	'<th class="records-header">GB</th>';
+	var standingsHtml = '';
 	
 	var areThereAnyTies = hasTies(records);
-	
+	var tiesHeader = '';
 	if (areThereAnyTies){
-		gridHeaderHtml = gridHeaderHtml + '<th align="left">Ties</th>';
+		tiesHeader = '<th align="left">Ties</th>';
 	}
 	
-	gridHeaderHtml = gridHeaderHtml + '</thead>';
+	var standingsHeaderHtml = '<thead>' +
+						 	'<th class="standings-header"></th>' +
+						 	'<th class="standings-header">Wins</th>' + 
+						 	'<th class="standings-header">Losses</th>' +
+						 	tiesHeader + 
+						 	'<th class="standings-header">Win %</th>' + 
+						 	'<th class="standings-header">GB</th>';
 	
-	var gridRowsHtml = '';
+	
+	standingsHeaderHtml = standingsHeaderHtml + '</thead>';
+	
+	var rowsHtml = '';
 	
 	var topWins = records[0].wins;
 	var topLosses = records[0].losses;
+
+	//The steps for calculating the rank:
+	//	1. Have three variables: rank, nextRank, and tieIndependentRank.
+	//	2. rank holds the rank of the current record we're on.  
+	//	3. nextRank holds what the rank should be the next time we go through
+	//	   the loop.
+	//	4. tieIndependentRank holds the rank independent of ties.  Basically what it would be if
+	//	   there were no ties (the position of the record in the array, starting at 1).
+	//	5. Start the nextRank at 1 because that's what the rank of the next record we see will be.
+	//	6. Start going through the records.
+	//	7. Assign the nextRank that we calculated to the rank so that we use it for this record.
+	//	8. Calculate the nextRank:
+	//		1. If there's a next record and it has the same number of losses as this one, then
+	//		   the nextRank will be same as the current rank because there's a tie.
+	//		2. Otherwise, it'll be whatever "tieIndepdentedRank" we have.  That's because we'll
+	//		   want to basically pick up where we left off before the ties started.
+	
+	var rank = null;
+	var nextRank = 1;
+	var nextRecord = null;
+	var previousRank = null;
 	
 	for (var index = 0; index < records.length; index++){
 		var record = records[index];
-		var rank = index + 1;
+		
+		//This is the position of the record independent of whether there are ties.  Just the "raw" position if we
+		//started counting at 1.  It will be the same as the rank if there aren't any ties.
+		var tieIndependentRank = index + 1;
+		//Set the rank to what we calculated it should be the previous time through the loop.
+		rank = nextRank;
+		
+		//Now, need to calculate what it will be the next time.
+		//If the next record has the same number of losses, then it'll be the same as now because they're
+		//tied.
+		//Otherwise, if the next record doesn't, the next rank will be whatever this one's would have
+		//been without ties + 1.  If there weren't any ties, then this record's rank would be the "tieIndependentRank".
+		//So, that means the next rank would be that + 1.
+		nextRecord = null;
+		if (index + 1 < records.length){
+			nextRecord = records[index + 1];
+			
+			if (record.losses == nextRecord.losses){
+				//rank stays the same.
+			}
+			else {
+				//current rank would be index + 1.  We want to be one beyond that.
+				nextRank = tieIndependentRank + 1;
+			}
+		}
+		
+		//Now, we have the rank and next rank so we need to figure out if we need to put a little 't' to indicate
+		//there was a tie.
+		//There's a tie if:
+		//	1. It's the same as the next rank and we're not at the end.
+		//	2. The rank is the same as the previous rank.
+		//
+		//Number 1 should be pretty straight forward.  If this rank is the same as the next one, it's in a tie.
+		//Number 2 is there for the last tie in a series of ties.  The last tie will have a "nextRank" that's different from
+		//what it is, but we'll still want to show a tie for it.  So, in that case, we can just look to see if it's the same
+		//as the previous rank and, if it is, we know there's a tie.
+		var rankText = rank + '';
+		if ((nextRank == rank && index + 1 < records.length) || (rank == previousRank)){
+			rankText = rankText + 't';
+		}
+		
 		var percentage = record.wins / (record.wins + record.losses);
 		var percentageString = percentage.toPrecision(3);
 		var gamesBack = '';
@@ -188,26 +343,32 @@ function createRecordsGridHtml(records){
 			gamesBack = calculatedGamesBack + '';
 		}
 		
-		gridRowsHtml = gridRowsHtml + 
+		var tiesCell = '';
+		if (areThereAnyTies){
+			tiesCell = '<td class="records-data-cell">' + record.ties + '</td>';
+		}
+		
+		rowsHtml = rowsHtml + 
 					   '<tr>' +
-						'<td class="records-cell">' + rank + '. ' + record.player.name + '</td>' +
+						'<td class="records-cell">' + rankText + '. ' + record.player.name + '</td>' +
 						'<td class="records-data-cell">' + record.wins + '</td>' +
 						'<td class="records-data-cell">' + record.losses + '</td>' +
+						tiesCell + 
 						'<td class="records-data-cell">' + percentageString + '</td>' +
 						'<td class="records-data-cell">' + gamesBack + '</td>';
 		
-		if (areThereAnyTies){
-			gridRowsHtml = gridRowsHtml + '<td>' + record.ties + '</td>';
-		}
+		rowsHtml = rowsHtml + '</tr>';
 		
-		gridRowsHtml = gridRowsHtml + '</tr>';
+		//Keep the current rank as the previous for the next time through.
+		previousRank = rank;
+		
 	}
 	
-	var gridBodyHtml = '<tbody>' + gridRowsHtml + '</tbody>';
+	var standingsBodyHtml = '<tbody>' + rowsHtml + '</tbody>';
 	
-	recordsGridHtml = '<table align="center">' + gridHeaderHtml + gridBodyHtml + '</table>';
+	standingsHtml = '<table align="center">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
 	
-	return recordsGridHtml;
+	return standingsHtml;
 }
 
 function createPicksGridHtml(picksGrid){
@@ -258,13 +419,17 @@ function createPicksGridHtml(picksGrid){
 		
 		var homeTeamClass = '';
 		var awayTeamClass = '';
-		if (isDefined(game.winningTeamId) && game.winningTeamId != 0){
-			if (game.winningTeamId == game.awayTeam.id){
+		if (isDefined(game.winningTeam) && game.winningTeam.id != 0){
+			if (game.winningTeam.id == game.awayTeam.id){
 				awayTeamClass = 'winner';
 			}
-			else if (game.winningTeamId = game.homeTeam.id){
+			else if (game.winningTeam.id == game.homeTeam.id){
 				homeTeamClass = 'winner';
 			}
+		}
+		else if (game.tie == true){
+			awayTeamClass = 'tie';
+			homeTeamClass = 'tie';
 		}
 		
 		var gameRow = '<tr class="' + rowClassName + '">' + 
@@ -281,18 +446,21 @@ function createPicksGridHtml(picksGrid){
 			var pickForGame = getPickForGame(picksGrid, playerId, gameId);
 			
 			var doesGameHaveResult = false;
-			if (isDefined(game.winningTeamId) && game.winningTeamId != 0){
+			if ((isDefined(game.winningTeam) && game.winningTeam.id != 0) || game.tie){
 				doesGameHaveResult = true;
 			}
 			
 			var team = '';
 			var result = '';
 			var winnerOrLoserClass = '';
+			
+			team = 'NONE';
+			
+			if (isDefined(pickForGame) && isDefined(pickForGame.team)){
+				team = pickForGame.team.abbreviation;
+			}
+			
 			if (doesGameHaveResult){
-				team = 'NONE';
-				if (isDefined(pickForGame) && isDefined(pickForGame.team)){
-					team = pickForGame.team.abbreviation;
-				}
 				if (isDefined(pickForGame) && isDefined(pickForGame.result)){
 					result = pickForGame.result;
 				}
@@ -308,8 +476,12 @@ function createPicksGridHtml(picksGrid){
 					winnerOrLoserClass = 'loser';
 					playerRecords[playerIndex].losses++;
 				}
+				else if (result == 'T'){
+					winnerOrLoserClass = 'tie';
+					playerRecords[playerIndex].ties++;
+				}
 			}
-						
+			
 			gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
 									'<span class="' + winnerOrLoserClass + '">' + team + '</span>' + 
 								'</td>' + 
@@ -332,7 +504,12 @@ function createPicksGridHtml(picksGrid){
 			pickRecordRowCss = 'last-pick-record';
 		}
 		
-		var playerRecordHtml = '<td colspan="2" class="' + pickRecordRowCss + '">' + playerRecord.wins + ' - ' + playerRecord.losses + '</td>';
+		var tiesString = '';
+		if (isDefined(playerRecord.ties) && playerRecord.ties > 0){
+			tiesString = ' - ' + playerRecord.ties;
+		}
+		
+		var playerRecordHtml = '<td colspan="2" class="' + pickRecordRowCss + '">' + playerRecord.wins + ' - ' + playerRecord.losses + tiesString + '</td>';
 		weekRecordHtml = weekRecordHtml + playerRecordHtml;
 	}
 	
@@ -343,25 +520,4 @@ function createPicksGridHtml(picksGrid){
 	picksGridHtml = '<table class="picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>';
 	
 	return picksGridHtml;
-}
-
-function isBlank(value){
-	
-	if (!isDefined(value)){
-		return true;
-	}
-	
-	if (value.trim().length() == 0){
-		return true;
-	}
-	
-	return false;
-}
-
-function isDefined(value){
-	if (value == null || value == undefined){
-		return false;
-	}
-	
-	return true;
 }

@@ -9,18 +9,21 @@ public class Game {
 	protected Team homeTeam;
 	
 	protected Team awayTeam;
+	
+	protected boolean tie;
 
-	protected int winningTeamId;
+	protected Team winningTeam;
 	
 	public Game(){
 	}
 	
-	public Game(int id, int weekId, Team homeTeam, Team awayTeam, int winningTeamId){
+	public Game(int id, int weekId, Team homeTeam, Team awayTeam, boolean tie, Team winningTeam){
 		this.id = id;
 		this.weekId = weekId;
 		this.homeTeam = homeTeam;
 		this.awayTeam = awayTeam;
-		this.winningTeamId = winningTeamId;
+		this.tie = tie;
+		this.winningTeam = winningTeam;
 	}
 	
 	public int getId(){
@@ -54,12 +57,33 @@ public class Game {
 	public void setAwayTeam(Team awayTeam) {
 		this.awayTeam = awayTeam;
 	}
-
-	public int getWinningTeamId(){
-		return winningTeamId;
+	
+	public boolean getTie(){
+		return tie;
 	}
 	
-	public void setWinningTeamId(int winningTeamId){
-		this.winningTeamId = winningTeamId;
+	public void setTie(boolean tie){
+		this.tie = tie;
+	}
+	
+	public Team getWinningTeam(){
+		return winningTeam;
+	}
+	
+	public void setWinningTeam(Team winningTeam){
+		this.winningTeam = winningTeam;
+	}
+
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "id = " + id + 
+									 ", weekId = " + weekId +
+									 ", homeTeam = " + homeTeam + 
+									 ", awayTeam = " + awayTeam +
+									 ", tie = " + tie + 
+									 ", winningTeam = " + winningTeam;
+		
+		return thisObjectAsAString;
 	}
 }
