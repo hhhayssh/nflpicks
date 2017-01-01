@@ -191,6 +191,21 @@ where g.week_id in (select w.id
 																			  	"from team t " + 
 																			  	"where t.abbreviation = ?) ";
 	
+	public static final String UPDATE_TIE_GAME_RESULT = "update game g " + 
+			"set winning_team_id = -1 " +
+		    "where g.week_id in (select w.id " + 
+								"from week w " + 
+							    "where w.week = ? " +
+									  "and w.season_id in (select s.id " +
+									  					  "from season s " + 
+									  					  "where s.year = ?)) " + 
+				 "and g.home_team_id in (select t.id " + 
+									  	"from team t " + 
+									  	"where t.abbreviation = ?) " + 
+				 "and g.away_team_id in (select t.id " + 
+									  	"from team t " + 
+									  	"where t.abbreviation = ?) ";
+	
 	protected DataSource dataSource;
 	
 	protected NFLPicksDataService dataService;
@@ -428,13 +443,24 @@ where g.week_id in (select w.id
 						   ", winningTeamAbbreviation = " + winningTeamAbbreviation);
 		try {
 			connection = dataSource.getConnection();
-			statement = connection.prepareStatement(UPDATE_GAME_RESULT);
-			statement.setString(1, winningTeamAbbreviation);
-			int weekInt = Integer.parseInt(week);
-			statement.setInt(2, weekInt);
-			statement.setString(3, year);
-			statement.setString(4, homeTeamAbbreviation);
-			statement.setString(5, awayTeamAbbreviation);
+			
+			if ("TIE".equals(winningTeamAbbreviation)){
+				statement = connection.prepareStatement(UPDATE_TIE_GAME_RESULT);
+				int weekInt = Integer.parseInt(week);
+				statement.setInt(1, weekInt);
+				statement.setString(2, year);
+				statement.setString(3, homeTeamAbbreviation);
+				statement.setString(4, awayTeamAbbreviation);
+			}
+			else {
+				statement = connection.prepareStatement(UPDATE_GAME_RESULT);
+				statement.setString(1, winningTeamAbbreviation);
+				int weekInt = Integer.parseInt(week);
+				statement.setInt(2, weekInt);
+				statement.setString(3, year);
+				statement.setString(4, homeTeamAbbreviation);
+				statement.setString(5, awayTeamAbbreviation);
+			}
 			writeSqlStatementToOutputFile(statement);
 			numberOfAffectedRows = statement.executeUpdate();
 			
@@ -452,6 +478,8 @@ where g.week_id in (select w.id
 		
 		return numberOfAffectedRows;
 	}
+	
+	
 	
 	protected int savePick(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation, String playerName, String pickAbbreviation){
 		

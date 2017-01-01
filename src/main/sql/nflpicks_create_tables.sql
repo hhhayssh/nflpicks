@@ -36,7 +36,7 @@ create table week (
 	id integer primary key default nextval('week_id_sequence'),
 	season_id integer references season(id) not null,
 	week integer not null,
-	description varchar(50) not null
+	label varchar(50) not null
 );
 
 create sequence game_id_sequence;
@@ -80,7 +80,7 @@ from team t join division d on t.division_id = d.id
 create or replace view game_view as
 select s.year as year,
 	   w.id as week_id,
-	   w.description,
+	   w.label,
 	   g.id as game_id,
 	   ht.id as home_team_id,
 	   ht.name as home_team_name,
@@ -123,7 +123,7 @@ from pick pi join player pl on pi.player_id = pl.id
 create or replace view week_pick_view as
 select w.id as week_id,
 	   w.week as week,
-	   w.description as description,
+	   w.label as label,
 	   pi.id as pick_id,
 	   pl.id as player_id,
 	   pl.name as player_name,
@@ -148,7 +148,7 @@ from week w join game g on w.id = g.week_id
      join team pick_t on pi.team_id = pick_t.id;     
 	   
 create or replace view pick_grid_view as
-select w.description as week,
+select w.label as week,
 	   (select home_t.abbreviation
 	    from team home_t
 	    where home_t.id = g.home_team_id) || ' @ ' ||

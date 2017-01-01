@@ -195,4 +195,11 @@ public class Util {
 		
 		return parsedInt;
 	}
+	
+	public static String replaceUrlCharacters(String value){
+		
+		String replacedValue = value.replace("%20", " ");
+		
+		return replacedValue;
+	}
 }

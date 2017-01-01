@@ -57,7 +57,7 @@ function createSelectHtml(selectId, options, selectedValue, cssClass, style){
 
 function doesSelectHaveOptionWithValue(selectId, value){
 	
-	var option = $('#' + selectId + ' option[value=' + value + ']');
+	var option = $('#' + selectId + ' option[value="' + value + '"]');
 	
 	if (isDefined(option) && option.length > 0){
 		return true;

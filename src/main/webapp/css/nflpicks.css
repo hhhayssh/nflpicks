@@ -24,6 +24,10 @@ html, body {
 	text-align: center;
 }
 
+.criteria-selector-week {
+	max-width: 65px;
+}
+
 .criteria-selector {
 	margin-left: 5px;  
 	padding: 5px;

@@ -36,13 +36,15 @@
 			<div id="yearContainer" class="selector-container">
 				<div>Year</div>
 				<select id="year" onChange="updateView();" class="criteria-selector">
+					<!-- Read this from the database... -->
 					<option value="all">All<option>
 					<option value="2016" selected>2016</option>
 				</select>
 			</div>
 			<div id="weekContainer" class="selector-container">
 				<div>Week</div>
-				<select id="week" onChange="updateView();" class="criteria-selector">
+				<!-- Read this from the database... -->
+				<select id="week" onChange="updateView();" class="criteria-selector criteria-selector-week">
 					<option value="all" selected>All</option>
 					<option value="1">1</option>
 					<option value="2">2</option>
@@ -61,6 +63,10 @@
 					<option value="15">15</option>
 					<option value="16">16</option>
 					<option value="17">17</option>
+					<option value="18">Playoffs - Wild Card</option>
+					<option value="19">Playoffs - Divisional</option>
+					<option value="20">Playoffs - Conference Championship</option>
+					<option value="21">Playoffs - Super Bowl</option>
 				</select>
 			</div>
 		</div>

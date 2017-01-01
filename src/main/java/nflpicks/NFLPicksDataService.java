@@ -57,15 +57,16 @@ public class NFLPicksDataService {
 	protected static final String SELECT_WEEK = "select id, " +
 												"season_id, " +
 												"week, " + 
-												"week_description " + 
+												"label " + 
 												"from week ";
-	//insert into week (season_id, week, description) values ((select s.id from season s where s.year = '2016'), 1, 'Week 1');
-	protected static final String INSERT_WEEK = "insert into week (season_id, week, description) values (?, ?, ?) ";
+	
+	//insert into week (season_id, week, label) values ((select s.id from season s where s.year = '2016'), 1, 'Week 1');
+	protected static final String INSERT_WEEK = "insert into week (season_id, week, label) values (?, ?, ?) ";
 	
 	protected static final String UPDATE_WEEK = "update week " + 
 												"set season_id = ?, " + 
 												"week = ?, " + 
-												"description = ? " + 
+												"label = ? " + 
 												"where id = ? ";
 	
 	protected static final String SELECT_GAME = "select id, " +
@@ -136,6 +137,63 @@ public class NFLPicksDataService {
 	
 	public NFLPicksDataService(DataSource dataSource){
 		setDataSource(dataSource);
+	}
+	
+	public List<String> getYears(){
+		
+		List<String> years = new ArrayList<String>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement("select year from season");
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				String year = results.getString(1);
+				years.add(year);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting seasons!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return years;
+	}
+	
+	public List<Season> getSeasons(){
+		
+		List<Season> seasons = new ArrayList<Season>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(SELECT_SEASON);
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Season season = mapSeason(results);
+				seasons.add(season);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting seasons!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return seasons;
+		
 	}
 	
 	public List<Conference> getConferences(){
@@ -382,6 +440,42 @@ public class NFLPicksDataService {
 		return season;
 	}
 	
+	public List<String[]> getWeeksAndLabels(String year){
+		
+		List<String[]> weeksAndLabels = new ArrayList<String[]>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			String query = SELECT_WEEK + 
+						   "where season_id in (select season_id " +
+						   				  	   "from season " + 
+						   				  	   "where year = ? )";
+			statement = connection.prepareStatement(query);
+			statement.setString(1, year);
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				int week = results.getInt("week");
+				String label = results.getString("label");
+				String[] weekAndLabel = new String[]{String.valueOf(week), label};
+				weeksAndLabels.add(weekAndLabel);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting weeks! year = " + year, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return weeksAndLabels;
+		
+	}
+	
 	public List<Week> getWeeks(String year){
 		
 		List<Week> weeks = new ArrayList<Week>();
@@ -537,7 +631,7 @@ public class NFLPicksDataService {
 			statement = connection.prepareStatement(INSERT_WEEK);
 			statement.setInt(1, week.getSeasonId());
 			statement.setInt(2, week.getWeek());
-			statement.setString(3, week.getDescription());
+			statement.setString(3, week.getLabel());
 			
 			numberOfAffectedRows = statement.executeUpdate();
 			
@@ -566,7 +660,7 @@ public class NFLPicksDataService {
 			statement = connection.prepareStatement(UPDATE_WEEK);
 			statement.setInt(1, week.getSeasonId());
 			statement.setInt(2, week.getWeek());
-			statement.setString(3, week.getDescription());
+			statement.setString(3, week.getLabel());
 			statement.setInt(4, week.getId());
 			
 			numberOfAffectedRows = statement.executeUpdate();
@@ -658,6 +752,7 @@ public class NFLPicksDataService {
 		week.setId(weekId);
 		week.setSeasonId(result.getInt("season_id"));
 		week.setWeek(result.getInt("week"));
+		week.setLabel(result.getString("label"));
 		
 		List<Game> games = getGames(weekId);
 		week.setGames(games);
@@ -1415,6 +1510,61 @@ public class NFLPicksDataService {
 		}
 		
 		return pick;
+	}
+	
+	public List<Player> getPlayers(String year){
+		
+		List<Player> players = new ArrayList<Player>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			//where they have at least one pick.
+			/*
+			 
+			 select *
+			 from player
+			 where id in (select player_id
+			 			  from pick
+			 			  where game_id in (select id
+			 			  				    from game
+			 			  				    where week_id in (select id
+			 			  				    				  from week
+			 			  				    				  where season_id in (select id
+			 			  				    				  					  from season
+			 			  				    				  					  where year = ?))));
+			 
+			 */
+			String query = SELECT_PLAYER + 
+						   "where id in (select player_id " + 
+						   				"from pick " + 
+						   				"where game_id in (select id " + 
+						   								  "from game " + 
+						   								  "where week_id in (select id " + 
+						   								  					"from week " + 
+						   								  					"where season_id in (select id " + 
+						   								  										"from season " + 
+						   								  										"where year = ?))))";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setString(1, year);
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Player playerInfo = mapPlayer(results);
+				players.add(playerInfo);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting players!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return players;
 	}
 	
 	public List<Player> getPlayers(){

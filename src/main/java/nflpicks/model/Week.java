@@ -10,18 +10,18 @@ public class Week {
 	
 	protected int week;
 	
-	protected String description;
+	protected String label;
 	
 	protected List<Game> games;
 	
 	public Week(){
 	}
 	
-	public Week(int id, int seasonId, int week, String description, List<Game> games){
+	public Week(int id, int seasonId, int week, String label, List<Game> games){
 		this.id = id;
 		this.seasonId = seasonId;
 		this.week = week;
-		this.description = description;
+		this.label = label;
 		this.games = games;
 	}
 
@@ -49,12 +49,12 @@ public class Week {
 		this.week = week;
 	}
 
-	public String getDescription() {
-		return description;
+	public String getLabel() {
+		return label;
 	}
 
-	public void setDescription(String description) {
-		this.description = description;
+	public void setLabel(String label) {
+		this.label = label;
 	}
 
 	public List<Game> getGames() {
@@ -70,7 +70,7 @@ public class Week {
 		String thisObjectAsAString = "id = " + id + 
 									 ", seasonId = " + seasonId +
 									 ", week = " + week +
-									 ", description = " + description +
+									 ", label = " + label +
 									 ", games = " + games;
 		
 		return thisObjectAsAString;

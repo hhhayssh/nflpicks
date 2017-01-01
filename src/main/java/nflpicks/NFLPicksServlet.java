@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -19,6 +21,7 @@ import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
+import nflpicks.model.Season;
 import nflpicks.model.Team;
 
 
@@ -32,6 +35,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_PICKS = "picks";
 	protected static final String TARGET_PICKS_GRID = "picksGrid";
 	protected static final String TARGET_STANDINGS = "standings";
+	protected static final String TARGET_SELECTION_CRITERIA = "selectionCriteria";
 	
 	protected NFLPicksDataService dataService;
 	
@@ -67,7 +71,8 @@ public class NFLPicksServlet extends HttpServlet {
 			json = JSONUtil.playersToJSONString(players);
 		}
 		else if (TARGET_PICKS.equals(target)){
-			String playerName = req.getParameter("player");
+			//Escape this name
+			String playerName = Util.replaceUrlCharacters(req.getParameter("player"));
 			String year = req.getParameter("year");
 			String weekString = req.getParameter("week");
 			int week = Util.parseInt(weekString, 0);
@@ -83,7 +88,8 @@ public class NFLPicksServlet extends HttpServlet {
 			json = JSONUtil.picksToJSONString(picks);
 		}
 		else if (TARGET_PICKS_GRID.equals(target)){
-			String playerName = req.getParameter("player");
+			//Escape this name
+			String playerName = Util.replaceUrlCharacters(req.getParameter("player"));
 			String year = req.getParameter("year");
 			String weekString = req.getParameter("week");
 			int week = Util.parseInt(weekString, 0);
@@ -119,6 +125,7 @@ public class NFLPicksServlet extends HttpServlet {
 			String playersString = req.getParameter("players");
 			List<String> players = null;
 			if (!"all".equals(playersString)){
+				//escape all of these...
 				players = Util.delimitedStringToList(playersString, ",");
 			}
 
@@ -140,6 +147,51 @@ public class NFLPicksServlet extends HttpServlet {
 			recordsJSONObject.put("records", JSONUtil.recordsToJSONArray(records));
 			
 			json = recordsJSONObject.toString();
+		}
+		else if (TARGET_SELECTION_CRITERIA.equals(target)){
+			
+			List<String> years = dataService.getYears();
+			
+			JSONArray selectionJSONArray = new JSONArray();
+			
+			for (int index = 0; index < years.size(); index++){
+				JSONObject selectionJSONObject = new JSONObject();
+				String year = years.get(index);
+				
+				selectionJSONObject.put("year", year);
+				
+				List<Player> playersForSeason = dataService.getPlayers(year);
+				
+				List<String[]> weeksAndLabels = dataService.getWeeksAndLabels(year);
+				
+				JSONArray weeksArray = new JSONArray();
+				
+				for (int w = 0; w < weeksAndLabels.size(); w++){
+					String[] weekAndLabel = weeksAndLabels.get(w);
+					JSONObject weekJSONObject = new JSONObject();
+					weekJSONObject.put("week", weekAndLabel[0]);
+					weekJSONObject.put("label", weekAndLabel[1]);
+					weeksArray.put(weekJSONObject);
+				}
+				
+				selectionJSONObject.put("weeks", weeksArray);
+				
+				JSONArray playersArray = new JSONArray();
+				
+				for (int p = 0; p < playersForSeason.size(); p++){
+					Player player = playersForSeason.get(p);
+					JSONObject playerJSONObject = new JSONObject();
+					playerJSONObject.put("id", player.getId());
+					playerJSONObject.put("name", player.getName());
+					playersArray.put(playerJSONObject);
+				}
+				
+				selectionJSONObject.put("players", playersArray);
+				
+				selectionJSONArray.put(selectionJSONObject);
+			}
+			
+			json = selectionJSONArray.toString();
 		}
 		
 		PrintWriter writer = resp.getWriter();
@@ -188,9 +240,11 @@ public class NFLPicksServlet extends HttpServlet {
 				}
 				
 				existingGame.setWinningTeam(winningTeam);
+				
 				if (winningTeamId == -1){
 					existingGame.setTie(true);
 				}
+				
 				dataService.saveGame(existingGame);
 			}
 		}
