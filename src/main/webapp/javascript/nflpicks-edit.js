@@ -267,7 +267,7 @@ function createEditGamesGridHtml(games){
 		
 		editGamesRowsHtml = editGamesRowsHtml +
 							  '<tr class="' + rowClassName + '">' +
-							  	'<td class="' + gameClass + '">' + game.homeTeam.abbreviation + ' @ ' + game.awayTeam.abbreviation + '</td>' +
+							  	'<td class="' + gameClass + '">' + game.awayTeam.abbreviation + ' @ ' + game.homeTeam.abbreviation + '</td>' +
 							  	'<td class="' + gameClass + '">' + teamSelectHtml + '</td>' +
 							  '</tr>';
 	}

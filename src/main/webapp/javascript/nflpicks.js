@@ -332,7 +332,10 @@ function createStandingsGridHtml(records){
 		}
 		
 		var percentage = record.wins / (record.wins + record.losses);
-		var percentageString = percentage.toPrecision(3);
+		var percentageString = '';
+		if (!isNaN(percentage)){
+			percentageString = percentage.toPrecision(3);
+		}
 		var gamesBack = '';
 		
 		if (record.losses == topLosses && record.wins == topWins){
