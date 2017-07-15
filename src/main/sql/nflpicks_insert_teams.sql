@@ -60,7 +60,7 @@ insert into team (division_id, name, nickname, abbreviation)
 values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'AFC') and d.name = 'West'), 'Denver Broncos', 'Broncos', 'DEN');
 
 insert into team (division_id, name, nickname, abbreviation) 
-values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'AFC') and d.name = 'West'), 'San Diego Chargers', 'Chargers', 'SD');
+values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'AFC') and d.name = 'West'), 'Los Angeles Chargers', 'Chargers', 'LAC');
 
 insert into team (division_id, name, nickname, abbreviation) 
 values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'AFC') and d.name = 'West'), 'Kansas City Chiefs', 'Chiefs', 'KC');
@@ -111,7 +111,7 @@ insert into team (division_id, name, nickname, abbreviation)
 values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'NFC') and d.name = 'West'), 'Arizona Cardinals', 'Cardinals', 'ARZ');
 
 insert into team (division_id, name, nickname, abbreviation) 
-values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'NFC') and d.name = 'West'), 'Los Angeles Rams', 'Rams', 'LA');
+values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'NFC') and d.name = 'West'), 'Los Angeles Rams', 'Rams', 'LAR');
 
 /* Players */
 insert into player (name) values ('Benny boy');

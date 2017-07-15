@@ -84,7 +84,7 @@ public class NFLPicksDataUpdater {
 			if ("results".equals(type)){
 				//year
 				//week
-				List<String> acceptableYears = Arrays.asList(new String[]{"2016"});
+				List<String> acceptableYears = Arrays.asList(new String[]{"2016", "2017"});
 				String year = readOption("Year: ", "Blah", acceptableYears, "quit", reader);
 				
 				if (year == null){
