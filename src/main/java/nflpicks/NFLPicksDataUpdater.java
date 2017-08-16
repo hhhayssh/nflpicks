@@ -92,7 +92,7 @@ public class NFLPicksDataUpdater {
 					return;
 				}
 				
-				List<String> acceptableWeeks = Arrays.asList(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"});
+				List<String> acceptableWeeks = Arrays.asList(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"});
 				String week = readOption("Week: ", "x", acceptableWeeks, "quit", reader);
 				
 				if (week == null){
@@ -114,20 +114,6 @@ public class NFLPicksDataUpdater {
 					
 					Team winningTeam = dataService.getTeam(winner);
 					
-					if (game != null){
-						System.out.println("blah");
-					}
-					else {
-						System.out.println("q");
-					}
-					
-					if (winningTeam != null){
-						System.out.println("asdf");
-					}
-					else {
-						System.out.println("asdfwer");
-					}
-					
 					game.setWinningTeam(winningTeam);
 					
 					dataService.saveGame(game);
@@ -141,7 +127,7 @@ public class NFLPicksDataUpdater {
 				//player name
 				//	if all, do a comma separated order
 				
-				List<String> acceptableYears = Arrays.asList(new String[]{"2016"});
+				List<String> acceptableYears = Arrays.asList(new String[]{"2016", "2017"});
 				String year = readOption("Year: ", "Blah", acceptableYears, "quit", reader);
 				
 				if (year == null){
@@ -149,7 +135,7 @@ public class NFLPicksDataUpdater {
 					return;
 				}
 				
-				List<String> acceptableWeeks = Arrays.asList(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17"});
+				List<String> acceptableWeeks = Arrays.asList(new String[]{"1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"});
 				String week = readOption("Week: ", "x", acceptableWeeks, "quit", reader);
 				
 				if (week == null){

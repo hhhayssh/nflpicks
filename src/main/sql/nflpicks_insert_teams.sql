@@ -121,3 +121,6 @@ insert into player (name) values ('Jonathan');
 insert into player (name) values ('Mark');
 insert into player (name) values ('Tim');
 insert into player (name) values ('Teddy');
+insert into player (name) values ('Jerry');
+insert into player (name) values ('Bookey');
+insert into player (name) values ('Josh');

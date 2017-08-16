@@ -264,8 +264,16 @@ function createStandingsGridHtml(records){
 	
 	var rowsHtml = '';
 	
-	var topWins = records[0].wins;
-	var topLosses = records[0].losses;
+	var topWins = 0;
+	var topLosses = 0;
+	
+	if (!isEmpty(records)){
+		topWins = records[0].wins;
+		topLosses = records[0].losses;
+	}
+	else {
+		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
+	}
 
 	//The steps for calculating the rank:
 	//	1. Have three variables: rank, nextRank, and tieIndependentRank.

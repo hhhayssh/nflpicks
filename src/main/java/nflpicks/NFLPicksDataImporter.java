@@ -219,7 +219,7 @@ where g.week_id in (select w.id
 		//either need to split it into a separate project, include the jar on the class path, or find some other way to do
 		//it.  i wonder if there's a way to do it in maven ... probably shouldn't do that.
 		String type = args[0];
-		String targetYear = args[1];
+		String targetYears = args[1];
 		String targetWeeks = args[2];
 		String targetPlayer = args[3];
 		String filename = args[4];
@@ -234,31 +234,37 @@ where g.week_id in (select w.id
 		importer.openOutputFile(type);
 		String[] targetWeeksArray = targetWeeks.split(",");
 		
-		if ("games".equals(type)){
-			for (int index = 0; index < targetWeeksArray.length; index++){
-				String targetWeek = targetWeeksArray[index];
-				importer.importGames(targetYear, targetWeek, filename);
+		String [] targetYearsArray = targetYears.split(",");
+		for (int yearIndex = 0; yearIndex < targetYearsArray.length; yearIndex++){
+			String targetYear = targetYearsArray[yearIndex];
+			
+			if ("games".equals(type)){
+				for (int weekIndex = 0; weekIndex < targetWeeksArray.length; weekIndex++){
+					String targetWeek = targetWeeksArray[weekIndex];
+					importer.importGames(targetYear, targetWeek, filename);
+				}
+			}
+			else if ("picks".equals(type)){
+				for (int weekIndex = 0; weekIndex < targetWeeksArray.length; weekIndex++){
+					String targetWeek = targetWeeksArray[weekIndex];
+					importer.importPicks(targetYear, targetWeek, targetPlayer, filename);
+				}
+			}
+			else if ("results".equals(type)){
+				for (int weekIndex = 0; weekIndex < targetWeeksArray.length; weekIndex++){
+					String targetWeek = targetWeeksArray[weekIndex];
+					importer.importResults(targetYear, targetWeek, filename);
+				}
+			}
+			else if ("sync".equals(type)){
+				for (int weekIndex = 0; weekIndex < targetWeeksArray.length; weekIndex++){
+					String targetWeek = targetWeeksArray[weekIndex];
+					importer.importPicks(targetYear, targetWeek, targetPlayer, filename);
+					importer.importResults(targetYear, targetWeek, filename);
+				}
 			}
 		}
-		else if ("picks".equals(type)){
-			for (int index = 0; index < targetWeeksArray.length; index++){
-				String targetWeek = targetWeeksArray[index];
-				importer.importPicks(targetYear, targetWeek, targetPlayer, filename);
-			}
-		}
-		else if ("results".equals(type)){
-			for (int index = 0; index < targetWeeksArray.length; index++){
-				String targetWeek = targetWeeksArray[index];
-				importer.importResults(targetYear, targetWeek, filename);
-			}
-		}
-		else if ("sync".equals(type)){
-			for (int index = 0; index < targetWeeksArray.length; index++){
-				String targetWeek = targetWeeksArray[index];
-				importer.importPicks(targetYear, targetWeek, targetPlayer, filename);
-				importer.importResults(targetYear, targetWeek, filename);
-			}
-		}
+		
 		importer.flushOutputFile();
 		importer.closeOutputFile();
 	}
@@ -325,11 +331,22 @@ where g.week_id in (select w.id
 		
 		System.out.println("Importing games... year = " + targetYear + ", week = " + targetWeek + ", player = " + targetPlayer);
 		
-		//Year	Week	Away	Home	Benny boy	Bruce	Chance	Jonathan	Mark	Teddy	Tim
+		//get the header
+		//get the index of the name
+		//use that index in the lines to get the value to use.
+		//Year	Week	Away	Home	Benny boy	Bruce	Chance	Jonathan	Mark	Teddy	Tim		Bookey		Jerry		Josh
 
 		String filterLine = targetYear + "," + targetWeek + ",";
 		
 		List<String> pickLines = Util.readLines(filename, filterLine);
+		
+		List<String> headerValues = Util.readHeaderValues(filename);
+		
+		int indexOfPlayerPick = -1;
+		if (!"all".equals(targetPlayer)){
+			indexOfPlayerPick = headerValues.indexOf(targetPlayer);
+			System.out.println("Target player found at index = " + indexOfPlayerPick);
+		}
 		
 		System.out.println("Read " + pickLines.size() + " picks from file: " + filename);
 		
@@ -343,10 +360,10 @@ where g.week_id in (select w.id
 				continue;
 			}
 			
-			if (split.length != 12){
-				System.out.println("Pick line missing information.  pickLine = " + pickLine);
-				split = Util.fillArray(split, 12, "");
-			}
+//			if (split.length != 12){
+//				System.out.println("Pick line missing information.  pickLine = " + pickLine);
+//				split = Util.fillArray(split, 12, "");
+//			}
 			
 			//year = pick[0].replace(u'\xa0', u'').replace(u'\xc2', u'')
 			String year = Util.hardcoreTrim(split[0]);
@@ -362,35 +379,46 @@ where g.week_id in (select w.id
 			String timPick = Util.hardcoreTrim(split[11]);
 			
 			if ("all".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Benny boy", bennyPick);
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Bruce", brucePick);
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Chance", chancePick);
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Jonathan", myPick);
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Mark", markPick);
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Teddy", teddyPick);
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Tim", timPick);
+				//everything after index 5 should be a player pick
+				for (int playerIndex = 5; index < split.length; index++){
+					String pick = Util.hardcoreTrim(split[playerIndex]);
+					String playerName = headerValues.get(playerIndex);
+					savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, playerName, pick);
+				}
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Benny boy", bennyPick);
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Bruce", brucePick);
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Chance", chancePick);
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Jonathan", myPick);
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Mark", markPick);
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Teddy", teddyPick);
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Tim", timPick);
 			}
-			else if ("Benny boy".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Benny boy", bennyPick);
+			else {
+				String pick = Util.hardcoreTrim(split[indexOfPlayerPick]);
+				String playerName = headerValues.get(indexOfPlayerPick);
+				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, playerName, pick);
 			}
-			else if ("Bruce".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Bruce", brucePick);
-			}
-			else if ("Chance".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Chance", chancePick);
-			}
-			else if ("Jonathan".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Jonathan", myPick);
-			}
-			else if ("Mark".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Mark", markPick);
-			}
-			else if ("Teddy".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Teddy", teddyPick);
-			}
-			else if ("Tim".equals(targetPlayer)){
-				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Tim", timPick);
-			}
+//			else if ("Benny boy".equals(targetPlayer)){
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Benny boy", bennyPick);
+//			}
+//			else if ("Bruce".equals(targetPlayer)){
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Bruce", brucePick);
+//			}
+//			else if ("Chance".equals(targetPlayer)){
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Chance", chancePick);
+//			}
+//			else if ("Jonathan".equals(targetPlayer)){
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Jonathan", myPick);
+//			}
+//			else if ("Mark".equals(targetPlayer)){
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Mark", markPick);
+//			}
+//			else if ("Teddy".equals(targetPlayer)){
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Teddy", teddyPick);
+//			}
+//			else if ("Tim".equals(targetPlayer)){
+//				savePick(year, week, awayTeamAbbreviation, homeTeamAbbreviation, "Tim", timPick);
+//			}
 		}
 	}
 	

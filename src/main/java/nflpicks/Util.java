@@ -33,6 +33,38 @@ public class Util {
 		return lines;
 	}
 	
+	public static String readHeader(String filename){
+		
+		BufferedReader reader = null;
+		
+		String header = null;
+		
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			
+			header = reader.readLine();
+			
+		}
+		catch (Exception e){
+			e.printStackTrace();
+		}
+		
+		return header;
+	}
+	
+	public static List<String> readHeaderValues(String filename){
+		
+		String header = readHeader(filename);
+		
+		if (header == null){
+			return null;
+		}
+		
+		List<String> headerValues = delimitedStringToList(header, ",");
+		
+		return headerValues;
+	}
+	
 	public static List<String> readLines(String filename, String filterString){
 		
 		List<String> lines = new ArrayList<String>();

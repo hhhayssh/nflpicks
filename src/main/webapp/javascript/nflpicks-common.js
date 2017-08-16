@@ -19,6 +19,19 @@ function isDefined(value){
 	return true;
 }
 
+function isEmpty(value){
+	
+	if (!isDefined(value)){
+		return true;
+	}
+	
+	if (value.length == 0){
+		return true;
+	}
+	
+	return false;
+}
+
 function createSelectHtml(selectId, options, selectedValue, cssClass, style){
 	
 	var selectHtml = '<select ';

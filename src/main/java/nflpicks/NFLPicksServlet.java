@@ -50,6 +50,7 @@ public class NFLPicksServlet extends HttpServlet {
 		log.info("Processing request... request = " + req.getRequestURL() + "?" + req.getQueryString());
 		
 		String target = req.getParameter("target");
+		resp.setContentType("text/plain; charset=UTF-8");
 		
 		String json = "";
 		
