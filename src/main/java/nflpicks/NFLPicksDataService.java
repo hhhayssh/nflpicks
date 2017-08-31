@@ -1625,6 +1625,10 @@ public class NFLPicksDataService {
 		return player;
 	}
 	
+	public boolean wasPlayerActiveInYear(String player, String year){
+		return true;
+	}
+	
 	public Player getPlayer(String name){
 		
 		Player player = null;

@@ -314,6 +314,22 @@ select w.label as week,
 	   								          					  where pl.name = 'Josh'))
 	         then 'W'
 	         else 'L'
-	    end) as josh_pick_result,
+	    end) as josh_pick_result
+	    (select pick_t.abbreviation
+	    from pick p join team pick_t on p.team_id = pick_t.id
+	    where p.game_id = g.id
+	          and p.player_id in (select pl.id
+	          					  from player pl
+	          					  where name = 'Doodle')) as chance,
+	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id in (select p.team_id
+	   								    from pick p
+	   								    where p.game_id = g.id
+	   								          and p.player_id in (select pl.id
+	   								          					  from player pl
+	   								          					  where pl.name = 'Doodle'))
+	         then 'W'
+	         else 'L'
+	    end) as doodle_pick_result
 from season s join week w on s.id = w.season_id 
 	 join game g on w.id = g.week_id;

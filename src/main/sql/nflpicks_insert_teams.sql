@@ -124,3 +124,4 @@ insert into player (name) values ('Teddy');
 insert into player (name) values ('Jerry');
 insert into player (name) values ('Bookey');
 insert into player (name) values ('Josh');
+insert into player (name) values ('Doodle');

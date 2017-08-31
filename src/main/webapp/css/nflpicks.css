@@ -8,13 +8,13 @@ html, body {
 .top-header-container {
 	width: 100%; 
 	text-align: center;
-	padding-top: 20px;
+	padding-top: 5px;
 }
 
 .selectors-container {
 	width: 100%; 
 	display: inline-block; 
-	padding-top: 20px; 
+	padding-top: 5px; 
 	padding-bottom: 20px;
 	text-align: center;
 }
@@ -36,7 +36,7 @@ html, body {
 .content-container {
 	width: 100%; 
 	text-align: center;
-	padding-top: 20px;
+	padding-top: 10px;
 	border-top: thin solid black;
 }
 

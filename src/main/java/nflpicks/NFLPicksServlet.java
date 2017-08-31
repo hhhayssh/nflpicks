@@ -100,6 +100,7 @@ public class NFLPicksServlet extends HttpServlet {
 				players = dataService.getPlayers();
 			}
 			else {
+				//TODO: only include a player if they have a pick in that year.
 				Player player = dataService.getPlayer(playerName);
 				players = new ArrayList<Player>();
 				players.add(player);
