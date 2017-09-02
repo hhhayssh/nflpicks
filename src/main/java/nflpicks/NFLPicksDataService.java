@@ -1625,8 +1625,57 @@ public class NFLPicksDataService {
 		return player;
 	}
 	
+	
+	
+	public List<Player> getActivePlayersInYear(String year){
+		return null;
+	}
+	
 	public boolean wasPlayerActiveInYear(String player, String year){
-		return true;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		int numberOfPicksInYear = 0;
+		
+		try {
+			String query = "select count(*) " +
+					 "from pick " +
+					 "where player_id in (select id  " +
+					 					 "from player " +
+					 					 "where name = ?') " +
+					 	   "and game_id in (select id  " +
+										   "from game  " +
+										   "where week_id in (select id " + 
+										   					 "from week " +
+										   					 "where season_id in (select id " +
+										   										 "from season " + 
+										   					 				   	 "where year = ?)))";
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setString(1, player);
+			statement.setString(2, year);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				numberOfPicksInYear = results.getInt(0);
+			}
+			
+		}
+		catch (Exception e){
+			log.error("Error checking whether player was active in year!  player = " + player + ", year = " + year, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		if (numberOfPicksInYear > 0){
+			return true;
+		}
+		
+		return false;
 	}
 	
 	public Player getPlayer(String name){
