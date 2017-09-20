@@ -118,7 +118,9 @@ public class NFLPicksDataService {
 												 			 	   "then 1 " + 
 												 			 	   "else 0 " + 
 												 			  "end) as wins, " + 
-												 			 "(case when g.winning_team_id != -1 and (p.team_id is null or p.team_id != g.winning_team_id) " + 
+												 			 //Only count the pick as a loss if there was a pick.  If there wasn't (p.team_id = null), then
+												 			 //don't count that.
+												 			 "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
 												 			 	   "then 1 " + 
 												 			 	   "else 0 " + 
 												 			  "end) as losses, " + 

@@ -350,7 +350,9 @@ function createStandingsGridHtml(records){
 			gamesBack = '-';
 		}
 		else {
-			var calculatedGamesBack = record.losses - topLosses;
+			//Base the games back on wins instead of losses since they
+			//don't get a loss if they don't pick.
+			var calculatedGamesBack = topWins - record.wins;
 			gamesBack = calculatedGamesBack + '';
 		}
 		
@@ -475,9 +477,10 @@ function createPicksGridHtml(picksGrid){
 				if (isDefined(pickForGame) && isDefined(pickForGame.result)){
 					result = pickForGame.result;
 				}
-				else {
-					result = 'L';
-				}
+				//If they didn't make a pick, that doesn't qualify as
+				//a loss.  We don't count it as anything.  When retrieving
+				//the records for the standings, we don't count missing picks as
+				//losses anymore so we shouldn't do it here.
 				
 				if (result == 'W'){
 					winnerOrLoserClass = 'winner';
