@@ -750,7 +750,7 @@ public class NFLPicksDataService {
 	protected Week mapWeek(ResultSet result) throws SQLException {
 		
 		Week week = new Week();
-		int weekId = result.getInt("week_id");
+		int weekId = result.getInt("id");
 		week.setId(weekId);
 		week.setSeasonId(result.getInt("season_id"));
 		week.setWeek(result.getInt("week"));
@@ -1625,12 +1625,6 @@ public class NFLPicksDataService {
 		}
 		
 		return player;
-	}
-	
-	
-	
-	public List<Player> getActivePlayersInYear(String year){
-		return null;
 	}
 	
 	public boolean wasPlayerActiveInYear(String player, String year){

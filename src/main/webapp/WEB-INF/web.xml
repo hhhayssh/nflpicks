@@ -8,8 +8,16 @@
       <servlet-name>nflpicks</servlet-name>
       <servlet-class>nflpicks.NFLPicksServlet</servlet-class>
    </servlet>
+   <servlet>
+      <servlet-name>oldschool_nflpicks</servlet-name>
+      <servlet-class>nflpicks.OldSchoolNFLPicksServlet</servlet-class>
+   </servlet>
    <servlet-mapping>
       <servlet-name>nflpicks</servlet-name>
       <url-pattern>/nflpicks</url-pattern>
+   </servlet-mapping>
+   <servlet-mapping>
+      <servlet-name>oldschool_nflpicks</servlet-name>
+      <url-pattern>/alternate</url-pattern>
    </servlet-mapping>
 </web-app>

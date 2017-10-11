@@ -78,3 +78,13 @@ function doesSelectHaveOptionWithValue(selectId, value){
 	
 	return false;
 }
+
+function setOptionsInSelect(selectId, options){
+	
+	$('#' + selectId).empty();
+	
+	for (var index = 0; index < options.length; index++){
+		var option = options[index];
+		$('#' + selectId).append('<option value="' + option.value + '">' + option.label + '</option>');
+	}
+}

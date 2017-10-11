@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -154,46 +155,23 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			List<String> years = dataService.getYears();
 			
-			JSONArray selectionJSONArray = new JSONArray();
+			JSONObject selectionCriteriaJSONObject = new JSONObject();
 			
-			for (int index = 0; index < years.size(); index++){
-				JSONObject selectionJSONObject = new JSONObject();
-				String year = years.get(index);
-				
-				selectionJSONObject.put("year", year);
-				
-				List<Player> playersForSeason = dataService.getPlayers(year);
-				
-				List<String[]> weeksAndLabels = dataService.getWeeksAndLabels(year);
-				
-				JSONArray weeksArray = new JSONArray();
-				
-				for (int w = 0; w < weeksAndLabels.size(); w++){
-					String[] weekAndLabel = weeksAndLabels.get(w);
-					JSONObject weekJSONObject = new JSONObject();
-					weekJSONObject.put("week", weekAndLabel[0]);
-					weekJSONObject.put("label", weekAndLabel[1]);
-					weeksArray.put(weekJSONObject);
-				}
-				
-				selectionJSONObject.put("weeks", weeksArray);
-				
-				JSONArray playersArray = new JSONArray();
-				
-				for (int p = 0; p < playersForSeason.size(); p++){
-					Player player = playersForSeason.get(p);
-					JSONObject playerJSONObject = new JSONObject();
-					playerJSONObject.put("id", player.getId());
-					playerJSONObject.put("name", player.getName());
-					playersArray.put(playerJSONObject);
-				}
-				
-				selectionJSONObject.put("players", playersArray);
-				
-				selectionJSONArray.put(selectionJSONObject);
+			selectionCriteriaJSONObject.put("years", years);
+			
+			List<Player> players = dataService.getPlayers();
+			List<String> playerNames = new ArrayList<String>();
+			
+			for (int index = 0; index < players.size(); index++){
+				Player player = players.get(index);
+				playerNames.add(player.getName());
 			}
 			
-			json = selectionJSONArray.toString();
+			Collections.sort(playerNames);
+			
+			selectionCriteriaJSONObject.put("players", playerNames);
+			
+			json = selectionCriteriaJSONObject.toString();
 		}
 		
 		PrintWriter writer = resp.getWriter();

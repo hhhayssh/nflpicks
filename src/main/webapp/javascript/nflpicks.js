@@ -6,9 +6,19 @@ var picksGrid = null;
 
 $(document).ready(
 	function(){
-		setSelectionsFromUrlParameters();
-		updateView();
+		//Do this in edit too....
+		//other stuff to do:
+		//	1. make it work without javascript
+		//	1. add stats
+		//	2. add comments and clean up code
+		//	3. insert everything from the csvs
+		getSelectionCriteriaAndInitialize();
 });
+
+function initializeView(){
+	setSelectionsFromUrlParameters();
+	updateView();
+}
 
 function setSelectionsFromUrlParameters(){
 	
@@ -55,12 +65,50 @@ function getUrlParameters() {
     var urlParameters = {};
     
     for (var index = 0; index < parameterNamesAndValues.length; index++) {
-        var split2 = parameterNamesAndValues[index].split('=');
-        var name = decodeURIComponent(split2[0]).toLowerCase();
-        var value = decodeURIComponent(split2[1]);
+        var parameterNameAndValue = parameterNamesAndValues[index].split('=');
+        var name = decodeURIComponent(parameterNameAndValue[0]).toLowerCase();
+        var value = decodeURIComponent(parameterNameAndValue[1]);
         urlParameters[name] = value;
     }
     return urlParameters;
+}
+
+function getSelectionCriteriaAndInitialize(){
+	
+	$.ajax({url: 'nflpicks?target=selectionCriteria',
+			contentType: 'application/json; charset=UTF-8'}
+	)
+	.done(function(data) {
+		var selectionCriteriaContainer = $.parseJSON(data);
+		
+		var years = selectionCriteriaContainer.years;
+		
+		var yearOptions = [{label: 'All', value: 'all'}];
+
+		for (var index = 0; index < years.length; index++){
+			var year = years[index];
+			yearOptions.push({label: year, value: year});
+		}
+		
+		setOptionsInSelect('year', yearOptions);
+		
+		var players = selectionCriteriaContainer.players;
+		
+		var playerOptions = [{label: 'Everybody', value: 'all'}];
+		
+		for (var index = 0; index < players.length; index++){
+			var player = players[index];
+			playerOptions.push({label: player, value: player});
+		}
+		
+		setOptionsInSelect('player', playerOptions);
+		
+		initializeView();
+	})
+	.fail(function() {
+	})
+	.always(function() {
+	});
 }
 
 function updateView(){

@@ -3,6 +3,7 @@ package nflpicks;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.Reader;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -214,6 +215,19 @@ public class Util {
 		return value;
 	}
 	
+	public static Integer toInteger(String value){
+		
+		Integer integer = null;
+		try {
+			integer = Integer.parseInt(value);
+		}
+		catch (Exception e){
+			integer = null;
+		}
+		
+		return integer;
+	}
+	
 	public static int parseInt(String intString, int defaultValue){
 		
 		int parsedInt = defaultValue;
@@ -233,5 +247,38 @@ public class Util {
 		String replacedValue = value.replace("%20", " ");
 		
 		return replacedValue;
+	}
+	
+	public static String formatNormalDouble(double value){
+		
+		String formattedDouble = formatDouble(value, "0.000");
+		
+		return formattedDouble;
+	}
+	
+	public static String formatDouble(double value, String format){
+		
+		if (format == null){
+			return null;
+		}
+		
+		DecimalFormat formatter = new DecimalFormat(format);
+		
+		String formattedValue = formatter.format(value);
+		
+		return formattedValue;
+	}
+	
+	public static boolean isBlank(String value){
+		
+		if (value == null){
+			return true;
+		}
+		
+		if (value.trim().length() == 0){
+			return true;
+		}
+		
+		return false;
 	}
 }
