@@ -489,7 +489,7 @@ public class NFLPicksDataService {
 		try {
 			connection = getConnection();
 			String query = SELECT_WEEK + 
-						   "where season_id in (select season_id " +
+						   "where season_id in (select id " +
 						   				  	   "from season " + 
 						   				  	   "where year = ? )";
 			statement = connection.prepareStatement(query);
@@ -1514,6 +1514,24 @@ public class NFLPicksDataService {
 		return pick;
 	}
 	
+//	public boolean wasPlayerActiveInYear(String year, String player){
+//		
+//		if (year == null || player == null){
+//			return false;
+//		}
+//		
+//		List<Player> players = getPlayers(year);
+//		
+//		for (int index = 0; index < players.size(); index++){
+//			Player currentPlayer = players.get(index);
+//			if (player.equals(currentPlayer.getName())){
+//				return true;
+//			}
+//		}
+//		
+//		return false;
+//	}
+	
 	public List<Player> getPlayers(String year){
 		
 		List<Player> players = new ArrayList<Player>();
@@ -1640,7 +1658,7 @@ public class NFLPicksDataService {
 					 "from pick " +
 					 "where player_id in (select id  " +
 					 					 "from player " +
-					 					 "where name = ?') " +
+					 					 "where name = ?) " +
 					 	   "and game_id in (select id  " +
 										   "from game  " +
 										   "where week_id in (select id " + 
@@ -1656,7 +1674,7 @@ public class NFLPicksDataService {
 			results = statement.executeQuery();
 			
 			if (results.next()){
-				numberOfPicksInYear = results.getInt(0);
+				numberOfPicksInYear = results.getInt(1);
 			}
 			
 		}

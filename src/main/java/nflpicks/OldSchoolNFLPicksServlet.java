@@ -3,6 +3,7 @@ package nflpicks;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -99,6 +100,10 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		
 		if ("picks".equals(type)){
 			
+			if (year == null || "all".equals(year)){
+				year = Util.getCurrentYear();
+			}
+			
 			int weekInt = Util.parseInt(week, 0);
 			
 			if (weekInt == 0){
@@ -108,10 +113,23 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			
 			List<Player> players = null;
 			if ("all".equals(player)){
-				players = dataService.getPlayers();
+				players = dataService.getPlayers(year);
 			}
 			else {
-				players = Arrays.asList(dataService.getPlayer(player));
+				boolean wasPlayerActiveInYear = dataService.wasPlayerActiveInYear(player, year);
+				if (wasPlayerActiveInYear){
+					players = Arrays.asList(dataService.getPlayer(player));
+				}
+				else {
+					player = "all";
+					players = dataService.getPlayers(year);
+				}
+			}
+			
+			List<String> playerNames = new ArrayList<String>();
+			for (int index = 0; index < players.size(); index++){
+				Player currentPlayer = players.get(index);
+				playerNames.add(currentPlayer.getName());
 			}
 			
 			List<Game> games = dataService.getGames(year, weekInt);
@@ -127,22 +145,50 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			List<String> years = year == null ? null : Arrays.asList(year);
 			List<String> weeks = week == null ? null : Arrays.asList(week);
 			
-			List<Record> records = dataService.getRecords(years, weeks, Arrays.asList(player));
+			List<Record> records = dataService.getRecords(years, weeks, playerNames);
 			
 			writePicks(output, players, records, picks, games);
 			
 		}
-		else if ("standings".equals(type)){
-			List<String> years = year == null ? null : Arrays.asList(year);
-			List<String> weeks = week == null ? null : Arrays.asList(week);
-			List<String> players = player == null ? null : Arrays.asList(player);
+		else if (type == null || "standings".equals(type)){
+			List<String> years = null;
 			
-			List<Record> records = dataService.getRecords(years, weeks, players);
+			if (year == null || "all".equals(year)){
+			}
+			else {
+				years = Arrays.asList(year);
+			}
 			
-			writeRecords(output, records);
-		}
-		else {
-			List<Record> records = dataService.getRecords(null, null, null);
+			List<String> weeks = null;
+			if (week == null || "all".equals(week)){
+				
+			}
+			else {
+				weeks = Arrays.asList(week);
+			}
+			
+			List<Player> players = null;
+			if (player == null || "all".equals(player)){
+				if (year == null || "all".equals(years)){
+					players = dataService.getPlayers();
+				}
+				else {
+					players = dataService.getPlayers(year);
+				}
+			}
+			else {
+				players = Arrays.asList(dataService.getPlayer(player));
+			}
+			
+			List<String> playerNames = new ArrayList<String>();
+			for (int index = 0; index < players.size(); index++){
+				Player currentPlayer = players.get(index);
+				playerNames.add(currentPlayer.getName());
+			}
+			
+			List<Record> records = dataService.getRecords(years, weeks, playerNames);
+			
+			Collections.sort(records, new RecordComparator());
 			
 			writeRecords(output, records);
 		}
@@ -159,9 +205,32 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 	
 	protected void writeSelectorForm(ServletOutputStream output, String type, String player, String year, String week) throws Exception {
 
-		List<String[]> typeOptions = Arrays.asList(new String[]{"picks", "Picks"}, new String[]{"standings", "Standings"});
+		List<String[]> typeOptions = Arrays.asList(new String[]{"standings", "Standings"}, new String[]{"picks", "Picks"});
 		
-		List<Player> players = dataService.getPlayers();
+		if (type == null){
+			type = "standings";
+		}
+		
+		List<Player> players = null;
+		if ("picks".equals(type)){
+			if (year == null || "all".equals(year)){
+				year = Util.getCurrentYear();
+			}
+			
+			if (week == null || "all".equals(week)){
+				week = "1";
+			}
+			
+			players = dataService.getPlayers(year);
+		}
+		else if ("standings".equals(type)){
+			if (year == null){
+				players = dataService.getPlayers();
+			}
+			else {
+				players = dataService.getPlayers(year);
+			}
+		}
 		
 		List<String[]> playerOptions = new ArrayList<String[]>();
 		playerOptions.add(new String[]{"all", "All"});
@@ -172,15 +241,19 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		
 		List<String> years = dataService.getYears();
 		List<String[]> yearOptions = new ArrayList<String[]>();
-		yearOptions.add(new String[]{"all", "All"});
+		if ("standings".equals(type)){
+			yearOptions.add(new String[]{"all", "All"});
+		}
 		for (int index = 0; index < years.size(); index++){
 			String currentYear = years.get(index);
 			yearOptions.add(new String[]{currentYear, currentYear});
 		}
 		
-		List<Week> weeks = dataService.getWeeks();
+		List<Week> weeks = dataService.getWeeks(Util.getCurrentYear());
 		List<String[]> weekOptions = new ArrayList<String[]>();
-		weekOptions.add(new String[]{"all", "All"});
+		if ("standings".equals(type)){
+			weekOptions.add(new String[]{"all", "All"});
+		}
 		for (int index = 0; index < weeks.size(); index++){
 			Week currentWeek = weeks.get(index);
 			weekOptions.add(new String[]{String.valueOf(currentWeek.getWeek()), String.valueOf(currentWeek.getLabel())});
@@ -251,8 +324,6 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		}
 		
 		output.print("</tr>");
-		
-		writePicksBody(output, players, records, picks, games);
 	}
 	
 	protected void writePicksBody(ServletOutputStream output, List<Player> players, List<Record> records, List<Pick> picks, List<Game> games) throws Exception {
@@ -271,8 +342,15 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				rowCssClass = "odd-row";
 			}
 			
+			boolean isLastGame = false;
+			String gameClass = "pick-game";
+			if (gameIndex + 1 == games.size()){
+				gameClass = "last-pick-game";
+				isLastGame = true;
+			}
+			
 			output.print("<tr class=\"" + rowCssClass + "\">");
-			output.print("<td class=pick-game>" + awayTeam.getAbbreviation() + " @ " + homeTeam.getAbbreviation() + "</td>");
+			output.print("<td class=\"" + gameClass + "\">" + awayTeam.getAbbreviation() + " @ " + homeTeam.getAbbreviation() + "</td>");
 			
 			for (int playerIndex = 0; playerIndex < players.size(); playerIndex++){
 				Player player = players.get(playerIndex);
@@ -298,8 +376,16 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 					}
 				}
 				
-				output.print("<td class=\"pick-team\"><span class=\"" + pickCssClass + "\">" + abbreviation + "</span></td>");
-				output.print("<td class=\"pick-result\"><span class=\"" + pickCssClass + "\">" + result + "</span></td>");  
+				String teamCssClass = "pick-team";
+				String resultCssClass = "pick-result";
+				
+				if (isLastGame){
+					teamCssClass = "last-pick-team";
+					resultCssClass = "last-pick-result";
+				}
+				
+				output.print("<td class=\"" + teamCssClass + "\"><span class=\"" + pickCssClass + "\">" + abbreviation + "</span></td>");
+				output.print("<td class=\"" + resultCssClass + "\"><span class=\"" + pickCssClass + "\">" + result + "</span></td>");  
 			}
 			
 			output.print("</tr>");
@@ -335,8 +421,8 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			
 			String gamesBackString = gamesBack == 0 ? "-" : String.valueOf(gamesBack);
 			
-			int wins = record.getWins();
-			int losses = record.getLosses();
+			double wins = (double)record.getWins();
+			double losses = (double)record.getLosses();
 			
 			double percentage = wins / (wins + losses);
 			String formattedPercentage = Util.formatNormalDouble(percentage);

@@ -5,6 +5,7 @@ import java.io.FileReader;
 import java.io.Reader;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class Util {
@@ -280,5 +281,14 @@ public class Util {
 		}
 		
 		return false;
+	}
+	
+	public static String getCurrentYear(){
+		
+		int year = Calendar.getInstance().get(Calendar.YEAR);
+		
+		String currentYear = String.valueOf(year);
+		
+		return currentYear;
 	}
 }
