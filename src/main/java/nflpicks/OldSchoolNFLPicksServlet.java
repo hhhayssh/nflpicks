@@ -259,10 +259,10 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			weekOptions.add(new String[]{String.valueOf(currentWeek.getWeek()), String.valueOf(currentWeek.getLabel())});
 		}
 		
-		String typeSelectHtml = HtmlUtil.createSelectHtml(typeOptions, type, "type", "type", "this.form.submit()", "criteria-selector", null);
-		String playersSelectHtml = HtmlUtil.createSelectHtml(playerOptions, player, "player", "player", "this.form.submit()", "criteria-selector", null);
-		String yearsSelectHtml = HtmlUtil.createSelectHtml(yearOptions, year, "year", "year", "this.form.submit()", "criteria-selector", null);
-		String weeksSelectHtml = HtmlUtil.createSelectHtml(weekOptions, week, "week", "week", "this.form.submit()", "criteria-selector", null);
+		String typeSelectHtml = HtmlUtil.createSelectHtml(typeOptions, type, "type", "type", null, "criteria-selector", null);
+		String playersSelectHtml = HtmlUtil.createSelectHtml(playerOptions, player, "player", "player", null, "criteria-selector", null);
+		String yearsSelectHtml = HtmlUtil.createSelectHtml(yearOptions, year, "year", "year", null, "criteria-selector", null);
+		String weeksSelectHtml = HtmlUtil.createSelectHtml(weekOptions, week, "week", "week", null, "criteria-selector", null);
 		
 		output.print( 
 				"		<div class=\"selectors-container\">\n" + 
@@ -283,6 +283,9 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				"			<div id=\"weekContainer\" class=\"selector-container\">\n" + 
 				"				<div>Week</div>\n" + 
 							    weeksSelectHtml + 
+				"			</div>\n" +
+				"			<div id=\"weekContainer\" class=\"selector-container\">\n" + 
+				"		    	<input type=\"submit\" value=\"Update\"/>" +
 				"			</div>\n" +
 				"</form>" +
 				"		</div>");
@@ -395,31 +398,92 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 	
 	protected void writeRecords(ServletOutputStream output, List<Record> records) throws Exception {
 		
-		output.print("<table align=\"center\">\n" + 
-				"      <thead>\n" + 
-				"        <tr>\n" + 
-				"          <th class=\"standings-header\"></th>\n" + 
-				"          <th class=\"standings-header\">Wins</th>\n" + 
-				"          <th class=\"standings-header\">Losses</th>\n" + 
-				"          <th class=\"standings-header\">Win %</th>\n" + 
-				"          <th class=\"standings-header\">GB</th>\n" + 
-				"        </tr>\n" + 
-				"      </thead>\n" + 
-				"      <tbody>");
-		
 		Record previousRecord = null;
+		Record nextRecord = null;
 		int gamesBack = 0;
-		int rank = 1;
+		int rank = 0;
+		int nextRank = 1;
+		int previousRank = -1;
 		int tieIndependentRank = 1;
+		
+		//int maxWins = records.stream().map(r -> r.getWins()).reduce(Integer::max);
+		
+		int topWins = 0;
+		int topLosses = 0;
+		
+		boolean areThereAnyTies = false;
+		for (int index = 0; index < records.size(); index++){
+			Record record = records.get(0);
+			if (record.getWins() > topWins){
+				topWins = record.getWins();
+			}
+			
+			if (index == 0 || (record.getLosses() < topLosses)){
+				topLosses = record.getLosses();
+			}
+			
+			if (record.getTies() > 0){
+				areThereAnyTies = true;
+			}
+		}
+		
+		String tableHtml = "<table align=\"center\">\n" + 
+		"      <thead>\n" + 
+		"        <tr>\n" + 
+		"          <th class=\"standings-header\"></th>\n" + 
+		"          <th class=\"standings-header\">Wins</th>\n" + 
+		"          <th class=\"standings-header\">Losses</th>\n";
+		
+		if (areThereAnyTies){
+			tableHtml = tableHtml + "<th class=\"standings-header\">Ties</th>\n";
+		}
+		
+		tableHtml = tableHtml + "          <th class=\"standings-header\">Win %</th>\n" + 
+		"          <th class=\"standings-header\">GB</th>\n" + 
+		"        </tr>\n" + 
+		"      </thead>\n" + 
+		"      <tbody>";
+		
+		output.print(tableHtml);
 		
 		for (int index = 0; index < records.size(); index++){
 			Record record = records.get(index);
 			
-			if (previousRecord != null){
-				gamesBack = getGamesBack(previousRecord, record);
+			tieIndependentRank = index + 1;
+			rank = nextRank;
+			
+			nextRecord = null;
+			
+			if (index + 1 < records.size()){
+				nextRecord = records.get(index + 1);
+				
+				//If the next record has the same number of losses, it should have the same rank
+				//as this one.
+				if (record.getLosses() == nextRecord.getLosses()){
+				}
+				//If it doesn't, it should start a new "rank" and be whatever the current rank would
+				//have been if there were no ties + 1.
+				else {
+					nextRank = tieIndependentRank + 1;
+				}
 			}
 			
-			String gamesBackString = gamesBack == 0 ? "-" : String.valueOf(gamesBack);
+			//Now, we have the rank and next rank so we need to figure out if we need to put a little 't' to indicate
+			//there was a tie.
+			//There's a tie if:
+			//	1. It's the same as the next rank and we're not at the end.
+			//	2. The rank is the same as the previous rank.
+			//
+			//Number 1 should be pretty straight forward.  If this rank is the same as the next one, it's in a tie.
+			//Number 2 is there for the last tie in a series of ties.  The last tie will have a "nextRank" that's different from
+			//what it is, but we'll still want to show a tie for it.  So, in that case, we can just look to see if it's the same
+			//as the previous rank and, if it is, we know there's a tie.
+			
+			String rankToUse = rank + "";
+			
+			if ((nextRank == rank && index + 1 < records.size()) || (rank == previousRank)){
+				rankToUse = rankToUse + "t";
+			}
 			
 			double wins = (double)record.getWins();
 			double losses = (double)record.getLosses();
@@ -427,13 +491,51 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			double percentage = wins / (wins + losses);
 			String formattedPercentage = Util.formatNormalDouble(percentage);
 			
-			output.print("<tr>" + 
-						 	"<td class=\"records-cell\">" + rank + ". " + record.getPlayer().getName() + "</td>" +
-						 	"<td class=\"records-data-cell\">" + record.getWins() + "</td>" +
-						 	"<td class=\"records-data-cell\">" + record.getLosses() + "</td>" +
-						 	"<td class=\"records-data-cell\">" + formattedPercentage + "</td>" +
-						 	"<td class=\"records-data-cell\">" + gamesBackString + "</td>" +
-						 "</tr>");
+			/*
+		var gamesBack = '';
+		
+		if (record.losses == topLosses && record.wins == topWins){
+			gamesBack = '-';
+		}
+		else {
+			//Base the games back on wins instead of losses since they
+			//don't get a loss if they don't pick.
+			var calculatedGamesBack = topWins - record.wins;
+			gamesBack = calculatedGamesBack + '';
+		}
+		
+		var tiesCell = '';
+		if (areThereAnyTies){
+			tiesCell = '<td class="records-data-cell">' + record.ties + '</td>';
+		}
+			 */
+			
+			gamesBack = topWins - record.getWins();
+			
+			if (gamesBack == 0){
+				gamesBack = topLosses - record.getLosses(); 
+			}
+			
+			String gamesBackString = gamesBack == 0 ? "-" : String.valueOf(gamesBack);
+			
+			//areThereAnyTies
+			String recordHtml = "<tr>" + 
+									"<td class=\"records-cell\">" + rankToUse + ". " + record.getPlayer().getName() + "</td>" +
+									"<td class=\"records-data-cell\">" + record.getWins() + "</td>" +
+									"<td class=\"records-data-cell\">" + record.getLosses() + "</td>";
+			
+			if (areThereAnyTies){
+				recordHtml = recordHtml + "<td class=\"records-data-cell\">" + record.getTies() + "</td>";
+			}
+			
+			recordHtml = recordHtml + "<td class=\"records-data-cell\">" + formattedPercentage + "</td>" +
+									  "<td class=\"records-data-cell\">" + gamesBackString + "</td>" +
+								"</tr>";
+			
+			output.print(recordHtml);
+			
+			previousRecord = record;
+			previousRank = rank;
 		}
 		
 		output.print("</tbody>");
