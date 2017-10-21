@@ -215,6 +215,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		
 		List<Player> players = null;
 		if ("picks".equals(type)){
+			
 			if (year == null || "all".equals(year)){
 				year = Util.getCurrentYear();
 			}
@@ -226,7 +227,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			players = dataService.getPlayers(year);
 		}
 		else if ("standings".equals(type)){
-			if (year == null){
+			if (year == null || "all".equals(year)){
 				players = dataService.getPlayers();
 			}
 			else {
@@ -235,7 +236,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		}
 		
 		List<String[]> playerOptions = new ArrayList<String[]>();
-		playerOptions.add(new String[]{"all", "All"});
+		playerOptions.add(new String[]{"all", "Everybody"});
 		for (int index = 0; index < players.size(); index++){
 			Player currentPlayer = players.get(index);
 			playerOptions.add(new String[]{currentPlayer.getName(), currentPlayer.getName()});
@@ -307,6 +308,14 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				"        <tr>\n" + 
 				"          <th class=\"table-header\" align=\"left\">Game</th>\n");
 		
+		Collections.sort(players, new Comparator<Player>(){
+
+			@Override
+			public int compare(Player player1, Player player2) {
+				return player1.getName().compareTo(player2.getName());
+			}
+		});
+		
 		for (int index = 0; index < players.size(); index++){
 			Player player = players.get(index);
 			output.print("<th colspan=\"2\" class=\"table-header\" align=\"left\">" + player.getName() + "</th>");
@@ -320,32 +329,40 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		
 		boolean areThereAnyTies = RecordUtil.areThereAnyTies(records);
 		
-		//Sort these by the player name.
-		
-		Collections.sort(records, new Comparator<Record>(){
-
-			@Override
-			public int compare(Record record1, Record record2) {
-				return record1.getPlayer().getName().compareTo(record2.getPlayer().getName());
-			}
-		});
-		
-		for (int index = 0; index < records.size(); index++){
-			Record record = records.get(index);
+		for (int index = 0; index < players.size(); index++){
+			Player player = players.get(index);
+			
+			Record record = RecordUtil.getRecordForPlayer(records, player.getName());
+			
 			String cssClass = "pick-record";
-			if (index + 1 == records.size()){
+			if (index + 1 == players.size()){
 				cssClass = "last-pick-record";
 			}
 			
-			String recordHtml = "<td colspan=\"2\" class=\"" + cssClass + "\">" + record.getWins() + " - " + record.getLosses();
+			String recordHtml = "";
 			
-			if (areThereAnyTies){
-				recordHtml = recordHtml + " - " + record.getTies();
+			if (record == null){
+				if (areThereAnyTies){
+					recordHtml = "<td colspan=\"2\" class=\"" + cssClass + "\">0 - 0 - 0</td>";
+				}
+				else {
+					recordHtml = "<td colspan=\"2\" class=\"" + cssClass + "\">0 - 0</td>";
+				}
+				
+			}
+			else {
+
+				recordHtml = "<td colspan=\"2\" class=\"" + cssClass + "\">" + record.getWins() + " - " + record.getLosses();
+
+				if (areThereAnyTies){
+					recordHtml = recordHtml + " - " + record.getTies();
+				}
 			}
 			
 			recordHtml = recordHtml + "</td>";
 			
 			output.print(recordHtml);
+			
 		}
 		
 		output.print("</tr>");

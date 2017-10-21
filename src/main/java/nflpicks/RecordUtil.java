@@ -41,4 +41,21 @@ public class RecordUtil {
 		
 		return topWins;
 	}
+	
+	public static Record getRecordForPlayer(List<Record> records, String playerName){
+		
+		if (records == null || playerName == null){
+			return null;
+		}
+		
+		for (int index = 0; index < records.size(); index++){
+			Record record = records.get(index);
+			
+			if (playerName.equals(record.getPlayer().getName())){
+				return record;
+			}
+		}
+		
+		return null;
+	}
 }

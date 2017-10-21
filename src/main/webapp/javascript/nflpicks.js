@@ -117,10 +117,12 @@ function updateView(){
 
 	if ('picks' == type){
 		hideAllWeekOption();
+		hideAllYearOption();
 		updatePicks();
 	}
 	else if ('standings' == type) {
 		showAllWeekOption();
+		showAllYearOption();
 		updateRecords();
 	}
 }
@@ -213,6 +215,14 @@ function showAllWeekOption(){
 	$('#week option[value=all]').show();
 }
 
+function hideAllYearOption(){
+	$('#year option[value=all]').hide();
+}
+
+function showAllYearOption(){
+	$('#year option[value=all]').show();
+}
+
 function updatePicks(){
 	var player = getSelectedPlayer();
 //	if ('all' == player){
@@ -221,6 +231,10 @@ function updatePicks(){
 //		setSelectedPlayer(player);
 //	}
 	var year = getSelectedYear();
+	if ('all' == year){
+		year = $('#year option')[1].value;
+		setSelectedYear(year);
+	}
 	var week = getSelectedWeek();
 	if ('all' == week){
 		//Get the first player option's value
