@@ -6,7 +6,6 @@
 		<script src="javascript/nflpicks.js?1"></script>
 		<link rel="stylesheet" type="text/css" href="css/nflpicks.css?1">
 		<meta name="viewport" content="initial-scale=1.0, minimum-scale=0.25, maximum-scale=5.0, user-scalable=yes">
-		<!-- <meta name="viewport" content="width=device-width, initial-scale=0.75"> -->
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 		<meta content="utf-8" http-equiv="encoding">
 	</head>
@@ -30,31 +29,11 @@
 			<div id="playerContainer" class="selector-container">
 				<div>Who</div>
 				<select id="player" onChange="updateView();" class="criteria-selector">
-					<!--
-					<option value="all">Everybody</option>
-					<option value="Benny boy">Benny boy</option>
-					<option value="Bookey">Bookey</option>
-					<option value="Bruce">Bruce</option>
-					<option value="Chance">Chance</option>
-					<option value="Doodle">Doodle</option>
-					<option value="Jerry">Jerry</option>
-					<option value="Josh">Josh</option>
-					<option value="Jonathan">Jonathan</option>
-					<option value="Mark">Mark</option>
-					<option value="Teddy">Teddy</option>
-					<option value="Tim">Tim</option>
-					<option value="Var">Var</option>
-					 -->
 				</select>
 			</div>
 			<div id="yearContainer" class="selector-container">
 				<div>Year</div>
 				<select id="year" onChange="updateView();" class="criteria-selector">
-					<!-- Read this from the database... 
-					<option value="all">All<option>
-					<option value="2016" selected>2016</option>
-					<option value="2017" selected>2017</option>
-					-->
 				</select>
 			</div>
 			<div id="weekContainer" class="selector-container">
@@ -88,7 +67,8 @@
 		<div id="contentContainer" class="content-container">
 		</div>
 		<div>
-			<p style="font-size: 11px; text-align: center;">What is <a href="http://carsonrails.com" target="_blank">cars on rails?</a></p>
+			<p style="font-size: 11px; text-align: center;">What is <a href="http://carsonrails.com">cars on rails?</a></p>
+			<p style="font-size: 11px; text-align: center;"><a href="alternate">Click here for a non javascript version</a></p>
 		</div>
 	</body>
 </html>

@@ -97,7 +97,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		
 		writeTopHeader(output);
 		writeSelectorForm(output, type, player, year, week);
-		
+
 		if ("picks".equals(type)){
 			
 			if (year == null || "all".equals(year)){
@@ -192,6 +192,8 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			
 			writeRecords(output, records);
 		}
+		
+		writeFooter(output);
 		
 		output.print("</body>");
 	}
@@ -316,14 +318,34 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		output.print("<tr>");
 		output.print("<td class=\"last-pick-game\"></td>");
 		
+		boolean areThereAnyTies = RecordUtil.areThereAnyTies(records);
+		
 		//Sort these by the player name.
+		
+		Collections.sort(records, new Comparator<Record>(){
+
+			@Override
+			public int compare(Record record1, Record record2) {
+				return record1.getPlayer().getName().compareTo(record2.getPlayer().getName());
+			}
+		});
+		
 		for (int index = 0; index < records.size(); index++){
 			Record record = records.get(index);
 			String cssClass = "pick-record";
 			if (index + 1 == records.size()){
 				cssClass = "last-pick-record";
 			}
-			output.print("<td colspan=\"2\" class=\"" + cssClass + "\">" + record.getWins() + " - " + record.getLosses() + "</td>");
+			
+			String recordHtml = "<td colspan=\"2\" class=\"" + cssClass + "\">" + record.getWins() + " - " + record.getLosses();
+			
+			if (areThereAnyTies){
+				recordHtml = recordHtml + " - " + record.getTies();
+			}
+			
+			recordHtml = recordHtml + "</td>";
+			
+			output.print(recordHtml);
 		}
 		
 		output.print("</tr>");
@@ -352,8 +374,30 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				isLastGame = true;
 			}
 			
+			String awayTeamClass = "";
+			String homeTeamClass = "";
+			
+			if (winningTeam != null){
+				int winningTeamId = winningTeam.getId();
+				
+				if (awayTeam != null && awayTeam.getId() == winningTeamId){
+					awayTeamClass = "winner";
+				}
+				else if (homeTeam != null && homeTeam.getId() == winningTeamId){
+					homeTeamClass = "winner";
+				}
+			}
+			else if (game.getTie()){
+				awayTeamClass = "tie";
+				homeTeamClass = "tie";
+			}
+			
 			output.print("<tr class=\"" + rowCssClass + "\">");
-			output.print("<td class=\"" + gameClass + "\">" + awayTeam.getAbbreviation() + " @ " + homeTeam.getAbbreviation() + "</td>");
+			output.print("<td class=\"" + gameClass + "\">" + 
+							"<span class=\"" + awayTeamClass + "\">" + awayTeam.getAbbreviation() + "</span>" + 
+							" @ " + 
+							"<span class=\"" + homeTeamClass + "\">" + homeTeam.getAbbreviation() + "</span>" + 
+						 "</td>");
 			
 			for (int playerIndex = 0; playerIndex < players.size(); playerIndex++){
 				Player player = players.get(playerIndex);
@@ -377,6 +421,10 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 							pickCssClass = "loser";
 						}
 					}
+					else if (game.getTie()){
+						result = "T";
+						pickCssClass = "tie";
+					}
 				}
 				
 				String teamCssClass = "pick-team";
@@ -393,6 +441,8 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			
 			output.print("</tr>");
 		}
+		
+		output.print("</tbody></table>");
 		
 	}
 	
@@ -538,7 +588,15 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			previousRank = rank;
 		}
 		
-		output.print("</tbody>");
+		output.print("</tbody></table>");
+	}
+	
+	protected void writeFooter(ServletOutputStream output) throws Exception {
+
+		output.print("<div>" + 
+				"<p style=\"font-size: 11px; text-align: center;\">What is <a href=\"http://carsonrails.com\">cars on rails?</a></p>" + 
+				"<p style=\"font-size: 11px; text-align: center;\"><a href=\"index.html\">Click here for the regular javascript enabled version</a></p>" + 
+				"</div>");
 	}
 	
 	protected int getGamesBack(Record record1, Record record2){
