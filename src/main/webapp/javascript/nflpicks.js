@@ -186,6 +186,14 @@ function updateRecords(){
 			else if (a.wins < b.wins){
 				return 1;
 			}
+			else {
+				if (a.losses < b.losses){
+					return -1;
+				}
+				else if (a.losses > b.losses){
+					return 1;
+				}
+			}
 			return 0;
 		});
 		
@@ -348,7 +356,7 @@ function createStandingsGridHtml(records){
 	//	6. Start going through the records.
 	//	7. Assign the nextRank that we calculated to the rank so that we use it for this record.
 	//	8. Calculate the nextRank:
-	//		1. If there's a next record and it has the same number of losses as this one, then
+	//		1. If there's a next record and it has the same number of wins and losses as this one, then
 	//		   the nextRank will be same as the current rank because there's a tie.
 	//		2. Otherwise, it'll be whatever "tieIndepdentedRank" we have.  That's because we'll
 	//		   want to basically pick up where we left off before the ties started.
@@ -368,7 +376,7 @@ function createStandingsGridHtml(records){
 		rank = nextRank;
 		
 		//Now, need to calculate what it will be the next time.
-		//If the next record has the same number of losses, then it'll be the same as now because they're
+		//If the next record has the same number of wins and losses, then it'll be the same as now because they're
 		//tied.
 		//Otherwise, if the next record doesn't, the next rank will be whatever this one's would have
 		//been without ties + 1.  If there weren't any ties, then this record's rank would be the "tieIndependentRank".
@@ -377,7 +385,7 @@ function createStandingsGridHtml(records){
 		if (index + 1 < records.length){
 			nextRecord = records[index + 1];
 			
-			if (record.losses == nextRecord.losses){
+			if (record.wins == nextRecord.wins && record.losses == nextRecord.losses){
 				//rank stays the same.
 			}
 			else {
@@ -412,8 +420,6 @@ function createStandingsGridHtml(records){
 			gamesBack = '-';
 		}
 		else {
-			//Base the games back on wins instead of losses since they
-			//don't get a loss if they don't pick.
 			var calculatedGamesBack = topWins - record.wins;
 			gamesBack = calculatedGamesBack + '';
 		}

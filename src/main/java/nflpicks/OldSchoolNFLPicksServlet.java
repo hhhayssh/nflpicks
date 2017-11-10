@@ -526,7 +526,8 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				
 				//If the next record has the same number of losses, it should have the same rank
 				//as this one.
-				if (record.getLosses() == nextRecord.getLosses()){
+				if (record.getWins() == nextRecord.getWins() && 
+						record.getLosses() == nextRecord.getLosses()){
 				}
 				//If it doesn't, it should start a new "rank" and be whatever the current rank would
 				//have been if there were no ties + 1.
@@ -558,34 +559,14 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			double percentage = wins / (wins + losses);
 			String formattedPercentage = Util.formatNormalDouble(percentage);
 			
-			/*
-		var gamesBack = '';
-		
-		if (record.losses == topLosses && record.wins == topWins){
-			gamesBack = '-';
-		}
-		else {
-			//Base the games back on wins instead of losses since they
-			//don't get a loss if they don't pick.
-			var calculatedGamesBack = topWins - record.wins;
-			gamesBack = calculatedGamesBack + '';
-		}
-		
-		var tiesCell = '';
-		if (areThereAnyTies){
-			tiesCell = '<td class="records-data-cell">' + record.ties + '</td>';
-		}
-			 */
-			
-			gamesBack = topWins - record.getWins();
-			
-			if (gamesBack == 0){
-				gamesBack = topLosses - record.getLosses(); 
+			String gamesBackString = "";
+			if (topWins == record.getWins() && topLosses == record.getLosses()){
+				gamesBackString = "-";
+			}
+			else {
+				gamesBackString = String.valueOf(topWins - record.getWins());
 			}
 			
-			String gamesBackString = gamesBack == 0 ? "-" : String.valueOf(gamesBack);
-			
-			//areThereAnyTies
 			String recordHtml = "<tr>" + 
 									"<td class=\"records-cell\">" + rankToUse + ". " + record.getPlayer().getName() + "</td>" +
 									"<td class=\"records-data-cell\">" + record.getWins() + "</td>" +
