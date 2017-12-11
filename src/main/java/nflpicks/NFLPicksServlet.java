@@ -37,6 +37,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_PICKS_GRID = "picksGrid";
 	protected static final String TARGET_STANDINGS = "standings";
 	protected static final String TARGET_SELECTION_CRITERIA = "selectionCriteria";
+	protected static final String TARGET_EDIT_SELECTION_CRITERIA = "editSelectionCriteria";
 	
 	protected NFLPicksDataService dataService;
 	
@@ -152,6 +153,34 @@ public class NFLPicksServlet extends HttpServlet {
 			json = recordsJSONObject.toString();
 		}
 		else if (TARGET_SELECTION_CRITERIA.equals(target)){
+			
+			List<String> years = dataService.getYears();
+			
+			JSONObject selectionCriteriaJSONObject = new JSONObject();
+			
+			selectionCriteriaJSONObject.put("years", years);
+			
+			List<Player> players = dataService.getPlayers();
+			List<String> playerNames = new ArrayList<String>();
+			
+			for (int index = 0; index < players.size(); index++){
+				Player player = players.get(index);
+				playerNames.add(player.getName());
+			}
+			
+			Collections.sort(playerNames);
+			
+			selectionCriteriaJSONObject.put("players", playerNames);
+			
+			json = selectionCriteriaJSONObject.toString();
+		}
+		else if (TARGET_EDIT_SELECTION_CRITERIA.equals(target)){
+			
+			String key = req.getParameter("key");
+			
+			if (!"2017BradySucks".equals(key)){
+				return;
+			}
 			
 			List<String> years = dataService.getYears();
 			

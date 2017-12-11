@@ -88,3 +88,22 @@ function setOptionsInSelect(selectId, options){
 		$('#' + selectId).append('<option value="' + option.value + '">' + option.label + '</option>');
 	}
 }
+
+function getUrlParameters() {
+	
+	if (isBlank(location.search)){
+		return null;
+	}
+	
+    var parameterNamesAndValues = location.search.substring(1, location.search.length).split('&');
+    
+    var urlParameters = {};
+    
+    for (var index = 0; index < parameterNamesAndValues.length; index++) {
+        var parameterNameAndValue = parameterNamesAndValues[index].split('=');
+        var name = decodeURIComponent(parameterNameAndValue[0]).toLowerCase();
+        var value = decodeURIComponent(parameterNameAndValue[1]);
+        urlParameters[name] = value;
+    }
+    return urlParameters;
+}

@@ -1,8 +1,50 @@
 
 $(document).ready(
 	function(){
-		updateView();
+		getSelectionCriteriaAndInitialize();
 });
+
+function getSelectionCriteriaAndInitialize(){
+	
+	var urlParameters = getUrlParameters();
+	
+	var key = urlParameters.key;
+	
+	$.ajax({url: 'nflpicks?target=editSelectionCriteria&key=' + key,
+		contentType: 'application/json; charset=UTF-8'}
+	)
+	.done(function(data) {
+		var selectionCriteriaContainer = $.parseJSON(data);
+
+		var years = selectionCriteriaContainer.years;
+
+		var yearOptions = [];
+
+		for (var index = 0; index < years.length; index++){
+			var year = years[index];
+			yearOptions.push({label: year, value: year});
+		}
+
+		setOptionsInSelect('year', yearOptions);
+
+		var players = selectionCriteriaContainer.players;
+
+		var playerOptions = [];
+
+		for (var index = 0; index < players.length; index++){
+			var player = players[index];
+			playerOptions.push({label: player, value: player});
+		}
+
+		setOptionsInSelect('player', playerOptions);
+
+		updateView();
+	})
+	.fail(function() {
+	})
+	.always(function() {
+	});
+}
 
 var games = null;
 
