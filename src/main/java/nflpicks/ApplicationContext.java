@@ -72,15 +72,6 @@ public class ApplicationContext {
 	
 	/**
 	 * 
-	 * This is the system property that tells us the name of the properties file to use.
-	 * By default, it's nflpicks.properties but this lets us change it to something else
-	 * if we want.
-	 * 
-	 */
-	protected static final String PROPERTIES_FILE_NAME_PROPERTY = "nflpicks.properties.file";
-	
-	/**
-	 * 
 	 * The object that lets us connect to the database.
 	 * 
 	 */
@@ -168,7 +159,7 @@ public class ApplicationContext {
 	 * 
 	 */
 	public void initialize(){
-		String propertiesFileName = System.getProperty(PROPERTIES_FILE_NAME_PROPERTY);
+		String propertiesFileName = System.getProperty(NFLPicksConstants.NFL_PICKS_PROPERTIES_FILENAME_PROPERTY);
 		
 		initialize(propertiesFileName);
 	}

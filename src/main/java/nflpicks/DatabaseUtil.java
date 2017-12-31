@@ -3,6 +3,7 @@ package nflpicks;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.List;
 
 import org.apache.log4j.Logger;
 
@@ -82,5 +83,23 @@ public class DatabaseUtil {
 			log.error("Error closing connection!", e);
 		}
 	}
-
+	
+	public static String createInParameterString(int numberOfValues){
+		
+		StringBuilder stringBuilder = new StringBuilder("(");
+		
+		for (int index = 0; index < numberOfValues; index++){
+			if (index > 0){
+				stringBuilder.append(", ");
+			}
+			
+			stringBuilder.append("?");
+		}
+		
+		stringBuilder.append(")");
+		
+		String inParameterString = stringBuilder.toString();
+		
+		return inParameterString;
+	}
 }

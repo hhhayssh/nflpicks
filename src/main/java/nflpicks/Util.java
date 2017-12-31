@@ -1,14 +1,21 @@
 package nflpicks;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.FileReader;
+import java.io.OutputStream;
 import java.io.Reader;
+import java.io.Writer;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import org.apache.log4j.Logger;
+
 public class Util {
+	
+	private static final Logger log = Logger.getLogger(Util.class);
 	
 	public static List<String> readLines(String filename){
 		
@@ -100,11 +107,43 @@ public class Util {
 	
 	public static void closeReader(Reader reader){
 		
+		if (reader == null){
+			return;
+		}
+		
 		try {
 			reader.close();
 		}
 		catch (Exception e){
-			e.printStackTrace();
+			log.error("Error closing reader!", e);
+		}
+	}
+	
+	public static void closeWriter(Writer writer){
+		
+		if (writer == null){
+			return;
+		}
+		
+		try {
+			writer.close();
+		}
+		catch (Exception e){
+			log.error("Error closing writer!", e);
+		}
+	}
+	
+	public static void closeOutputStream(OutputStream stream){
+		
+		if (stream == null){
+			return;
+		}
+		
+		try {
+			stream.close();
+		}
+		catch (Exception e){
+			log.error("Error closing output stream!", e);
 		}
 	}
 	
@@ -168,6 +207,13 @@ public class Util {
 		
 		return hardcoreTrimmed;
 	}
+	
+	public static List<String> getCsvValues(String line){
+		
+		List<String> values = delimitedStringToList(line, ",");
+		
+		return values;
+	}
 
 	public static List<String> delimitedStringToList(String value, String delimiter){
 		
@@ -214,6 +260,23 @@ public class Util {
 		}
 		
 		return value;
+	}
+	
+	public static List<Integer> toIntegers(List<String> values){
+		
+		if (values == null){
+			return null;
+		}
+		
+		List<Integer> integerValues = new ArrayList<Integer>(values.size());
+		
+		for (int index = 0; index < values.size(); index++){
+			String value = values.get(index);
+			Integer integerValue = toInteger(value);
+			integerValues.add(integerValue);
+		}
+		
+		return integerValues;
 	}
 	
 	public static Integer toInteger(String value){
@@ -290,5 +353,34 @@ public class Util {
 		String currentYear = String.valueOf(year);
 		
 		return currentYear;
+	}
+	
+	public static void writeBufferedBytes(byte[] bytes, OutputStream outputStream){
+		writeBufferedBytes(bytes, 8192, outputStream);
+	}
+	
+	public static void writeBufferedBytes(byte[] bytes, int bufferSize, OutputStream outputStream){
+		
+		ByteArrayInputStream inputStream = null;
+		
+		int bytesRead = 0;
+		int totalBytesRead = 0;
+		
+		try {
+			byte[] buffer = new byte[bufferSize];
+
+			inputStream = new ByteArrayInputStream(bytes);
+
+			while ((bytesRead = inputStream.read(buffer)) != -1){
+				totalBytesRead = totalBytesRead + bytesRead;
+				outputStream.write(buffer, 0, bytesRead);
+			}
+		}
+		catch (Exception e){
+			log.error("Error writing buffered bytes!", e);
+		}
+		finally {
+		}
+		
 	}
 }

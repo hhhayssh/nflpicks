@@ -3,21 +3,25 @@
  "http://java.sun.com/dtd/web-app_2_3.dtd" >
 
 <web-app>
-  <display-name>NFL Picks</display-name>
-  <servlet>
-      <servlet-name>nflpicks</servlet-name>
-      <servlet-class>nflpicks.NFLPicksServlet</servlet-class>
-   </servlet>
-   <servlet>
-      <servlet-name>oldschool_nflpicks</servlet-name>
-      <servlet-class>nflpicks.OldSchoolNFLPicksServlet</servlet-class>
-   </servlet>
-   <servlet-mapping>
-      <servlet-name>nflpicks</servlet-name>
-      <url-pattern>/nflpicks</url-pattern>
-   </servlet-mapping>
-   <servlet-mapping>
-      <servlet-name>oldschool_nflpicks</servlet-name>
-      <url-pattern>/alternate</url-pattern>
-   </servlet-mapping>
+	<display-name>NFL Picks</display-name>
+  	<servlet>
+      	<servlet-name>nflpicks</servlet-name>
+      	<servlet-class>nflpicks.NFLPicksServlet</servlet-class>
+   	</servlet>
+   	<servlet>
+      	<servlet-name>oldschool_nflpicks</servlet-name>
+      	<servlet-class>nflpicks.OldSchoolNFLPicksServlet</servlet-class>
+   	</servlet>
+   	<servlet-mapping>
+      	<servlet-name>nflpicks</servlet-name>
+      	<url-pattern>/nflpicks</url-pattern>
+   	</servlet-mapping>
+   	<servlet-mapping>
+      	<servlet-name>nflpicks</servlet-name>
+      	<url-pattern>/export</url-pattern>
+   	</servlet-mapping>
+   		<servlet-mapping>
+      	<servlet-name>oldschool_nflpicks</servlet-name>
+      	<url-pattern>/alternate</url-pattern>
+   	</servlet-mapping>
 </web-app>

@@ -259,7 +259,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		}
 		for (int index = 0; index < weeks.size(); index++){
 			Week currentWeek = weeks.get(index);
-			weekOptions.add(new String[]{String.valueOf(currentWeek.getWeek()), String.valueOf(currentWeek.getLabel())});
+			weekOptions.add(new String[]{String.valueOf(currentWeek.getWeekNumber()), String.valueOf(currentWeek.getLabel())});
 		}
 		
 		String typeSelectHtml = HtmlUtil.createSelectHtml(typeOptions, type, "type", "type", null, "criteria-selector", null);

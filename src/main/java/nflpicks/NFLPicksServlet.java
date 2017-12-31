@@ -1,13 +1,15 @@
 package nflpicks;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -22,7 +24,6 @@ import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
-import nflpicks.model.Season;
 import nflpicks.model.Team;
 
 
@@ -38,13 +39,17 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_STANDINGS = "standings";
 	protected static final String TARGET_SELECTION_CRITERIA = "selectionCriteria";
 	protected static final String TARGET_EDIT_SELECTION_CRITERIA = "editSelectionCriteria";
+	protected static final String TARGET_EXPORT_PICKS = "exportPicks";
 	
 	protected NFLPicksDataService dataService;
+	
+	protected NFLPicksDataExporter dataExporter;
 	
 	public void init() throws ServletException {
 		log.info("Initializing servlet...");
 		ApplicationContext.getContext().initialize();
 		dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
+		dataExporter = new NFLPicksDataExporter(dataService);
 		log.info("Done initializing servlet.");
     }
 
@@ -52,8 +57,6 @@ public class NFLPicksServlet extends HttpServlet {
 		log.info("Processing request... request = " + req.getRequestURL() + "?" + req.getQueryString());
 		
 		String target = req.getParameter("target");
-		resp.setContentType("text/plain; charset=UTF-8");
-		
 		String json = "";
 		
 		if (TARGET_TEAMS.equals(target)){
@@ -202,7 +205,27 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			json = selectionCriteriaJSONObject.toString();
 		}
+		else if (TARGET_EXPORT_PICKS.equals(target)){
+			String exportedPicks = dataExporter.export();
+			
+			String exportDate = DateUtil.formatDateAsISODate(new Date());
+			
+			String filename = "picks-export-" + exportDate + ".csv";
+			
+			resp.setContentType("text/csv");
+	        resp.setContentLength(exportedPicks.length());
+
+			resp.setHeader("Content-Disposition", "attachment; filename=\"" + filename + "\"");
+			
+			OutputStream outputStream = resp.getOutputStream();
+			
+			Util.writeBufferedBytes(exportedPicks.getBytes(), outputStream);
+			
+			return;
+		}
 		
+		resp.setContentType("text/plain; charset=UTF-8");
+
 		PrintWriter writer = resp.getWriter();
 		writer.println(json);
 	}

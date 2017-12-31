@@ -54,6 +54,7 @@ public class NFLPicksDataService {
 												  "set year = ? " +
 												  "where id = ? ";
 	
+	
 	protected static final String SELECT_WEEK = "select id, " +
 												"season_id, " +
 												"week, " + 
@@ -141,6 +142,34 @@ public class NFLPicksDataService {
 		setDataSource(dataSource);
 	}
 	
+	public String getYear(int seasonId){
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		String year = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement("select year from season where id = ? ");
+			statement.setInt(1, seasonId);
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				year = results.getString(1);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting seasons!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return year;
+	}
+	
 	public List<String> getYears(){
 		
 		List<String> years = new ArrayList<String>();
@@ -167,6 +196,41 @@ public class NFLPicksDataService {
 		}
 		
 		return years;
+	}
+	
+	public List<Season> getSeasons(List<String> years){
+		
+		List<Season> seasons = getSeasons(years, false);
+		
+		return seasons;
+	}
+	
+	public List<Season> getSeasons(List<String> years, boolean shallow){
+		
+		List<Season> seasons = new ArrayList<Season>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(SELECT_SEASON);
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Season season = mapSeason(results, shallow);
+				seasons.add(season);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting seasons!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return seasons;
 	}
 	
 	public List<Season> getSeasons(){
@@ -431,16 +495,31 @@ public class NFLPicksDataService {
 	
 	protected Season mapSeason(ResultSet result) throws SQLException {
 		
+		Season season = mapSeason(result, false);
+		
+		return season;
+	}
+	
+	protected Season mapSeason(ResultSet result, boolean shallow) throws SQLException {
+		
 		Season season = new Season();
 		int id = result.getInt("id");
 		season.setId(id);
 		season.setYear(result.getString("year"));
 
-		List<Week> weeks = getWeeks(id);
-		season.setWeeks(weeks);
+		if (!shallow){
+			List<Week> weeks = getWeeks(id);
+			season.setWeeks(weeks);
+		}
 		
 		return season;
 	}
+	
+	//we need to:
+	//	1. create the right number of "in (?, ?)" question marks
+	//	2. add those parameters to the prepared statement.
+	//	1. the creation of the string has to happen before the creation of the prepared
+	//	   statement ... it has to be separate
 	
 	public List<String[]> getWeeksAndLabels(String year){
 		
@@ -475,34 +554,114 @@ public class NFLPicksDataService {
 		}
 		
 		return weeksAndLabels;
+	}
+
+	public List<Week> getWeeks(){
 		
+		List<Week> weeks = getWeeks(null, null, false);
+		
+		return weeks;
 	}
 	
 	public List<Week> getWeeks(String year){
 		
+		List<String> years = new ArrayList<String>();
+		years.add(year);
+		
+		List<Week> weeks = getWeeks(years, null, false);
+		
+		return weeks;
+	}
+	
+	public List<Week> getWeeks(List<String> years, List<String> weekNumbers){
+	
+		List<Week> weeks = getWeeks(years, weekNumbers, false);
+		
+		return weeks;
+	}
+	
+	public List<Week> getWeeks(List<String> years, List<String> weekNumbers, boolean shallow){
+		
 		List<Week> weeks = new ArrayList<Week>();
+		
+		List<Integer> weekNumberIntegers = Util.toIntegers(weekNumbers);
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
 		
 		try {
+			StringBuilder stringBuilder = new StringBuilder(SELECT_WEEK);
+			
+			boolean addedWhere = false;
+			
+			if (years != null && years.size() > 0){
+				if (!addedWhere){
+					 stringBuilder.append(" where ");
+					 addedWhere = true;
+				}
+				else {
+					stringBuilder.append(" and ");
+				}
+				
+				String inParameterString = DatabaseUtil.createInParameterString(years.size());
+				
+				stringBuilder.append("season_id in (select id " + 
+									 "from season " + 
+									 "where year in ")
+							 .append(inParameterString)
+							 .append(")");
+			}
+			
+			if (weekNumberIntegers != null && weekNumberIntegers.size() > 0){
+				if (!addedWhere){
+					 stringBuilder.append(" where ");
+					 addedWhere = true;
+				}
+				else {
+					stringBuilder.append(" and ");
+				}
+				
+				String inParameterString = DatabaseUtil.createInParameterString(weekNumberIntegers.size());
+			
+				//this should be changed to week_number
+				stringBuilder.append("week in ")
+							 .append(inParameterString)
+							 .append(")");
+			}
+			
+			String query = stringBuilder.toString();
+			
 			connection = getConnection();
-			String query = SELECT_WEEK + 
-						   "where season_id in (select id " +
-						   				  	   "from season " + 
-						   				  	   "where year = ? )";
 			statement = connection.prepareStatement(query);
-			statement.setString(1, year);
+			
+			int parameterIndex = 1;
+			
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			if (weekNumberIntegers != null && weekNumberIntegers.size() > 0){
+				for (int index = 0; index < weeks.size(); index++){
+					Integer weekNumber = weekNumberIntegers.get(index);
+					statement.setInt(parameterIndex, weekNumber);
+					parameterIndex++;
+				}
+			}
+			
 			results = statement.executeQuery();
 			
 			while (results.next()){
-				Week week = mapWeek(results);
+				Week week = mapWeek(results, shallow);
 				weeks.add(week);
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting weeks! year = " + year, e);
+			log.error("Error getting weeks!  years = " + years + ", weeks = " + weeks + ", shallow = " + shallow, e);
 		}
 		finally {
 			close(results, statement, connection);
@@ -542,34 +701,6 @@ public class NFLPicksDataService {
 		return weeks;
 	}
 	
-	public List<Week> getWeeks(){
-		
-		List<Week> weeks = new ArrayList<Week>();
-		
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet results = null;
-		
-		try {
-			connection = getConnection();
-			statement = connection.prepareStatement(SELECT_WEEK);
-			results = statement.executeQuery();
-			
-			while (results.next()){
-				Week week = mapWeek(results);
-				weeks.add(week);
-			}
-		}
-		catch (Exception e){
-			log.error("Error getting weeks!", e);
-		}
-		finally {
-			close(results, statement, connection);
-		}
-		
-		return weeks;
-	}
-	
 	public Week getWeek(int id){
 		
 		Week week = null;
@@ -600,6 +731,83 @@ public class NFLPicksDataService {
 		return week;
 	}
 	
+	public Player savePlayer(Player player){
+		
+		int id = player.getId();
+		
+		int numberOfRowsAffected = 0;
+		
+		if (id <= 0){
+			numberOfRowsAffected = insertPlayer(player);
+		}
+		else {
+			numberOfRowsAffected = updatePlayer(player);
+		}
+		
+		Player savedPlayer = null;
+		
+		if (numberOfRowsAffected == 1){
+			savedPlayer = getPlayer(player.getName());
+		}
+		
+		return savedPlayer;
+	}
+	
+	protected int insertPlayer(Player player){
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(INSERT_PLAYER);
+			statement.setString(1, player.getName());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting player! player = " + player, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	protected int updatePlayer(Player player){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(UPDATE_PLAYER);
+			statement.setString(1, player.getName());
+			statement.setInt(2, player.getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error updating player! player = " + player, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+		
+	}
+	
 	public Week saveWeek(Week week){
 		
 		int id = week.getId();
@@ -616,7 +824,7 @@ public class NFLPicksDataService {
 		Week savedWeek = null;
 		
 		if (numberOfRowsAffected == 1){
-			savedWeek = getWeek(week.getSeasonId(), week.getWeek());
+			savedWeek = getWeek(week.getSeasonId(), week.getWeekNumber());
 		}
 		
 		return savedWeek;
@@ -632,7 +840,7 @@ public class NFLPicksDataService {
 			connection = getConnection();
 			statement = connection.prepareStatement(INSERT_WEEK);
 			statement.setInt(1, week.getSeasonId());
-			statement.setInt(2, week.getWeek());
+			statement.setInt(2, week.getWeekNumber());
 			statement.setString(3, week.getLabel());
 			
 			numberOfAffectedRows = statement.executeUpdate();
@@ -661,7 +869,7 @@ public class NFLPicksDataService {
 			connection = getConnection();
 			statement = connection.prepareStatement(UPDATE_WEEK);
 			statement.setInt(1, week.getSeasonId());
-			statement.setInt(2, week.getWeek());
+			statement.setInt(2, week.getWeekNumber());
 			statement.setString(3, week.getLabel());
 			statement.setInt(4, week.getId());
 			
@@ -713,6 +921,15 @@ public class NFLPicksDataService {
 		return retrievedWeek;
 	}
 	
+	public Week getWeek(String year, String week){
+		
+		int weekInt = Integer.parseInt(week);
+		
+		Week weekObject = getWeek(year, weekInt);
+		
+		return weekObject;
+	}
+	
 	public Week getWeek(String year, int week){
 		
 		Week retrievedWeek = null;
@@ -749,15 +966,27 @@ public class NFLPicksDataService {
 	
 	protected Week mapWeek(ResultSet result) throws SQLException {
 		
+		Week week = mapWeek(result, false);
+		
+		return week;
+	}
+	
+	protected Week mapWeek(ResultSet result, boolean shallow) throws SQLException {
+		
 		Week week = new Week();
 		int weekId = result.getInt("id");
 		week.setId(weekId);
-		week.setSeasonId(result.getInt("season_id"));
-		week.setWeek(result.getInt("week"));
+		int seasonId = result.getInt("season_id");
+		week.setSeasonId(seasonId);
+		String year = getYear(seasonId);
+		week.setYear(year);
+		week.setWeekNumber(result.getInt("week"));
 		week.setLabel(result.getString("label"));
 		
-		List<Game> games = getGames(weekId);
-		week.setGames(games);
+		if (!shallow){
+			List<Game> games = getGames(weekId);
+			week.setGames(games);
+		}
 		
 		return week;
 	}
@@ -857,6 +1086,61 @@ public class NFLPicksDataService {
 		}
 		
 		return games;
+	}
+	
+	public Game getGame(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation){
+		
+		Game game = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_GAME + 
+						   "where week_id in (select w.id " +
+						   					 "from week w " + 
+						   					 "where w.week = ? " + 
+						   					 "and w.season_id in (select s.id " + 
+						   					 					 "from season s " + 
+						   					 					 "where s.year = ?)) " +
+						   		  "and (home_team_id in (select t.id " +
+						   					 		    "from team t " + 
+						   					 		    "where t.abbreviation = ?) " +
+						   			   "and away_team_id in (select t.id " + 
+						   					 		       "from team t " + 
+						   					 		       "where t.abbreviation = ?)) ";
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, Integer.parseInt(week));
+			statement.setString(2, year);
+			statement.setString(3, awayTeamAbbreviation);
+			statement.setString(4, homeTeamAbbreviation);
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				
+				if (game == null){
+					game = mapGame(results);
+				}
+				else {
+					log.error("Found more than one game for input! year = " + year + ", week = " + week + ", awayTeamAbbreviation = " + awayTeamAbbreviation + 
+							  ", homeTeamAbbreviation = " + homeTeamAbbreviation);
+					return null;
+				}
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting game! year = " + year + ", week = " + week + ", awayTeamAbbreviation = " + awayTeamAbbreviation + 
+					  ", homeTeamAbbreviation = " + homeTeamAbbreviation, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return game;
 	}
 	
 	public Game getGame(String year, int week, String teamAbbreviation){
@@ -1250,6 +1534,131 @@ public class NFLPicksDataService {
 		return picks;
 	}
 	
+	public List<Pick> getPicks(List<String> years, List<String> weekNumbers, List<String> playerNames){
+		
+		List<Pick> picks = new ArrayList<Pick>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			
+			List<Integer> weekNumberIntegers = Util.toIntegers(weekNumbers);
+			
+			//another programming language idea ... where if you "add" something, it just adds to the data structure.
+			
+			boolean hasWeeks = false;
+			if (weekNumberIntegers != null && weekNumberIntegers.size() > 0){
+				hasWeeks = true;
+			}
+			
+			boolean hasYears = false;
+			if (years != null && years.size() > 0){
+				hasYears = true;
+			}
+			
+			boolean hasPlayers = false;
+			if (playerNames != null && playerNames.size() > 0){
+				hasPlayers = true;
+			}
+			
+			String query = SELECT_PICK +
+					   "where game_id in (select id " +
+					   					 "from game " + 
+					   					 "where week_id in (select id " + 
+					   					 				   "from week ";
+			
+			//could have weeks without years, years without weeks, or both
+			/*
+			 select *
+			 from pick
+			 where game_id in (select id
+			 				   from game 
+			 				   where week_id in (select id
+			 				   					 from week
+			 				   					 where week in (?, ?, ?, ?)
+			 				   					       and season_id in (select id
+			 				   					       				 	 from season
+			 				   					       				 	 where year in (?, ?, ?,)
+			 				   					       				 	)
+			 				   					)
+			 				   )
+			 	  and player_id in (select id
+			 	  					from player
+			 	  					where player_name in (?, ?, ?))
+			 */
+			if (hasWeeks){
+				query = query + " where week in " + DatabaseUtil.createInParameterString(weekNumberIntegers.size());
+			}
+			
+			if (hasYears){
+				
+				if (hasWeeks){
+					query = query + " and ";
+				}
+				else {
+					query = query + " where ";
+				}
+				
+				query = query + " season_id in (select id from season where year in " + DatabaseUtil.createInParameterString(years.size()) + " ) ";
+			}
+			
+			query = query + ")";
+			
+			query = query + ")";
+			
+			if (hasPlayers){
+				query = query + " and player_id in (select id from player where name in " + DatabaseUtil.createInParameterString(playerNames.size()) + " ) ";
+			}
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			
+			if (hasWeeks){
+				int parameterIndex = 1;
+				for (int index = 0; index < weekNumberIntegers.size(); index++){
+					Integer weekNumber = weekNumberIntegers.get(index);
+					statement.setInt(parameterIndex, weekNumber);
+					parameterIndex++;
+				}
+			}
+			
+			if (hasYears){
+				int parameterIndex = 1;
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			if (hasPlayers){
+				int parameterIndex = 1;
+				for (int index = 0; index < playerNames.size(); index++){
+					String playerName = playerNames.get(index);
+					statement.setString(parameterIndex, playerName);
+					parameterIndex++;
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Pick pick = mapPick(results);
+				picks.add(pick);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting picks! years = " + years + ", weekNumbers = " + weekNumbers + ", playerNames = " + playerNames, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return picks;
+	}
+	
 	public List<Pick> getPicks(String year, int week){
 		
 		List<Pick> picks = new ArrayList<Pick>();
@@ -1531,6 +1940,57 @@ public class NFLPicksDataService {
 //		
 //		return false;
 //	}
+	
+	//somebody should make a programming language where you can't change the
+	//variable names.......
+	//call it "global"
+	
+	public List<Player> getPlayers(List<String> playerNames){
+		
+		List<Player> players = new ArrayList<Player>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			StringBuilder stringBuilder = new StringBuilder(SELECT_PLAYER);
+			
+			if (playerNames != null && playerNames.size() > 0){
+				String inParameterString = DatabaseUtil.createInParameterString(playerNames.size());
+				stringBuilder.append(" where name in ").append(inParameterString);
+			}
+			
+			String query = stringBuilder.toString();
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			
+			if (playerNames != null && playerNames.size() > 0){
+				int parameterIndex = 1;
+				for (int index = 0; index < playerNames.size(); index++){
+					String playerName = playerNames.get(index);
+					statement.setString(parameterIndex, playerName);
+					parameterIndex++;
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Player playerInfo = mapPlayer(results);
+				players.add(playerInfo);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting players!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return players;
+	}
 	
 	public List<Player> getPlayers(String year){
 		
