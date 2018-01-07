@@ -6,14 +6,13 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 
-import nflpicks.model.Game;
-import nflpicks.model.Pick;
+import nflpicks.model.CompactPick;
 import nflpicks.model.Player;
-import nflpicks.model.Team;
-import nflpicks.model.Week;
 
 public class NFLPicksDataExporter {
 	
@@ -21,29 +20,40 @@ public class NFLPicksDataExporter {
 	
 	protected NFLPicksDataService dataService;
 	
-	public static void main(String[] args){
+	public static void main(String[] args) throws Exception {
 		
 		String propertiesFilename = null;
 	
 		String outputFilename = null;
 		
-		if (args.length >= 1){
-			propertiesFilename = args[0];
+		if (args.length == 0){
+			Scanner scanner = new Scanner(System.in);
 			
-			if (args.length == 2){
-				outputFilename = args[1];
-			}
+			System.out.println("Properties file:");
+			propertiesFilename = scanner.nextLine();
+			
+			System.out.println("Output filename:");
+			outputFilename = scanner.nextLine();
+			
+			scanner.close();
 		}
 		else {
-			propertiesFilename = System.getProperty(NFLPicksConstants.NFL_PICKS_PROPERTIES_FILENAME_PROPERTY);
+			if (args.length >= 1){
+				propertiesFilename = args[0];
+
+				if (args.length == 2){
+					outputFilename = args[1];
+				}
+			}
 		}
 		
-		if (propertiesFilename == null){
-			propertiesFilename = NFLPicksConstants.DEFAULT_NFL_PICKS_PROPERTIES_FILENAME;
+		if (!Util.hasSomething(propertiesFilename)){
+			System.out.println("No properties file given!  Unable to export!");
+			return;
 		}
 		
-		if (outputFilename == null){
-			String currentDate = DateUtil.formatDate(new Date());
+		if (!Util.hasSomething(outputFilename)){
+			String currentDate = DateUtil.formatDate(new Date(), DateUtil.DEFAULT_DATE_FORMAT_WITH_TIME);
 			outputFilename = "nflpicks-export-" + currentDate + ".csv";
 		}
 		
@@ -60,27 +70,29 @@ public class NFLPicksDataExporter {
 		this.dataService = dataService;
 	}
 	
-	public String export(){
-		
-		ExportData exportData = getExportData(null, null, null);
-		
-		StringWriter writer = new StringWriter();
-		
-		writeExportDataAsCSV(exportData, writer);
-		
-		String exportedData = writer.toString();
-		
-		return exportedData;
-	}
-	
 	public void export(String filename){
-		ExportData exportData = getExportData(null, null, null);
+		
+		log.info("Exporting to " + filename + " ...");
+		long start = System.currentTimeMillis();
 		
 		PrintWriter writer = null;
 		
 		try {
+			log.info("Getting players...");
+			List<Player> players = dataService.getPlayers();
+			List<String> playerNames = ModelUtil.getPlayerNames(players);
+			log.info("Got " + playerNames.size() + " players.");
+			log.info("Getting picks...");
+			long picksStart = System.currentTimeMillis();
+			List<CompactPick> compactPicks = dataService.getCompactPicks();
+			long picksElapsed = System.currentTimeMillis() - picksStart;
+			log.info("Got " + compactPicks.size() + " picks.  Took " + picksElapsed + " ms.");
 			writer = new PrintWriter(filename);
-			writeExportDataAsCSV(exportData, writer);
+			log.info("Writing picks...");
+			long writeStart = System.currentTimeMillis();
+			int numberOfLines = writeAsCSV(playerNames, compactPicks, writer);
+			long writeElapsed = System.currentTimeMillis() - writeStart;
+			log.info("Wrote " + numberOfLines + " lines.  Took " + writeElapsed + " ms.");
 		}
 		catch (Exception e){
 			log.error("Error exporting data to file!  filename = " + filename, e);
@@ -89,162 +101,114 @@ public class NFLPicksDataExporter {
 			Util.closeWriter(writer);
 		}
 		
+		long elapsed = System.currentTimeMillis() - start;
+		log.info("Done exporting.  Took " + elapsed + " ms to export to " + filename);
 	}
 	
-	protected class ExportData {
+	public String export(){
 		
-		protected List<Week> weeks;
-		protected List<Player> players;
-		protected List<Pick> picks;
+		List<Player> players = dataService.getPlayers();
+		List<String> playerNames = ModelUtil.getPlayerNames(players);
+		List<CompactPick> compactPicks = dataService.getCompactPicks();
 		
-		public ExportData(){
-			this.weeks = new ArrayList<Week>();
-			this.players = new ArrayList<Player>();
-			this.picks = new ArrayList<Pick>();
-		}
+		StringWriter writer = new StringWriter();
 		
-		public ExportData(List<Week> weeks, List<Player> players, List<Pick> picks){
-			this.weeks = weeks;
-			this.players = players;
-			this.picks = picks;
-		}
-
-		public List<Week> getWeeks() {
-			return weeks;
-		}
-
-		public void setWeeks(List<Week> weeks) {
-			this.weeks = weeks;
-		}
-
-		public List<Player> getPlayers() {
-			return players;
-		}
-
-		public void setPlayers(List<Player> players) {
-			this.players = players;
-		}
-
-		public List<Pick> getPicks() {
-			return picks;
-		}
-
-		public void setPicks(List<Pick> picks) {
-			this.picks = picks;
-		}
+		writeAsCSV(playerNames, compactPicks, writer);
+		
+		String exportedPicks = writer.toString();
+		
+		return exportedPicks;
 	}
 	
-	public ExportData getExportData(List<String> years, List<String> weekNumbers, List<String> playerNames){
+	protected int writeAsCSV(List<String> playerNames, List<CompactPick> compactPicks, Writer writer){
 		
-		List<Week> weeks = dataService.getWeeks(years, weekNumbers);
-		
-		List<Player> players = dataService.getPlayers(playerNames);
-		
-		List<Pick> picks = dataService.getPicks(years, weekNumbers, playerNames);
-		
-		ExportData exportData = new ExportData(weeks, players, picks);
-		
-		return exportData;
-	}
-	
-	protected void writeExportDataAsCSV(ExportData exportData, Writer writer){
-		
+		int lineCount = 0;
 		try {
-			List<Player> players = exportData.getPlayers();
-			
 			StringBuilder headerStringBuilder = new StringBuilder("Year,Week,Away,Home,Winner");
-			
-			for (int index = 0; index < players.size(); index++){
-				Player player = players.get(index);
-				
-				headerStringBuilder.append(",").append(player.getName());
+
+			for (int index = 0; index < playerNames.size(); index++){
+				String playerName = playerNames.get(index);
+
+				headerStringBuilder.append(",").append(playerName);
 			}
-			
+
 			String header = headerStringBuilder.toString();
-			
+
+			lineCount++;
 			writer.write(header);
 			writer.write('\n');
+			writer.flush();
 			
-			List<Week> weeks = exportData.getWeeks();
-			List<Pick> picks = exportData.getPicks();
+			int totalLines = compactPicks.size();
+			int progress = 0;
+			int lastProgress = 0;
 			
-			for (int index = 0; index < weeks.size(); index++){
-				Week week = weeks.get(index);
+			for (int index = 0; index < compactPicks.size(); index++){
+				CompactPick compactPick = compactPicks.get(index);
 				
-				String year = week.getYear();
-				int weekNumber = week.getWeekNumber();
+				writePickLine(writer, compactPick, playerNames);
+				lineCount++;
 				
-				StringBuilder weekStringBuilder = new StringBuilder();
-				
-				List<Game> games = week.getGames();
-				
-				for (int gameIndex = 0; gameIndex < games.size(); gameIndex++){
-					Game game = games.get(gameIndex);
-					
-					int gameId = game.getId();
-					
-					String awayTeamAbbreviation = null;
-					Team awayTeam = game.getAwayTeam();
-					if (awayTeam != null){
-						awayTeamAbbreviation = awayTeam.getAbbreviation();
-					}
-					
-					String homeTeamAbbreviation = null;
-					Team homeTeam = game.getHomeTeam();
-					if (homeTeam != null){
-						homeTeamAbbreviation = homeTeam.getAbbreviation();
-					}
-					
-					boolean tie = game.getTie();
-					String winningTeamAbbreviation = null;
-					Team winningTeam = game.getWinningTeam();
-					if (winningTeam != null){
-						winningTeamAbbreviation = winningTeam.getAbbreviation();
-					}
-					else {
-						if (tie){
-							winningTeamAbbreviation = NFLPicksConstants.TIE_TEAM_ABBREVIATION;
-						}
-					}
-					
-					weekStringBuilder.append(year).append(",")
-									 .append(weekNumber).append(",")
-									 .append(Util.unNull(awayTeamAbbreviation)).append(",")
-									 .append(Util.unNull(homeTeamAbbreviation)).append(",")
-									 .append(Util.unNull(winningTeamAbbreviation));
-					
-					for (int playerIndex = 0; playerIndex < players.size(); playerIndex++){
-						Player player = players.get(playerIndex);
-						String playerName = player.getName();
-						
-						Pick pick = PickUtil.getPick(picks, playerName, gameId);
-						
-						String pickAbbreviation = null;
-						
-						if (pick != null){
-							Team pickedTeam = pick.getTeam();
-							
-							if (pickedTeam != null){
-								pickAbbreviation = pickedTeam.getAbbreviation();
-							}
-						}
-						
-						weekStringBuilder.append(",").append(Util.unNull(pickAbbreviation));
-					}
-					
-					writer.write(weekStringBuilder.toString());
-					writer.write('\n');
-					
+				if (index > 0 && index % 20 == 0){
 					writer.flush();
-					
-					weekStringBuilder = new StringBuilder();
+				}
+				
+				progress = (int)Math.ceil(((double)index / (double)totalLines) * 100.0);
+				
+				if (progress >= (lastProgress + 5)){
+					log.info("Wrote " + index + " of " + totalLines + " (" + progress + "%)");
+					lastProgress = progress;
 				}
 			}
 			
 			writer.flush();
+			Util.closeWriter(writer);
 		}
 		catch (Exception e){
-			log.error("Error writing export data!", e);
+			log.error("Error writing compact pick data as csv!", e);
 		}
+		
+		return lineCount;
+	}
+	
+	protected void writePickLine(Writer writer, CompactPick compactPick, List<String> playerNames) throws Exception {
+		String year = compactPick.getYear();
+		int weekNumber = compactPick.getWeekNumber();
+		String awayTeamAbbreviation = compactPick.getAwayTeamAbbreviation();
+		String homeTeamAbbreviation = compactPick.getHomeTeamAbbreviation();
+		String winningTeamAbbreviation = compactPick.getWinningTeamAbbreviation();
+		Map<String, String> playerPicksMap = compactPick.getPlayerPicks();
+		
+		List<String> playerPicks = new ArrayList<String>();
+		
+		for (int playerNameIndex = 0; playerNameIndex < playerNames.size(); playerNameIndex++){
+			String playerName = playerNames.get(playerNameIndex);
+			String playerPick = playerPicksMap.get(playerName);
+			playerPicks.add(playerPick);
+		}
+		
+		writeLine(writer, year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, playerPicks);
+	}
+	
+	protected void writeLine(Writer writer, String year, int weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, 
+							 String winningTeamAbbreviation, List<String> playerPicks) throws Exception {
+		
+		writer.write(Util.unNull(year));
+		writer.write(',');
+		writer.write(String.valueOf(weekNumber));
+		writer.write(',');
+		writer.write(Util.unNull(awayTeamAbbreviation));
+		writer.write(',');
+		writer.write(Util.unNull(homeTeamAbbreviation));
+		writer.write(',');
+		writer.write(Util.unNull(winningTeamAbbreviation));
+		
+		for (int index = 0; index < playerPicks.size(); index++){
+			String playerPick = playerPicks.get(index);
+			writer.write(',');
+			writer.write(Util.unNull(playerPick));
+		}
+		
+		writer.write('\n');
 	}
 }

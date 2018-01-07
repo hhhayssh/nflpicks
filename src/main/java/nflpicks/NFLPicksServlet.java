@@ -1,8 +1,6 @@
 package nflpicks;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -20,6 +18,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import nflpicks.model.CompactPick;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;

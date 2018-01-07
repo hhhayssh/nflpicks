@@ -383,4 +383,23 @@ public class Util {
 		}
 		
 	}
+	
+	public static boolean hasSomething(String value){
+		
+		if (value == null || value.length() == 0){
+			return false;
+		}
+		
+		return true;
+	}
+	
+	public static boolean hasSomething(List values){
+		
+		if (values == null || values.size() == 0){
+			return false;
+		}
+		
+		return true;
+		
+	}
 }

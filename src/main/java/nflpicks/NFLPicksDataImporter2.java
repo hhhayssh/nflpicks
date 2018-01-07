@@ -184,7 +184,7 @@ public class NFLPicksDataImporter2 {
 			pick.setPlayer(player);
 			pick.setTeam(pickedTeam);
 			
-			String result = PickUtil.getPickResult(winningTeamAbbreviation, pickAbbreviation);
+			String result = ModelUtil.getPickResult(winningTeamAbbreviation, pickAbbreviation);
 			pick.setResult(result);
 
 			dataService.savePick(pick);

@@ -327,12 +327,12 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		output.print("<tr>");
 		output.print("<td class=\"last-pick-game\"></td>");
 		
-		boolean areThereAnyTies = RecordUtil.areThereAnyTies(records);
+		boolean areThereAnyTies = ModelUtil.areThereAnyTies(records);
 		
 		for (int index = 0; index < players.size(); index++){
 			Player player = players.get(index);
 			
-			Record record = RecordUtil.getRecordForPlayer(records, player.getName());
+			Record record = ModelUtil.getRecordForPlayer(records, player.getName());
 			
 			String cssClass = "pick-record";
 			if (index + 1 == players.size()){
@@ -419,7 +419,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			for (int playerIndex = 0; playerIndex < players.size(); playerIndex++){
 				Player player = players.get(playerIndex);
 				
-				Pick pick = PickUtil.getPick(picks, player.getName(), game.getHomeTeam().getAbbreviation(), game.getAwayTeam().getAbbreviation(), null);
+				Pick pick = ModelUtil.getPick(picks, player.getName(), game.getHomeTeam().getAbbreviation(), game.getAwayTeam().getAbbreviation(), null);
 				Team pickTeam = pick == null ? null : pick.getTeam();
 				String abbreviation = "";
 				String result = "";

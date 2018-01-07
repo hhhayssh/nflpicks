@@ -7,7 +7,9 @@ public class DateUtil {
 	
 	public static final String DEFAULT_DATE_FORMAT = "yyyy-MM-dd";
 	
-	public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm";
+	public static final String DEFAULT_DATE_FORMAT_WITH_TIME = "yyyy-MM-dd-HH-mm-ss";
+	
+	public static final String ISO_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss";
 	
 	public static String formatDateAsISODate(Date date){
 		

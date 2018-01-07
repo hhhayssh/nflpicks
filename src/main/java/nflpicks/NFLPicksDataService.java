@@ -6,12 +6,16 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
 
+import nflpicks.model.CompactPick;
 import nflpicks.model.Conference;
 import nflpicks.model.Division;
 import nflpicks.model.Game;
@@ -2047,6 +2051,8 @@ public class NFLPicksDataService {
 		return players;
 	}
 	
+	
+	
 	public List<Player> getPlayers(){
 		
 		List<Player> players = new ArrayList<Player>();
@@ -2335,10 +2341,208 @@ public class NFLPicksDataService {
 		return whereClause.toString();
 	}
 	
+	/*
+	select s.year as year,
+       w.week as week,
+       home_team.abbreviation as home_team_abbreviation,
+       away_team.abbreviation as away_team_abbreviation,
+       winning_team.abbreviation as winning_team_abbreviation,
+       
+       (select picked_team.abbreviation
+        from pick p join team picked_team on p.team_id = picked_team.id
+        where p.game_id = g.id
+              and p.player_id = 1) as x_pick
+              
+              
+from season s join week w on s.id = w.season_id
+     join game g on w.id = g.week_id
+     join team home_team on g.home_team_id = home_team.id
+     join team away_team on g.away_team_id = away_team.id
+     left outer join team winning_team on g.winning_team_id = winning_team.id
+order by s.year asc, w.week asc, g.id asc;
+	 */
+	public List<CompactPick> getCompactPicks(){
+		
+		List<CompactPick> compactPicks = getCompactPicks(null, null, null);
+		
+		return compactPicks;
+		
+	}
+	public List<CompactPick> getCompactPicks(List<String> years, List<Integer> weekNumbers, List<String> playerNames) {
+		
+		List<CompactPick> compactPicks = new ArrayList<CompactPick>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = dataSource.getConnection();
+			
+			String selectBase = "select s.year as year, " + 
+								"w.week as week, " + 
+								"home_team.abbreviation as home_team_abbreviation, " + 
+								"away_team.abbreviation as away_team_abbreviation, " +
+								"(case when g.winning_team_id = -1 then 'TIE' " +
+									  "else winning_team.abbreviation " +
+							    "end) as winning_team_abbreviation "; 
+			
+			List<Player> players = null;
+			
+			if (playerNames == null){
+				players = getPlayers();
+				playerNames = ModelUtil.getPlayerNames(players);
+				//Yeah, I could do it like this...
+				//playerNames = players.stream().map(p -> p.getName()).collect(Collectors.toList());
+			}
+			else {
+				players = getPlayers(playerNames);
+			}
+			
+			
+			List<String> playerNamesToUse = new ArrayList<String>();
+			List<Integer> playerIdsToUse = new ArrayList<Integer>();
+			
+			for (int index = 0; index < players.size(); index++){
+				Player player = players.get(index);
+				String playerName = player.getName();
+				Integer playerId = player.getId();
+				
+				String playerNameToUse = playerName.toLowerCase().replaceAll("\\s+", "_") + "_pick";
+				playerNamesToUse.add(playerNameToUse);
+				playerIdsToUse.add(playerId);
+				
+				String playerPickSelect = "(select picked_team.abbreviation " + 
+										  "from pick p join team picked_team on p.team_id = picked_team.id " + 
+										  "where p.game_id = g.id " + 
+										  "and p.player_id = ?) as " + playerNameToUse;
+				
+				selectBase = selectBase + ", " + playerPickSelect;
+			}
+			
+			String fromBase = "from season s join week w on s.id = w.season_id " + 
+							  "join game g on w.id = g.week_id " + 
+							  "join team home_team on g.home_team_id = home_team.id " + 
+							  "join team away_team on g.away_team_id = away_team.id " + 
+							  "left outer join team winning_team on g.winning_team_id = winning_team.id ";
+			
+			String whereBase = "";
+			
+			boolean addedWhere = false;
+			boolean hasYears = Util.hasSomething(years);
+			boolean hasWeeks = Util.hasSomething(weekNumbers);
+			
+			if (hasYears){
+				addedWhere = true;
+				String inParameterString = DatabaseUtil.createInParameterString(years.size());
+				whereBase = "where s.year in " + inParameterString;
+			}
+			
+			if (hasWeeks){
+				
+				if (addedWhere){
+					whereBase = whereBase + " and ";
+				}
+				else {
+					whereBase = "where ";
+				}
+				
+				String inParameterString = DatabaseUtil.createInParameterString(weekNumbers.size());
+				whereBase = whereBase + " w.week in " + inParameterString;
+			}
+			
+			String orderBy = "order by s.year asc, w.week asc, g.id asc ";
+			
+			String query = selectBase + " " + fromBase + " " + whereBase + " " + orderBy;
+			
+			statement = connection.prepareStatement(query);
+			
+			int parameterIndex = 1;
+			
+			for (int index = 0; index < playerIdsToUse.size(); index++){
+				Integer playerId = playerIdsToUse.get(index);
+				statement.setInt(parameterIndex, playerId);
+				parameterIndex++;
+			}
+			
+			if (hasYears){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			if (hasWeeks){
+				for (int index = 0; index < weekNumbers.size(); index++){
+					Integer weekNumber = weekNumbers.get(index);
+					statement.setInt(parameterIndex, weekNumber);
+					parameterIndex++;
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				CompactPick compactPick = mapCompactPick(results, playerNamesToUse, playerNames);
+				compactPicks.add(compactPick);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting compact picks!", e);
+		}
+		finally {
+			DatabaseUtil.close(results, statement, connection);
+		}
+		
+		return compactPicks;
+	}
+	
+	protected CompactPick mapCompactPick(ResultSet results, List<String> playerNamesToUse, List<String> playerNames) throws SQLException {
+		
+		CompactPick compactPick = new CompactPick();
+		
+		/*
+		 select s.year as year,
+       w.week as week,
+       home_team.abbreviation as home_team_abbreviation,
+       away_team.abbreviation as away_team_abbreviation,
+       winning_team.abbreviation as winning_team_abbreviation,
+       
+       (select picked_team.abbreviation
+        from pick p join team picked_team on p.team_id = picked_team.id
+        where p.game_id = g.id
+              and p.player_id = 1) as x_pick
+		 */
+		
+		String year = results.getString("year");
+		int weekNumber = results.getInt("week");
+		String homeTeamAbbreviation = results.getString("home_team_abbreviation");
+		String awayTeamAbbreviation = results.getString("away_team_abbreviation");
+		String winningTeamAbbreviation = results.getString("winning_team_abbreviation");
+		
+		Map<String, String> playerPicks = new HashMap<String, String>();
+		for (int index = 0; index < playerNamesToUse.size(); index++){
+			String playerNameToUse = playerNamesToUse.get(index);
+			String playerName = playerNames.get(index);
+			
+			String playerPick = results.getString(playerNameToUse);
+			
+			playerPicks.put(playerName, playerPick);
+		}
+		
+		compactPick.setYear(year);
+		compactPick.setWeekNumber(weekNumber);
+		compactPick.setHomeTeamAbbreviation(homeTeamAbbreviation);
+		compactPick.setAwayTeamAbbreviation(awayTeamAbbreviation);
+		compactPick.setWinningTeamAbbreviation(winningTeamAbbreviation);
+		compactPick.setPlayerPicks(playerPicks);
+		
+		return compactPick;
+	}
+	
 	protected void close(ResultSet results, PreparedStatement statement, Connection connection){
-		closeResults(results);
-		closeStatement(statement);
-		closeConnection(connection);
+		DatabaseUtil.close(results, statement, connection);
 	}
 	
 	protected Connection getConnection(){
@@ -2354,40 +2558,7 @@ public class NFLPicksDataService {
 		
 		return connection;
 	}
-	
-	protected void closeResults(ResultSet results){
-		try {
-			if (results != null){
-				results.close();
-			}
-		}
-		catch (Exception e){
-			log.error("Error closing results!", e);
-		}
-	}
-	
-	protected void closeStatement(PreparedStatement statement){
-		try {
-			if (statement != null){
-				statement.close();
-			}
-		}
-		catch (Exception e){
-			log.error("Error closing statement!", e);
-		}
-	}
-	
-	protected void closeConnection(Connection connection){
-		try {
-			if (connection != null){
-				connection.close();	
-			}
-		}
-		catch (Exception e){
-			log.error("Error closing connection!", e);
-		}
-	}
-	
+		
 	public DataSource getDataSource(){
 		return dataSource;
 	}
