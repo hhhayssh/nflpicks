@@ -1,82 +1,152 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-  	<groupId>nflpicks</groupId>
-  	<artifactId>nflpicks</artifactId>
-  	<packaging>war</packaging>
-  	<version>1.0.0-SNAPSHOT</version>
-  	<name>nflpicks Maven Webapp</name>
-  	<url>http://maven.apache.org</url>
-  	<properties>
-  		<nflpicks.jdbc.driverClassName>org.postgresql.Driver</nflpicks.jdbc.driverClassName>
-  		<nflpicks.jdbc.url>jdbc:postgresql://localhost:5432/nflpicks</nflpicks.jdbc.url>
-  		<nflpicks.jdbc.username>nflpicks</nflpicks.jdbc.username>
-  		<nflpicks.jdbc.password></nflpicks.jdbc.password>
-  		<nflpicks.log.location>/var/log/nflpicks/nflpicks.log</nflpicks.log.location>
-  	</properties>
-  	<build>
-    	<finalName>nflpicks</finalName>
-    	<resources>
-      	<resource>
-        	<directory>src/main/resources</directory>
-        	<filtering>true</filtering>
-      	</resource>
-    	</resources>
-    	<pluginManagement>
-      		<plugins>
-        		<plugin>
-          			<groupId>org.apache.maven.plugins</groupId>
-          			<artifactId>maven-compiler-plugin</artifactId>
-          			<version>3.7.0</version>
-          			<configuration>
-          			</configuration>
-        		</plugin>
-        		<plugin>
-            		<groupId>org.apache.maven.plugins</groupId>
-            		<artifactId>maven-dependency-plugin</artifactId>
-            		<version>3.0.2</version>
-            		<executions>
-                		<execution>
-                    		<goals>
-                        		<goal>sources</goal>
-                    		</goals>
-                		</execution>
-            		</executions>
-        		</plugin>
-      		</plugins>
-    	</pluginManagement>
-  	</build>
-  	<dependencies>
-    	<dependency>
-      		<groupId>junit</groupId>
-      		<artifactId>junit</artifactId>
-      		<version>3.8.1</version>
-      		<scope>test</scope>
-    	</dependency>
-    	<dependency>
-	   		<groupId>javax.servlet</groupId>
-	   		<artifactId>javax.servlet-api</artifactId>
-	   		<version>3.0.1</version>
+	<groupId>nflpicks</groupId>
+	<artifactId>nflpicks</artifactId>
+	<packaging>war</packaging>
+	<version>1.0.0-SNAPSHOT</version>
+	<name>nflpicks Maven Webapp</name>
+	<url>http://maven.apache.org</url>
+	<properties>
+		<nflpicks.jdbc.driverClassName>org.postgresql.Driver</nflpicks.jdbc.driverClassName>
+		<nflpicks.jdbc.url>jdbc:postgresql://localhost:5432/nflpicks</nflpicks.jdbc.url>
+		<nflpicks.jdbc.username>nflpicks</nflpicks.jdbc.username>
+		<nflpicks.jdbc.password></nflpicks.jdbc.password>
+		<nflpicks.log.location>/var/log/nflpicks/nflpicks.log</nflpicks.log.location>
+	</properties>
+	<profiles>
+		<!-- The profile to use to build the nflpicks jar by itself and use the picks exporter.
+			 To use it:
+			 	1. Build the jar:
+			 		 mvn clean compile org.apache.maven.plugins:maven-dependency-plugin:copy-dependencies@copy-libraries jar:jar -Pnflpicks-exporter
+			 	   This cleans the target folder, compiles it, copies the dependencies to the target/lib folder, jars the classes folder
+			 	   and makes it so the resulting jar will run the NFLPicksDataExporter class.
+			 	2. Copy the nflpicks.jar and lib folder to where you want to run it.
+			 	3. Run it with:
+			 		java -jar nflpicks.jar
+			 		
+			 It's a separate profile and not part of the normal build because:
+			 	1. We don't want to do it every time (we usually just want to build the war).
+			 	2. We need it to refer to a different log file and not /var/log/nflpicks/nflpicks.log
+			 	
+			 The best and cleanest way to do those two things is to put them both in a separate profile. 
+		 -->
+		<profile>
+			<id>nflpicks-exporter</id>
+			<properties>
+				<nflpicks.log.location>nflpicks-exporter.log</nflpicks.log.location>
+			</properties>
+			<build>
+				<plugins>
+					<!-- This copies the dependencies into the target/lib folder so they'll be on the classpath
+						 referred to by the runnable jar.  The classpath being "lib/" is put into the "manifest"
+						 that's stuffed in the jar by the jar plugin.  Whatever we call it here should match that.
+					 -->
+					<plugin>
+    					<groupId>org.apache.maven.plugins</groupId>
+    					<artifactId>maven-dependency-plugin</artifactId>
+    					<executions>
+        					<execution>
+            					<id>copy-libraries</id>
+            					<phase>prepare-package</phase>
+            					<goals>
+                					<goal>copy-dependencies</goal>
+            					</goals>
+            					<configuration>
+                					<outputDirectory>${project.build.directory}/lib</outputDirectory>
+                					<overWriteReleases>true</overWriteReleases>
+                					<overWriteSnapshots>true</overWriteSnapshots>
+                					<overWriteIfNewer>true</overWriteIfNewer>
+            					</configuration>
+        					</execution>
+    					</executions>
+					</plugin>
+					<!-- This plugin will build a runnable jar file with the nflpicks classes in it.
+						 It will cause the jar to run the main function in nflpicks.NFLPicksDataExporter when you run it.
+						 It will also cause everything in the "lib" folder to be included on the classpath so we don't have
+						 to list it out manually.
+						 All the dependencies should be copied to the "lib" folder by the copy-dependencies plugin.
+					 -->
+					<plugin>
+    					<groupId>org.apache.maven.plugins</groupId>
+    					<artifactId>maven-jar-plugin</artifactId>
+    					<configuration>
+        					<archive>
+            					<manifest>
+                					<addClasspath>true</addClasspath>
+                					<classpathPrefix>lib/</classpathPrefix>
+                					<mainClass>nflpicks.NFLPicksDataExporter</mainClass>
+            					</manifest>
+        					</archive>
+    					</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
+	<build>
+		<finalName>nflpicks</finalName>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+		<pluginManagement>
+		</pluginManagement>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<version>3.0.2</version>
+				<executions>
+					<execution>
+						<goals>
+							<goal>sources</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>			
+		</plugins>
+	</build>
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>3.8.1</version>
+			<scope>test</scope>
 		</dependency>
 		<dependency>
-	    	<groupId>org.json</groupId>
-	    	<artifactId>json</artifactId>
-	    	<version>20160810</version>
+			<groupId>javax.servlet</groupId>
+			<artifactId>javax.servlet-api</artifactId>
+			<version>3.0.1</version>
 		</dependency>
 		<dependency>
-		    <groupId>org.postgresql</groupId>
-	    	<artifactId>postgresql</artifactId>
-	    	<version>9.4.1208</version>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20160810</version>
 		</dependency>
 		<dependency>
-	    	<groupId>org.apache.tomcat</groupId>
-	    	<artifactId>tomcat-jdbc</artifactId>
-	    	<version>7.0.70</version>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>9.4.1208</version>
 		</dependency>
 		<dependency>
-	    	<groupId>log4j</groupId>
-	    	<artifactId>log4j</artifactId>
-	    	<version>1.2.17</version>
+			<groupId>org.apache.tomcat</groupId>
+			<artifactId>tomcat-jdbc</artifactId>
+			<version>7.0.70</version>
 		</dependency>
-  	</dependencies>
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+	</dependencies>
 </project>
