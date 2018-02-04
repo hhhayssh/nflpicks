@@ -112,17 +112,3 @@ values ((select d.id from division d where d.conference_id in (select c.id from 
 
 insert into team (division_id, name, nickname, abbreviation) 
 values ((select d.id from division d where d.conference_id in (select c.id from conference c where c.name = 'NFC') and d.name = 'West'), 'Los Angeles Rams', 'Rams', 'LAR');
-
-/* Players */
-insert into player (name) values ('Benny boy');
-insert into player (name) values ('Bruce');
-insert into player (name) values ('Chance');
-insert into player (name) values ('Jonathan');
-insert into player (name) values ('Mark');
-insert into player (name) values ('Tim');
-insert into player (name) values ('Teddy');
-insert into player (name) values ('Jerry');
-insert into player (name) values ('Bookey');
-insert into player (name) values ('Josh');
-insert into player (name) values ('Doodle');
-insert into player (name) values ('Var');

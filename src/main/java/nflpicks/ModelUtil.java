@@ -55,13 +55,38 @@ public class ModelUtil {
 		
 		return null;
 	}
-	
-	public static Pick getPick(List<Pick> picks, String player, String homeTeamAbbreviation, String awayTeamAbbreviation, String winningTeamAbbreviation){
+
+	/**
+	 * 
+	 * Gets the pick from the given list that's from the given player and matches either the home team, away team,
+	 * or winning team abbreviation (it checks in that order).  If it can't find a pick that matches that, it'll return
+	 * null.
+	 * 
+	 * @param picks
+	 * @param playerName
+	 * @param homeTeamAbbreviation
+	 * @param awayTeamAbbreviation
+	 * @param winningTeamAbbreviation
+	 * @return
+	 */
+	public static Pick getPick(List<Pick> picks, String playerName, String homeTeamAbbreviation, String awayTeamAbbreviation, String winningTeamAbbreviation){
+		
+		if (picks == null || playerName == null){
+			return null;
+		}
+		
+		//Steps to do:
+		//	1. Go through all the picks and check who made each one.
+		//	2. If the player matches what we were given, then check if the game
+		//	   has one of the teams and return it if it does.
+		//	3. If we go through the whole list, then that means it wasn't in the list.
 		
 		for (int index = 0; index < picks.size(); index++){
 			Pick pick = picks.get(index);
+			Player player = pick.getPlayer();
+			String pickPlayerName = player.getName();
 			
-			if (player.equals(pick.getPlayer().getName())){
+			if (playerName.equals(pickPlayerName)){
 				Game game = pick.getGame();
 				
 				String pickHomeTeam = game.getHomeTeam().getAbbreviation();
@@ -85,11 +110,31 @@ public class ModelUtil {
 		return null;
 	}
 	
+	/**
+	 * 
+	 * This function will get the "result" we should use based on the winning team
+	 * and the team that got picked. ... Yeah, completely stupid.  It's here so I only
+	 * have to do this in one place and can "derive" whether it's a win or a loss based on
+	 * the pick and the winning team.  Probably a stupid decision to do it like that, but, hey,
+	 * what can I say, I'm a stupid person.
+	 * 
+	 * If they match, it'll return W.  If they don't, it'll return L.  If the winning team abbreviation
+	 * is "TIE", it'll return T.  If either one is null, it'll return null.
+	 * 
+	 * @param winningTeamAbbreviation
+	 * @param pickAbbreviation
+	 * @return
+	 */
 	public static String getPickResult(String winningTeamAbbreviation, String pickAbbreviation){
 		
 		if (winningTeamAbbreviation == null || pickAbbreviation == null){
 			return null;
 		}
+		
+		//Steps to do:
+		//	1. If the winning team was the "tie" team, then it was a tie.
+		//	2. Otherwise, if they're the same, the result was a win.
+		//	3. And if they're different, it was a loss.
 		
 		String pickResult = null;
 		
@@ -108,7 +153,17 @@ public class ModelUtil {
 		return pickResult;
 	}
 	
-public static boolean areThereAnyTies(List<Record> records){
+	/**
+	 * 
+	 * This function checks to see whether there are any ties in the list
+	 * of records.  Kind of dumb, but sometimes we need to add a column or
+	 * do something if we're showing records and there are ties.  If there
+	 * aren't ties, we usually leave the tie part off.
+	 * 
+	 * @param records
+	 * @return
+	 */
+	public static boolean areThereAnyTies(List<Record> records){
 		
 		if (records == null){
 			return false;
@@ -125,6 +180,14 @@ public static boolean areThereAnyTies(List<Record> records){
 		return false;
 	}
 	
+	/**
+	 * 
+	 * This function gets the largest number of wins for the given records.
+	 * Not much to it.
+	 * 
+	 * @param records
+	 * @return
+	 */
 	public static int getTopWins(List<Record> records){
 		
 		if (records == null){
@@ -144,6 +207,21 @@ public static boolean areThereAnyTies(List<Record> records){
 		return topWins;
 	}
 	
+	/**
+	 * 
+	 * A stupid function that gets the record for the player with the give name
+	 * from the list of records.  Here because I'm a moron.
+	 * 
+	 * And, yeah, I realize I could be using java 8 streams to do it like this:
+	 * 
+	 * 	records.stream().filter(p -> p.getName() == playerName).collect(Collectors.toList());
+	 * 
+	 * But I don't feel like doing it that way and, since it's my project, I'm not going to.
+	 * 
+	 * @param records
+	 * @param playerName
+	 * @return
+	 */
 	public static Record getRecordForPlayer(List<Record> records, String playerName){
 		
 		if (records == null || playerName == null){
@@ -152,8 +230,10 @@ public static boolean areThereAnyTies(List<Record> records){
 		
 		for (int index = 0; index < records.size(); index++){
 			Record record = records.get(index);
+			Player player = record.getPlayer();
+			String recordPlayerName = player.getName();
 			
-			if (playerName.equals(record.getPlayer().getName())){
+			if (playerName.equals(recordPlayerName)){
 				return record;
 			}
 		}
@@ -161,6 +241,14 @@ public static boolean areThereAnyTies(List<Record> records){
 		return null;
 	}
 	
+	/**
+	 * 
+	 * Another dumb function that should be a one liner using java 8 streams.  It
+	 * gets the names of all the players in the given list.  
+	 * 
+	 * @param players
+	 * @return
+	 */
 	public static List<String> getPlayerNames(List<Player> players){
 		
 		if (players == null){
@@ -179,5 +267,30 @@ public static boolean areThereAnyTies(List<Record> records){
 		
 		//need a programming language that only deals with the basic data structures and types like int, string, long...
 	}
-
+	
+	public static String getWeekLabelForWeekNumber(int weekNumber){
+		
+		String weekLabel = null;
+		
+		if (weekNumber <= 17){
+			weekLabel = "Week " + weekNumber;
+		}
+		else {
+			if (weekNumber == 18){
+				weekLabel = "Playoffs - Wildcard";
+			}
+			else if (weekNumber == 19){
+				weekLabel = "Playoffs - Divisional";
+			}
+			else if (weekNumber == 20){
+				weekLabel = "Playoffs - Conference Championship";
+			}
+			else if (weekNumber == 21){
+				weekLabel = "Playoffs - Superbowl";
+			}
+		}
+		
+		return weekLabel;
+		
+	}
 }

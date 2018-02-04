@@ -205,7 +205,7 @@ public class NFLPicksServlet extends HttpServlet {
 			json = selectionCriteriaJSONObject.toString();
 		}
 		else if (TARGET_EXPORT_PICKS.equals(target)){
-			String exportedPicks = dataExporter.export();
+			String exportedPicks = dataExporter.exportData();
 			
 			String exportDate = DateUtil.formatDateAsISODate(new Date());
 			

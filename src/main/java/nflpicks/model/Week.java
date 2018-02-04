@@ -23,11 +23,6 @@ public class Week {
 	protected int seasonId;
 	
 	/**
-	 * The year the week happened in.
-	 */
-	protected String year;
-	
-	/**
 	 * The number of the week, starting from 1 and going through the superbowl (which is week 21).
 	 */
 	protected int weekNumber;
@@ -46,6 +41,10 @@ public class Week {
 	public Week(){
 	}
 	
+	public Week(int seasonId, int weekNumber, String label){
+		this(-1, seasonId, weekNumber, label, null);
+	}
+	
 	/**
 	 * 
 	 * A convenience constructor so you don't have to use the setters to make an object.
@@ -56,11 +55,10 @@ public class Week {
 	 * @param label
 	 * @param games
 	 */
-	public Week(int id, int seasonId, String year, int week, String label, List<Game> games){
+	public Week(int id, int seasonId, int weekNumber, String label, List<Game> games){
 		this.id = id;
 		this.seasonId = seasonId;
-		this.year = year;
-		this.weekNumber = week;
+		this.weekNumber = weekNumber;
 		this.label = label;
 		this.games = games;
 	}
@@ -81,13 +79,6 @@ public class Week {
 		this.seasonId = seasonId;
 	}
 
-	public String getYear() {
-		return year;
-	}
-
-	public void setYear(String year) {
-		this.year = year;
-	}
 
 	public int getWeekNumber() {
 		return weekNumber;
@@ -134,7 +125,6 @@ public class Week {
 		
 		result = primeNumber * result + Integer.valueOf(id).hashCode();
 		result = primeNumber * result + Integer.valueOf(seasonId).hashCode();
-		result = primeNumber * result + (year == null ? 0 : year.hashCode());
 		result = primeNumber * result + Integer.valueOf(weekNumber).hashCode();
 		result = primeNumber * result + (label == null ? 0 : label.hashCode());
 		result = primeNumber * result + (games == null ? 0 : games.hashCode());
@@ -179,19 +169,6 @@ public class Week {
 		
 		if (seasonId != otherSeasonId){
 			return false;
-		}
-		
-		String otherYear = otherWeek.getYear();
-		
-		if (year != null){
-			if (!year.equals(otherYear)){
-				return false;
-			}
-		}
-		else {
-			if (otherYear != null){
-				return false;
-			}
 		}
 		
 		int otherWeekNumber = otherWeek.getWeekNumber();
@@ -239,7 +216,6 @@ public class Week {
 		
 		String thisObjectAsAString = "id = " + id + 
 									 ", seasonId = " + seasonId +
-									 ", year = " + year +
 									 ", weekNumber = " + weekNumber +
 									 ", label = " + label +
 									 ", games = " + games;

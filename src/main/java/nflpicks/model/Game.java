@@ -64,6 +64,19 @@ public class Game {
 	
 	/**
 	 * 
+	 * A convenience constructor for if you want to make a game but it doesn't
+	 * have a result yet.
+	 * 
+	 * @param weekId
+	 * @param homeTeam
+	 * @param awayTeam
+	 */
+	public Game(int weekId, Team homeTeam, Team awayTeam){
+		this(-1, weekId, homeTeam, awayTeam, false, null);
+	}
+	
+	/**
+	 * 
 	 * Lets you make a game object without calling all the setters.
 	 * 
 	 * @param id

@@ -310,7 +310,6 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		
 		Collections.sort(players, new Comparator<Player>(){
 
-			@Override
 			public int compare(Player player1, Player player2) {
 				return player1.getName().compareTo(player2.getName());
 			}

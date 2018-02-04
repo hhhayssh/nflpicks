@@ -31,6 +31,16 @@ public class Season {
 	
 	/**
 	 * 
+	 * A convenience constructor if all you have is the year.
+	 * 
+	 * @param year
+	 */
+	public Season(String year){
+		this(-1, year, null);
+	}
+	
+	/**
+	 * 
 	 * A convenience constructor so you don't have to use all the setters.
 	 * 
 	 * @param id

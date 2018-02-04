@@ -95,22 +95,22 @@ public class JSONUtil {
 		
 		JSONObject jsonObject = new JSONObject();
 		
-		jsonObject.put("id", game.getId());
-		jsonObject.put("weekId", game.getWeekId());
+		jsonObject.put(NFLPicksConstants.JSON_GAME_ID, game.getId());
+		jsonObject.put(NFLPicksConstants.JSON_GAME_WEEK_ID, game.getWeekId());
 		
 		JSONObject homeTeamJSONObject = teamToJSONObject(game.getHomeTeam());
-		jsonObject.put("homeTeam", homeTeamJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_GAME_HOME_TEAM, homeTeamJSONObject);
 		
 		JSONObject awayTeamJSONObject = teamToJSONObject(game.getAwayTeam());
-		jsonObject.put("awayTeam", awayTeamJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_GAME_AWAY_TEAM, awayTeamJSONObject);
 		
 		Team winningTeam = game.getWinningTeam();
 		if (winningTeam != null){
 			JSONObject winningTeamJSONObject = teamToJSONObject(game.getWinningTeam());
-			jsonObject.put("winningTeam", winningTeamJSONObject);
+			jsonObject.put(NFLPicksConstants.JSON_GAME_WINNING_TEAM, winningTeamJSONObject);
 		}
 		
-		jsonObject.put("tie", game.getTie());
+		jsonObject.put(NFLPicksConstants.JSON_GAME_TIE, game.getTie());
 		
 		return jsonObject;
 	}
@@ -178,11 +178,11 @@ public class JSONUtil {
 
 		JSONObject jsonObject = new JSONObject();
 		
-		jsonObject.put("id", team.getId());
-		jsonObject.put("divisionId", team.getDivisionId());
-		jsonObject.put("name", team.getName());
-		jsonObject.put("nickname", team.getNickname());
-		jsonObject.put("abbreviation", team.getAbbreviation());
+		jsonObject.put(NFLPicksConstants.JSON_TEAM_ID, team.getId());
+		jsonObject.put(NFLPicksConstants.JSON_TEAM_DIVISION_ID, team.getDivisionId());
+		jsonObject.put(NFLPicksConstants.JSON_TEAM_NAME, team.getName());
+		jsonObject.put(NFLPicksConstants.JSON_TEAM_NICKNAME, team.getNickname());
+		jsonObject.put(NFLPicksConstants.JSON_TEAM_ABBREVIATION, team.getAbbreviation());
 		
 		return jsonObject;
 	}
@@ -248,8 +248,8 @@ public class JSONUtil {
 	public static JSONObject playerToJSONObject(Player player){
 		
 		JSONObject jsonObject = new JSONObject();
-		jsonObject.put("id", player.getId());
-		jsonObject.put("name", player.getName());
+		jsonObject.put(NFLPicksConstants.JSON_PLAYER_ID, player.getId());
+		jsonObject.put(NFLPicksConstants.JSON_PLAYER_NAME, player.getName());
 		
 		return jsonObject;
 	}
@@ -315,22 +315,22 @@ public class JSONUtil {
 	public static JSONObject pickToJSONObject(Pick pick){
 		
 		JSONObject jsonObject = new JSONObject();
-		jsonObject.put("id", pick.getId());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ID, pick.getId());
 		
 		JSONObject gameJSONObject = gameToJSONObject(pick.getGame());
-		jsonObject.put("game", gameJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_PICK_GAME, gameJSONObject);
 		
 		JSONObject playerJSONObject = playerToJSONObject(pick.getPlayer());
-		jsonObject.put("player", playerJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_PICK_PLAYER, playerJSONObject);
 		
 		Team team = pick.getTeam();
 		if (team != null){
 			JSONObject teamJSONObject = teamToJSONObject(team);
-			jsonObject.put("team", teamJSONObject);
+			jsonObject.put(NFLPicksConstants.JSON_PICK_TEAM, teamJSONObject);
 			
 			String result = pick.getResult();
 			if (result != null){
-				jsonObject.put("result", result);
+				jsonObject.put(NFLPicksConstants.JSON_PICK_RESULT, result);
 			}
 		}
 		
@@ -385,11 +385,10 @@ public class JSONUtil {
 		JSONObject jsonObject = new JSONObject();
 		
 		JSONObject playerJSONObject = playerToJSONObject(record.getPlayer());
-		jsonObject.put("player", playerJSONObject);
-		
-		jsonObject.put("wins", record.getWins());
-		jsonObject.put("losses", record.getLosses());
-		jsonObject.put("ties", record.getTies());
+		jsonObject.put(NFLPicksConstants.JSON_RECORD_PLAYER, playerJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_RECORD_WINS, record.getWins());
+		jsonObject.put(NFLPicksConstants.JSON_RECORD_LOSSES, record.getLosses());
+		jsonObject.put(NFLPicksConstants.JSON_RECORD_TIES, record.getTies());
 		
 		return jsonObject;
 	}

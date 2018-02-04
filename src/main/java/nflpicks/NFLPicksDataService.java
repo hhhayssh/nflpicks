@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 import javax.sql.DataSource;
 
@@ -608,7 +607,7 @@ public class NFLPicksDataService {
 					stringBuilder.append(" and ");
 				}
 				
-				String inParameterString = DatabaseUtil.createInParameterString(years.size());
+				String inParameterString = DatabaseUtil.createInClauseParameterString(years.size());
 				
 				stringBuilder.append("season_id in (select id " + 
 									 "from season " + 
@@ -626,7 +625,7 @@ public class NFLPicksDataService {
 					stringBuilder.append(" and ");
 				}
 				
-				String inParameterString = DatabaseUtil.createInParameterString(weekNumberIntegers.size());
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weekNumberIntegers.size());
 			
 				//this should be changed to week_number
 				stringBuilder.append("week in ")
@@ -735,6 +734,82 @@ public class NFLPicksDataService {
 		return week;
 	}
 	
+	public Season saveSeason(Season season){
+		
+		int id = season.getId();
+		
+		int numberOfAffectedRows = 0;
+		
+		if (id <= 0){
+			numberOfAffectedRows = insertSeason(season);
+		}
+		else {
+			numberOfAffectedRows = updateSeason(season);
+		}
+		
+		Season savedSeason = null;
+		
+		if (numberOfAffectedRows == 1){
+			savedSeason = getSeason(season.getYear());
+		}
+		
+		return savedSeason;
+	}
+	
+	protected int insertSeason(Season season){
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(INSERT_SEASON);
+			statement.setString(1, season.getYear());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting season! season = " + season, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	protected int updateSeason(Season season){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(UPDATE_SEASON);
+			statement.setString(1, season.getYear());
+			statement.setInt(2, season.getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error updating season! season = " + season, e);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
 	public Player savePlayer(Player player){
 		
 		int id = player.getId();
@@ -809,7 +884,6 @@ public class NFLPicksDataService {
 		}
 		
 		return numberOfAffectedRows;
-		
 	}
 	
 	public Week saveWeek(Week week){
@@ -982,8 +1056,6 @@ public class NFLPicksDataService {
 		week.setId(weekId);
 		int seasonId = result.getInt("season_id");
 		week.setSeasonId(seasonId);
-		String year = getYear(seasonId);
-		week.setYear(year);
 		week.setWeekNumber(result.getInt("week"));
 		week.setLabel(result.getString("label"));
 		
@@ -1593,7 +1665,7 @@ public class NFLPicksDataService {
 			 	  					where player_name in (?, ?, ?))
 			 */
 			if (hasWeeks){
-				query = query + " where week in " + DatabaseUtil.createInParameterString(weekNumberIntegers.size());
+				query = query + " where week in " + DatabaseUtil.createInClauseParameterString(weekNumberIntegers.size());
 			}
 			
 			if (hasYears){
@@ -1605,7 +1677,7 @@ public class NFLPicksDataService {
 					query = query + " where ";
 				}
 				
-				query = query + " season_id in (select id from season where year in " + DatabaseUtil.createInParameterString(years.size()) + " ) ";
+				query = query + " season_id in (select id from season where year in " + DatabaseUtil.createInClauseParameterString(years.size()) + " ) ";
 			}
 			
 			query = query + ")";
@@ -1613,7 +1685,7 @@ public class NFLPicksDataService {
 			query = query + ")";
 			
 			if (hasPlayers){
-				query = query + " and player_id in (select id from player where name in " + DatabaseUtil.createInParameterString(playerNames.size()) + " ) ";
+				query = query + " and player_id in (select id from player where name in " + DatabaseUtil.createInClauseParameterString(playerNames.size()) + " ) ";
 			}
 			
 			connection = getConnection();
@@ -1961,7 +2033,7 @@ public class NFLPicksDataService {
 			StringBuilder stringBuilder = new StringBuilder(SELECT_PLAYER);
 			
 			if (playerNames != null && playerNames.size() > 0){
-				String inParameterString = DatabaseUtil.createInParameterString(playerNames.size());
+				String inParameterString = DatabaseUtil.createInClauseParameterString(playerNames.size());
 				stringBuilder.append(" where name in ").append(inParameterString);
 			}
 			
@@ -2434,7 +2506,7 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			if (hasYears){
 				addedWhere = true;
-				String inParameterString = DatabaseUtil.createInParameterString(years.size());
+				String inParameterString = DatabaseUtil.createInClauseParameterString(years.size());
 				whereBase = "where s.year in " + inParameterString;
 			}
 			
@@ -2447,7 +2519,7 @@ order by s.year asc, w.week asc, g.id asc;
 					whereBase = "where ";
 				}
 				
-				String inParameterString = DatabaseUtil.createInParameterString(weekNumbers.size());
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weekNumbers.size());
 				whereBase = whereBase + " w.week in " + inParameterString;
 			}
 			

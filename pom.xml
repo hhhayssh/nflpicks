@@ -15,12 +15,12 @@
 		<nflpicks.log.location>/var/log/nflpicks/nflpicks.log</nflpicks.log.location>
 	</properties>
 	<profiles>
-		<!-- The profile to use to build the nflpicks jar by itself and use the picks exporter.
+		<!-- The profile to use to build the nflpicks jar by itself and use the picks "data manager" to import or export stuff.
 			 To use it:
 			 	1. Build the jar:
-			 		 mvn clean compile org.apache.maven.plugins:maven-dependency-plugin:copy-dependencies@copy-libraries jar:jar -Pnflpicks-exporter
+			 		 mvn clean compile org.apache.maven.plugins:maven-dependency-plugin:copy-dependencies@copy-libraries jar:jar -Pnflpicks-data-manager
 			 	   This cleans the target folder, compiles it, copies the dependencies to the target/lib folder, jars the classes folder
-			 	   and makes it so the resulting jar will run the NFLPicksDataExporter class.
+			 	   and makes it so the resulting jar will run the NFLPicksDataManager class.
 			 	2. Copy the nflpicks.jar and lib folder to where you want to run it.
 			 	3. Run it with:
 			 		java -jar nflpicks.jar
@@ -32,9 +32,9 @@
 			 The best and cleanest way to do those two things is to put them both in a separate profile. 
 		 -->
 		<profile>
-			<id>nflpicks-exporter</id>
+			<id>nflpicks-data-manager</id>
 			<properties>
-				<nflpicks.log.location>nflpicks-exporter.log</nflpicks.log.location>
+				<nflpicks.log.location>nflpicks-data-manager.log</nflpicks.log.location>
 			</properties>
 			<build>
 				<plugins>
@@ -62,7 +62,7 @@
     					</executions>
 					</plugin>
 					<!-- This plugin will build a runnable jar file with the nflpicks classes in it.
-						 It will cause the jar to run the main function in nflpicks.NFLPicksDataExporter when you run it.
+						 It will cause the jar to run the main function in nflpicks.NFLPicksDataManager when you run it.
 						 It will also cause everything in the "lib" folder to be included on the classpath so we don't have
 						 to list it out manually.
 						 All the dependencies should be copied to the "lib" folder by the copy-dependencies plugin.
@@ -75,7 +75,7 @@
             					<manifest>
                 					<addClasspath>true</addClasspath>
                 					<classpathPrefix>lib/</classpathPrefix>
-                					<mainClass>nflpicks.NFLPicksDataExporter</mainClass>
+                					<mainClass>nflpicks.NFLPicksDataManager</mainClass>
             					</manifest>
         					</archive>
     					</configuration>

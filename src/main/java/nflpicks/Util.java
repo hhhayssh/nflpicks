@@ -221,7 +221,7 @@ public class Util {
 			return null;
 		}
 		
-		String[] valuesArray = value.split(delimiter);
+		String[] valuesArray = value.split(delimiter, -1);
 		
 		List<String> values = new ArrayList<String>(valuesArray.length);
 		
@@ -400,6 +400,29 @@ public class Util {
 		}
 		
 		return true;
+	}
+	
+	public static int getLineCount(String filename){
 		
+		int lineCount = 0;
+		
+		BufferedReader reader = null;
+		
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			
+			String line = "";
+			while ((line = reader.readLine()) != null){
+				lineCount++;
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting line count!  current line = " + lineCount + ", filename = " + filename);
+		}
+		finally {
+			closeReader(reader);
+		}
+		
+		return lineCount;
 	}
 }

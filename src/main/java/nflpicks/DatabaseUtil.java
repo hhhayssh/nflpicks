@@ -83,7 +83,19 @@ public class DatabaseUtil {
 		}
 	}
 	
-	public static String createInParameterString(int numberOfValues){
+	/**
+	 * 
+	 * This function will create a string like "(?, ?, ?, ?, ...)"
+	 * that can be used as part of an "in" clause in an sql query.
+	 * 
+	 * @param numberOfValues
+	 * @return
+	 */
+	public static String createInClauseParameterString(int numberOfValues){
+		
+		//Steps to do:
+		//	1. Add a parentheses to start with and then just keep adding commas
+		//	   and question marks and that's it.
 		
 		StringBuilder stringBuilder = new StringBuilder("(");
 		
