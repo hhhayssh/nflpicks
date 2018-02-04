@@ -136,6 +136,12 @@ public class NFLPicksDataImporter {
 		importer.importData(importFilename);
 	}
 	
+	/**
+	 * 
+	 * If you're making a data importer, you should have the data service already made.
+	 * 
+	 * @param dataService
+	 */
 	public NFLPicksDataImporter(NFLPicksDataService dataService){
 		this.seasonCache = new HashMap<String, Season>();
 		this.weekCache = new HashMap<String, Week>();
@@ -146,42 +152,72 @@ public class NFLPicksDataImporter {
 		this.dataService = dataService;
 	}
 	
+	/**
+	 * 
+	 * This function imports the picks data from the given file name.  It expects
+	 * the data in the given file to be like a csv file like this:
+	 * 
+	 * 		Year,Week,Away,Home,Winner,PlayerName1,PlayerName2,PlayerName3,...
+	 * 		2016,1,BUF,BAL,BUF,BUF,BAL,BAL,...
+	 * 		2016,1,ATL,GB,GB,GB,ATL,ATL,...
+	 * 		...
+	 * 
+	 * Everything after "Home" field is optional.  If there aren't any player picks, it'll
+	 * just make the games.  If isn't a "Winner" column, it won't set the winner of the games.
+	 * 
+	 * It will create the season, week, and game records if they don't exist.  If they do exist, it'll
+	 * update what's there to match what's in the file (like it'll set the winning team and stuff like that).
+	 * It'll create the player records if they don't exist too.
+	 * 
+	 * @param filename
+	 */
 	public void importData(String filename){
 		
-		//What should happen when we import?
-		
-		//1. read the header and check each player to see if they're in there
-		//it should be ....
-		/*
-		 Year,Week,Away,Home,Winner,Benny boy,Bruce,Chance,Jonathan,Mark,Teddy,Tim,Bookey,Jerry,Josh,Doodle,Var
-2017,1,KC,NE,KC,KC,NE,,KC,KC,NE,NE,NE,NE,NE,NE,
-		 */
+		//Steps to do:
+		//	1. Get how many lines are in the file so we can show the progress.
+		//	2. Make sure the header has the required columns (year, week, away, home).  If it doesn't
+		//	   have that many columns, that means the file is bad so we should quit.
+		//	3. Check to see if there are any player names in the header.
+		//	4. If there are, go through and create records for them in the database if they don't
+		//	   already exist.
+		//	5. After that', we're ready to go, so just read each line and import it.
+		//	6. That's it.
 		
 		long start = System.currentTimeMillis();
 		
 		int totalNumberOfLines = Util.getLineCount(filename);
-		
 		log.info("Found " + totalNumberOfLines + " lines in " + filename);
 		
 		log.info("Reading header...");
-		List<String> headerNames = readHeaderNames(filename);
+		List<String> headerNames = Util.readHeaderValues(filename);
 		log.info("Read " + headerNames.size() + " header columns: " + headerNames);
+
 		int numberOfColumns = headerNames.size();
 		
+		//We need at least the year, week, home, and away columns in order to do anything.
 		if (numberOfColumns < 4 ){
 			log.error("Bad header in file!  Not enough columns!  headers = " + headerNames);
 			return;
 		}
 		
 		List<String> playerNames = new ArrayList<String>();
+		
+		//If there are more than 5 columns, that means the player picks should be included so we should
+		//get out the player names and make sure we have records for each player.
 		if (numberOfColumns > 5){
 			playerNames = headerNames.subList(5, numberOfColumns);
+
 			log.info("Found " + playerNames.size() + " player names: " + playerNames);
 			log.info("Updating players...");
-			updatePlayers(playerNames);
+			
+			//This function will create player records for each name that doesn't already have a player
+			//record.
+			createPlayers(playerNames);
+			
 			log.info("Players updated.");
 		}
-	
+
+		//No we're ready to go...
 		log.info("Importing data from lines...");
 		BufferedReader reader = null;
 		int lineNumber = 0;
@@ -195,21 +231,26 @@ public class NFLPicksDataImporter {
 			
 			while ((line = reader.readLine() )!= null){
 				
+				//Skip the header...
 				if (lineNumber == 0){
 					lineNumber++;
 					continue;
 				}
 				
+				//Turn the csv line into a list so we can handle it easier.
 				List<String> values = Util.getCsvValues(line);
 				
 				int numberOfValues = values.size();
 				
+				//If we ever read fewer than 4 values, the line is bad, which means the file is bad, so we should just quit.
 				if (numberOfValues < 4){
 					log.error("Error importing data!  Bad line!  filename = " + filename + ", lineNumber = " + lineNumber + ", line = " + line);
 					reader.close();
 					return;
 				}
 				
+				//We know we'll have at least the year, week, away team, and home team, so pull those
+				//values out.
 				String year = values.get(0);
 				String weekNumber = values.get(1);
 				String awayTeamAbbreviation = values.get(2);
@@ -217,6 +258,7 @@ public class NFLPicksDataImporter {
 				String winningTeamAbbreviation = null;
 				List<String> playerPicks = null;
 				
+				//Add in the winning team and players if we have them.
 				if (numberOfValues >= 5){
 					winningTeamAbbreviation = values.get(4);
 					
@@ -225,12 +267,13 @@ public class NFLPicksDataImporter {
 					}
 				}
 				
+				//Now we're ready to import the line.
 				importData(year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, playerNames, playerPicks);
 				
 				lineNumber++;
 				
 				//So we can show the progress of the export in the log.
-				progress = (int)Math.ceil(((double)lineNumber / (double)totalNumberOfLines) * 100.0);
+				progress = (int)Math.floor(((double)lineNumber / (double)totalNumberOfLines) * 100.0);
 				
 				//Only show the progress every 5%.
 				if (progress >= (lastProgress + 5)){
@@ -251,8 +294,28 @@ public class NFLPicksDataImporter {
 		log.info("Done importing data from file.  Took " + elapsed + " ms to import " + totalNumberOfLines + " lines from file " + filename);
 	}
 	
+	/**
+	 * 
+	 * This function will import the given data that should come from a "line" in the csv file.  It will make the records
+	 * as it needs them.  For example, if there's no season record for the given year, it'll make a record for the season.
+	 * Same thing with the week, game, and picks.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @param awayTeamAbbreviation
+	 * @param homeTeamAbbreviation
+	 * @param winningTeamAbbreviation
+	 * @param playerNames
+	 * @param playerPicks
+	 */
 	protected void importData(String year, String weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, String winningTeamAbbreviation,
 							  List<String> playerNames, List<String> playerPicks){
+		
+		//Steps to do:
+		//	1. Make sure the season and week exist and create them if they don't.
+		//	2. Make sure the game exists and create it if it doesn't.
+		//	3. If there are player names, go through all of them and make the pick
+		//	   records for them.
 		
 		Season season = getSeason(year);
 		if (season == null){
@@ -264,6 +327,8 @@ public class NFLPicksDataImporter {
 			week = createWeek(year, weekNumber);
 		}
 		
+		//If there's a winning team, figure out if there's a tie and pass that in too.
+		//If there is a tie, the winning team abbreviation should be "TIE".
 		boolean tie = false;
 		if (winningTeamAbbreviation != null){
 			if (NFLPicksConstants.TIE_TEAM_ABBREVIATION.equals(winningTeamAbbreviation)){
@@ -280,6 +345,8 @@ public class NFLPicksDataImporter {
 			String playerName = playerNames.get(index);
 			String pickAbbreviation = playerPicks.get(index);
 			
+			//If they didn't make a pick, there's nothing to do, so just keep going.  When people
+			//don't make picks, we don't save like an empty record or anything like that.
 			if (!Util.hasSomething(pickAbbreviation)){
 				continue;
 			}
@@ -291,30 +358,44 @@ public class NFLPicksDataImporter {
 			if (pick == null){
 				pick = new Pick();
 			}
-			
+
+			//The pick has the game, player, and the team they picked.  We don't care about the result right
+			//now because that's "derived" when they get the picks by comparing the winning team and picked team.
 			pick.setGame(game);
 			pick.setPlayer(player);
 			pick.setTeam(pickedTeam);
-			
-			String result = ModelUtil.getPickResult(winningTeamAbbreviation, pickAbbreviation);
-			pick.setResult(result);
 
 			dataService.savePick(pick);
 		}
 	}
 	
+	/**
+	 * 
+	 * Gets the season for the given year.  It'll get it out of the cache if it's
+	 * there and go to the database if it's not.
+	 * 
+	 * @param year
+	 * @return
+	 */
 	protected Season getSeason(String year){
 		
-		Season season = this.seasonCache.get(year);
+		Season season = seasonCache.get(year);
 		
 		if (season == null){
 			season = dataService.getSeason(year);
-			this.seasonCache.put(year, season);
+			seasonCache.put(year, season);
 		}
 		
 		return season;
 	}
 	
+	/**
+	 * 
+	 * Creates a season for the given year and returns what was created.
+	 * 
+	 * @param year
+	 * @return
+	 */
 	protected Season createSeason(String year){
 		
 		Season season = new Season(year);
@@ -323,6 +404,16 @@ public class NFLPicksDataImporter {
 		return season;
 	}
 	
+	/**
+	 * 
+	 * Gets the week for the given year and week number.  It'll try to get it
+	 * from the cache first, and then go to the database to get it if it's not in
+	 * the cache.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	protected Week getWeek(String year, String weekNumber){
 		
 		String seasonAndWeekKey = getSeasonAndWeekKey(year, weekNumber);
@@ -337,9 +428,21 @@ public class NFLPicksDataImporter {
 		return week;
 	}
 	
+	/**
+	 * 
+	 * Creates a week record for the given year and week number.  It will make
+	 * the "label" for the week based off the given week number and handle
+	 * things like calling week 18 "Playoffs - Wild Card" too.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	protected Week createWeek(String year, String weekNumber){
 		
 		int weekNumberInt = Util.toInteger(weekNumber);
+		//The label to use for the week is usually just like "Week" and then the number.
+		//If the week number is 18 or over, though, it's like "Playoffs - Divisional".
 		String label = ModelUtil.getWeekLabelForWeekNumber(weekNumberInt);
 		Season season = getSeason(year);
 		Week week = new Week(season.getId(), weekNumberInt, label);
@@ -348,10 +451,26 @@ public class NFLPicksDataImporter {
 		return week;
 	}
 	
+	/**
+	 * 
+	 * Gets the "key" we use to store weeks by their year and number in the cache.
+	 * 
+	 * @param year
+	 * @param week
+	 * @return
+	 */
 	protected String getSeasonAndWeekKey(String year, String week){
 		return year + "-" + week;
 	}
 	
+	/**
+	 * 
+	 * Gets the team with the given abbreviation.  If it's not in the cache,
+	 * it'll go the database to get it.
+	 * 
+	 * @param teamAbbreviation
+	 * @return
+	 */
 	protected Team getTeam(String teamAbbreviation){
 		
 		Team team = teamCache.get(teamAbbreviation);
@@ -364,6 +483,14 @@ public class NFLPicksDataImporter {
 		return team;
 	}
 	
+	/**
+	 * 
+	 * Gets the player with the given name.  If they're not in the cache, it'll go
+	 * to the database to get them.
+	 * 
+	 * @param playerName
+	 * @return
+	 */
 	protected Player getPlayer(String playerName){
 		
 		Player player = playerCache.get(playerName);
@@ -376,6 +503,17 @@ public class NFLPicksDataImporter {
 		return player;
 	}
 	
+	/**
+	 * 
+	 * Gets the game for the given year and week for the given teams.  If it's not in the cache, it'll go
+	 * to the database and get it.
+	 * 
+	 * @param year
+	 * @param week
+	 * @param awayTeamAbbreviation
+	 * @param homeTeamAbbreviation
+	 * @return
+	 */
 	protected Game getGame(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation){
 		
 		String gameKey = getGameKey(year, week, awayTeamAbbreviation, homeTeamAbbreviation);
@@ -390,10 +528,32 @@ public class NFLPicksDataImporter {
 		return game;
 	}
 	
+	/**
+	 * 
+	 * Gets the key we use in the game cache map so we can identify a game by its "components".
+	 * 
+	 * @param year
+	 * @param week
+	 * @param awayTeamAbbreviation
+	 * @param homeTeamAbbreviation
+	 * @return
+	 */
 	protected String getGameKey(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation){
 		return year + "-" + week + "-" + awayTeamAbbreviation + "-" + homeTeamAbbreviation;
 	}
 	
+	/**
+	 * 
+	 * Creates a game record for the given year and week for the given two teams and with the given result.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @param awayTeamAbbreviation
+	 * @param homeTeamAbbreviation
+	 * @param winningTeamAbbreviation
+	 * @param tie
+	 * @return
+	 */
 	protected Game createGame(String year, String weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, 
 							  String winningTeamAbbreviation, boolean tie){
 		
@@ -408,6 +568,17 @@ public class NFLPicksDataImporter {
 		return game;
 	}
 	
+	/**
+	 * 
+	 * Gets the pick for the given game and player.  If it's not in the cache, it'll go to the database and get the pick.
+	 * 
+	 * @param year
+	 * @param week
+	 * @param awayTeamAbbreviation
+	 * @param homeTeamAbbreviation
+	 * @param playerName
+	 * @return
+	 */
 	protected Pick getPick(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation, String playerName){
 		
 		String pickKey = getPickKey(year, week, awayTeamAbbreviation, homeTeamAbbreviation, playerName);
@@ -421,11 +592,29 @@ public class NFLPicksDataImporter {
 		return pick;
 	}
 	
+	/**
+	 * 
+	 * Gets the key for the given pick (the game plus the player).
+	 * 
+	 * @param year
+	 * @param week
+	 * @param awayTeamAbbreviation
+	 * @param homeTeamAbbreviation
+	 * @param playerName
+	 * @return
+	 */
 	protected String getPickKey(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation, String playerName){
 		return year + "-" + week + "-" + awayTeamAbbreviation + "-" + homeTeamAbbreviation + "-" + playerName;
 	}
 	
-	protected void updatePlayers(List<String> playerNames){
+	/**
+	 * 
+	 * Creates records in the player table for all the given player names if they
+	 * don't exist.  If a player with one of the names already exists, it won't do anything.
+	 * 
+	 * @param playerNames
+	 */
+	protected void createPlayers(List<String> playerNames){
 		
 		for (int index = 0; index < playerNames.size(); index++){
 			String playerName = playerNames.get(index);
@@ -443,13 +632,4 @@ public class NFLPicksDataImporter {
 			}
 		}
 	}
-	
-	protected List<String> readHeaderNames(String filename){
-		
-		List<String> headerNames = Util.readHeaderValues(filename);
-		
-		return headerNames;
-		//Files.lines(Paths.get(nflPicksCsvFilename)).findFirst().get();
-	}
-
 }

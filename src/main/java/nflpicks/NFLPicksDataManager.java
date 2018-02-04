@@ -9,9 +9,15 @@ import java.util.Scanner;
  * build a runnable jar (with a lib folder), so that you can run it like this:
  * 
  * 		java -jar nflpicks.jar import nflpicks.properties import-data.csv
- * 		Or without the arguemnts (and it'll ask for them): 
+ * 		java -jar nflpicks.jar export nflpicks.properties export-2018-01-01.csv
+ * 
+ * 		Or without the arguemnts and it'll ask for them: 
+ * 
  * 		java -jar nflpicks.jar
  * 		
+ * You have to have the "lib" folder right there with the jar too.  The manifest inside the
+ * jar points to the "main" class (this one) and includes the "lib" folder on the class path
+ * automatically.
  * 
  * @author albundy
  *

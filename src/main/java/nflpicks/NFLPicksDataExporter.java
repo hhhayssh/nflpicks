@@ -293,7 +293,7 @@ public class NFLPicksDataExporter {
 				}
 				
 				//So we can show the progress of the export in the log.
-				progress = (int)Math.ceil(((double)index / (double)totalLines) * 100.0);
+				progress = (int)Math.floor(((double)index / (double)totalLines) * 100.0);
 				
 				//Only show the progress every 5%.
 				if (progress >= (lastProgress + 5)){
