@@ -48,6 +48,7 @@ public class Record {
 	public Record(Player player, int wins, int losses, int ties){
 		this.player = player;
 		this.wins = wins;
+		this.losses = losses;
 		this.ties = ties;
 	}
 

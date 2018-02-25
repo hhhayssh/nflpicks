@@ -1,5 +1,9 @@
 package nflpicks;
 
+import java.util.List;
+
+import nflpicks.model.Game;
+
 /**
  * 
  * This is so there's one place for the constants that get used
@@ -59,6 +63,16 @@ public interface NFLPicksConstants {
 	// Constants for the names of json fields.  They're here because I'm not doing any of that
 	// auto crap and I wanted to use constants.
 	
+	public static final String JSON_SEASON_ID = "id";
+	public static final String JSON_SEASON_YEAR = "year";
+	public static final String JSON_SEASON_WEEKS = "weeks";
+	
+	public static final String JSON_WEEK_ID = "id";
+	public static final String JSON_WEEK_SEASON_ID = "season_id";
+	public static final String JSON_WEEK_WEEK_NUMBER = "week_number";
+	public static final String JSON_WEEK_LABEL = "label";
+	public static final String JSON_WEEK_GAMES = "games";
+	
 	public static final String JSON_GAME_ID = "id";
 	public static final String JSON_GAME_WEEK_ID = "weekId";
 	public static final String JSON_GAME_HOME_TEAM = "homeTeam";
@@ -85,6 +99,13 @@ public interface NFLPicksConstants {
 	public static final String JSON_RECORD_WINS = "wins";
 	public static final String JSON_RECORD_LOSSES = "losses";
 	public static final String JSON_RECORD_TIES = "ties";
+	
+	public static final String JSON_WEEK_RECORD_SEASON = "season";
+	public static final String JSON_WEEK_RECORD_WEEK = "week";
+	public static final String JSON_WEEK_RECORD_RECORD = "record";
+	
+	public static final String JSON_WEEKS_WON_PLAYER = "player";
+	public static final String JSON_WEEKS_WON_WEEK_RECORDS = "weekRecords";
 	
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	

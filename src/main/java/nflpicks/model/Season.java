@@ -41,6 +41,17 @@ public class Season {
 	
 	/**
 	 * 
+	 * A convenience constructor if you want a season without the weeks.
+	 * 
+	 * @param id
+	 * @param year
+	 */
+	public Season(int id, String year){
+		this(id, year, null);
+	}
+	
+	/**
+	 * 
 	 * A convenience constructor so you don't have to use all the setters.
 	 * 
 	 * @param id

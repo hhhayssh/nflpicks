@@ -18,12 +18,13 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import nflpicks.model.CompactPick;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Team;
+import nflpicks.model.WeekRecord;
+import nflpicks.model.WeeksWon;
 
 
 public class NFLPicksServlet extends HttpServlet {
@@ -39,6 +40,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_SELECTION_CRITERIA = "selectionCriteria";
 	protected static final String TARGET_EDIT_SELECTION_CRITERIA = "editSelectionCriteria";
 	protected static final String TARGET_EXPORT_PICKS = "exportPicks";
+	protected static final String TARGET_STATS = "stats";
 	
 	protected NFLPicksDataService dataService;
 	
@@ -94,6 +96,7 @@ public class NFLPicksServlet extends HttpServlet {
 		}
 		else if (TARGET_PICKS_GRID.equals(target)){
 			//Escape this name
+			//let this be multiple players
 			String playerName = Util.replaceUrlCharacters(req.getParameter("player"));
 			String year = req.getParameter("year");
 			String weekString = req.getParameter("week");
@@ -221,6 +224,80 @@ public class NFLPicksServlet extends HttpServlet {
 			Util.writeBufferedBytes(exportedPicks.getBytes(), outputStream);
 			
 			return;
+		}
+		else if (TARGET_STATS.equals(target)){
+			
+			String statName = req.getParameter("statName");
+			
+			if ("weeksWon".equals(statName)){
+				String year = req.getParameter("year");
+				if ("all".equals(year)){
+					year = null;
+				}
+				List<WeeksWon> weeksWon = this.dataService.getWeeksWon(year);
+				
+				json = JSONUtil.weeksWonToJSONString(weeksWon);
+			}
+			else if ("weekRecords".equals(statName)){
+				String year = req.getParameter("year");
+				if ("all".equals(year)){
+					year = null;
+				}
+				List<WeekRecord> weekRecords = this.dataService.getWeekRecords(year);
+				
+				json = JSONUtil.weekRecordsToJSONString(weekRecords);
+			}
+			
+			//what stats do we want to show:
+			//
+			//	object:
+			//	year needs to be selected
+			//		playerName, id
+			//		list of week records for weeks they won
+			//
+			//	week record:
+			//		week number, record
+			
+			//	weeks won
+			//		player	number of weeks won		weeks
+			//		doodle					3		2 (9-7), 4 (12-4), 9
+			//
+			//	could we just calculate this on the browser?
+			//	the records come in wins and losses from the server and the ranking is done
+			//	on the client... games back and percentage are calculated on the client.
+			//	to figure it out in the browser, we'd need the record for each week in the selection
+			//	would have to group them and sort them and the count up the W's with a comparison.
+			//
+			//	java object needs to have:
+			//		player
+			//		number of weeks they've won
+			//		each week
+			//		WeekWon
+			//			year
+			//			week
+			//			tie
+			//
+			//	team predicted record by picks
+			//		selectors:
+			//			player (all)
+			//			team 
+			//			year
+			//	do we want to have a grid where it's players on the top and teams as the rows?
+			//	is it easier if the players are the rows?
+			//
+			//			car @ tb
+			//	benny	car
+			//	bruce	tb
+			//
+			//	times right, times wrong
+			//		one player, multiple teams
+			//			team	times picked to win (record) times picked to lose (record) 
+			//doodle	bal
+			//	record over a time period
+			//	playoff record
+			//	pick comparisons
+			//		pick two players, show picks in common and different
+			//		pick year and week
 		}
 		
 		resp.setContentType("text/plain; charset=UTF-8");

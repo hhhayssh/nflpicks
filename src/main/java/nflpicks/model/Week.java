@@ -45,6 +45,10 @@ public class Week {
 		this(-1, seasonId, weekNumber, label, null);
 	}
 	
+	public Week(int weekId, int seasonId, int weekNumber, String label){
+		this(weekId, seasonId, weekNumber, label, null);
+	}
+	
 	/**
 	 * 
 	 * A convenience constructor so you don't have to use the setters to make an object.

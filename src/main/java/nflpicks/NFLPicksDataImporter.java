@@ -616,12 +616,15 @@ public class NFLPicksDataImporter {
 	 */
 	protected void createPlayers(List<String> playerNames){
 		
+		log.info("Creating new " + playerNames.size() + " new players: " + playerNames);
+		
 		for (int index = 0; index < playerNames.size(); index++){
 			String playerName = playerNames.get(index);
 			
 			Player player = dataService.getPlayer(playerName);
 			
 			if (player == null){
+				log.info("Saving new player for " + playerName);
 				player = new Player(-1, playerName);
 				Player savedPlayer = dataService.savePlayer(player);
 				
@@ -630,6 +633,11 @@ public class NFLPicksDataImporter {
 					return;
 				}
 			}
+			else {
+				log.info("Not creating player for " + playerName + " because they already exist.");
+			}
 		}
+		
+		log.info("Done creating " + playerNames.size() + " players.");
 	}
 }
