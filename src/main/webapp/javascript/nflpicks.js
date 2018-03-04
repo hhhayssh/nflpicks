@@ -4,6 +4,8 @@ var picks = null;
 
 var picksGrid = null;
 
+var previousType = null;
+
 $(document).ready(
 	function(){
 		//Do this in edit too....
@@ -51,6 +53,10 @@ function setSelectionsFromParameters(parameters){
 	
 	if (isDefined(parameters.week)){
 		setSelectedWeek(parameters.week);
+	}
+	
+	if (isDefined(parameters.statName)){
+		setSelectedStatName(parameters.statName);
 	}
 }
 
@@ -115,15 +121,47 @@ function updateView(){
 	
 	var type = $('#type option:selected').val();
 
+	updateSelectors(type);
+	
 	if ('picks' == type){
-		hideAllWeekOption();
-		hideAllYearOption();
 		updatePicks();
 	}
 	else if ('standings' == type) {
+		updateRecords();
+	}
+	else if ('stats' == type){
+		updateStats();
+	}
+}
+
+function updateSelectors(type){
+	
+	console.log('type = ' + type + ', previous = ' + previousType);
+	
+	if (previousType == type){
+		return;
+	}
+	
+	previousType = type;
+	
+	hideStandingsSelectors();
+	hidePicksSelectors();
+	hideStatsSelectors();
+	
+	if ('picks' == type){
+		hideAllWeekOption();
+		hideAllYearOption();
+		showPicksSelectors();
+	}
+	else if ('standings' == type){
 		showAllWeekOption();
 		showAllYearOption();
-		updateRecords();
+		showStandingsSelectors();
+	}
+	else if ('stats' == type){
+		showAllWeekOption();
+		showAllYearOption();
+		showStatsSelectors();
 	}
 }
 
@@ -164,6 +202,16 @@ function getSelectedWeek(){
 function setSelectedWeek(week){
 	if (doesSelectHaveOptionWithValue('week', week)){
 		$('#week').val(week);
+	}
+}
+
+function getSelectedStatName(){
+	return $('#statName option:selected').val();
+}
+
+function setSelectedStatName(statName){
+	if (doesSelectHaveOptionWithValue('statName', statName)){
+		$('#statName').val(statName);
 	}
 }
 
@@ -231,6 +279,40 @@ function showAllYearOption(){
 	$('#year option[value=all]').show();
 }
 
+function showStandingsSelectors(){
+	$('#playerContainer').show();
+	$('#yearContainer').show();
+	$('#weekContainer').show();
+}
+
+function hideStandingsSelectors(){
+	$('#playerContainer').hide();
+	$('#yearContainer').hide();
+	$('#weekContainer').hide();
+}
+
+function showPicksSelectors(){
+	$('#playerContainer').show();
+	$('#yearContainer').show();
+	$('#weekContainer').show();
+}
+
+function hidePicksSelectors(){
+	$('#playerContainer').hide();
+	$('#yearContainer').hide();
+	$('#weekContainer').hide();
+}
+
+function showStatsSelectors(){
+	$('#statsNameContainer').show();
+	$('#yearContainer').show();
+}
+
+function hideStatsSelectors(){
+	$('#statsNameContainer').hide();
+	$('#yearContainer').hide();
+}
+
 function updatePicks(){
 	var player = getSelectedPlayer();
 //	if ('all' == player){
@@ -263,6 +345,39 @@ function updatePicks(){
 	})
 	.always(function() {
 	});
+}
+
+var statsData = null;
+
+function updateStats(){
+	
+	var statName = getSelectedStatName();
+	var year = getSelectedYear();
+	
+	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year,
+			contentType: 'application/json; charset=UTF-8'}
+	)
+	.done(function(data) {
+		statsData = data;
+		
+		var statsHtml = '';
+		
+		if ('weeksWon' == statName){
+			
+			var weekRecords = $.parseJSON(data);
+			sortWeekRecords(weekRecords);
+		
+			statsHtml = createWeeksWonHtml(weekRecords);
+		}
+		
+		$('#contentContainer').empty();
+		$('#contentContainer').append(statsHtml);
+	})
+	.fail(function() {
+	})
+	.always(function() {
+	});
+	
 }
 
 function getPickForGame(picksGrid, playerId, gameId){
@@ -602,4 +717,198 @@ function createPicksGridHtml(picksGrid){
 	picksGridHtml = '<table class="picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>';
 	
 	return picksGridHtml;
+}
+
+function toggleVisibilty(id){
+	
+	var isVisible = $('#' + id).is(':visible');
+	
+	if (isVisible){
+		$('#' + id).hide();
+	}
+	else {
+		$('#' + id).show();
+	}
+}
+
+function toggleShowWeeks(index){
+	
+	var isVisible = $('#week-records-' + index).is(':visible');
+	
+	if (isVisible){
+		$('#week-records-' + index).hide();
+		$('#show-weeks-link-' + index).text('show weeks');
+	}
+	else {
+		$('#week-records-' + index).show();
+		$('#show-weeks-link-' + index).text('hide weeks');
+	}
+	
+}
+
+function createWeeksWonHtml(weekRecords){
+	//sort on the number of weeks won
+	//rank on that
+	
+	var selectedYear = getSelectedYear();
+	var showYear = false;
+	if ('all' == selectedYear){
+		showYear = true;
+	}
+	
+	var weeksWonHtml = '<table align="center">' + 
+							'<thead>' + 
+								'<tr>' + 
+									'<th></th>' +
+									'<th style="text-align: left;">Weeks won</th>' +
+									//'<th>Weeks</th>' +
+								'</tr>' + 
+							'</thead>';
+	
+	var weeksWonTableBody = '';
+	
+	for (var index = 0; index < weekRecords.length; index++){
+		var weekRecord = weekRecords[index];
+		
+		var recordRank = rank(weekRecord, weekRecords, function(record1, record2){
+			
+			if (record1.weekRecords.length > record2.weekRecords.length){
+				return -1;
+			}
+			else if (record1.weekRecords.length < record2.weekRecords.length){
+				return 1;
+			}
+			return 0;
+		}, 
+		function (record1, record2){
+			
+			if (record1.player.name == record2.player.name){
+				return true;
+			}
+			
+			return false;
+		});
+		
+		var rankText = recordRank.rank;
+		
+		if (recordRank.tie){
+			rankText = rankText + 'T';
+		}
+		
+		
+		weeksWonTableBody = weeksWonTableBody + 
+							'<tr>' + 
+								'<td style="vertical-align: top; padding-right: 20px;">' + rankText + '. ' + weekRecord.player.name + '</td>';
+								//'<td style="vertical-align: top; text-align: center;">' + weekRecord.weekRecords.length + '</td>';
+
+		/*
+		 0: {…}
+player: Object { name: "Benny boy", id: 1 }
+weekRecords: […]
+0: {…}
+record: Object { wins: 11, ties: 0, losses: 5, … }
+season: Object { year: "2016", id: 1 }
+week: Object { id: 4, week_number: 4, label: "Week 4" }
+__proto__: Object { … }
+1: Object { week: {…}, record: {…}, season: {…} }
+2: Object { week: {…}, record: {…}, season: {…} }
+		 */
+
+		var numberOfWeeksWon = weekRecord.weekRecords.length;
+		if (weekRecord.weekRecords.length < 10){
+			numberOfWeeksWon = numberOfWeeksWon + '&nbsp;';
+		}
+		var detailId = 'week-records-' + index;
+		var weekRecordsHtml = '<div style="">' + numberOfWeeksWon + ' <a id="show-weeks-link-' + index + '" href="javascript:" onClick="toggleShowWeeks(' + index + ')" style="margin-left: 20px; float:right;">show weeks</a></div>' + 
+							  '<div id="' + detailId + '" style="display: none;"><ul style="list-style: none; padding: 0px;">';
+
+		
+		for (var bIndex = 0; bIndex < weekRecord.weekRecords.length; bIndex++){
+			var record = weekRecord.weekRecords[bIndex];
+
+			var ties = '';
+			if (record.record.ties > 0){
+				ties = ' - ' + record.record.ties;
+			}
+			var year = '';
+			if (showYear){
+				year = record.season.year + ', ';
+			}
+			var recordHtml = year + record.week.label + ' (' + record.record.wins + ' - ' + record.record.losses +
+							 ties + ')';
+			
+//			if (index > 0){
+//				weekRecordsHtml = weekRecordsHtml + ', ';
+//			}
+			
+			weekRecordsHtml = weekRecordsHtml + '<li>' + recordHtml + '</li>';
+		}
+		
+		weekRecordsHtml = weekRecordsHtml + '</ul></div>';
+		
+		weeksWonTableBody = weeksWonTableBody + '<td>' + weekRecordsHtml + '</td></tr>';
+		
+		//console.log('player = ' + weekRecord.player.name + ', numb = ' + weekRecord.weekRecords.length + ', recordRank = ' + recordRank.rank + ', tie = ' + recordRank.tie);
+	}
+	
+	weeksWonHtml = weeksWonHtml + '<tbody>' + weeksWonTableBody + '</tbody></table>';
+	
+	return weeksWonHtml;
+}
+
+function rank(object, list, comparisonFunction, sameObjectFunction){
+	
+	var objectRank = {rank: 1, tie: false};
+	
+	//for every object it's less than, its rank goes up 1
+	//it starts in last...
+	//
+	//will be O(n^2) without sorting...
+	
+	var numberOfRecordsBetter = 0;
+	var tie = false;
+	
+	for (var index = 0; index < list.length; index++){
+		var currentObject = list[index];
+		
+		var comparisonResult = comparisonFunction(object, currentObject);
+		
+		if (comparisonResult > 0){
+			objectRank.rank++;
+			//numberOfRecordsBetter++;
+		}
+		else if (comparisonResult == 0){
+
+			if (objectRank.tie == false){
+				if (isDefined(sameObjectFunction)){
+					var isSameObject = sameObjectFunction(object, currentObject);
+					
+					if (!isSameObject){
+						objectRank.tie = true;
+					}
+				}
+				else {
+					objectRank.tie = true;
+				}
+			}
+		}
+	}
+	
+	//objectRank.rank = 1 + numberOfRecordsBetter; 
+	
+	return objectRank;
+}
+
+function sortWeekRecords(weekRecords){
+	
+	weekRecords.sort(function (a, b){
+		if (a.weekRecords.length > b.weekRecords.length){
+			return -1;
+		}
+		else if (a.weekRecords.length < b.weekRecords.length){
+			return 1;
+		}
+		return 0;
+	});
+	
 }

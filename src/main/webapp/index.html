@@ -19,11 +19,12 @@
 			<h3 style="margin-top: 5px; margin-bottom: 5px;">NFL Picks</h3>
 		</div>
 		<div class="selectors-container">
-			<div class="selector-container">
+			<div id="typeContainer" class="selector-container">
 				<div>What</div>
 				<select id="type" onChange="updateView();" class="criteria-selector">
 					<option value="picks">Picks</option>
 					<option value="standings" selected>Standings</option>
+					<option value="stats">Stats</option>
 				</select>
 			</div>
 			<div id="playerContainer" class="selector-container">
@@ -61,6 +62,13 @@
 					<option value="19">Playoffs - Divisional</option>
 					<option value="20">Playoffs - Conference Championship</option>
 					<option value="21">Playoffs - Super Bowl</option>
+				</select>
+			</div>
+			<div id="statsNameContainer" class="selector-container">
+				<div>Stat</div>
+				<select id="statName" onChange="updateView();" class="criteria-selector">
+					<option value="weeksWon">Weeks Won</option>
+					<option value="weekRecords">Week Records</option>
 				</select>
 			</div>
 		</div>

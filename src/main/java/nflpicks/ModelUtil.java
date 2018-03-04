@@ -277,16 +277,16 @@ public class ModelUtil {
 		}
 		else {
 			if (weekNumber == 18){
-				weekLabel = "Playoffs - Wildcard";
+				weekLabel = "Wildcard";
 			}
 			else if (weekNumber == 19){
-				weekLabel = "Playoffs - Divisional";
+				weekLabel = "Divisional";
 			}
 			else if (weekNumber == 20){
-				weekLabel = "Playoffs - Conference Championship";
+				weekLabel = "Conference Championship";
 			}
 			else if (weekNumber == 21){
-				weekLabel = "Playoffs - Superbowl";
+				weekLabel = "Superbowl";
 			}
 		}
 		

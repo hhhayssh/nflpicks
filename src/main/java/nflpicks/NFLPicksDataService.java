@@ -2937,6 +2937,9 @@ order by s.year asc, w.week asc, g.id asc;
 		List<Record> currentWinnersForTheWeek = new ArrayList<Record>();
 		
 		Map<Integer, WeeksWon> playerToWeeksWonMap = new HashMap<Integer, WeeksWon>();
+
+		Season currentSeason = null;
+		Week currentWeek = null;
 		
 		for (int index = 0; index < weekRecords.size(); index++){
 			WeekRecord weekRecord = weekRecords.get(index);
@@ -2949,7 +2952,9 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			if (index == 0){
 				currentSeasonId = seasonId;
+				currentSeason = season;
 				currentWeekId = weekId;
+				currentWeek = week;
 			}
 			
 			isNewWeek = false;
@@ -2962,8 +2967,8 @@ order by s.year asc, w.week asc, g.id asc;
 					Record winningRecord = currentWinnersForTheWeek.get(recordIndex);
 					Player winningPlayer = winningRecord.getPlayer();
 					WeeksWon currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
-					
-					WeekRecord winningWeekRecord = new WeekRecord(season, week, winningRecord);
+
+					WeekRecord winningWeekRecord = new WeekRecord(currentSeason, currentWeek, winningRecord);
 					
 					List<WeekRecord> winningWeekRecordsForPlayer = null;
 					
@@ -2982,7 +2987,9 @@ order by s.year asc, w.week asc, g.id asc;
 				}
 				
 				currentSeasonId = seasonId;
+				currentSeason = season;
 				currentWeekId = weekId;
+				currentWeek = week;
 				isNewWeek = true;
 				currentWinnersForTheWeek = new ArrayList<Record>();
 			}
@@ -3029,6 +3036,29 @@ order by s.year asc, w.week asc, g.id asc;
 			else if (isTieWithCurrentWinners){
 				currentWinnersForTheWeek.add(record);
 			}
+		}
+		
+		for (int recordIndex = 0; recordIndex < currentWinnersForTheWeek.size(); recordIndex++){
+			Record winningRecord = currentWinnersForTheWeek.get(recordIndex);
+			Player winningPlayer = winningRecord.getPlayer();
+			WeeksWon currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
+
+			WeekRecord winningWeekRecord = new WeekRecord(currentSeason, currentWeek, winningRecord);
+
+			List<WeekRecord> winningWeekRecordsForPlayer = null;
+
+			if (currentWeeksWon == null){
+				currentWeeksWon = new WeeksWon(winningPlayer);
+				winningWeekRecordsForPlayer = new ArrayList<WeekRecord>();
+			}
+			else {
+				winningWeekRecordsForPlayer = currentWeeksWon.getWeekRecords();
+			}
+
+			winningWeekRecordsForPlayer.add(winningWeekRecord);
+			currentWeeksWon.setWeekRecords(winningWeekRecordsForPlayer);
+
+			playerToWeeksWonMap.put(winningPlayer.getId(), currentWeeksWon);
 		}
 		
 		for (int index = 0; index < playersForYear.size(); index++){
