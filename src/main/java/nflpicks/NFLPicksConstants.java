@@ -103,6 +103,11 @@ public interface NFLPicksConstants {
 	public static final String JSON_WEEK_RECORD_SEASON = "season";
 	public static final String JSON_WEEK_RECORD_WEEK = "week";
 	public static final String JSON_WEEK_RECORD_RECORD = "record";
+
+	public static final String JSON_PLAYER_WEEK_RECORD_PLAYER = "player";
+	public static final String JSON_PLAYER_WEEK_RECORD_SEASON = "season";
+	public static final String JSON_PLAYER_WEEK_RECORD_WEEK = "week";
+	public static final String JSON_PLAYER_WEEK_RECORD_RECORD = "record";
 	
 	public static final String JSON_WEEKS_WON_PLAYER = "player";
 	public static final String JSON_WEEKS_WON_WEEK_RECORDS = "weekRecords";

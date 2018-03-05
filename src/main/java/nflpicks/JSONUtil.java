@@ -13,8 +13,9 @@ import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
-import nflpicks.model.WeekRecord;
-import nflpicks.model.WeeksWon;
+import nflpicks.model.stats.WeekRecord;
+import nflpicks.model.stats.PlayerWeekRecord;
+import nflpicks.model.stats.PlayerWeeksWon;
 
 /**
  * 
@@ -633,12 +634,93 @@ public class JSONUtil {
 	
 	/**
 	 * 
+	 * This function converts the given week record objects into a json formatted
+	 * string.
+	 * 
+	 * @param weeksWon
+	 * @return
+	 */
+	public static String playerWeekRecordsToJSONString(List<PlayerWeekRecord> playerWeekRecords){
+		
+		JSONArray jsonArray = playerWeekRecordsToJSONArray(playerWeekRecords);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given week records into a json array.
+	 * 
+	 * @param seasons
+	 * @return
+	 */
+	public static JSONArray playerWeekRecordsToJSONArray(List<PlayerWeekRecord> playerWeekRecords){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < playerWeekRecords.size(); index++){
+			PlayerWeekRecord playerWeekRecord = playerWeekRecords.get(index);
+			JSONObject jsonObject = playerWeekRecordToJSONObject(playerWeekRecord);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
+	
+	/**
+	 * 
+	 * This function converts the given week record to a json formatted string.
+	 * 
+	 * @param season
+	 * @return
+	 */
+	public static String playerWeekRecordToJSONString(PlayerWeekRecord playerWeekRecord){
+		
+		JSONObject jsonObject = playerWeekRecordToJSONObject(playerWeekRecord);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given week record into a json object.
+	 * 
+	 * @param weekWon
+	 * @return
+	 */
+	public static JSONObject playerWeekRecordToJSONObject(PlayerWeekRecord playerWeekRecord){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject playerJSONObject = playerToJSONObject(playerWeekRecord.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_PLAYER_WEEK_RECORD_PLAYER, playerJSONObject);
+		
+		JSONObject seasonJSONObject = seasonToJSONObject(playerWeekRecord.getSeason());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_SEASON, seasonJSONObject);
+		
+		JSONObject weekJSONObject = weekToJSONObject(playerWeekRecord.getWeek());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_WEEK, weekJSONObject);
+		
+		JSONObject recordJSONObject = recordToJSONObject(playerWeekRecord.getRecord());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_RECORD, recordJSONObject);
+		
+		
+		return jsonObject;
+	}
+	
+	/**
+	 * 
 	 * Converts the given weeks one list into a json formatted string.
 	 * 
 	 * @param weeksWon
 	 * @return
 	 */
-	public static String weeksWonToJSONString(List<WeeksWon> weeksWon){
+	public static String weeksWonToJSONString(List<PlayerWeeksWon> weeksWon){
 		
 		JSONArray jsonArray = weeksWonToJSONArray(weeksWon);
 		
@@ -654,12 +736,12 @@ public class JSONUtil {
 	 * @param seasons
 	 * @return
 	 */
-	public static JSONArray weeksWonToJSONArray(List<WeeksWon> weeksWonList){
+	public static JSONArray weeksWonToJSONArray(List<PlayerWeeksWon> weeksWonList){
 		
 		JSONArray jsonArray = new JSONArray();
 		
 		for (int index = 0; index < weeksWonList.size(); index++){
-			WeeksWon weeksWon = weeksWonList.get(index);
+			PlayerWeeksWon weeksWon = weeksWonList.get(index);
 			JSONObject jsonObject = weeksWonToJSONObject(weeksWon);
 			jsonArray.put(jsonObject);
 		}
@@ -675,7 +757,7 @@ public class JSONUtil {
 	 * @param season
 	 * @return
 	 */
-	public static String weeksWonToJSONString(WeeksWon weeksWon){
+	public static String weeksWonToJSONString(PlayerWeeksWon weeksWon){
 		
 		JSONObject jsonObject = weeksWonToJSONObject(weeksWon);
 		
@@ -691,7 +773,7 @@ public class JSONUtil {
 	 * @param weekWon
 	 * @return
 	 */
-	public static JSONObject weeksWonToJSONObject(WeeksWon weeksWon){
+	public static JSONObject weeksWonToJSONObject(PlayerWeeksWon weeksWon){
 		
 		JSONObject jsonObject = new JSONObject();
 		

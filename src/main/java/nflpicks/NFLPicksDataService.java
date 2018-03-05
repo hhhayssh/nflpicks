@@ -10,8 +10,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -27,8 +29,9 @@ import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
-import nflpicks.model.WeekRecord;
-import nflpicks.model.WeeksWon;
+import nflpicks.model.stats.PlayerWeekRecord;
+import nflpicks.model.stats.PlayerWeeksWon;
+import nflpicks.model.stats.WeekRecord;
 
 /**
  * 
@@ -2848,9 +2851,9 @@ order by s.year asc, w.week asc, g.id asc;
 		return compactPick;
 	}
 	
-	protected class WeekRecordComparator implements Comparator<WeekRecord> {
+	protected class WeekRecordComparator implements Comparator<PlayerWeekRecord> {
 
-		public int compare(WeekRecord weekRecord1, WeekRecord weekRecord2) {
+		public int compare(PlayerWeekRecord weekRecord1, PlayerWeekRecord weekRecord2) {
 			
 			Season season1 = weekRecord1.getSeason();
 			String year1 = season1.getYear();
@@ -2902,14 +2905,120 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 	}
 	
-	public List<WeeksWon> getWeeksWon(String year){
+	public List<PlayerWeeksWon> getWeeksWon2(String year){
 		
-		List<WeekRecord> weekRecords = getWeekRecords(year);
+		List<PlayerWeekRecord> playerWeekRecords = getPlayerWeekRecords(year, null, null);
+		
+		List<Player> playersForYear = getPlayers(year);
+		
+		//a map of season and week to the records
+		Map<String, List<PlayerWeekRecord>> bestRecordsMap = new HashMap<String, List<PlayerWeekRecord>>();
+		
+		for (int index = 0; index < playerWeekRecords.size(); index++){
+			PlayerWeekRecord playerWeekRecord = playerWeekRecords.get(index);
+			
+			Record record = playerWeekRecord.getRecord();
+			Season season = playerWeekRecord.getSeason();
+			String recordYear = season.getYear();
+			Week week = playerWeekRecord.getWeek();
+			int weekNumber = week.getWeekNumber();
+			
+			String key = recordYear + "-" + weekNumber;
+			
+			List<PlayerWeekRecord> currentBestRecords = bestRecordsMap.get(key);
+			
+			boolean addRecord = false;
+			
+			if (currentBestRecords == null){
+				currentBestRecords = new ArrayList<PlayerWeekRecord>();
+				addRecord = true;
+			}
+			else {
+				PlayerWeekRecord currentBestWeekRecord = currentBestRecords.get(0);
+				Record currentBestRecord = currentBestWeekRecord.getRecord();
+				int currentBestWins = currentBestRecord.getWins();
+				int currentBestLosses = currentBestRecord.getLosses();
+				
+				int wins = record.getWins();
+				int losses = record.getLosses();
+				
+				if (wins > currentBestWins){
+					addRecord = true;
+					currentBestRecords = new ArrayList<PlayerWeekRecord>();
+				}
+				else if (wins == currentBestWins){
+					
+					if (losses < currentBestLosses){
+						addRecord = true;
+						currentBestRecords = new ArrayList<PlayerWeekRecord>();
+					}
+					else  if (losses == currentBestLosses){
+						addRecord = true;
+					}
+				}
+			}
+			
+			if (addRecord){
+				currentBestRecords.add(playerWeekRecord);
+				bestRecordsMap.put(key, currentBestRecords);
+			}
+		}
+		
+		//best records map has a map of all the best records for each week ... have to group them by player now
+		Map<Integer, PlayerWeeksWon> playerWeeksWonMap = new HashMap<Integer, PlayerWeeksWon>();
+		
+		List<String> bestRecordKeys = new ArrayList<String>();
+		bestRecordKeys.addAll(bestRecordsMap.keySet());
+		
+		for (int index = 0; index < bestRecordKeys.size(); index++){
+			String bestRecordKey = bestRecordKeys.get(index);
+			
+			List<PlayerWeekRecord> records = bestRecordsMap.get(bestRecordKey);
+			
+			for (int recordIndex = 0; recordIndex < records.size(); recordIndex++){
+				PlayerWeekRecord record = records.get(recordIndex);
+				
+				Player player = record.getPlayer();
+				int playerId = player.getId();
+				PlayerWeeksWon weeksWonForPlayer = playerWeeksWonMap.get(Integer.valueOf(playerId));
+				
+				if (weeksWonForPlayer == null){
+					weeksWonForPlayer = new PlayerWeeksWon(player, new ArrayList<WeekRecord>());
+				}
+				
+				WeekRecord weekRecord = new WeekRecord(record.getSeason(), record.getWeek(), record.getRecord());
+				weeksWonForPlayer.getWeekRecords().add(weekRecord);
+				
+				playerWeeksWonMap.put(Integer.valueOf(playerId), weeksWonForPlayer);
+			}
+		}
+
+		List<PlayerWeeksWon> playerWeeksWonList = new ArrayList<PlayerWeeksWon>();
+		playerWeeksWonList.addAll(playerWeeksWonMap.values());
+		
+		Set<Integer> playerIdsWithWeeksWon = playerWeeksWonMap.keySet();
+		
+		for (int index = 0; index < playersForYear.size(); index++){
+			Player player = playersForYear.get(index);
+			int playerId = player.getId();
+			
+			if (!playerIdsWithWeeksWon.contains(Integer.valueOf(playerId))){
+				PlayerWeeksWon playerWeeksWon = new PlayerWeeksWon(player, new ArrayList<WeekRecord>());
+				playerWeeksWonList.add(playerWeeksWon);
+			}
+		}
+		
+		return playerWeeksWonList;
+	}
+	
+	public List<PlayerWeeksWon> getWeeksWon(String year){
+		
+		List<PlayerWeekRecord> weekRecords = getPlayerWeekRecords(year, null, null);
 		
 		Collections.sort(weekRecords, new WeekRecordComparator());
 		//sort by year and week before going through them!
 		
-		List<WeeksWon> weeksWon = new ArrayList<WeeksWon>();
+		List<PlayerWeeksWon> weeksWon = new ArrayList<PlayerWeeksWon>();
 		
 		List<Player> playersForYear = getPlayers(year);
 		//go through and group them...
@@ -2936,13 +3045,13 @@ order by s.year asc, w.week asc, g.id asc;
 		
 		List<Record> currentWinnersForTheWeek = new ArrayList<Record>();
 		
-		Map<Integer, WeeksWon> playerToWeeksWonMap = new HashMap<Integer, WeeksWon>();
+		Map<Integer, PlayerWeeksWon> playerToWeeksWonMap = new HashMap<Integer, PlayerWeeksWon>();
 
 		Season currentSeason = null;
 		Week currentWeek = null;
 		
 		for (int index = 0; index < weekRecords.size(); index++){
-			WeekRecord weekRecord = weekRecords.get(index);
+			PlayerWeekRecord weekRecord = weekRecords.get(index);
 			
 			Season season = weekRecord.getSeason();
 			int seasonId = season.getId();
@@ -2966,14 +3075,14 @@ order by s.year asc, w.week asc, g.id asc;
 				for (int recordIndex = 0; recordIndex < currentWinnersForTheWeek.size(); recordIndex++){
 					Record winningRecord = currentWinnersForTheWeek.get(recordIndex);
 					Player winningPlayer = winningRecord.getPlayer();
-					WeeksWon currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
+					PlayerWeeksWon currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
 
 					WeekRecord winningWeekRecord = new WeekRecord(currentSeason, currentWeek, winningRecord);
 					
 					List<WeekRecord> winningWeekRecordsForPlayer = null;
 					
 					if (currentWeeksWon == null){
-						currentWeeksWon = new WeeksWon(winningPlayer);
+						currentWeeksWon = new PlayerWeeksWon(winningPlayer);
 						winningWeekRecordsForPlayer = new ArrayList<WeekRecord>();
 					}
 					else {
@@ -3041,14 +3150,14 @@ order by s.year asc, w.week asc, g.id asc;
 		for (int recordIndex = 0; recordIndex < currentWinnersForTheWeek.size(); recordIndex++){
 			Record winningRecord = currentWinnersForTheWeek.get(recordIndex);
 			Player winningPlayer = winningRecord.getPlayer();
-			WeeksWon currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
+			PlayerWeeksWon currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
 
 			WeekRecord winningWeekRecord = new WeekRecord(currentSeason, currentWeek, winningRecord);
 
 			List<WeekRecord> winningWeekRecordsForPlayer = null;
 
 			if (currentWeeksWon == null){
-				currentWeeksWon = new WeeksWon(winningPlayer);
+				currentWeeksWon = new PlayerWeeksWon(winningPlayer);
 				winningWeekRecordsForPlayer = new ArrayList<WeekRecord>();
 			}
 			else {
@@ -3064,10 +3173,10 @@ order by s.year asc, w.week asc, g.id asc;
 		for (int index = 0; index < playersForYear.size(); index++){
 			Player player = playersForYear.get(index);
 			
-			WeeksWon weeksWonForPlayer = playerToWeeksWonMap.get(player.getId());
+			PlayerWeeksWon weeksWonForPlayer = playerToWeeksWonMap.get(player.getId());
 			
 			if (weeksWonForPlayer == null){
-				weeksWonForPlayer = new WeeksWon(player, new ArrayList<WeekRecord>());
+				weeksWonForPlayer = new PlayerWeeksWon(player, new ArrayList<WeekRecord>());
 			}
 			
 			weeksWon.add(weeksWonForPlayer);
@@ -3075,15 +3184,9 @@ order by s.year asc, w.week asc, g.id asc;
 		
 		return weeksWon;
 		
-		//playerToWeeksWonMap
 	}
 	
-	//the weeks won will usually be for a single year and all players... should just need to get the records and then
-	//make the weeks won off that.
-	//	group the records by year and week
-	//	go through each group and see who won that week
-	//	make a WeekWon for that week.
-	public List<WeekRecord> getWeekRecords(String year){
+	public List<PlayerWeekRecord> getPlayerWeekRecords(String year, String week, String player){
 		//List<String> years, List<String> weeks, List<String> players
 		//the record does the calculating of wins and losses in sql
 		//will need to get the record for each player and each week of each year
@@ -3096,18 +3199,28 @@ order by s.year asc, w.week asc, g.id asc;
 			years = Arrays.asList(year);
 		}
 		
-		List<WeekRecord> weekRecords = getWeekRecords(years, null, null);
+		List<String> players = null;
+		if (player != null){
+			players = Arrays.asList(player);
+		}
 		
-		return weekRecords;
+		List<String> weeks = null;
+		if (week != null){
+			weeks = Arrays.asList(week);
+		}
+		
+		List<PlayerWeekRecord> playerWeekRecords = getPlayerWeekRecords(years, weeks, players);
+		
+		return playerWeekRecords;
 	}
 	
-	public List<WeekRecord> getWeekRecords(List<String> years, List<String> weeks, List<String> players){
+	public List<PlayerWeekRecord> getPlayerWeekRecords(List<String> years, List<String> weeks, List<String> players){
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
 		
-		List<WeekRecord> weekRecords = new ArrayList<WeekRecord>();
+		List<PlayerWeekRecord> playerWeekRecords = new ArrayList<PlayerWeekRecord>();
 		
 		try {
 			connection = dataSource.getConnection();
@@ -3150,8 +3263,8 @@ order by s.year asc, w.week asc, g.id asc;
 			results = statement.executeQuery();
 			
 			while (results.next()){
-				WeekRecord weekRecord = mapWeekRecord(results);
-				weekRecords.add(weekRecord);
+				PlayerWeekRecord playerWeekRecord = mapPlayerWeekRecord(results);
+				playerWeekRecords.add(playerWeekRecord);
 			}
 		}
 		catch (Exception e){
@@ -3161,7 +3274,7 @@ order by s.year asc, w.week asc, g.id asc;
 			close(results, statement, connection);
 		}
 		
-		return weekRecords;
+		return playerWeekRecords;
 		
 	}
 	
@@ -3269,7 +3382,7 @@ order by s.year asc, w.week asc, g.id asc;
 		return whereClause.toString();
 	}
 	
-	protected WeekRecord mapWeekRecord(ResultSet results) throws SQLException {
+	protected PlayerWeekRecord mapPlayerWeekRecord(ResultSet results) throws SQLException {
 		
 		int seasonId = results.getInt("season_id");
 		String year = results.getString("year");
@@ -3290,8 +3403,7 @@ order by s.year asc, w.week asc, g.id asc;
 		int ties = results.getInt("ties");
 		Record record = new Record(player, wins, losses, ties);
 		
-		WeekRecord weekRecord = new WeekRecord(season, week, record);
-		
+		PlayerWeekRecord weekRecord = new PlayerWeekRecord(player, season, week, record);
 		
 		return weekRecord;
 	}

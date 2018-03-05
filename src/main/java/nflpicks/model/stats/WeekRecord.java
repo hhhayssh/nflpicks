@@ -1,4 +1,8 @@
-package nflpicks.model;
+package nflpicks.model.stats;
+
+import nflpicks.model.Record;
+import nflpicks.model.Season;
+import nflpicks.model.Week;
 
 public class WeekRecord {
 	
@@ -39,5 +43,14 @@ public class WeekRecord {
 
 	public void setRecord(Record record) {
 		this.record = record;
+	}
+	
+	public String toString(){
+		
+		String thisObjectAsAString = "season = " + season + 
+									 ", week = " + week + 
+									 ", record = " + record;
+		
+		return thisObjectAsAString;
 	}
 }

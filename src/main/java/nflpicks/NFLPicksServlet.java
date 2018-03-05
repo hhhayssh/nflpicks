@@ -23,8 +23,8 @@ import nflpicks.model.Pick;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Team;
-import nflpicks.model.WeekRecord;
-import nflpicks.model.WeeksWon;
+import nflpicks.model.stats.PlayerWeekRecord;
+import nflpicks.model.stats.PlayerWeeksWon;
 
 
 public class NFLPicksServlet extends HttpServlet {
@@ -41,6 +41,9 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_EDIT_SELECTION_CRITERIA = "editSelectionCriteria";
 	protected static final String TARGET_EXPORT_PICKS = "exportPicks";
 	protected static final String TARGET_STATS = "stats";
+	
+	protected static final String STAT_NAME_WEEKS_WON_STANDINGS = "weeksWonStandings";
+	protected static final String STAT_NAME_WEEKS_WON_BY_WEEK = "weeksWonByWeek";
 	
 	protected NFLPicksDataService dataService;
 	
@@ -229,23 +232,40 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			String statName = req.getParameter("statName");
 			
-			if ("weeksWon".equals(statName)){
+			if ("weeksWonStandings".equals(statName)){
 				String year = req.getParameter("year");
 				if ("all".equals(year)){
 					year = null;
 				}
-				List<WeeksWon> weeksWon = this.dataService.getWeeksWon(year);
+				List<PlayerWeeksWon> weeksWon = this.dataService.getWeeksWon2(year);
 				
 				json = JSONUtil.weeksWonToJSONString(weeksWon);
+			}
+			else if ("weekRecordsByPlayer".equals(statName)){
+				String year = req.getParameter("year");
+				if ("all".equals(year)){
+					year = null;
+				}
+				String player = req.getParameter("player");
+				
+				String week = req.getParameter("week");
+				if ("all".equals(week)){
+					week = null;
+				}
+				
+				List<PlayerWeekRecord> playerWeekRecords = this.dataService.getPlayerWeekRecords(year, week, player);
+				
+				json = JSONUtil.playerWeekRecordsToJSONString(playerWeekRecords);
 			}
 			else if ("weekRecords".equals(statName)){
 				String year = req.getParameter("year");
 				if ("all".equals(year)){
 					year = null;
 				}
-				List<WeekRecord> weekRecords = this.dataService.getWeekRecords(year);
+				String player = req.getParameter("player");
+				List<PlayerWeekRecord> weekRecords = this.dataService.getPlayerWeekRecords(year, null, player);
 				
-				json = JSONUtil.weekRecordsToJSONString(weekRecords);
+				json = JSONUtil.playerWeekRecordsToJSONString(weekRecords);
 			}
 			
 			//what stats do we want to show:

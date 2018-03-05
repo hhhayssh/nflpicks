@@ -136,9 +136,7 @@ function updateView(){
 
 function updateSelectors(type){
 	
-	console.log('type = ' + type + ', previous = ' + previousType);
-	
-	if (previousType == type){
+	if (previousType == type && type != 'stats'){
 		return;
 	}
 	
@@ -306,6 +304,16 @@ function hidePicksSelectors(){
 function showStatsSelectors(){
 	$('#statsNameContainer').show();
 	$('#yearContainer').show();
+	
+	var statName = getSelectedStatName();
+	
+	if ('weekRecordsByPlayer' == statName){
+		$('#playerContainer').show();
+		hideAllPlayerOption();
+		
+		$('#weekContainer').show();
+		showAllWeekOption();
+	}
 }
 
 function hideStatsSelectors(){
@@ -353,8 +361,15 @@ function updateStats(){
 	
 	var statName = getSelectedStatName();
 	var year = getSelectedYear();
+	var player = getSelectedPlayer();
+	var week = getSelectedWeek();
 	
-	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year,
+	if ('all' == player){
+		player = $('#player option')[1].value;
+		setSelectedPlayer(player);
+	}
+	
+	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + week,
 			contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -362,12 +377,25 @@ function updateStats(){
 		
 		var statsHtml = '';
 		
-		if ('weeksWon' == statName){
+		if ('weeksWonStandings' == statName){
 			
 			var weekRecords = $.parseJSON(data);
 			sortWeekRecords(weekRecords);
 		
 			statsHtml = createWeeksWonHtml(weekRecords);
+		}
+		else if ('weekRecordsByPlayer' == statName){
+			//add in the player here and get the default
+			//this will show somebody's records throughout a season or through all time
+			//along with the rank of each one...
+			//
+			//Year	Week	Record
+			//All	All		298 - 90 (2nd)
+			//2017	3		9 - 7 (5th)
+			
+			var weekRecords = $.parseJSON(data);
+			sortWeekRecordsBySeasonAndWeek(weekRecords);
+			statsHtml = createWeekRecordsByPlayerHtml(weekRecords);
 		}
 		
 		$('#contentContainer').empty();
@@ -743,7 +771,6 @@ function toggleShowWeeks(index){
 		$('#week-records-' + index).show();
 		$('#show-weeks-link-' + index).text('hide weeks');
 	}
-	
 }
 
 function createWeeksWonHtml(weekRecords){
@@ -910,5 +937,130 @@ function sortWeekRecords(weekRecords){
 		}
 		return 0;
 	});
+}
+
+function sortWeekRecordsBySeasonAndWeek(weekRecords){
 	
+	weekRecords.sort(function (a, b){
+		var yearA = parseInt(a.season.year);
+		var yearB = parseInt(b.season.year);
+		
+		if (yearA < yearB){
+			return -1;
+		}
+		else if (yearA > yearB){
+			return 1;
+		}
+		else {
+			var weekA = a.week.week_number;
+			var weekB = b.week.week_number;
+			
+			if (weekA < weekB){
+				return -1;
+			}
+			else if (weekA > weekB){
+				return 1;
+			}
+		}
+		
+		return 0;
+	});
+}
+
+function isSpecificYearSelected(){
+
+	var selectedYear = getSelectedYear();
+	
+	if ('all' == selectedYear){
+		return false;
+	}
+	
+	return true;
+}
+
+function createWeekRecordsByPlayerHtml(weekRecords){
+	
+	//sortWeekRecordsBySeasonAndWeek
+	
+	var tiesHeader = '';
+	
+	var xHasTies = false;
+	for (var index = 0; index < weekRecords.length; index++){
+		var weekRecord = weekRecords[index];
+		
+		if (weekRecord.record.ties > 0){
+			xHasTies = true;
+			break;
+		}
+	}
+	
+	if (xHasTies){
+		tiesHeader = '<th>Ties</th>';
+	}
+	
+	var yearHeader = '';
+	var aYearIsSelected = isSpecificYearSelected();
+	if (!aYearIsSelected){
+		yearHeader = '<th>Year</th>';
+	}
+	
+	var tableHead = '<thead>' + 
+						'<tr>' + 
+							yearHeader +
+							'<th>Week</th>' + 
+							'<th>Wins</th>' + 
+							'<th>Losses</th>' +
+							tiesHeader +
+							'<th>Win %</th>' +
+						'</tr>' +
+					'</thead>';
+	
+	var tableBody = '<tbody>';
+	
+	for (var index = 0; index < weekRecords.length; index++){
+		var weekRecord = weekRecords[index];
+		
+		var tiesCell = '';
+		
+		if (xHasTies){
+			tiesCell = '<td>' + weekRecord.record.ties + '</td>';
+		}
+		
+		var percentage = weekRecord.record.wins / (weekRecord.record.wins + weekRecord.record.losses);
+		var percentageString = '';
+		if (!isNaN(percentage)){
+			percentageString = percentage.toPrecision(3);
+		}
+		
+		var yearCell = '';
+		if (!aYearIsSelected){
+			yearCell = '<td style="padding-right: 15px;">' + weekRecord.season.year + '</td>';
+		}
+		
+		var row = '<tr>' +
+					yearCell +
+					'<td style="padding-right: 15px;">' + shortenWeekLabel(weekRecord.week.label) + '</td>' +
+					'<td>' + weekRecord.record.wins + '</td>' +
+					'<td>' + weekRecord.record.losses + '</td>' +
+					tiesCell +
+					'<td>' + percentageString + '</td>'
+				  '</tr>';
+		
+		tableBody = tableBody + row;
+	}
+	
+	tableBody = tableBody + '</tbody>';
+
+	var weekRecordsByPlayerHtml = '<table align="center">' + tableHead + tableBody + '</table>';
+	
+	return weekRecordsByPlayerHtml;
+}
+
+function shortenWeekLabel(label){
+	
+	if ('Conference Championship' == label){
+		return 'Conf Champ';
+	}
+	
+	return label;
 }
