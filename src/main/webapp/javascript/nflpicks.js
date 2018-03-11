@@ -314,6 +314,12 @@ function showStatsSelectors(){
 		$('#weekContainer').show();
 		showAllWeekOption();
 	}
+	else if ('bestWeeks' == statName){
+		$('#playerContainer').show();
+		showAllPlayerOption();
+		$('#weekContainer').show();
+		showAllWeekOption();
+	}
 }
 
 function hideStatsSelectors(){
@@ -364,9 +370,12 @@ function updateStats(){
 	var player = getSelectedPlayer();
 	var week = getSelectedWeek();
 	
-	if ('all' == player){
-		player = $('#player option')[1].value;
-		setSelectedPlayer(player);
+	//don't always want to do this ... need to base it on stat name
+	if (statName != 'bestWeeks'){
+		if ('all' == player){
+			player = $('#player option')[1].value;
+			setSelectedPlayer(player);
+		}
 	}
 	
 	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + week,
@@ -396,6 +405,12 @@ function updateStats(){
 			var weekRecords = $.parseJSON(data);
 			sortWeekRecordsBySeasonAndWeek(weekRecords);
 			statsHtml = createWeekRecordsByPlayerHtml(weekRecords);
+		}
+		else if ('bestWeeks' == statName){
+			
+			var playerWeekRecords = $.parseJSON(data);
+			
+			statsHtml = createBestWeeksHtml(playerWeekRecords);
 		}
 		
 		$('#contentContainer').empty();
@@ -1054,6 +1069,167 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	var weekRecordsByPlayerHtml = '<table align="center">' + tableHead + tableBody + '</table>';
 	
 	return weekRecordsByPlayerHtml;
+}
+
+function createBestWeeksHtml(playerWeekRecords){
+	
+	var standingsHtml = '';
+	
+	var isYearSelected = true;
+	var yearHeader = '';
+	var selectedYear = getSelectedYear();
+	if ('all' == selectedYear){
+		isYearSelected = false;
+		yearHeader = '<th class="best-weeks-table-cell">Year</th>';
+	}
+	
+	var isWeekSelected = true;
+	var weekHeader = '';
+	var selectedWeek = getSelectedWeek();
+	if ('all' == selectedWeek){
+		isWeekSelected = false;
+		weekHeader = '<th class="best-weeks-table-cell">Week</th>';
+	}
+	
+	var areThereAnyTies = false;
+	for (var index = 0; index < playerWeekRecords.length; index++){
+		var playerWeekRecord = playerWeekRecords[index];
+		
+		if (playerWeekRecord.record.ties > 0){
+			areThereAnyTies = true;
+		}
+	}
+	
+	var tiesHeader = '';
+	if (areThereAnyTies){
+		tiesHeader = '<th class="best-weeks-table-cell">T</th>';
+	}
+	
+	var standingsHeaderHtml = '<thead>' +
+						 	'<th></th>' +
+						 	yearHeader + 
+						 	weekHeader +
+						 	'<th class="best-weeks-table-cell">W</th>' + 
+						 	'<th class="best-weeks-table-cell">L</th>' +
+						 	tiesHeader + 
+						 	'<th class="best-weeks-table-cell">%</th>';
+	
+	
+	standingsHeaderHtml = standingsHeaderHtml + '</thead>';
+	
+	var rowsHtml = '';
+	
+	if (isEmpty(playerWeekRecords)){
+		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
+	}
+
+	//The steps for calculating the rank:
+	//	1. Have three variables: rank, nextRank, and tieIndependentRank.
+	//	2. rank holds the rank of the current record we're on.  
+	//	3. nextRank holds what the rank should be the next time we go through
+	//	   the loop.
+	//	4. tieIndependentRank holds the rank independent of ties.  Basically what it would be if
+	//	   there were no ties (the position of the record in the array, starting at 1).
+	//	5. Start the nextRank at 1 because that's what the rank of the next record we see will be.
+	//	6. Start going through the records.
+	//	7. Assign the nextRank that we calculated to the rank so that we use it for this record.
+	//	8. Calculate the nextRank:
+	//		1. If there's a next record and it has the same number of wins and losses as this one, then
+	//		   the nextRank will be same as the current rank because there's a tie.
+	//		2. Otherwise, it'll be whatever "tieIndepdentedRank" we have.  That's because we'll
+	//		   want to basically pick up where we left off before the ties started.
+	
+	var rank = null;
+	var nextRank = 1;
+	var nextRecord = null;
+	var previousRank = null;
+	
+	for (var index = 0; index < playerWeekRecords.length; index++){
+		var playerWeekRecord = playerWeekRecords[index];
+		
+		//This is the position of the record independent of whether there are ties.  Just the "raw" position if we
+		//started counting at 1.  It will be the same as the rank if there aren't any ties.
+		var tieIndependentRank = index + 1;
+		//Set the rank to what we calculated it should be the previous time through the loop.
+		rank = nextRank;
+		
+		//Now, need to calculate what it will be the next time.
+		//If the next record has the same number of wins and losses, then it'll be the same as now because they're
+		//tied.
+		//Otherwise, if the next record doesn't, the next rank will be whatever this one's would have
+		//been without ties + 1.  If there weren't any ties, then this record's rank would be the "tieIndependentRank".
+		//So, that means the next rank would be that + 1.
+		nextRecord = null;
+		if (index + 1 < playerWeekRecords.length){
+			nextRecord = playerWeekRecords[index + 1];
+			
+			if (playerWeekRecord.record.wins == nextRecord.record.wins && playerWeekRecord.record.losses == nextRecord.record.losses){
+				//rank stays the same.
+			}
+			else {
+				//current rank would be index + 1.  We want to be one beyond that.
+				nextRank = tieIndependentRank + 1;
+			}
+		}
+		
+		//Now, we have the rank and next rank so we need to figure out if we need to put a little 't' to indicate
+		//there was a tie.
+		//There's a tie if:
+		//	1. It's the same as the next rank and we're not at the end.
+		//	2. The rank is the same as the previous rank.
+		//
+		//Number 1 should be pretty straight forward.  If this rank is the same as the next one, it's in a tie.
+		//Number 2 is there for the last tie in a series of ties.  The last tie will have a "nextRank" that's different from
+		//what it is, but we'll still want to show a tie for it.  So, in that case, we can just look to see if it's the same
+		//as the previous rank and, if it is, we know there's a tie.
+		var rankText = rank + '';
+		if ((nextRank == rank && index + 1 < playerWeekRecords.length) || (rank == previousRank)){
+			rankText = rankText + 't';
+		}
+		
+		var percentage = playerWeekRecord.record.wins / (playerWeekRecord.record.wins + playerWeekRecord.record.losses);
+		var percentageString = '';
+		if (!isNaN(percentage)){
+			percentageString = percentage.toPrecision(3);
+		}
+		
+		var yearCell = '';
+		if (!isYearSelected){
+			yearCell = '<td class="best-weeks-table-cell">' + playerWeekRecord.season.year + '</td>';
+		}
+		
+		var weekCell = '';
+		if (!isWeekSelected){
+			weekCell = '<td class="best-weeks-table-cell">' + shortenWeekLabel(playerWeekRecord.week.label) + '</td>';
+		}
+		
+		var tiesCell = '';
+		if (areThereAnyTies){
+			tiesCell = '<td class="best-weeks-table-cell">' + playerWeekRecord.record.ties + '</td>';
+		}
+		
+		rowsHtml = rowsHtml + 
+					   '<tr>' +
+						'<td>' + rankText + '. ' + playerWeekRecord.player.name + '</td>' +
+						yearCell +
+						weekCell +
+						'<td class="best-weeks-table-cell">' + playerWeekRecord.record.wins + '</td>' +
+						'<td class="best-weeks-table-cell">' + playerWeekRecord.record.losses + '</td>' +
+						tiesCell + 
+						'<td class="best-weeks-table-cell">' + percentageString + '</td>';
+		
+		rowsHtml = rowsHtml + '</tr>';
+		
+		//Keep the current rank as the previous for the next time through.
+		previousRank = rank;
+		
+	}
+	
+	var standingsBodyHtml = '<tbody>' + rowsHtml + '</tbody>';
+	
+	standingsHtml = '<table align="center">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
+	
+	return standingsHtml;
 }
 
 function shortenWeekLabel(label){

@@ -183,3 +183,8 @@ html, body {
 .edit-pick-select {
 	padding: 10px;
 }
+
+.best-weeks-table-cell {
+	text-align: left;
+	padding-left: 8px;
+}

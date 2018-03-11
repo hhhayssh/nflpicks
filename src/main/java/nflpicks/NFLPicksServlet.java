@@ -44,6 +44,7 @@ public class NFLPicksServlet extends HttpServlet {
 	
 	protected static final String STAT_NAME_WEEKS_WON_STANDINGS = "weeksWonStandings";
 	protected static final String STAT_NAME_WEEKS_WON_BY_WEEK = "weeksWonByWeek";
+	protected static final String STAT_NAME_BEST_WEEKS = "bestWeeks";
 	
 	protected NFLPicksDataService dataService;
 	
@@ -266,6 +267,31 @@ public class NFLPicksServlet extends HttpServlet {
 				List<PlayerWeekRecord> weekRecords = this.dataService.getPlayerWeekRecords(year, null, player);
 				
 				json = JSONUtil.playerWeekRecordsToJSONString(weekRecords);
+			}
+			else if (STAT_NAME_BEST_WEEKS.equals(statName)){
+				
+				String playersString = req.getParameter("player");
+				List<String> players = null;
+				if (!"all".equals(playersString)){
+					//escape all of these...
+					players = Util.delimitedStringToList(playersString, ",");
+				}
+
+				String weeksString = req.getParameter("week");
+				List<String> weeks = null;
+				if (!"all".equals(weeksString)){
+					weeks = Util.delimitedStringToList(weeksString, ",");
+				}
+				
+				String yearsString = req.getParameter("year");
+				List<String> years = null; 
+				if (!"all".equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, ",");
+				}
+				
+				List<PlayerWeekRecord> bestWeeks = dataService.getBestWeeks(years, weeks, players);
+				
+				json = JSONUtil.playerWeekRecordsToJSONString(bestWeeks);
 			}
 			
 			//what stats do we want to show:
