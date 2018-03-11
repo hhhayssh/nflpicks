@@ -28,6 +28,7 @@ import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
+import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.PlayerWeekRecord;
 import nflpicks.model.stats.PlayerWeeksWon;
 import nflpicks.model.stats.WeekRecord;
@@ -266,6 +267,41 @@ public class NFLPicksDataService {
 																"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label " + 
 													") best_weeks " + 
 													"order by score desc ";
+	
+	protected static final String SELECT_RECORDS_FOR_YEAR = "select pick_totals.season_id, " + 
+																   "pick_totals.year, " + 
+																   "pick_totals.player_id, " + 
+																   "pick_totals.player_name, " + 
+																   "sum(pick_totals.wins) as wins, " + 
+																   "sum(pick_totals.losses) as losses, " + 
+																   "sum(pick_totals.ties) as ties\n" + 
+														    "from (select pl.id as player_id, " + 
+																		 "pl.name as player_name, " + 
+																		 "s.id as season_id, " + 
+																		 "s.year as year, " + 
+																		 "w.id as week_id, " + 
+																		 "w.week as week, " + 
+																		 "w.label as week_label, " + 
+																		 "(case when p.team_id = g.winning_team_id " + 
+																		 "then 1 " + 
+																		 "else 0 " + 
+																		 "end) as wins, " + 
+																		 "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+																		 "then 1 " + 
+																		 "else 0 " + 
+																		 "end) as losses, " + 
+																		 "(case when g.winning_team_id = -1 " + 
+																		 "then 1 " + 
+																		 "else 0 " + 
+																		 "end) as ties " + 
+																 "from pick p join game g on p.game_id = g.id " + 
+																 	  "join player pl on p.player_id = pl.id " + 
+																 	  "join week w on g.week_id = w.id " + 
+																 	  "join season s on w.season_id = s.id " + 
+																 " %s " +
+																") pick_totals " + 
+														  "group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
+														  "order by year asc, wins desc, player_id ";
 	
 	/**
 	 * 
@@ -3461,6 +3497,7 @@ order by s.year asc, w.week asc, g.id asc;
 	}
 	
 	public List<PlayerWeekRecord> getBestWeeks(List<String> years, List<String> weeks, List<String> players){
+		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
@@ -3520,6 +3557,119 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		
 		return playerWeekRecords;
+	}
+	
+	public List<Championship> getChampionships(List<String> years){
+		
+		//have to get all the records?
+		//is there a faster way?
+		//need to handle there being ties in a season...
+		
+		//SELECT_RECORDS_FOR_YEAR
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<Championship> championships = new ArrayList<Championship>();
+		
+		try {
+			connection = dataSource.getConnection();
+			
+			String recordsForYearCriteria = "";
+			
+			if (years != null && years.size() > 0){
+				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(years.size());
+			}
+			
+			String query = String.format(SELECT_RECORDS_FOR_YEAR, recordsForYearCriteria);
+			
+			statement = connection.prepareStatement(query);
+			
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					int parameterIndex = index + 1;
+					statement.setString(parameterIndex, year);
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			String currentYear = null;
+			int currentChampionWins = -1;
+			int currentChampionLosses = -1;
+			
+			boolean skipToNextYear = false;
+			
+			Championship championship = null;
+			
+			while (results.next()){
+				String year = results.getString("year");
+				
+				if (currentYear == null){
+					championship = mapChampionship(results);
+					championships.add(championship);
+					currentYear = year;
+					currentChampionWins = championship.getRecord().getWins();
+					currentChampionLosses = championship.getRecord().getLosses();
+					
+					continue;
+				}
+				
+				if (currentYear.equals(year)){
+
+					if (skipToNextYear){
+						continue;
+					}
+				
+					int currentWins = results.getInt("wins");
+					int currentLosses = results.getInt("losses");
+					
+					if (currentWins == currentChampionWins && currentLosses == currentChampionLosses){
+						championship = mapChampionship(results);
+					}
+					else {
+						skipToNextYear = true;
+					}
+				}
+				else {
+					championship = mapChampionship(results);
+					championships.add(championship);
+					currentYear = year;
+					currentChampionWins = championship.getRecord().getWins();
+					currentChampionLosses = championship.getRecord().getLosses();
+				}
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting championships! years = " + years, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return championships;
+	}
+	
+	protected Championship mapChampionship(ResultSet results) throws SQLException {
+		
+		int seasonId = results.getInt("season_id");
+		String year = results.getString("year");
+		Season season = new Season(seasonId, year);
+
+		int playerId = results.getInt("player_id");
+		String playerName = results.getString("player_name");
+		Player player = new Player(playerId, playerName);
+		
+		int wins = results.getInt("wins");
+		int losses = results.getInt("losses");
+ 		int ties = results.getInt("ties");
+		Record record = new Record(player, wins, losses, ties);
+		
+		Championship championship = new Championship(player, season, record);
+		
+		return championship;
 	}
 	
 	protected void close(ResultSet results, PreparedStatement statement, Connection connection){

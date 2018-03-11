@@ -112,6 +112,10 @@ public interface NFLPicksConstants {
 	public static final String JSON_WEEKS_WON_PLAYER = "player";
 	public static final String JSON_WEEKS_WON_WEEK_RECORDS = "weekRecords";
 	
+	public static final String JSON_CHAMPIONSHIP_PLAYER = "player";
+	public static final String JSON_CHAMPIONSHIP_SEASON = "season";
+	public static final String JSON_CHAMPIONSHIP_RECORD = "record";
+	
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	
 	public static final String DATA_MANAGEMENT_TYPE_EXPORT = "export";

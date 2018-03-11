@@ -23,6 +23,7 @@ import nflpicks.model.Pick;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Team;
+import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.PlayerWeekRecord;
 import nflpicks.model.stats.PlayerWeeksWon;
 
@@ -45,6 +46,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String STAT_NAME_WEEKS_WON_STANDINGS = "weeksWonStandings";
 	protected static final String STAT_NAME_WEEKS_WON_BY_WEEK = "weeksWonByWeek";
 	protected static final String STAT_NAME_BEST_WEEKS = "bestWeeks";
+	protected static final String STAT_NAME_CHAMPIONS = "champions";
 	
 	protected NFLPicksDataService dataService;
 	
@@ -292,6 +294,18 @@ public class NFLPicksServlet extends HttpServlet {
 				List<PlayerWeekRecord> bestWeeks = dataService.getBestWeeks(years, weeks, players);
 				
 				json = JSONUtil.playerWeekRecordsToJSONString(bestWeeks);
+			}
+			else if (STAT_NAME_CHAMPIONS.equals(statName)){
+				
+				String yearsString = req.getParameter("year");
+				List<String> years = null; 
+				if (!"all".equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, ",");
+				}
+				
+				List<Championship> championships = dataService.getChampionships(years);
+				
+				json = JSONUtil.championshipsToJSONString(championships);
 			}
 			
 			//what stats do we want to show:

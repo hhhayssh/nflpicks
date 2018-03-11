@@ -13,9 +13,10 @@ import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
-import nflpicks.model.stats.WeekRecord;
+import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.PlayerWeekRecord;
 import nflpicks.model.stats.PlayerWeeksWon;
+import nflpicks.model.stats.WeekRecord;
 
 /**
  * 
@@ -787,8 +788,83 @@ public class JSONUtil {
 		return jsonObject;
 	}
 	
+	/**
+	 * 
+	 * This function converts the given championship objects into a json formatted
+	 * string.
+	 * 
+	 * @param weeksWon
+	 * @return
+	 */
+	public static String championshipsToJSONString(List<Championship> championships){
+		
+		JSONArray jsonArray = championshipsToJSONArray(championships);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
 	
+	/**
+	 * 
+	 * This function converts the given championships into a json array.
+	 * 
+	 * @param seasons
+	 * @return
+	 */
+	public static JSONArray championshipsToJSONArray(List<Championship> championships){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < championships.size(); index++){
+			Championship championship = championships.get(index);
+			JSONObject jsonObject = championshipToJSONObject(championship);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
 	
+	/**
+	 * 
+	 * This function converts the given championship to a json formatted string.
+	 * 
+	 * @param season
+	 * @return
+	 */
+	public static String championshipToJSONString(Championship championship){
+		
+		JSONObject jsonObject = championshipToJSONObject(championship);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given championship into a json object.
+	 * 
+	 * @param weekWon
+	 * @return
+	 */
+	public static JSONObject championshipToJSONObject(Championship championship){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject playerJSONObject = playerToJSONObject(championship.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_CHAMPIONSHIP_PLAYER, playerJSONObject);
+		
+		JSONObject seasonJSONObject = seasonToJSONObject(championship.getSeason());
+		jsonObject.put(NFLPicksConstants.JSON_CHAMPIONSHIP_SEASON, seasonJSONObject);
+		
+		JSONObject recordJSONObject = recordToJSONObject(championship.getRecord());
+		jsonObject.put(NFLPicksConstants.JSON_CHAMPIONSHIP_RECORD, recordJSONObject);
+		
+		
+		return jsonObject;
+	}
 	
 	
 	/**

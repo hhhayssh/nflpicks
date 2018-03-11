@@ -306,8 +306,13 @@ function showStatsSelectors(){
 	$('#yearContainer').show();
 	
 	var statName = getSelectedStatName();
-	
-	if ('weekRecordsByPlayer' == statName){
+
+	if ('champions' == statName){
+		$('#playerContainer').hide();
+		$('#yearContainer').hide();
+		$('#weekContainer').hide();
+	}
+	else if ('weekRecordsByPlayer' == statName){
 		$('#playerContainer').show();
 		hideAllPlayerOption();
 		
@@ -371,7 +376,7 @@ function updateStats(){
 	var week = getSelectedWeek();
 	
 	//don't always want to do this ... need to base it on stat name
-	if (statName != 'bestWeeks'){
+	if (statName != 'bestWeeks' && statName != 'champions'){
 		if ('all' == player){
 			player = $('#player option')[1].value;
 			setSelectedPlayer(player);
@@ -386,7 +391,14 @@ function updateStats(){
 		
 		var statsHtml = '';
 		
-		if ('weeksWonStandings' == statName){
+		if ('champions' == statName){
+			
+			var championships = $.parseJSON(data);
+			
+			statsHtml = createChampionsHtml(championships);
+			
+		}
+		else if ('weeksWonStandings' == statName){
 			
 			var weekRecords = $.parseJSON(data);
 			sortWeekRecords(weekRecords);
@@ -1230,6 +1242,70 @@ function createBestWeeksHtml(playerWeekRecords){
 	standingsHtml = '<table align="center">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
 	
 	return standingsHtml;
+}
+
+function createChampionsHtml(championships){
+	
+	var areThereAnyTies = false;
+	for (var index = 0; index < championships.length; index++){
+		
+		var championship = championships[index];
+		
+		if (championship.record.ties > 0){
+			areThereAnyTies = true;
+			break;
+		}
+	}
+	
+	var tiesHeader = '';
+	if (areThereAnyTies){
+		tiesHeader = '<th class="champions-table-cell">T</th>';
+	}
+	
+	var championshipsHeaderHtml = '<thead>' +
+								  	'<th></th>' + 
+								  	'<th class="champions-table-cell">Year</th>' + 
+								  	'<th class="champions-table-cell">W</th>' +
+								  	'<th class="champions-table-cell">L</th>' +
+								  	tiesHeader + 
+								  	'<th class="champions-table-cell">%</th>'
+								  '</thead>';
+	
+	var championshipsBodyHtml = '<tbody>';
+	
+	for (var index = 0; index < championships.length; index++){
+		var championship = championships[index];
+		
+		var tiesCell = '';
+		if (areThereAnyTies){
+			tiesCell = '<td class="champions-table-cell">' + championship.record.ties + '</td>';
+		}
+		
+		var percentage = championship.record.wins / (championship.record.wins + championship.record.losses);
+		var percentageString = '';
+		if (!isNaN(percentage)){
+			percentageString = percentage.toPrecision(3);
+		}
+		
+		var championshipRowHtml = '<tr>' + 
+								  	'<td class="champions-table-cell">' + championship.player.name + '</td>' +
+								  	'<td class="champions-table-cell">' + championship.season.year + '</td>' +
+								  	'<td class="champions-table-cell">' + championship.record.wins + '</td>' +
+								  	'<td class="champions-table-cell">' + championship.record.losses + '</td>' + 
+								  	tiesCell +
+								  	'<td class="champions-table-cell">' + percentageString + '</td>' +
+								  '</tr>';
+		
+		championshipsBodyHtml = championshipsBodyHtml + championshipRowHtml;
+	}
+	
+	championshipsBodyHtml = championshipsBodyHtml + '</tbody>';
+	
+	var championshipsHtml = '<table align="center">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>';
+	
+	console.log('championshipsHtml = ' + championshipsHtml);
+	
+	return championshipsHtml;
 }
 
 function shortenWeekLabel(label){

@@ -188,3 +188,8 @@ html, body {
 	text-align: left;
 	padding-left: 8px;
 }
+
+.champions-table-cell {
+	text-align: left;
+	padding-left: 15px;
+}
