@@ -29,6 +29,7 @@ import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
+import nflpicks.model.stats.PlayerChampionships;
 import nflpicks.model.stats.PlayerWeekRecord;
 import nflpicks.model.stats.PlayerWeeksWon;
 import nflpicks.model.stats.WeekRecord;
@@ -3557,6 +3558,60 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		
 		return playerWeekRecords;
+	}
+	
+	public List<PlayerChampionships> getPlayerChampionships(List<String> years){
+		
+		List<Championship> championships = getChampionships(years);
+		
+		Map<Integer, PlayerChampionships> playerToChampionshipsMap = new HashMap<Integer, PlayerChampionships>();
+		
+		for (int index = 0; index < championships.size(); index++){
+			Championship championship = championships.get(index);
+			
+			Player player = championship.getPlayer();
+			
+			Integer playerId = Integer.valueOf(player.getId());
+			
+			PlayerChampionships playerChampionships = playerToChampionshipsMap.get(playerId);
+			
+			if (playerChampionships == null){
+				playerChampionships = new PlayerChampionships(player, new ArrayList<Championship>());
+			}
+			
+			List<Championship> championshipsForPlayer = playerChampionships.getChampionships();
+			championshipsForPlayer.add(championship);
+			playerChampionships.setChampionships(championshipsForPlayer);
+			
+			playerToChampionshipsMap.put(playerId, playerChampionships);
+		}
+		
+		List<PlayerChampionships> playerChampionshipsList = new ArrayList<PlayerChampionships>(playerToChampionshipsMap.values());
+		
+		Collections.sort(playerChampionshipsList, new PlayerChampionshipsComparator());
+		
+		return playerChampionshipsList;
+	}
+	
+	protected class PlayerChampionshipsComparator implements Comparator<PlayerChampionships> {
+
+		public int compare(PlayerChampionships playerChampionships1, PlayerChampionships playerChampionships2) {
+			
+			List<Championship> championships1 = playerChampionships1.getChampionships();
+			List<Championship> championships2 = playerChampionships2.getChampionships();
+			
+			int numberOfChampionships1 = championships1.size();
+			int numberOfChampionships2 = championships2.size();
+			
+			if (numberOfChampionships1 > numberOfChampionships2){
+				return -1;
+			}
+			else if (numberOfChampionships1 < numberOfChampionships2){
+				return 1;
+			}
+			
+			return 0;
+		}
 	}
 	
 	public List<Championship> getChampionships(List<String> years){

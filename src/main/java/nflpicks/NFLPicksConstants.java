@@ -116,6 +116,9 @@ public interface NFLPicksConstants {
 	public static final String JSON_CHAMPIONSHIP_SEASON = "season";
 	public static final String JSON_CHAMPIONSHIP_RECORD = "record";
 	
+	public static final String JSON_PLAYER_CHAMPIONSHIPS_PLAYER = "player";
+	public static final String JSON_PLAYER_CHAMPIONSHIPS_CHAMPIONSHIPS = "championships";
+	
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	
 	public static final String DATA_MANAGEMENT_TYPE_EXPORT = "export";

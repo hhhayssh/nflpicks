@@ -35,7 +35,7 @@ html, body {
 
 .content-container {
 	width: 100%; 
-	text-align: center;
+	/*text-align: center;*/
 	padding-top: 10px;
 	border-top: thin solid black;
 }
@@ -192,4 +192,42 @@ html, body {
 .champions-table-cell {
 	text-align: left;
 	padding-left: 15px;
+}
+
+.standings-table {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.standings-table-head {
+	text-align: left;
+}
+
+.standings-table-header {
+	padding-left: 10px;
+}
+
+.standings-table-player-header {
+	padding-right: 15px;
+}
+
+.standings-table-body {
+}
+
+.standings-table-row {
+	vertical-align: top;
+}
+
+.standings-table-player-cell {
+	padding-right: 15px;
+}
+
+.standings-table-cell {
+	padding-left: 10px;
+}
+
+.standings-table-cell-list {
+	list-style: none; 
+	padding: 0px; 
+	margin: 0px;
 }

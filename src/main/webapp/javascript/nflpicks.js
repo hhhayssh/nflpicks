@@ -398,6 +398,12 @@ function updateStats(){
 			statsHtml = createChampionsHtml(championships);
 			
 		}
+		else if ('championshipStandings' == statName){
+			
+			var championships = $.parseJSON(data);
+			
+			statsHtml = createChampionshipStandingsHtml(championships);
+		}
 		else if ('weeksWonStandings' == statName){
 			
 			var weekRecords = $.parseJSON(data);
@@ -488,16 +494,16 @@ function createStandingsGridHtml(records){
 	var areThereAnyTies = hasTies(records);
 	var tiesHeader = '';
 	if (areThereAnyTies){
-		tiesHeader = '<th align="left">Ties</th>';
+		tiesHeader = '<th class="standings-table-header">T</th>';
 	}
 	
-	var standingsHeaderHtml = '<thead>' +
-						 	'<th class="standings-header"></th>' +
-						 	'<th class="standings-header">Wins</th>' + 
-						 	'<th class="standings-header">Losses</th>' +
+	var standingsHeaderHtml = '<thead class="standings-table-head">' +
+						 	'<th class="standings-table-player-header"></th>' +
+						 	'<th class="standings-table-header">W</th>' + 
+						 	'<th class="standings-table-header">L</th>' +
 						 	tiesHeader + 
-						 	'<th class="standings-header">Win %</th>' + 
-						 	'<th class="standings-header">GB</th>';
+						 	'<th class="standings-table-header">%</th>' + 
+						 	'<th class="standings-table-header">GB</th>';
 	
 	
 	standingsHeaderHtml = standingsHeaderHtml + '</thead>';
@@ -596,17 +602,17 @@ function createStandingsGridHtml(records){
 		
 		var tiesCell = '';
 		if (areThereAnyTies){
-			tiesCell = '<td class="records-data-cell">' + record.ties + '</td>';
+			tiesCell = '<td class="standings-table-cell">' + record.ties + '</td>';
 		}
 		
 		rowsHtml = rowsHtml + 
-					   '<tr>' +
-						'<td class="records-cell">' + rankText + '. ' + record.player.name + '</td>' +
-						'<td class="records-data-cell">' + record.wins + '</td>' +
-						'<td class="records-data-cell">' + record.losses + '</td>' +
+					   '<tr class="standings-table-row">' +
+						'<td class="standings-table-player-cell">' + rankText + '. ' + record.player.name + '</td>' +
+						'<td class="standings-table-cell">' + record.wins + '</td>' +
+						'<td class="standings-table-cell">' + record.losses + '</td>' +
 						tiesCell + 
-						'<td class="records-data-cell">' + percentageString + '</td>' +
-						'<td class="records-data-cell">' + gamesBack + '</td>';
+						'<td class="standings-table-cell">' + percentageString + '</td>' +
+						'<td class="standings-table-cell">' + gamesBack + '</td>';
 		
 		rowsHtml = rowsHtml + '</tr>';
 		
@@ -615,9 +621,9 @@ function createStandingsGridHtml(records){
 		
 	}
 	
-	var standingsBodyHtml = '<tbody>' + rowsHtml + '</tbody>';
+	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
 	
-	standingsHtml = '<table align="center">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
+	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
 	
 	return standingsHtml;
 }
@@ -810,11 +816,11 @@ function createWeeksWonHtml(weekRecords){
 		showYear = true;
 	}
 	
-	var weeksWonHtml = '<table align="center">' + 
-							'<thead>' + 
-								'<tr>' + 
-									'<th></th>' +
-									'<th style="text-align: left;">Weeks won</th>' +
+	var weeksWonHtml = '<table class="standings-table">' + 
+							'<thead class="standings-table-head">' + 
+								'<tr class="standings-table-row">' + 
+									'<th class="standings-table-player-header"></th>' +
+									'<th class="standings-table-header">Weeks won</th>' +
 									//'<th>Weeks</th>' +
 								'</tr>' + 
 							'</thead>';
@@ -851,22 +857,8 @@ function createWeeksWonHtml(weekRecords){
 		
 		
 		weeksWonTableBody = weeksWonTableBody + 
-							'<tr>' + 
-								'<td style="vertical-align: top; padding-right: 20px;">' + rankText + '. ' + weekRecord.player.name + '</td>';
-								//'<td style="vertical-align: top; text-align: center;">' + weekRecord.weekRecords.length + '</td>';
-
-		/*
-		 0: {…}
-player: Object { name: "Benny boy", id: 1 }
-weekRecords: […]
-0: {…}
-record: Object { wins: 11, ties: 0, losses: 5, … }
-season: Object { year: "2016", id: 1 }
-week: Object { id: 4, week_number: 4, label: "Week 4" }
-__proto__: Object { … }
-1: Object { week: {…}, record: {…}, season: {…} }
-2: Object { week: {…}, record: {…}, season: {…} }
-		 */
+							'<tr class="standings-table-row">' + 
+								'<td class="standings-table-player-cell">' + rankText + '. ' + weekRecord.player.name + '</td>';
 
 		var numberOfWeeksWon = weekRecord.weekRecords.length;
 		if (weekRecord.weekRecords.length < 10){
@@ -874,7 +866,7 @@ __proto__: Object { … }
 		}
 		var detailId = 'week-records-' + index;
 		var weekRecordsHtml = '<div style="">' + numberOfWeeksWon + ' <a id="show-weeks-link-' + index + '" href="javascript:" onClick="toggleShowWeeks(' + index + ')" style="margin-left: 20px; float:right;">show weeks</a></div>' + 
-							  '<div id="' + detailId + '" style="display: none;"><ul style="list-style: none; padding: 0px;">';
+							  '<div id="' + detailId + '" style="display: none;"><ul class="standings-table-cell-list">';
 
 		
 		for (var bIndex = 0; bIndex < weekRecord.weekRecords.length; bIndex++){
@@ -891,21 +883,16 @@ __proto__: Object { … }
 			var recordHtml = year + record.week.label + ' (' + record.record.wins + ' - ' + record.record.losses +
 							 ties + ')';
 			
-//			if (index > 0){
-//				weekRecordsHtml = weekRecordsHtml + ', ';
-//			}
-			
 			weekRecordsHtml = weekRecordsHtml + '<li>' + recordHtml + '</li>';
 		}
 		
 		weekRecordsHtml = weekRecordsHtml + '</ul></div>';
 		
-		weeksWonTableBody = weeksWonTableBody + '<td>' + weekRecordsHtml + '</td></tr>';
+		weeksWonTableBody = weeksWonTableBody + '<td class="standings-table-cell">' + weekRecordsHtml + '</td></tr>';
 		
-		//console.log('player = ' + weekRecord.player.name + ', numb = ' + weekRecord.weekRecords.length + ', recordRank = ' + recordRank.rank + ', tie = ' + recordRank.tie);
 	}
 	
-	weeksWonHtml = weeksWonHtml + '<tbody>' + weeksWonTableBody + '</tbody></table>';
+	weeksWonHtml = weeksWonHtml + '<tbody class="standings-table-body">' + weeksWonTableBody + '</tbody></table>';
 	
 	return weeksWonHtml;
 }
@@ -1007,8 +994,6 @@ function isSpecificYearSelected(){
 
 function createWeekRecordsByPlayerHtml(weekRecords){
 	
-	//sortWeekRecordsBySeasonAndWeek
-	
 	var tiesHeader = '';
 	
 	var xHasTies = false;
@@ -1022,27 +1007,29 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	}
 	
 	if (xHasTies){
-		tiesHeader = '<th>Ties</th>';
+		tiesHeader = '<th class="standings-table-header">T</th>';
 	}
 	
 	var yearHeader = '';
+	var weekClass = 'standings-table-player-header';
 	var aYearIsSelected = isSpecificYearSelected();
 	if (!aYearIsSelected){
-		yearHeader = '<th>Year</th>';
+		yearHeader = '<th class="standings-table-player-header">Year</th>';
+		weekClass = 'standings-table-header';
 	}
 	
-	var tableHead = '<thead>' + 
-						'<tr>' + 
+	var tableHead = '<thead class="standings-table-head">' + 
+						'<tr class="standings-table-row">' + 
 							yearHeader +
-							'<th>Week</th>' + 
-							'<th>Wins</th>' + 
-							'<th>Losses</th>' +
+							'<th class="' + weekClass + '">Week</th>' + 
+							'<th class="standings-table-header">W</th>' + 
+							'<th class="standings-table-header">L</th>' +
 							tiesHeader +
-							'<th>Win %</th>' +
+							'<th class="standings-table-header">%</th>' +
 						'</tr>' +
 					'</thead>';
 	
-	var tableBody = '<tbody>';
+	var tableBody = '<tbody class="standings-table-body">';
 	
 	for (var index = 0; index < weekRecords.length; index++){
 		var weekRecord = weekRecords[index];
@@ -1050,7 +1037,7 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 		var tiesCell = '';
 		
 		if (xHasTies){
-			tiesCell = '<td>' + weekRecord.record.ties + '</td>';
+			tiesCell = '<td class="standings-table-cell">' + weekRecord.record.ties + '</td>';
 		}
 		
 		var percentage = weekRecord.record.wins / (weekRecord.record.wins + weekRecord.record.losses);
@@ -1061,16 +1048,16 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 		
 		var yearCell = '';
 		if (!aYearIsSelected){
-			yearCell = '<td style="padding-right: 15px;">' + weekRecord.season.year + '</td>';
+			yearCell = '<td class="standings-table-player-cell">' + weekRecord.season.year + '</td>';
 		}
 		
-		var row = '<tr>' +
+		var row = '<tr class="standings-table-row">' +
 					yearCell +
-					'<td style="padding-right: 15px;">' + shortenWeekLabel(weekRecord.week.label) + '</td>' +
-					'<td>' + weekRecord.record.wins + '</td>' +
-					'<td>' + weekRecord.record.losses + '</td>' +
+					'<td class="' + weekClass + '">' + shortenWeekLabel(weekRecord.week.label) + '</td>' +
+					'<td class="standings-table-cell">' + weekRecord.record.wins + '</td>' +
+					'<td class="standings-table-cell">' + weekRecord.record.losses + '</td>' +
 					tiesCell +
-					'<td>' + percentageString + '</td>'
+					'<td class="standings-table-cell">' + percentageString + '</td>'
 				  '</tr>';
 		
 		tableBody = tableBody + row;
@@ -1078,7 +1065,7 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	
 	tableBody = tableBody + '</tbody>';
 
-	var weekRecordsByPlayerHtml = '<table align="center">' + tableHead + tableBody + '</table>';
+	var weekRecordsByPlayerHtml = '<table class="standings-table">' + tableHead + tableBody + '</table>';
 	
 	return weekRecordsByPlayerHtml;
 }
@@ -1092,7 +1079,7 @@ function createBestWeeksHtml(playerWeekRecords){
 	var selectedYear = getSelectedYear();
 	if ('all' == selectedYear){
 		isYearSelected = false;
-		yearHeader = '<th class="best-weeks-table-cell">Year</th>';
+		yearHeader = '<th class="standings-table-header">Year</th>';
 	}
 	
 	var isWeekSelected = true;
@@ -1100,7 +1087,7 @@ function createBestWeeksHtml(playerWeekRecords){
 	var selectedWeek = getSelectedWeek();
 	if ('all' == selectedWeek){
 		isWeekSelected = false;
-		weekHeader = '<th class="best-weeks-table-cell">Week</th>';
+		weekHeader = '<th class="standings-table-header">Week</th>';
 	}
 	
 	var areThereAnyTies = false;
@@ -1114,17 +1101,17 @@ function createBestWeeksHtml(playerWeekRecords){
 	
 	var tiesHeader = '';
 	if (areThereAnyTies){
-		tiesHeader = '<th class="best-weeks-table-cell">T</th>';
+		tiesHeader = '<th class="standings-table-header">T</th>';
 	}
 	
-	var standingsHeaderHtml = '<thead>' +
-						 	'<th></th>' +
+	var standingsHeaderHtml = '<thead class="standings-table-head">' +
+						 	'<th class="standings-table-player-header"></th>' +
 						 	yearHeader + 
 						 	weekHeader +
-						 	'<th class="best-weeks-table-cell">W</th>' + 
-						 	'<th class="best-weeks-table-cell">L</th>' +
+						 	'<th class="standings-table-header">W</th>' + 
+						 	'<th class="standings-table-header">L</th>' +
 						 	tiesHeader + 
-						 	'<th class="best-weeks-table-cell">%</th>';
+						 	'<th class="standings-table-header">%</th>';
 	
 	
 	standingsHeaderHtml = standingsHeaderHtml + '</thead>';
@@ -1207,28 +1194,28 @@ function createBestWeeksHtml(playerWeekRecords){
 		
 		var yearCell = '';
 		if (!isYearSelected){
-			yearCell = '<td class="best-weeks-table-cell">' + playerWeekRecord.season.year + '</td>';
+			yearCell = '<td class="standings-table-cell">' + playerWeekRecord.season.year + '</td>';
 		}
 		
 		var weekCell = '';
 		if (!isWeekSelected){
-			weekCell = '<td class="best-weeks-table-cell">' + shortenWeekLabel(playerWeekRecord.week.label) + '</td>';
+			weekCell = '<td class="standings-table-cell">' + shortenWeekLabel(playerWeekRecord.week.label) + '</td>';
 		}
 		
 		var tiesCell = '';
 		if (areThereAnyTies){
-			tiesCell = '<td class="best-weeks-table-cell">' + playerWeekRecord.record.ties + '</td>';
+			tiesCell = '<td class="standings-table-cell">' + playerWeekRecord.record.ties + '</td>';
 		}
 		
 		rowsHtml = rowsHtml + 
-					   '<tr>' +
-						'<td>' + rankText + '. ' + playerWeekRecord.player.name + '</td>' +
+					   '<tr class="standings-table-row">' +
+						'<td class="standings-table-player-cell">' + rankText + '. ' + playerWeekRecord.player.name + '</td>' +
 						yearCell +
 						weekCell +
-						'<td class="best-weeks-table-cell">' + playerWeekRecord.record.wins + '</td>' +
-						'<td class="best-weeks-table-cell">' + playerWeekRecord.record.losses + '</td>' +
+						'<td class="standings-table-cell">' + playerWeekRecord.record.wins + '</td>' +
+						'<td class="standings-table-cell">' + playerWeekRecord.record.losses + '</td>' +
 						tiesCell + 
-						'<td class="best-weeks-table-cell">' + percentageString + '</td>';
+						'<td class="standings-table-cell">' + percentageString + '</td>';
 		
 		rowsHtml = rowsHtml + '</tr>';
 		
@@ -1237,9 +1224,9 @@ function createBestWeeksHtml(playerWeekRecords){
 		
 	}
 	
-	var standingsBodyHtml = '<tbody>' + rowsHtml + '</tbody>';
+	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
 	
-	standingsHtml = '<table align="center">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
+	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
 	
 	return standingsHtml;
 }
@@ -1259,16 +1246,16 @@ function createChampionsHtml(championships){
 	
 	var tiesHeader = '';
 	if (areThereAnyTies){
-		tiesHeader = '<th class="champions-table-cell">T</th>';
+		tiesHeader = '<th class="standings-table-header">T</th>';
 	}
 	
-	var championshipsHeaderHtml = '<thead>' +
-								  	'<th></th>' + 
-								  	'<th class="champions-table-cell">Year</th>' + 
-								  	'<th class="champions-table-cell">W</th>' +
-								  	'<th class="champions-table-cell">L</th>' +
+	var championshipsHeaderHtml = '<thead class="standings-table-head">' +
+								  	'<th class="standings-table-player-header"></th>' + 
+								  	'<th class="standings-table-header">Year</th>' + 
+								  	'<th class="standings-table-header">W</th>' +
+								  	'<th class="standings-table-header">L</th>' +
 								  	tiesHeader + 
-								  	'<th class="champions-table-cell">%</th>'
+								  	'<th class="standings-table-header">%</th>'
 								  '</thead>';
 	
 	var championshipsBodyHtml = '<tbody>';
@@ -1278,7 +1265,7 @@ function createChampionsHtml(championships){
 		
 		var tiesCell = '';
 		if (areThereAnyTies){
-			tiesCell = '<td class="champions-table-cell">' + championship.record.ties + '</td>';
+			tiesCell = '<td class="standings-table-cell">' + championship.record.ties + '</td>';
 		}
 		
 		var percentage = championship.record.wins / (championship.record.wins + championship.record.losses);
@@ -1287,13 +1274,13 @@ function createChampionsHtml(championships){
 			percentageString = percentage.toPrecision(3);
 		}
 		
-		var championshipRowHtml = '<tr>' + 
-								  	'<td class="champions-table-cell">' + championship.player.name + '</td>' +
-								  	'<td class="champions-table-cell">' + championship.season.year + '</td>' +
-								  	'<td class="champions-table-cell">' + championship.record.wins + '</td>' +
-								  	'<td class="champions-table-cell">' + championship.record.losses + '</td>' + 
+		var championshipRowHtml = '<tr class="standings-table-row">' + 
+								  	'<td class="standings-table-player-cell">' + championship.player.name + '</td>' +
+								  	'<td class="standings-table-cell">' + championship.season.year + '</td>' +
+								  	'<td class="standings-table-cell">' + championship.record.wins + '</td>' +
+								  	'<td class="standings-table-cell">' + championship.record.losses + '</td>' + 
 								  	tiesCell +
-								  	'<td class="champions-table-cell">' + percentageString + '</td>' +
+								  	'<td class="standings-table-cell">' + percentageString + '</td>' +
 								  '</tr>';
 		
 		championshipsBodyHtml = championshipsBodyHtml + championshipRowHtml;
@@ -1301,11 +1288,96 @@ function createChampionsHtml(championships){
 	
 	championshipsBodyHtml = championshipsBodyHtml + '</tbody>';
 	
-	var championshipsHtml = '<table align="center">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>';
-	
-	console.log('championshipsHtml = ' + championshipsHtml);
+	var championshipsHtml = '<table class="standings-table">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>';
 	
 	return championshipsHtml;
+}
+
+function createChampionshipStandingsHtml(playerChampionshipsList){
+	
+	var championshipsStandingsHeaderHtml = '<thead class="standings-table-head">' +
+										  	'<tr class="standings-table-row">' +
+										  		'<th class="standings-table-player-header"></th>' +
+										  		'<th class="standings-table-header">Championships</th>' +
+										  		'<th class="standings-table-header">Years</th>' +
+										  	'</tr>' +
+										  '</thead>';
+										  		
+	
+	var championshipsStandingsBodyHtml = '<tbody class="standings-table-body">';
+	
+	playerChampionshipsList.sort(function (a, b){
+		
+		if (a.championships.length > b.championships.length){
+			return -1;
+		}
+		else if (a.championships.length < b.championships.length){
+			return 1;
+		}
+		
+		return 0;
+	});
+	
+	for (var index = 0; index < playerChampionshipsList.length; index++){
+		var playerChampionships = playerChampionshipsList[index];
+		
+		var championshipsRank = rank(playerChampionships, playerChampionshipsList, function(playerChampionships1, playerChampionships2){
+			
+			if (playerChampionships1.championships.length > playerChampionships2.championships.length){
+				return -1;
+			}
+			else if (playerChampionships1.championships.length < playerChampionships2.championships.length){
+				return 1;
+			}
+			
+			return 0;
+		}, 
+		
+		function (playerChampionships1, playerChampionships2){
+			
+			if (playerChampionships1.player.name == playerChampionships2.player.name){
+				return true;
+			}
+			
+			return false;
+		});
+
+		var rankText = championshipsRank.rank;
+		if (championshipsRank.tie){
+			rankText = rankText + 't';
+		}
+		
+		var playerChampionshipsRowHtml = '<tr class="standings-table-row">' + 
+											'<td class="standings-table-player-cell">' + rankText + '. ' + playerChampionships.player.name + '</td>' +
+											'<td class="standings-table-cell">' + playerChampionships.championships.length + '</td>';
+		
+		var championshipYearsHtml = '<ul class="standings-table-cell-list">';
+
+		for (var championshipIndex = 0; championshipIndex < playerChampionships.championships.length; championshipIndex++){
+			var championship = playerChampionships.championships[championshipIndex];
+			
+			var tiesString = '';
+			if (championship.record.ties > 0){
+				tiesString = ' - ' + championship.record.ties;
+			}
+			
+			var championshipHtml = '<li>' + championship.season.year + ' (' + championship.record.wins + ' - ' + championship.record.losses + tiesString + ')';
+			
+			championshipYearsHtml = championshipYearsHtml + championshipHtml;
+		}
+		
+		championshipYearsHtml = championshipYearsHtml + '</ul>';
+		
+		playerChampionshipsRowHtml = playerChampionshipsRowHtml + '<td class="standings-table-cell">' + championshipYearsHtml + '</td></tr>';
+		
+		championshipsStandingsBodyHtml = championshipsStandingsBodyHtml + playerChampionshipsRowHtml;
+	}
+	
+	championshipsStandingsBodyHtml = championshipsStandingsBodyHtml + '</tbody>';
+	
+	var championshipsStandingsHtml = '<table class="standings-table">' + championshipsStandingsHeaderHtml + championshipsStandingsBodyHtml + '</table';
+	
+	return championshipsStandingsHtml;
 }
 
 function shortenWeekLabel(label){
