@@ -72,7 +72,7 @@ function getUrlParameters() {
     
     for (var index = 0; index < parameterNamesAndValues.length; index++) {
         var parameterNameAndValue = parameterNamesAndValues[index].split('=');
-        var name = decodeURIComponent(parameterNameAndValue[0]).toLowerCase();
+        var name = decodeURIComponent(parameterNameAndValue[0]);
         var value = decodeURIComponent(parameterNameAndValue[1]);
         urlParameters[name] = value;
     }
