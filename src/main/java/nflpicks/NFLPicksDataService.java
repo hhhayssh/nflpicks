@@ -32,6 +32,7 @@ import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.PlayerChampionships;
 import nflpicks.model.stats.PlayerWeekRecord;
 import nflpicks.model.stats.PlayerWeeksWon;
+import nflpicks.model.stats.PlayersWeekRecord;
 import nflpicks.model.stats.WeekRecord;
 
 /**
@@ -215,6 +216,45 @@ public class NFLPicksDataService {
 													 	   ") pick_totals " + 
 													"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label " + 
 													"order by year, week, player_name ";
+	
+	protected static final String SELECT_WEEK_RECORDS_BASE = "select pick_totals.season_id, " + 
+															 		"pick_totals.year, " + 
+															 		"pick_totals.player_id, " + 
+															 		"pick_totals.player_name, " + 
+															 		"pick_totals.week_id, " + 
+															 		"pick_totals.week, " + 
+															 		"pick_totals.week_label, " + 
+															 		"sum(pick_totals.wins) as wins, " + 
+															 		"sum(pick_totals.losses) as losses, " + 
+															 		"sum(pick_totals.ties) as ties " + 
+															 "from (select pl.id as player_id, " + 
+															 		 	  "pl.name as player_name, " + 
+															 		 	  "s.id as season_id, " + 
+															 		 	  "s.year as year, " + 
+															 		 	  "w.id as week_id, " + 
+															 		 	  "w.week as week, " + 
+															 		 	  "w.label as week_label, " + 
+															 		 	  "(case when p.team_id = g.winning_team_id " + 
+															 		 	  	    "then 1 " + 
+															 		 	  	    "else 0 " + 
+															 		 	  "end) as wins, " + 
+															 		 	  "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+															 		 	  	    "then 1 " + 
+															 		 	  	    "else 0 " + 
+															 		 	  "end) as losses, " + 
+															 		 	  "(case when g.winning_team_id = -1 " + 
+															 		 	  	    "then 1 " + 
+															 		 	  	    "else 0 " + 
+															 		 	  "end) as ties " + 
+															 	   "from pick p join game g on p.game_id = g.id " + 
+															 	        "join player pl on p.player_id = pl.id " + 
+															 	        "join week w on g.week_id = w.id " + 
+															 	        "join season s on w.season_id = s.id " + 
+															 	        " %s " + 
+															 	   ") pick_totals " + 
+															"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label ";
+	
+	protected static final String SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD = SELECT_WEEK_RECORDS_BASE + " order by year asc, week asc, wins desc, losses asc ";
 	
 	protected static final String SELECT_BEST_WEEKS = "select best_weeks.season_id, " + 
 															 "best_weeks.year, " + 
@@ -2994,7 +3034,60 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 	}
 	
-	public List<PlayerWeeksWon> getWeeksWon2(String year){
+	public List<PlayersWeekRecord> getWeeksWonByWeek(List<String> years, List<String> weeks, List<String> players){
+		
+		String query = SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD;
+		
+		List<PlayerWeekRecord> playerWeekRecords = getPlayerWeekRecords(query, years, weeks, players);
+
+		List<PlayersWeekRecord> weeksWonByWeek = new ArrayList<PlayersWeekRecord>();
+		
+		PlayersWeekRecord currentWeekRecord = null;
+		
+		String currentYear = null;
+		int currentWeek = -1;
+		
+		for (int index = 0; index < playerWeekRecords.size(); index++){
+			PlayerWeekRecord playerWeekRecord = playerWeekRecords.get(index);
+			
+			String recordYear = playerWeekRecord.getSeason().getYear();
+			int recordWeek = playerWeekRecord.getWeek().getWeekNumber();
+			
+			if (currentYear == null || 
+					(!recordYear.equals(currentYear)) || recordWeek != currentWeek){
+				
+				currentWeekRecord = new PlayersWeekRecord();
+				currentWeekRecord.setRecord(playerWeekRecord.getRecord());
+				currentWeekRecord.setSeason(playerWeekRecord.getSeason());
+				currentWeekRecord.setWeek(playerWeekRecord.getWeek());
+				List<Player> playerss = new ArrayList<Player>();
+				playerss.add(playerWeekRecord.getPlayer());
+				currentWeekRecord.setPlayer(playerss);
+				
+				weeksWonByWeek.add(currentWeekRecord);
+				
+				currentYear = recordYear;
+				currentWeek = recordWeek;
+			}
+			else {
+				boolean addPlayer = false;
+				int currentWins = currentWeekRecord.getRecord().getWins();
+				int recordWins = playerWeekRecord.getRecord().getWins();
+				
+				if (currentWins == recordWins){
+					addPlayer = true;
+				}
+				
+				if (addPlayer){
+					currentWeekRecord.getPlayer().add(playerWeekRecord.getPlayer());
+				}
+			}
+		}
+		
+		return weeksWonByWeek;
+	}
+	
+	public List<PlayerWeeksWon> getWeeksWonStandings(String year){
 		
 		List<PlayerWeekRecord> playerWeekRecords = getPlayerWeekRecords(year, null, null);
 		
@@ -3305,6 +3398,75 @@ order by s.year asc, w.week asc, g.id asc;
 	
 	public List<PlayerWeekRecord> getPlayerWeekRecords(List<String> years, List<String> weeks, List<String> players){
 		
+		String query = SELECT_WEEK_RECORDS;
+		
+		List<PlayerWeekRecord> playerWeekRecords = getPlayerWeekRecords(query, years, weeks, players);
+		
+		return playerWeekRecords;
+		
+//		Connection connection = null;
+//		PreparedStatement statement = null;
+//		ResultSet results = null;
+//		
+//		List<PlayerWeekRecord> playerWeekRecords = new ArrayList<PlayerWeekRecord>();
+//		
+//		try {
+//			connection = dataSource.getConnection();
+//			
+//			String weekRecordsCriteria = createWeekRecordsCriteria(years, weeks, players);
+//			
+//			String query = String.format(SELECT_WEEK_RECORDS, weekRecordsCriteria);
+//			
+//			statement = connection.prepareStatement(query);
+//			
+//			//Players go first...
+//			int parameterIndex = 1;
+//			if (players != null && players.size() > 0){
+//				for (int index = 0; index < players.size(); index++){
+//					String playerName = players.get(index);
+//					statement.setString(parameterIndex, playerName);
+//					parameterIndex++;
+//				}
+//			}
+//			
+//			//Then weeks
+//			if (weeks != null && weeks.size() > 0){
+//				for (int index = 0; index < weeks.size(); index++){
+//					String week = weeks.get(index);
+//					int weekInt = Integer.parseInt(week);
+//					statement.setInt(parameterIndex, weekInt);
+//					parameterIndex++;
+//				}
+//			}
+//			
+//			//Then years
+//			if (years != null && years.size() > 0){
+//				for (int index = 0; index < years.size(); index++){
+//					String year = years.get(index);
+//					statement.setString(parameterIndex, year);
+//					parameterIndex++;
+//				}
+//			}
+//			
+//			results = statement.executeQuery();
+//			
+//			while (results.next()){
+//				PlayerWeekRecord playerWeekRecord = mapPlayerWeekRecord(results);
+//				playerWeekRecords.add(playerWeekRecord);
+//			}
+//		}
+//		catch (Exception e){
+//			log.error("Error getting records! years = " + years + ", weeks = " + weeks + ", players = " + players, e);
+//		}
+//		finally {
+//			close(results, statement, connection);
+//		}
+//		
+//		return playerWeekRecords;
+	}
+	
+	protected List<PlayerWeekRecord> getPlayerWeekRecords(String query, List<String> years, List<String> weeks, List<String> players){
+		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
@@ -3316,9 +3478,9 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			String weekRecordsCriteria = createWeekRecordsCriteria(years, weeks, players);
 			
-			String query = String.format(SELECT_WEEK_RECORDS, weekRecordsCriteria);
+			String fullQuery = String.format(query, weekRecordsCriteria);
 			
-			statement = connection.prepareStatement(query);
+			statement = connection.prepareStatement(fullQuery);
 			
 			//Players go first...
 			int parameterIndex = 1;
@@ -3364,7 +3526,6 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		
 		return playerWeekRecords;
-		
 	}
 	
 	protected String createWeekRecordsCriteria(List<String> years, List<String> weeks, List<String> players){

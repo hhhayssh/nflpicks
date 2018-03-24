@@ -27,6 +27,7 @@ import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.PlayerChampionships;
 import nflpicks.model.stats.PlayerWeekRecord;
 import nflpicks.model.stats.PlayerWeeksWon;
+import nflpicks.model.stats.PlayersWeekRecord;
 
 
 public class NFLPicksServlet extends HttpServlet {
@@ -46,6 +47,7 @@ public class NFLPicksServlet extends HttpServlet {
 	
 	protected static final String STAT_NAME_WEEKS_WON_STANDINGS = "weeksWonStandings";
 	protected static final String STAT_NAME_WEEKS_WON_BY_WEEK = "weeksWonByWeek";
+	protected static final String STAT_NAME_WEEK_RECORDS_BY_PLAYER = "weekRecordsByPlayer";
 	protected static final String STAT_NAME_BEST_WEEKS = "bestWeeks";
 	protected static final String STAT_NAME_CHAMPIONS = "champions";
 	protected static final String STAT_NAME_CHAMPIONSHIP_STANDINGS = "championshipStandings";
@@ -242,11 +244,36 @@ public class NFLPicksServlet extends HttpServlet {
 				if ("all".equals(year)){
 					year = null;
 				}
-				List<PlayerWeeksWon> weeksWon = this.dataService.getWeeksWon2(year);
+				List<PlayerWeeksWon> weeksWon = this.dataService.getWeeksWonStandings(year);
 				
 				json = JSONUtil.weeksWonToJSONString(weeksWon);
 			}
-			else if ("weekRecordsByPlayer".equals(statName)){
+			else if (STAT_NAME_WEEKS_WON_BY_WEEK.equals(statName)){
+				//want it sorted in chronological order...
+				String playersString = req.getParameter("player");
+				List<String> players = null;
+				if (!"all".equals(playersString)){
+					//escape all of these...
+					players = Util.delimitedStringToList(playersString, ",");
+				}
+
+				String weeksString = req.getParameter("week");
+				List<String> weeks = null;
+				if (!"all".equals(weeksString)){
+					weeks = Util.delimitedStringToList(weeksString, ",");
+				}
+				
+				String yearsString = req.getParameter("year");
+				List<String> years = null; 
+				if (!"all".equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, ",");
+				}
+				
+				List<PlayersWeekRecord> x = dataService.getWeeksWonByWeek(years, weeks, players);
+				
+				json = JSONUtil.playersWeekRecordsToJSONString(x);
+			}
+			else if (STAT_NAME_WEEK_RECORDS_BY_PLAYER.equals(statName)){
 				String year = req.getParameter("year");
 				if ("all".equals(year)){
 					year = null;

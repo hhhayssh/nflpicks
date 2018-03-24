@@ -76,6 +76,7 @@ function getUrlParameters() {
         var value = decodeURIComponent(parameterNameAndValue[1]);
         urlParameters[name] = value;
     }
+    
     return urlParameters;
 }
 
@@ -325,6 +326,10 @@ function showStatsSelectors(){
 		$('#weekContainer').show();
 		showAllWeekOption();
 	}
+	else if ('weeksWonByWeek' == statName){
+		$('#weekContainer').show();
+		showAllWeekOption();
+	}
 }
 
 function hideStatsSelectors(){
@@ -376,7 +381,7 @@ function updateStats(){
 	var week = getSelectedWeek();
 	
 	//don't always want to do this ... need to base it on stat name
-	if (statName != 'bestWeeks' && statName != 'champions'){
+	if (statName != 'bestWeeks' && statName != 'champions' && statName != 'weeksWonByWeek'){
 		if ('all' == player){
 			player = $('#player option')[1].value;
 			setSelectedPlayer(player);
@@ -410,6 +415,15 @@ function updateStats(){
 			sortWeekRecords(weekRecords);
 		
 			statsHtml = createWeeksWonHtml(weekRecords);
+		}
+		else if ('weeksWonByWeek' == statName){
+			
+			var weeksWonByWeek = $.parseJSON(data);
+			
+			console.log('aaaa ...');
+			console.log(weeksWonByWeek);
+			
+			statsHtml = createWeeksWonByWeek(weeksWonByWeek);
 		}
 		else if ('weekRecordsByPlayer' == statName){
 			//add in the player here and get the default
@@ -1378,6 +1392,69 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 	var championshipsStandingsHtml = '<table class="standings-table">' + championshipsStandingsHeaderHtml + championshipsStandingsBodyHtml + '</table';
 	
 	return championshipsStandingsHtml;
+}
+
+function createWeeksWonByWeek(weeksWonByWeek){
+	
+	var yearSelected = isSpecificYearSelected();
+	
+	
+	var yearHeader = '';
+	if (!yearSelected){
+		yearHeader = '<th class="standings-table-header">Year</th>';
+	}
+	
+	var weeksWonByWeekHeaderHtml = '<thead class="standings-table-head">' +
+								   		'<tr>' + 
+								   			yearHeader + 
+								   			'<th class="standings-table-header">Week</th>' +
+								   			'<th class="standings-table-header">Record</th>' +
+								   			'<th class="standings-table-header">Winner</th>' +
+								   		'</tr>' +
+								   	'</thead>';
+	
+	var weeksWonByWeekBodyHtml = '<tbody class="standings-table-body">';
+	
+	for (var index = 0; index < weeksWonByWeek.length; index++){
+		var weekRecord = weeksWonByWeek[index];
+	
+		var yearCell = '';
+		if (!yearSelected){
+			yearCell = '<td class="standings-table-cell">' + weekRecord.season.year + '</td>';
+		}
+		
+		var recordHtml = weekRecord.record.wins + ' - ' + weekRecord.record.losses;
+		
+		if (weekRecord.record.ties > 0){
+			recordHtml = recordHtml + ' - ' + weekRecord.record.ties;
+		}
+		
+		var playerHtml = '<ul class="standings-table-cell-list">';
+		for (var playerIndex = 0; playerIndex < weekRecord.player.length; playerIndex++){
+			var player = weekRecord.player[playerIndex];
+			
+			var plHtml = '<li>' + player.name + '</li>';
+			playerHtml = playerHtml + plHtml;
+		}
+		
+		playerHtml = playerHtml + '</ul>';
+
+		var weeksWonByWeekRow = '<tr class="standings-table-row">' +
+									yearCell +
+									'<td class="standings-table-cell">' + shortenWeekLabel(weekRecord.week.label) + '</td>' +
+								    '<td class="standings-table-cell">' + recordHtml + '</td>' +
+								    '<td class="standings-table-cell">' + playerHtml + '</td>' +
+								'</tr>';
+		
+		weeksWonByWeekBodyHtml = weeksWonByWeekBodyHtml + weeksWonByWeekRow;
+	}
+	
+	weeksWonByWeekBodyHtml = weeksWonByWeekBodyHtml + '</tbody>';
+	
+	var weeksWonByWeekHtml = '<table class="standings-table">' + weeksWonByWeekHeaderHtml + weeksWonByWeekBodyHtml + '</table>';
+	
+	return weeksWonByWeekHtml;
+	
 }
 
 function shortenWeekLabel(label){
