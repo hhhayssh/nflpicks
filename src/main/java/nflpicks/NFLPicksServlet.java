@@ -26,6 +26,7 @@ import nflpicks.model.Record;
 import nflpicks.model.Team;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
+import nflpicks.model.stats.PickAccuracySummary;
 import nflpicks.model.stats.WeekRecordForPlayer;
 import nflpicks.model.stats.WeekRecordForPlayers;
 import nflpicks.model.stats.WeekRecordsForPlayer;
@@ -52,12 +53,14 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String STAT_NAME_WEEK_STANDINGS = "weekStandings";
 	protected static final String STAT_NAME_CHAMPIONS = "champions";
 	protected static final String STAT_NAME_CHAMPIONSHIP_STANDINGS = "championshipStandings";
+	protected static final String STAT_NAME_PICK_ACCURACY = "pickAccuracy";
 
 	protected static final String PARAMETER_NAME_TARGET = "target";
 	protected static final String PARAMETER_NAME_PLAYER = "player";
 	protected static final String PARAMETER_NAME_YEAR = "year";
 	protected static final String PARAMETER_NAME_WEEK = "week";
 	protected static final String PARAMETER_NAME_STAT_NAME = "statName";
+	protected static final String PARAMETER_NAME_TEAM = "team";
 	
 	protected static final String PARAMETER_NAME_GAMES = "games";
 	protected static final String PARAMETER_NAME_ID = "id";
@@ -205,6 +208,9 @@ public class NFLPicksServlet extends HttpServlet {
 			Collections.sort(playerNames);
 			
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_PLAYERS, playerNames);
+			
+			List<Team> teams = dataService.getTeams();
+			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_TEAMS, teams);
 			
 			json = selectionCriteriaJSONObject.toString();
 		}
@@ -357,6 +363,30 @@ public class NFLPicksServlet extends HttpServlet {
 				List<ChampionshipsForPlayer> playerChampionships = dataService.getPlayerChampionships(years);
 				
 				json = JSONUtil.championshipsForPlayerListToJSONString(playerChampionships);
+			}
+			else if (STAT_NAME_PICK_ACCURACY.equals(statName)){
+				//getPickAccuracySummaries
+				String playersString = getParameter(request, PARAMETER_NAME_PLAYER);
+				List<String> players = null;
+				if (!PARAMETER_VALUE_ALL.equals(playersString)){
+					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+				List<String> teams = null;
+				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+				}
+
+				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
+				List<String> years = null; 
+				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummaries(years, players, teams);
+				
+				json = JSONUtil.pickAccuracySummariesListToJSONString(pickAccuracySummaries);
 			}
 		}
 		

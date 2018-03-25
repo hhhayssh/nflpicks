@@ -30,10 +30,11 @@ import nflpicks.model.Team;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
-import nflpicks.model.stats.WeekRecordForPlayer;
-import nflpicks.model.stats.WeekRecordsForPlayer;
-import nflpicks.model.stats.WeekRecordForPlayers;
+import nflpicks.model.stats.PickAccuracySummary;
 import nflpicks.model.stats.WeekRecord;
+import nflpicks.model.stats.WeekRecordForPlayer;
+import nflpicks.model.stats.WeekRecordForPlayers;
+import nflpicks.model.stats.WeekRecordsForPlayer;
 
 /**
  * 
@@ -343,6 +344,137 @@ public class NFLPicksDataService {
 																") pick_totals " + 
 														  "group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
 														  "order by year asc, wins desc, player_id ";
+	
+	protected static final String SELECT_PICK_ACCURACY_SUMMARY = "select pick_accuracy_summary.player_id as player_id, " + 
+																 	    "pick_accuracy_summary.player_name as player_name, " + 
+																 	    "pick_accuracy_summary.team_id as team_id, " +
+																 	    "pick_accuracy_summary.division_id as division_id, " +
+																 	    "pick_accuracy_summary.team_name as team_name, " +
+																 	    "pick_accuracy_summary.team_nickname as team_nickname, " +
+																 	    "pick_accuracy_summary.team_abbreviation as team_abbreviation, " +
+																 	    "sum(pick_accuracy_summary.actual_wins) as actual_wins, " + 
+																 	    "sum(pick_accuracy_summary.actual_losses) as actual_losses, " +
+																 	    "sum(pick_accuracy_summary.actual_ties) as actual_ties, " + 
+																 	    "sum(pick_accuracy_summary.predicted_wins) as predicted_wins, " + 
+																 	    "sum(pick_accuracy_summary.predicted_losses) as predicted_losses, " + 
+																 	    "sum(pick_accuracy_summary.times_right) as times_right, " + 
+																 	    "sum(pick_accuracy_summary.times_wrong) as times_wrong, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong " + 
+																 "from (select s.year, " + 
+																 			  "pl.id as player_id, " + 
+																 			  "pl.name as player_name, " + 
+																 			  "t.id as team_id, " + 
+																 			  "t.division_id as division_id, " +
+																 			  "t.name as team_name, " + 
+																 			  "t.nickname as team_nickname, " +
+																 			  "t.abbreviation as team_abbreviation, " + 
+																 			  "(select count(*) " + 
+																 			   "from game g " + 
+																 			   "where (g.home_team_id = t.id or " + 
+																 			    	  "g.away_team_id = t.id) " + 
+																 			    	  "and g.winning_team_id = t.id " + 
+																 			    	  "and g.week_id in (select w.id " + 
+																 			    	  					"from week w " + 
+																 			    	  					"where w.season_id = s.id) " + 
+																 			  ") as actual_wins, " + 
+																 			  "(select count(*) " + 
+																 			   "from game g " + 
+																 			   "where (g.home_team_id = t.id or " + 
+																 			   	 	  "g.away_team_id = t.id) " + 
+																 			   	 	  "and (g.winning_team_id != t.id and g.winning_team_id != -1) " + 
+																 			   	 	  "and g.week_id in (select w.id " + 
+																 			   	 	  					"from week w " + 
+																 			   	 	  					"where w.season_id = s.id) " + 
+																 			  ") as actual_losses, " + 
+																 			  "(select count(*) " + 
+																 			   "from game g " + 
+																 			   "where (g.home_team_id = t.id or " + 
+																 			   	      "g.away_team_id = t.id) " + 
+																 			   	      "and g.winning_team_id = -1 " + 
+																 			   	      "and g.week_id in (select w.id " + 
+																 			   	      				    "from week w " + 
+																 			   	      				    "where w.season_id = s.id) " + 
+																 			  ") as actual_ties, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			   		 "and p.team_id = t.id " + 
+																 			   		 "and g.week_id in (select w.id " + 
+																 			   		 				   "from week w " + 
+																 			   		 				   "where w.season_id = s.id) " + 
+																 			  ") as predicted_wins, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			   		 "and p.team_id != t.id " + 
+																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+																 			   		 "and g.week_id in (select w.id " + 
+																 			   		 				   "from week w " + 
+																 			   		 				   "where w.season_id = s.id) " + 
+																 			  ") as predicted_losses, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+																 			   		 "and g.winning_team_id = p.team_id " + 
+																 			   		 "and g.week_id in (select w.id " + 
+																 			   		 				   "from week w " + 
+																 			   		 				   "where w.season_id = s.id) " + 
+																 			  ") as times_right, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+																 			   		 "and g.winning_team_id != p.team_id " + 
+																 			   		 "and g.week_id in (select w.id " + 
+																 			   		 				   "from week w " + 
+																 			   		 				   "where w.season_id = s.id) " + 
+																 			  ") as times_wrong, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			   		 "and p.team_id = t.id " + 
+																 			   		 "and g.week_id in (select w.id " + 
+																 			   		 				   "from week w " + 
+																 			   		 				   "where w.season_id = s.id) " + 
+																 			   		 "and g.winning_team_id = p.team_id " + 
+																 			  ") as times_picked_to_win_right, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			   	     "and p.team_id = t.id " + 
+																 			   	     "and g.week_id in (select w.id " + 
+																 			   	     				   "from week w " + 
+																 			   	     				   "where w.season_id = s.id) " + 
+																 			   	     "and g.winning_team_id != p.team_id " + 
+																 			  ") as times_picked_to_win_wrong, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			     	 "and p.team_id != t.id " + 
+																 			     	 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+																 			     	 "and g.week_id in (select w.id " + 
+																 			     	 				   "from week w " + 
+																 			     	 				   "where w.season_id = s.id) " + 
+																 			     	 "and g.winning_team_id != t.id " + 
+																 			  ") as times_picked_to_lose_right, " + 
+																 			  "(select count(*)  " + 
+																 			   "from pick p join game g on p.game_id = g.id " + 
+																 			   "where p.player_id = pl.id " + 
+																 			   	 	 "and p.team_id != t.id " + 
+																 			   	 	 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+																 			   	 	 "and g.week_id in (select w.id " + 
+																 			   	 	 				   "from week w " + 
+																 			   	 	 				   "where w.season_id = s.id) " + 
+																 			   	 	 "and g.winning_team_id = t.id " + 
+																 			   ") as times_picked_to_lose_wrong " + 
+																 	    "from team t cross join player pl cross join season s " + 
+																 	    " %s " + 
+																		") pick_accuracy_summary " + 
+															     "group by player_id, player_name, team_id, team_name, team_nickname, team_abbreviation, division_id ";
 	
 	/**
 	 * 
@@ -3886,6 +4018,165 @@ order by s.year asc, w.week asc, g.id asc;
 		Championship championship = new Championship(player, season, record);
 		
 		return championship;
+	}
+	
+	public List<PickAccuracySummary> getPickAccuracySummaries(List<String> years, List<String> players, List<String> teamAbbreviations){
+
+		/*
+		 protected static final String SELECT_PICK_ACCURACY_SUMMARY = "select pick_accuracy_summary.player_id as player_id, " + 
+																 	    "pick_accuracy_summary.player_name as player_name, " + 
+																 	    "pick_accuracy_summary.team_id as team_id, " +
+																 	    "pick_accuracy_summary.division_id as division_id, " +
+																 	    "pick_accuracy_summary.team_name as team_name, " +
+																 	    "pick_accuracy_summary.team_nickname as team_nickname, " +
+																 	    "pick_accuracy_summary.team_abbreviation as team_abbreviation, " +
+																 	    "sum(pick_accuracy_summary.actual_wins) as actual_wins, " + 
+																 	    "sum(pick_accuracy_summary.actual_losses) as actual_losses, " + 
+																 	    "sum(pick_accuracy_summary.predicted_wins) as predicted_wins, " + 
+																 	    "sum(pick_accuracy_summary.predicted_losses) as predicted_losses, " + 
+																 	    "sum(pick_accuracy_summary.times_right) as times_right, " + 
+																 	    "sum(pick_accuracy_summary.times_wrong) as times_wrong, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right, " + 
+																 	    "sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong " + 
+		 */
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<PickAccuracySummary> pickAccuracySummaries = new ArrayList<PickAccuracySummary>();
+		
+		try {
+			StringBuilder whereClauseStringBuilder = new StringBuilder();
+			boolean addedWhereClause = false;
+			int numberOfPlayers = 0;
+			if (players != null){
+				numberOfPlayers = players.size();
+			}
+
+			int numberOfYears = 0;
+			if (years != null){
+				numberOfYears = years.size();
+			}
+
+			int numberOfTeams = 0;
+			if (teamAbbreviations != null){
+				numberOfTeams = teamAbbreviations.size();
+			}
+
+			if (numberOfPlayers > 0){
+				String playerInClauseString = DatabaseUtil.createInClauseParameterString(numberOfPlayers);
+				whereClauseStringBuilder.append(" where pl.name in ").append(playerInClauseString);
+				addedWhereClause = true;
+			}
+
+			if (numberOfYears > 0){
+				String yearInClauseString = DatabaseUtil.createInClauseParameterString(numberOfYears);
+
+				if (addedWhereClause){
+					whereClauseStringBuilder.append(" and ");
+				}
+				else {
+					whereClauseStringBuilder.append(" where ");
+					addedWhereClause = true;
+				}
+
+				whereClauseStringBuilder.append(" s.year in ").append(yearInClauseString);
+			}
+
+			if (numberOfTeams > 0){
+				String teamInClauseString = DatabaseUtil.createInClauseParameterString(numberOfTeams);
+
+				if (addedWhereClause){
+					whereClauseStringBuilder.append(" and ");
+				}
+				else {
+					whereClauseStringBuilder.append(" where ");
+					addedWhereClause = true;
+				}
+
+				whereClauseStringBuilder.append(" t.abbreviation in ").append(teamInClauseString);
+			}
+
+			String whereClause = whereClauseStringBuilder.toString();
+
+			String pickAccuracyQuery = String.format(SELECT_PICK_ACCURACY_SUMMARY, whereClause);
+			
+			connection = dataSource.getConnection();
+			
+			statement = connection.prepareStatement(pickAccuracyQuery);
+			
+			int parameterIndex = 1;
+			
+			for (int index = 0; index < numberOfPlayers; index++){
+				String player = players.get(index);
+				statement.setString(parameterIndex, player);
+				parameterIndex++;
+			}
+			
+			for (int index = 0; index < numberOfYears; index++){
+				String year = years.get(index);
+				statement.setString(parameterIndex, year);
+				parameterIndex++;
+			}
+			
+			for (int index = 0; index < numberOfTeams; index++){
+				String teamAbbreviation = teamAbbreviations.get(index);
+				statement.setString(parameterIndex, teamAbbreviation);
+				parameterIndex++;
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				PickAccuracySummary pickAccuracySummary = mapPickAccuracySummary(results);
+				pickAccuracySummaries.add(pickAccuracySummary);
+			}
+
+		}
+		catch (Exception e){
+			log.error("Error getting pick accuracy summary!  players = " + players + ", years = " + years + ", teamAbbreviations = " + teamAbbreviations, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return pickAccuracySummaries;
+	}
+	
+	protected PickAccuracySummary mapPickAccuracySummary(ResultSet results) throws SQLException {
+		
+		int playerId = results.getInt("player_id");
+		String playerName = results.getString("player_name");
+		
+		Player player = new Player(playerId, playerName);
+		
+		int teamId = results.getInt("team_id");
+		int divisionId = results.getInt("division_id");
+		String teamName = results.getString("team_name");
+		String teamNickname = results.getString("team_nickname");
+		String teamAbbreviation = results.getString("team_abbreviation");
+		
+		Team team = new Team(teamId, divisionId, teamName, teamNickname, teamAbbreviation);
+		
+		int actualWins = results.getInt("actual_wins");
+		int actualLosses = results.getInt("actual_losses");
+		int actualTies = results.getInt("actual_ties");
+		int predictedWins = results.getInt("predicted_wins");
+		int predictedLosses = results.getInt("predicted_losses");
+		int timesRight = results.getInt("times_right");
+		int timesWrong = results.getInt("times_wrong");
+		int timesPickedToWinRight = results.getInt("times_picked_to_win_right");
+		int timesPickedToWinWrong = results.getInt("times_picked_to_win_wrong");
+		int timesPickedToLoseRight = results.getInt("times_picked_to_lose_right");
+		int timesPickedToLoseWrong = results.getInt("times_picked_to_lose_wrong");
+		
+		PickAccuracySummary pickAccuracySummary = new PickAccuracySummary(player, team, actualWins, actualLosses, actualTies, predictedWins, predictedLosses, timesRight, timesWrong,
+																		  timesPickedToWinRight, timesPickedToWinWrong, timesPickedToLoseRight, timesPickedToLoseWrong);
+		
+		return pickAccuracySummary;
 	}
 	
 	protected void close(ResultSet results, PreparedStatement statement, Connection connection){

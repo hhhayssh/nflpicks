@@ -136,6 +136,21 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_SELECTION_CRITERIA_YEARS = "years";
 	public static final String JSON_SELECTION_CRITERIA_PLAYERS = "players";
+	public static final String JSON_SELECTION_CRITERIA_TEAMS = "teams";
+	
+	public static final String JSON_PICK_ACCURACY_SUMMARY_PLAYER = "player";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_TEAM = "team";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_ACTUAL_WINS = "actualWins";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_ACTUAL_LOSSES = "actualLosses";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_ACTUAL_TIES = "actualTies";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_PREDICTED_WINS = "predictedWins";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_PREDICTED_LOSSES = "predictedLosses";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_RIGHT = "timesRight";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_WRONG = "timesWrong";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_RIGHT = "timesPickedToWinRight";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_WRONG = "timesPickedToWinWrong";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_RIGHT = "timesPickedToLoseRight";
+	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_WRONG = "timesPickedToLoseWrong";
 	
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	

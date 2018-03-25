@@ -105,6 +105,29 @@ function getSelectionCriteriaAndInitialize(){
 		
 		setOptionsInSelect('player', playerOptions);
 		
+		var teams = selectionCriteriaContainer.teams;
+		
+		teams.sort(function (teamA, teamB){
+			
+			if (teamA.abbreviation < teamB.abbreviation){
+				return -1;
+			}
+			else if (teamA.abbreviation > teamB.abbreviation){
+				return 1;
+			}
+			
+			return 0;
+		});
+		
+		var teamOptions = [{label: 'All', value: 'all'}];
+		
+		for (var index = 0; index < teams.length; index++){
+			var team = teams[index];
+			teamOptions.push({label: team.abbreviation, value: team.abbreviation});
+		}
+		
+		setOptionsInSelect('team', teamOptions);
+		
 		initializeView();
 	})
 	.fail(function() {
@@ -150,6 +173,7 @@ function updatePicksSelectors(type){
 	}
 	
 	hideStatNameContainer();
+	hideTeamContainer();
 
 	showPlayerContainer();
 	
@@ -169,7 +193,8 @@ function updateStandingsSelectors(type){
 	}
 	
 	hideStatNameContainer();
-
+	hideTeamContainer();
+	
 	showPlayerContainer();
 	showAllPlayerOption();
 	
@@ -193,11 +218,13 @@ function updateStatsSelectors(type){
 		hidePlayerContainer();
 		hideYearContainer();
 		hideWeekContainer();
+		hideTeamContainer();
 	}
 	else if ('championshipStandings' == statName){
 		hidePlayerContainer();
 		hideYearContainer();
 		hideWeekContainer();
+		hideTeamContainer();
 	}
 	else if ('weekStandings' == statName){
 		showYearContainer();
@@ -205,16 +232,19 @@ function updateStatsSelectors(type){
 		showAllPlayerOption();
 		showWeekContainer();
 		showAllWeekOption();
+		hideTeamContainer();
 	}
 	else if ('weeksWonStandings' == statName){
 		showYearContainer();
 		hideWeekContainer();
 		hidePlayerContainer();
+		hideTeamContainer();
 	}
 	else if ('weeksWonByWeek' == statName){
 		showYearContainer();
 		showWeekContainer();
 		showAllWeekOption();
+		hideTeamContainer();
 	}
 	else if ('weekRecordsByPlayer' == statName){
 		showYearContainer();
@@ -222,6 +252,15 @@ function updateStatsSelectors(type){
 		hideAllPlayerOption();
 		showWeekContainer();
 		showAllWeekOption();
+		hideTeamContainer();
+	}
+	else if ('pickAccuracy' == statName){
+		showYearContainer();
+		showAllYearOption();
+		showPlayerContainer();
+		hideAllPlayerOption();
+		hideWeekContainer();
+		showTeamContainer();
 	}
 }
 
@@ -272,6 +311,16 @@ function getSelectedStatName(){
 function setSelectedStatName(statName){
 	if (doesSelectHaveOptionWithValue('statName', statName)){
 		$('#statName').val(statName);
+	}
+}
+
+function getSelectedTeam(){
+	return $('#team option:selected').val();
+}
+
+function setSelectedTeam(team){
+	if (doesSelectHaveOptionWithValue('team', statName)){
+		$('#team').val(statName);
 	}
 }
 
@@ -371,6 +420,14 @@ function hideStatNameContainer(){
 	$('#statNameContainer').hide();
 }
 
+function showTeamContainer(){
+	$('#teamContainer').show();
+}
+
+function hideTeamContainer(){
+	$('#teamContainer').hide();
+}
+
 function showStandingsSelectors(){
 	$('#playerContainer').show();
 	$('#yearContainer').show();
@@ -441,7 +498,7 @@ function updateStats(){
 	var statName = getSelectedStatName();
 	var player = getSelectedPlayer();
 
-	if (statName == 'weekRecordsByPlayer'){
+	if (statName == 'weekRecordsByPlayer' || statName == 'pickAccuracy'){
 		if (!isDefined(player) || 'all' == player){
 			var firstRealPlayer = $('#player option')[1].value;
 			setSelectedPlayer(firstRealPlayer);
@@ -455,8 +512,9 @@ function updateStats(){
 	
 	var year = getSelectedYear();
 	var week = getSelectedWeek();
+	var team = getSelectedTeam();
 	
-	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + week,
+	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + week + '&team=' + team,
 			contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -508,6 +566,15 @@ function updateStats(){
 			var playerWeekRecords = $.parseJSON(data);
 			
 			statsHtml = createWeekStandingsHtml(playerWeekRecords);
+		}
+		else if ('pickAccuracy' == statName){
+			
+			var pickAccuracySummaries = $.parseJSON(data);
+
+			console.log('lo ...');
+			console.log(pickAccuracySummaries);
+			
+			statsHtml = createPickAccuracySummariesHtml(pickAccuracySummaries);
 		}
 		
 		$('#contentContainer').empty();
@@ -1073,6 +1140,17 @@ function isSpecificYearSelected(){
 	return true;
 }
 
+function isSpecificTeamSelected(){
+	
+	var selectedTeam = getSelectedTeam();
+	
+	if ('all' == selectedTeam){
+		return false;
+	}
+	
+	return true;
+}
+
 function createWeekRecordsByPlayerHtml(weekRecords){
 	
 	var tiesHeader = '';
@@ -1542,23 +1620,148 @@ function sortPlayersByName(players){
 	
 }
 
-function sortWeekRecordsByWeekNumber(weekRecords){
+function createPickAccuracySummariesHtml(pickAccuracySummaries){
+
+	var specificTeamSelected = isSpecificTeamSelected();
+	var teamHeader = '';
+	if (!specificTeamSelected){
+		teamHeader = '<th class="standings-table-header">Team</th>';
+	}
 	
-//	weekRecords.sort(function (weekRecord1, weekRecord2){
-//		
-//		var yearInt1 = 
-//		
-//		if (weekRecord1.week.weekNumber < weekRecord2.week.weekNumber){
-//			return -1;
-//		}
-//		else if (weekRecord1.week.weekNumber < weekRecord2.week.weekNumber){
-//			return 1;
-//		}
-//		
-//		return 0;
-//	});
+	var pickAccuracySummariesHeadHtml = '<thead class="standings-table-head">' +
+											'<tr class="standings-table-row">' +
+												teamHeader +
+												'<th class="standings-table-header">Right</th>' +
+												'<th class="standings-table-header">Wrong</th>' + 
+												'<th class="standings-table-header">%</th>' +
+												'<th class="standings-table-header"></th>' +
+											'</tr>' +
+										'</thead>';
 	
+	var pickAccuracySummariesBodyHtml = '<tbody class="standings-table-body">';
+	
+	sortPickAccuracySummariesByTimesRight(pickAccuracySummaries);
+	
+	for (var index = 0; index < pickAccuracySummaries.length; index++){
+		var pickAccuracySummary = pickAccuracySummaries[index];
+		
+		var teamCell = '';
+		if (!specificTeamSelected){
+			teamCell = '<td class="standings-table-cell">' + pickAccuracySummary.team.abbreviation + '</td>';
+		}
+		
+		var percentage = getPercentage(pickAccuracySummary.timesRight, pickAccuracySummary.timesRight + pickAccuracySummary.timesWrong);
+
+		var detailId = 'pick-accuracy-details-' + index;
+
+		/*
+		 actualLosses: 15
+	actualWins: 17
+	player: Object { name: "Benny boy", id: 1 }
+	predictedLosses: 14
+	predictedWins: 13
+	team: Object { name: "Baltimore Ravens", nickname: "Ravens", id: 5, … }
+	timesPickedToLoseRight: 8
+	timesPickedToLoseWrong: 6
+	timesPickedToWinRight: 9
+	timesPickedToWinWrong: 4
+	timesRight: 17
+	timesWrong: 10
+
+	Team (if not picked)	Right	Wrong	% 	Details
+
+		Details
+			Actual record:
+			Predicted record:
+			Times picked to win: (record in parentheses)
+			Times picked to lose: (record in parentheses)
+		 */
+		var tiesHtml = '';
+		
+		var timesPickedToWin = pickAccuracySummary.timesPickedToWinRight + pickAccuracySummary.timesPickedToWinWrong;
+		var timesPickedToLose = pickAccuracySummary.timesPickedToLoseRight + pickAccuracySummary.timesPickedToLoseWrong;
+
+		var hasTies = false;
+		var tiesRecord = '';
+		if (pickAccuracySummary.actualTies > 0){
+			hasTies = true;
+			tiesRecord = ' - ' + pickAccuracySummary.actualTies;
+			console.log('0!!!');
+		}
+		
+		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
+						    '<td class="standings-table-cell" colspan="5">' + 
+							    '<table style="width: 100%;">' +
+							 		'<tr><td>Actual record</td><td style="text-align: right;">' + pickAccuracySummary.actualWins + ' - ' + pickAccuracySummary.actualLosses + tiesRecord + '</td></tr>' +
+							 		'<tr><td>Predicted record</td><td style="text-align: right;">' + pickAccuracySummary.predictedWins + ' - ' + pickAccuracySummary.predictedLosses + '</td></tr>' +
+							 		'<tr><td>Times picked to win (record)</td><td style="text-align: right;">' + timesPickedToWin + ' (' + pickAccuracySummary.timesPickedToWinRight + ' - ' + pickAccuracySummary.timesPickedToWinWrong + ')</td></tr>' +
+							 		'<tr><td>Times picked to lose (record)</td><td style="text-align: right;">' + timesPickedToLose + ' (' + pickAccuracySummary.timesPickedToLoseRight + ' - ' + pickAccuracySummary.timesPickedToLoseWrong + ')</td></tr>' +
+							 	'</table>' + 
+						 	'</td>' + 
+						 '</tr>';
+		
+		var pickAccuracySummaryRowHtml = '<tr>' +
+											teamCell + 
+											'<td class="standings-table-cell">' + pickAccuracySummary.timesRight + '</td>' +
+											'<td class="standings-table-cell">' + pickAccuracySummary.timesWrong + '</td>' +
+											'<td class="standings-table-cell">' + percentage + '</td>' +
+											'<td class="standings-table-cell">' + 
+												'<a id="pick-accuracy-details-link-' + index + '" href="javascript:" onClick="toggleShowPickAccuracyDetails(' + index + ')" style="margin-left: 20px; float:right;">show details</a>' + 
+											'</td>' +
+										 '</tr>' + 
+										 detailHtml;
+		
+		pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + pickAccuracySummaryRowHtml;
+	}
+	
+	pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + '</tbody>';
+	
+	var pickAccuracySummariesHtml = '<table class="standings-table">' + pickAccuracySummariesHeadHtml + pickAccuracySummariesBodyHtml + '</table>';
+	
+	return pickAccuracySummariesHtml;
 }
+
+function getPercentage(value, total){
+	var percentage = value / total;
+	var percentageString = '';
+	
+	if (!isNaN(percentage)){
+		percentageString = percentage.toPrecision(3);
+	}
+	
+	return percentageString;
+}
+
+function sortPickAccuracySummariesByTimesRight(pickAccuracySummaries){
+	
+	pickAccuracySummaries.sort(function (pickAccuracySummaryA, pickAccuracySummaryB){
+		
+		if (pickAccuracySummaryA.timesRight > pickAccuracySummaryB.timesRight){
+			return -1;
+		}
+		else if (pickAccuracySummaryA.timesRight < pickAccuracySummaryB.timesRight){
+			return 1;
+		}
+		
+		return 0;
+		
+	});
+}
+
+function toggleShowPickAccuracyDetails(index){
+	
+	var isVisible = $('#pick-accuracy-details-' + index).is(':visible');
+	
+	if (isVisible){
+		$('#pick-accuracy-details-' + index).hide();
+		$('#pick-accuracy-details-link-' + index).text('show details');
+	}
+	else {
+		$('#pick-accuracy-details-' + index).show();
+		$('#pick-accuracy-details-link-' + index).text('hide details');
+	}
+}
+
 
 function shortenWeekLabel(label){
 	

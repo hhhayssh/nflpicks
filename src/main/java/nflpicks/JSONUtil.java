@@ -15,10 +15,11 @@ import nflpicks.model.Team;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
-import nflpicks.model.stats.WeekRecordForPlayer;
-import nflpicks.model.stats.WeekRecordsForPlayer;
-import nflpicks.model.stats.WeekRecordForPlayers;
+import nflpicks.model.stats.PickAccuracySummary;
 import nflpicks.model.stats.WeekRecord;
+import nflpicks.model.stats.WeekRecordForPlayer;
+import nflpicks.model.stats.WeekRecordForPlayers;
+import nflpicks.model.stats.WeekRecordsForPlayer;
 
 /**
  * 
@@ -1025,6 +1026,95 @@ public class JSONUtil {
 		
 		return jsonObject;
 	}
+	
+	
+	
+	/**
+	 * 
+	 * This function converts the given pick accuracy summaries list into a json formatted
+	 * string.
+	 * 
+	 * @param weeksWon
+	 * @return
+	 */
+	public static String pickAccuracySummariesListToJSONString(List<PickAccuracySummary> pickAccuracySummaries){
+		
+		JSONArray jsonArray = pickAccuracySummariesToJSONArray(pickAccuracySummaries);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given pick accuracy summaries into a json array.
+	 * 
+	 * @param seasons
+	 * @return
+	 */
+	public static JSONArray pickAccuracySummariesToJSONArray(List<PickAccuracySummary> pickAccuracySummaries){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < pickAccuracySummaries.size(); index++){
+			PickAccuracySummary pickAccuracySummary = pickAccuracySummaries.get(index);
+			JSONObject jsonObject = pickAccuracySummaryToJSONObject(pickAccuracySummary);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
+	
+	/**
+	 * 
+	 * This function converts the given pick accuracy summary to a json formatted string.
+	 * 
+	 * @param pickAccuracySummary
+	 * @return
+	 */
+	public static String pickAccuracySummaryToJSONString(PickAccuracySummary pickAccuracySummary){
+		
+		JSONObject jsonObject = pickAccuracySummaryToJSONObject(pickAccuracySummary);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given pick accuracy summary into a json object.
+	 * 
+	 * @param pickAccuracySummary
+	 * @return
+	 */
+	public static JSONObject pickAccuracySummaryToJSONObject(PickAccuracySummary pickAccuracySummary){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject playerJSONObject = playerToJSONObject(pickAccuracySummary.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_PLAYER, playerJSONObject);
+		
+		JSONObject teamJSONObject = teamToJSONObject(pickAccuracySummary.getTeam());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_TEAM, teamJSONObject);
+		
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_ACTUAL_WINS, pickAccuracySummary.getActualWins());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_ACTUAL_LOSSES, pickAccuracySummary.getActualLosses());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_ACTUAL_TIES, pickAccuracySummary.getActualTies());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_PREDICTED_WINS, pickAccuracySummary.getPredictedWins());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_PREDICTED_LOSSES, pickAccuracySummary.getPredictedLosses());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_TIMES_RIGHT, pickAccuracySummary.getTimesRight());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_TIMES_WRONG, pickAccuracySummary.getTimesWrong());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_RIGHT, pickAccuracySummary.getTimesPickedToWinRight());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_WRONG, pickAccuracySummary.getTimesPickedToWinWrong());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_RIGHT, pickAccuracySummary.getTimesPickedToLoseRight());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_WRONG, pickAccuracySummary.getTimesPickedToLoseWrong());
+		
+		return jsonObject;
+	}
+	
 	
 	
 	/**
