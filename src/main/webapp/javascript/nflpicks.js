@@ -1,9 +1,4 @@
 
-var teams = null;
-var picks = null;
-
-var picksGrid = null;
-
 var previousType = null;
 
 $(document).ready(
@@ -137,30 +132,96 @@ function updateView(){
 
 function updateSelectors(type){
 	
-	if (previousType == type && type != 'stats'){
+	if ('picks' == type){
+		updatePicksSelectors(type);
+	}
+	else if ('standings' == type){
+		updateStandingsSelectors(type);
+	}
+	else if ('stats' == type){
+		updateStatsSelectors(type);
+	}
+}
+
+function updatePicksSelectors(type){
+	
+	if (previousType == type){
 		return;
 	}
 	
+	hideStatNameContainer();
+
+	showPlayerContainer();
+	
+	showYearContainer();
+	hideAllYearOption();
+	
+	showWeekContainer();
+	hideAllWeekOption();
+	
+	previousType = type;
+}
+
+function updateStandingsSelectors(type){
+	
+	if (previousType == type){
+		return;
+	}
+	
+	hideStatNameContainer();
+
+	showPlayerContainer();
+	showAllPlayerOption();
+	
+	showYearContainer();
+	showAllYearOption();
+	
+	showWeekContainer();
+	showAllWeekOption();
+	
 	previousType = type;
 	
-	hideStandingsSelectors();
-	hidePicksSelectors();
-	hideStatsSelectors();
+	previousType = type;
+}
+
+function updateStatsSelectors(type){
+	showStatNameContainer();
 	
-	if ('picks' == type){
-		hideAllWeekOption();
-		hideAllYearOption();
-		showPicksSelectors();
+	var statName = getSelectedStatName();
+
+	if ('champions' == statName){
+		hidePlayerContainer();
+		hideYearContainer();
+		hideWeekContainer();
 	}
-	else if ('standings' == type){
-		showAllWeekOption();
-		showAllYearOption();
-		showStandingsSelectors();
+	else if ('championshipStandings' == statName){
+		hidePlayerContainer();
+		hideYearContainer();
+		hideWeekContainer();
 	}
-	else if ('stats' == type){
+	else if ('weekStandings' == statName){
+		showYearContainer();
+		showPlayerContainer();
+		showAllPlayerOption();
+		showWeekContainer();
 		showAllWeekOption();
-		showAllYearOption();
-		showStatsSelectors();
+	}
+	else if ('weeksWonStandings' == statName){
+		showYearContainer();
+		hideWeekContainer();
+		hidePlayerContainer();
+	}
+	else if ('weeksWonByWeek' == statName){
+		showYearContainer();
+		showWeekContainer();
+		showAllWeekOption();
+	}
+	else if ('weekRecordsByPlayer' == statName){
+		showYearContainer();
+		showPlayerContainer();
+		hideAllPlayerOption();
+		showWeekContainer();
+		showAllWeekOption();
 	}
 }
 
@@ -219,7 +280,7 @@ function updateRecords(){
 	var year = getSelectedYear();
 	var week = getSelectedWeek();
 	
-	$.ajax({url: 'nflpicks?target=standings&players=' + player + '&years=' + year + '&weeks=' + week,
+	$.ajax({url: 'nflpicks?target=standings&player=' + player + '&year=' + year + '&week=' + week,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -278,6 +339,38 @@ function showAllYearOption(){
 	$('#year option[value=all]').show();
 }
 
+function showYearContainer(){
+	$('#yearContainer').show();
+}
+
+function hideYearContainer(){
+	$('#yearContainer').hide();
+}
+
+function showPlayerContainer(){
+	$('#playerContainer').show();
+}
+
+function hidePlayerContainer(){
+	$('#playerContainer').hide();
+}
+
+function showWeekContainer(){
+	$('#weekContainer').show();
+}
+
+function hideWeekContainer(){
+	$('#weekContainer').hide();
+}
+
+function showStatNameContainer(){
+	$('#statNameContainer').show();
+}
+
+function hideStatNameContainer(){
+	$('#statNameContainer').hide();
+}
+
 function showStandingsSelectors(){
 	$('#playerContainer').show();
 	$('#yearContainer').show();
@@ -302,38 +395,8 @@ function hidePicksSelectors(){
 	$('#weekContainer').hide();
 }
 
-function showStatsSelectors(){
-	$('#statsNameContainer').show();
-	$('#yearContainer').show();
-	
-	var statName = getSelectedStatName();
-
-	if ('champions' == statName){
-		$('#playerContainer').hide();
-		$('#yearContainer').hide();
-		$('#weekContainer').hide();
-	}
-	else if ('weekRecordsByPlayer' == statName){
-		$('#playerContainer').show();
-		hideAllPlayerOption();
-		
-		$('#weekContainer').show();
-		showAllWeekOption();
-	}
-	else if ('bestWeeks' == statName){
-		$('#playerContainer').show();
-		showAllPlayerOption();
-		$('#weekContainer').show();
-		showAllWeekOption();
-	}
-	else if ('weeksWonByWeek' == statName){
-		$('#weekContainer').show();
-		showAllWeekOption();
-	}
-}
-
 function hideStatsSelectors(){
-	$('#statsNameContainer').hide();
+	hideStatNameContainer();
 	$('#yearContainer').hide();
 }
 
@@ -360,7 +423,7 @@ function updatePicks(){
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
-		picksGrid = $.parseJSON(data);
+		var picksGrid = $.parseJSON(data);
 		var picksGridHtml = createPicksGridHtml(picksGrid);
 		$('#contentContainer').empty();
 		$('#contentContainer').append(picksGridHtml);
@@ -376,17 +439,22 @@ var statsData = null;
 function updateStats(){
 	
 	var statName = getSelectedStatName();
-	var year = getSelectedYear();
 	var player = getSelectedPlayer();
-	var week = getSelectedWeek();
-	
-	//don't always want to do this ... need to base it on stat name
-	if (statName != 'bestWeeks' && statName != 'champions' && statName != 'weeksWonByWeek'){
-		if ('all' == player){
-			player = $('#player option')[1].value;
-			setSelectedPlayer(player);
+
+	if (statName == 'weekRecordsByPlayer'){
+		if (!isDefined(player) || 'all' == player){
+			var firstRealPlayer = $('#player option')[1].value;
+			setSelectedPlayer(firstRealPlayer);
 		}
 	}
+	else if (statName == 'champions' || statName == 'championshipStandings'){
+		setSelectedPlayer('all');
+	}
+
+	player = getSelectedPlayer();
+	
+	var year = getSelectedYear();
+	var week = getSelectedWeek();
 	
 	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + week,
 			contentType: 'application/json; charset=UTF-8'}
@@ -420,9 +488,6 @@ function updateStats(){
 			
 			var weeksWonByWeek = $.parseJSON(data);
 			
-			console.log('aaaa ...');
-			console.log(weeksWonByWeek);
-			
 			statsHtml = createWeeksWonByWeek(weeksWonByWeek);
 		}
 		else if ('weekRecordsByPlayer' == statName){
@@ -438,7 +503,7 @@ function updateStats(){
 			sortWeekRecordsBySeasonAndWeek(weekRecords);
 			statsHtml = createWeekRecordsByPlayerHtml(weekRecords);
 		}
-		else if ('bestWeeks' == statName){
+		else if ('weekStandings' == statName){
 			
 			var playerWeekRecords = $.parseJSON(data);
 			
@@ -883,6 +948,8 @@ function createWeeksWonHtml(weekRecords){
 							  '<div id="' + detailId + '" style="display: none;"><ul class="standings-table-cell-list">';
 
 		
+		sortWeekRecordsBySeasonAndWeek(weekRecord.weekRecords);
+		
 		for (var bIndex = 0; bIndex < weekRecord.weekRecords.length; bIndex++){
 			var record = weekRecord.weekRecords[bIndex];
 
@@ -980,8 +1047,8 @@ function sortWeekRecordsBySeasonAndWeek(weekRecords){
 			return 1;
 		}
 		else {
-			var weekA = a.week.week_number;
-			var weekB = b.week.week_number;
+			var weekA = a.week.weekNumber;
+			var weekB = b.week.weekNumber;
 			
 			if (weekA < weekB){
 				return -1;
@@ -1429,9 +1496,11 @@ function createWeeksWonByWeek(weeksWonByWeek){
 			recordHtml = recordHtml + ' - ' + weekRecord.record.ties;
 		}
 		
+		sortPlayersByName(weekRecord.players);
+		
 		var playerHtml = '<ul class="standings-table-cell-list">';
-		for (var playerIndex = 0; playerIndex < weekRecord.player.length; playerIndex++){
-			var player = weekRecord.player[playerIndex];
+		for (var playerIndex = 0; playerIndex < weekRecord.players.length; playerIndex++){
+			var player = weekRecord.players[playerIndex];
 			
 			var plHtml = '<li>' + player.name + '</li>';
 			playerHtml = playerHtml + plHtml;
@@ -1454,6 +1523,40 @@ function createWeeksWonByWeek(weeksWonByWeek){
 	var weeksWonByWeekHtml = '<table class="standings-table">' + weeksWonByWeekHeaderHtml + weeksWonByWeekBodyHtml + '</table>';
 	
 	return weeksWonByWeekHtml;
+	
+}
+
+function sortPlayersByName(players){
+	
+	players.sort(function (player1, player2){
+		
+		if (player1.name < player2.name){
+			return -1;
+		}
+		else if (player1.name > player2.name){
+			return 1;
+		}
+		
+		return 0;
+	});
+	
+}
+
+function sortWeekRecordsByWeekNumber(weekRecords){
+	
+//	weekRecords.sort(function (weekRecord1, weekRecord2){
+//		
+//		var yearInt1 = 
+//		
+//		if (weekRecord1.week.weekNumber < weekRecord2.week.weekNumber){
+//			return -1;
+//		}
+//		else if (weekRecord1.week.weekNumber < weekRecord2.week.weekNumber){
+//			return 1;
+//		}
+//		
+//		return 0;
+//	});
 	
 }
 

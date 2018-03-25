@@ -14,10 +14,10 @@ import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
-import nflpicks.model.stats.PlayerChampionships;
-import nflpicks.model.stats.PlayerWeekRecord;
-import nflpicks.model.stats.PlayerWeeksWon;
-import nflpicks.model.stats.PlayersWeekRecord;
+import nflpicks.model.stats.ChampionshipsForPlayer;
+import nflpicks.model.stats.WeekRecordForPlayer;
+import nflpicks.model.stats.WeekRecordsForPlayer;
+import nflpicks.model.stats.WeekRecordForPlayers;
 import nflpicks.model.stats.WeekRecord;
 
 /**
@@ -637,15 +637,15 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given week record objects into a json formatted
+	 * This function converts the given week record for player list into a json formatted
 	 * string.
 	 * 
 	 * @param weeksWon
 	 * @return
 	 */
-	public static String playerWeekRecordsToJSONString(List<PlayerWeekRecord> playerWeekRecords){
+	public static String weekRecordForPlayerListToJSONString(List<WeekRecordForPlayer> weekRecordForPlayerList){
 		
-		JSONArray jsonArray = playerWeekRecordsToJSONArray(playerWeekRecords);
+		JSONArray jsonArray = weekRecordForPlayerListToJSONArray(weekRecordForPlayerList);
 		
 		String json = jsonArray.toString();
 		
@@ -654,18 +654,18 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given week records into a json array.
+	 * This function converts the given week record for player list into a json array.
 	 * 
 	 * @param seasons
 	 * @return
 	 */
-	public static JSONArray playerWeekRecordsToJSONArray(List<PlayerWeekRecord> playerWeekRecords){
+	public static JSONArray weekRecordForPlayerListToJSONArray(List<WeekRecordForPlayer> weekRecordForPlayerList){
 		
 		JSONArray jsonArray = new JSONArray();
 		
-		for (int index = 0; index < playerWeekRecords.size(); index++){
-			PlayerWeekRecord playerWeekRecord = playerWeekRecords.get(index);
-			JSONObject jsonObject = playerWeekRecordToJSONObject(playerWeekRecord);
+		for (int index = 0; index < weekRecordForPlayerList.size(); index++){
+			WeekRecordForPlayer weekRecordForPlayer = weekRecordForPlayerList.get(index);
+			JSONObject jsonObject = weekRecordForPlayerToJSONObject(weekRecordForPlayer);
 			jsonArray.put(jsonObject);
 		}
 		
@@ -675,14 +675,14 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given week record to a json formatted string.
+	 * This function converts the given week record for player to a json formatted string.
 	 * 
 	 * @param season
 	 * @return
 	 */
-	public static String playerWeekRecordToJSONString(PlayerWeekRecord playerWeekRecord){
+	public static String weekRecordForPlayerToJSONString(WeekRecordForPlayer weekRecordForPlayer){
 		
-		JSONObject jsonObject = playerWeekRecordToJSONObject(playerWeekRecord);
+		JSONObject jsonObject = weekRecordForPlayerToJSONObject(weekRecordForPlayer);
 		
 		String json = jsonObject.toString();
 		
@@ -691,26 +691,26 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given week record into a json object.
+	 * This function converts the given week record for player into a json object.
 	 * 
 	 * @param weekWon
 	 * @return
 	 */
-	public static JSONObject playerWeekRecordToJSONObject(PlayerWeekRecord playerWeekRecord){
+	public static JSONObject weekRecordForPlayerToJSONObject(WeekRecordForPlayer weekRecordForPlayer){
 		
 		JSONObject jsonObject = new JSONObject();
 		
-		JSONObject playerJSONObject = playerToJSONObject(playerWeekRecord.getPlayer());
-		jsonObject.put(NFLPicksConstants.JSON_PLAYER_WEEK_RECORD_PLAYER, playerJSONObject);
+		JSONObject playerJSONObject = playerToJSONObject(weekRecordForPlayer.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYER_PLAYER, playerJSONObject);
 		
-		JSONObject seasonJSONObject = seasonToJSONObject(playerWeekRecord.getSeason());
-		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_SEASON, seasonJSONObject);
+		JSONObject seasonJSONObject = seasonToJSONObject(weekRecordForPlayer.getSeason());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYER_SEASON, seasonJSONObject);
 		
-		JSONObject weekJSONObject = weekToJSONObject(playerWeekRecord.getWeek());
-		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_WEEK, weekJSONObject);
+		JSONObject weekJSONObject = weekToJSONObject(weekRecordForPlayer.getWeek());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYER_WEEK, weekJSONObject);
 		
-		JSONObject recordJSONObject = recordToJSONObject(playerWeekRecord.getRecord());
-		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_RECORD, recordJSONObject);
+		JSONObject recordJSONObject = recordToJSONObject(weekRecordForPlayer.getRecord());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYER_RECORD, recordJSONObject);
 		
 		
 		return jsonObject;
@@ -718,15 +718,15 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given week record objects into a json formatted
+	 * This function converts the given week record for players list into a json formatted
 	 * string.
 	 * 
 	 * @param weeksWon
 	 * @return
 	 */
-	public static String playersWeekRecordsToJSONString(List<PlayersWeekRecord> playerWeekRecords){
+	public static String weekRecordForPlayersListToJSONString(List<WeekRecordForPlayers> weekRecordForPlayersList){
 		
-		JSONArray jsonArray = playersWeekRecordsToJSONArray(playerWeekRecords);
+		JSONArray jsonArray = weekRecordForPlayersListToJSONArray(weekRecordForPlayersList);
 		
 		String json = jsonArray.toString();
 		
@@ -735,18 +735,18 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given week records into a json array.
+	 * This function converts the given week record for players list into a json array.
 	 * 
 	 * @param seasons
 	 * @return
 	 */
-	public static JSONArray playersWeekRecordsToJSONArray(List<PlayersWeekRecord> playerWeekRecords){
+	public static JSONArray weekRecordForPlayersListToJSONArray(List<WeekRecordForPlayers> weekRecordForPlayersList){
 		
 		JSONArray jsonArray = new JSONArray();
 		
-		for (int index = 0; index < playerWeekRecords.size(); index++){
-			PlayersWeekRecord playerWeekRecord = playerWeekRecords.get(index);
-			JSONObject jsonObject = playersWeekRecordToJSONObject(playerWeekRecord);
+		for (int index = 0; index < weekRecordForPlayersList.size(); index++){
+			WeekRecordForPlayers weekRecordForPlayers = weekRecordForPlayersList.get(index);
+			JSONObject jsonObject = weekRecordForPlayersToJSONObject(weekRecordForPlayers);
 			jsonArray.put(jsonObject);
 		}
 		
@@ -754,30 +754,45 @@ public class JSONUtil {
 
 	}
 	
-	public static String playersWeekRecordToJSONString(PlayersWeekRecord playerWeekRecord){
+	/**
+	 * 
+	 * This function will convert the given week record for players object into a json formatted
+	 * string.
+	 * 
+	 * @param weekRecordForPlayers
+	 * @return
+	 */
+	public static String playersWeekRecordToJSONString(WeekRecordForPlayers weekRecordForPlayers){
 		
-		JSONObject jsonObject = playersWeekRecordToJSONObject(playerWeekRecord);
+		JSONObject jsonObject = weekRecordForPlayersToJSONObject(weekRecordForPlayers);
 		
 		String json = jsonObject.toString();
 		
 		return json;
 	}
 	
-	public static JSONObject playersWeekRecordToJSONObject(PlayersWeekRecord playerWeekRecord){
+	/**
+	 * 
+	 * This function will convert the given week record for players object into a json object.
+	 * 
+	 * @param weekRecordForPlayers
+	 * @return
+	 */
+	public static JSONObject weekRecordForPlayersToJSONObject(WeekRecordForPlayers weekRecordForPlayers){
 		
 		JSONObject jsonObject = new JSONObject();
 		
-		JSONArray playerJSONObject = playersToJSONArray(playerWeekRecord.getPlayer());
-		jsonObject.put(NFLPicksConstants.JSON_PLAYER_WEEK_RECORD_PLAYER, playerJSONObject);
+		JSONArray playersJSONObject = playersToJSONArray(weekRecordForPlayers.getPlayers());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYERS_PLAYERS, playersJSONObject);
 		
-		JSONObject seasonJSONObject = seasonToJSONObject(playerWeekRecord.getSeason());
-		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_SEASON, seasonJSONObject);
+		JSONObject seasonJSONObject = seasonToJSONObject(weekRecordForPlayers.getSeason());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYERS_SEASON, seasonJSONObject);
 		
-		JSONObject weekJSONObject = weekToJSONObject(playerWeekRecord.getWeek());
-		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_WEEK, weekJSONObject);
+		JSONObject weekJSONObject = weekToJSONObject(weekRecordForPlayers.getWeek());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYERS_WEEK, weekJSONObject);
 		
-		JSONObject recordJSONObject = recordToJSONObject(playerWeekRecord.getRecord());
-		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_RECORD, recordJSONObject);
+		JSONObject recordJSONObject = recordToJSONObject(weekRecordForPlayers.getRecord());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORD_FOR_PLAYERS_RECORD, recordJSONObject);
 		
 		
 		return jsonObject;
@@ -785,14 +800,14 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * Converts the given weeks one list into a json formatted string.
+	 * Converts the given week records for player list into a json formatted string.
 	 * 
-	 * @param weeksWon
+	 * @param weekRecordsForPlayerList
 	 * @return
 	 */
-	public static String weeksWonToJSONString(List<PlayerWeeksWon> weeksWon){
+	public static String weekRecordsForPlayerListToJSONString(List<WeekRecordsForPlayer> weekRecordsForPlayerList){
 		
-		JSONArray jsonArray = weeksWonToJSONArray(weeksWon);
+		JSONArray jsonArray = weekRecordsForPlayerListToJSONArray(weekRecordsForPlayerList);
 		
 		String json = jsonArray.toString();
 		
@@ -801,18 +816,18 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given weeks won into a json array.
+	 * This function converts the given week records for player list into a json array.
 	 * 
 	 * @param seasons
 	 * @return
 	 */
-	public static JSONArray weeksWonToJSONArray(List<PlayerWeeksWon> weeksWonList){
+	public static JSONArray weekRecordsForPlayerListToJSONArray(List<WeekRecordsForPlayer> weekRecordsForPlayerList){
 		
 		JSONArray jsonArray = new JSONArray();
 		
-		for (int index = 0; index < weeksWonList.size(); index++){
-			PlayerWeeksWon weeksWon = weeksWonList.get(index);
-			JSONObject jsonObject = weeksWonToJSONObject(weeksWon);
+		for (int index = 0; index < weekRecordsForPlayerList.size(); index++){
+			WeekRecordsForPlayer weekRecordsForPlayer = weekRecordsForPlayerList.get(index);
+			JSONObject jsonObject = weekRecordsForPlayerToJSONObject(weekRecordsForPlayer);
 			jsonArray.put(jsonObject);
 		}
 		
@@ -822,14 +837,14 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given weeks won to a json formatted string.
+	 * This function converts the given week records for player to a json formatted string.
 	 * 
 	 * @param season
 	 * @return
 	 */
-	public static String weeksWonToJSONString(PlayerWeeksWon weeksWon){
+	public static String weekRecordsForPlayerToJSONString(WeekRecordsForPlayer weekRecordsForPlayer){
 		
-		JSONObject jsonObject = weeksWonToJSONObject(weeksWon);
+		JSONObject jsonObject = weekRecordsForPlayerToJSONObject(weekRecordsForPlayer);
 		
 		String json = jsonObject.toString();
 		
@@ -838,20 +853,20 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given weeks won into a json object.
+	 * This function converts the given week records for player into a json object.
 	 * 
 	 * @param weekWon
 	 * @return
 	 */
-	public static JSONObject weeksWonToJSONObject(PlayerWeeksWon weeksWon){
+	public static JSONObject weekRecordsForPlayerToJSONObject(WeekRecordsForPlayer weeksWon){
 		
 		JSONObject jsonObject = new JSONObject();
 		
 		JSONObject playerJSONObject = playerToJSONObject(weeksWon.getPlayer());
-		jsonObject.put(NFLPicksConstants.JSON_WEEKS_WON_PLAYER, playerJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORDS_FOR_PLAYER_PLAYER, playerJSONObject);
 		
 		JSONArray weekRecordsJSONArray = weekRecordsToJSONArray(weeksWon.getWeekRecords());
-		jsonObject.put(NFLPicksConstants.JSON_WEEKS_WON_WEEK_RECORDS, weekRecordsJSONArray);
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_RECORDS_FOR_PLAYER_RECORDS, weekRecordsJSONArray);
 		
 		
 		return jsonObject;
@@ -938,15 +953,15 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given player championship objects into a json formatted
+	 * This function converts the given championships for player list into a json formatted
 	 * string.
 	 * 
 	 * @param weeksWon
 	 * @return
 	 */
-	public static String playerChampionshipsToJSONString(List<PlayerChampionships> playerChampionshipsList){
+	public static String championshipsForPlayerListToJSONString(List<ChampionshipsForPlayer> championshipsForPlayerList){
 		
-		JSONArray jsonArray = playerChampionshipsToJSONArray(playerChampionshipsList);
+		JSONArray jsonArray = championshipsForPlayerListToJSONArray(championshipsForPlayerList);
 		
 		String json = jsonArray.toString();
 		
@@ -955,18 +970,18 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given player championships into a json array.
+	 * This function converts the given championships for player list into a json array.
 	 * 
 	 * @param seasons
 	 * @return
 	 */
-	public static JSONArray playerChampionshipsToJSONArray(List<PlayerChampionships> playerChampionshipsList){
+	public static JSONArray championshipsForPlayerListToJSONArray(List<ChampionshipsForPlayer> championshipsForPlayerList){
 		
 		JSONArray jsonArray = new JSONArray();
 		
-		for (int index = 0; index < playerChampionshipsList.size(); index++){
-			PlayerChampionships playerChampionships = playerChampionshipsList.get(index);
-			JSONObject jsonObject = playerChampionshipsToJSONObject(playerChampionships);
+		for (int index = 0; index < championshipsForPlayerList.size(); index++){
+			ChampionshipsForPlayer championshipsForPlayer = championshipsForPlayerList.get(index);
+			JSONObject jsonObject = championshipsForPlayerToJSONObject(championshipsForPlayer);
 			jsonArray.put(jsonObject);
 		}
 		
@@ -976,14 +991,14 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given player championship to a json formatted string.
+	 * This function converts the given championships for player to a json formatted string.
 	 * 
 	 * @param season
 	 * @return
 	 */
-	public static String playerChampionshipsToJSONString(PlayerChampionships playerChampionships){
+	public static String championshipsForPlayerToJSONString(ChampionshipsForPlayer championshipsForPlayer){
 		
-		JSONObject jsonObject = playerChampionshipsToJSONObject(playerChampionships);
+		JSONObject jsonObject = championshipsForPlayerToJSONObject(championshipsForPlayer);
 		
 		String json = jsonObject.toString();
 		
@@ -992,20 +1007,20 @@ public class JSONUtil {
 	
 	/**
 	 * 
-	 * This function converts the given championship into a json object.
+	 * This function converts the given championships for player into a json object.
 	 * 
-	 * @param weekWon
+	 * @param championshipsForPlayer
 	 * @return
 	 */
-	public static JSONObject playerChampionshipsToJSONObject(PlayerChampionships playerChampionships){
+	public static JSONObject championshipsForPlayerToJSONObject(ChampionshipsForPlayer championshipsForPlayer){
 		
 		JSONObject jsonObject = new JSONObject();
 		
-		JSONObject playerJSONObject = playerToJSONObject(playerChampionships.getPlayer());
-		jsonObject.put(NFLPicksConstants.JSON_PLAYER_CHAMPIONSHIPS_PLAYER, playerJSONObject);
+		JSONObject playerJSONObject = playerToJSONObject(championshipsForPlayer.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_CHAMPIONSHIPS_FOR_PLAYER_PLAYER, playerJSONObject);
 		
-		JSONArray championshipsJSONArray = championshipsToJSONArray(playerChampionships.getChampionships());
-		jsonObject.put(NFLPicksConstants.JSON_PLAYER_CHAMPIONSHIPS_CHAMPIONSHIPS, championshipsJSONArray);
+		JSONArray championshipsJSONArray = championshipsToJSONArray(championshipsForPlayer.getChampionships());
+		jsonObject.put(NFLPicksConstants.JSON_CHAMPIONSHIPS_FOR_PLAYER_CHAMPIONSHIPS, championshipsJSONArray);
 		
 		
 		return jsonObject;
@@ -1028,7 +1043,7 @@ public class JSONUtil {
 			object = new JSONObject(json);
 		}
 		catch (Exception e){
-			log.error("Error reading json! json = " + json, e);
+			log.error("Error creating json object from string! json = " + json, e);
 		}
 		
 		return object;

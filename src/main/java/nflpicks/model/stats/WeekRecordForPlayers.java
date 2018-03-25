@@ -7,7 +7,7 @@ import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Week;
 
-public class PlayersWeekRecord {
+public class WeekRecordForPlayers {
 	
 	protected List<Player> players;
 	
@@ -17,21 +17,21 @@ public class PlayersWeekRecord {
 	
 	protected Record record;
 	
-	public PlayersWeekRecord(){
+	public WeekRecordForPlayers(){
 	}
 	
-	public PlayersWeekRecord(List<Player> players, Season season, Week week, Record record){
+	public WeekRecordForPlayers(List<Player> players, Season season, Week week, Record record){
 		this.players = players;
 		this.season = season;
 		this.week = week;
 		this.record = record;
 	}
 
-	public List<Player> getPlayer() {
+	public List<Player> getPlayers() {
 		return players;
 	}
 
-	public void setPlayer(List<Player> players) {
+	public void setPlayers(List<Player> players) {
 		this.players = players;
 	}
 

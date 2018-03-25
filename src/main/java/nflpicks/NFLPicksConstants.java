@@ -69,7 +69,7 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_WEEK_ID = "id";
 	public static final String JSON_WEEK_SEASON_ID = "season_id";
-	public static final String JSON_WEEK_WEEK_NUMBER = "week_number";
+	public static final String JSON_WEEK_WEEK_NUMBER = "weekNumber";
 	public static final String JSON_WEEK_LABEL = "label";
 	public static final String JSON_WEEK_GAMES = "games";
 	
@@ -103,21 +103,39 @@ public interface NFLPicksConstants {
 	public static final String JSON_WEEK_RECORD_SEASON = "season";
 	public static final String JSON_WEEK_RECORD_WEEK = "week";
 	public static final String JSON_WEEK_RECORD_RECORD = "record";
+	
+	public static final String JSON_WEEK_RECORD_FOR_PLAYER_SEASON = "season";
+	public static final String JSON_WEEK_RECORD_FOR_PLAYER_WEEK = "week";
+	public static final String JSON_WEEK_RECORD_FOR_PLAYER_RECORD = "record";
 
-	public static final String JSON_PLAYER_WEEK_RECORD_PLAYER = "player";
+	public static final String JSON_WEEK_RECORD_FOR_PLAYER_PLAYER = "player";
 	public static final String JSON_PLAYER_WEEK_RECORD_SEASON = "season";
 	public static final String JSON_PLAYER_WEEK_RECORD_WEEK = "week";
 	public static final String JSON_PLAYER_WEEK_RECORD_RECORD = "record";
 	
-	public static final String JSON_WEEKS_WON_PLAYER = "player";
-	public static final String JSON_WEEKS_WON_WEEK_RECORDS = "weekRecords";
+	public static final String JSON_WEEK_RECORD_FOR_PLAYERS_PLAYERS = "players";
+	public static final String JSON_WEEK_RECORD_FOR_PLAYERS_SEASON = "season";
+	public static final String JSON_WEEK_RECORD_FOR_PLAYERS_WEEK = "week";
+	public static final String JSON_WEEK_RECORD_FOR_PLAYERS_RECORD = "record";
+	
+	public static final String JSON_WEEK_RECORDS_FOR_PLAYER_PLAYER = "player";
+	public static final String JSON_WEEK_RECORDS_FOR_PLAYER_RECORDS = "weekRecords";
 	
 	public static final String JSON_CHAMPIONSHIP_PLAYER = "player";
 	public static final String JSON_CHAMPIONSHIP_SEASON = "season";
 	public static final String JSON_CHAMPIONSHIP_RECORD = "record";
 	
-	public static final String JSON_PLAYER_CHAMPIONSHIPS_PLAYER = "player";
-	public static final String JSON_PLAYER_CHAMPIONSHIPS_CHAMPIONSHIPS = "championships";
+	public static final String JSON_CHAMPIONSHIPS_FOR_PLAYER_PLAYER = "player";
+	public static final String JSON_CHAMPIONSHIPS_FOR_PLAYER_CHAMPIONSHIPS = "championships";
+	
+	public static final String JSON_PICK_GRID_PLAYERS = "players";
+	public static final String JSON_PICK_GRID_GAMES = "games";
+	public static final String JSON_PICK_GRID_PICKS = "picks";
+	
+	public static final String JSON_STANDINGS_RECORDS = "records";
+	
+	public static final String JSON_SELECTION_CRITERIA_YEARS = "years";
+	public static final String JSON_SELECTION_CRITERIA_PLAYERS = "players";
 	
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	

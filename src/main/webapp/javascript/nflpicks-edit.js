@@ -14,8 +14,16 @@ function getSelectionCriteriaAndInitialize(){
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
+		console.log('data...');
+		console.log(data);
 		var selectionCriteriaContainer = $.parseJSON(data);
 
+		if (selectionCriteriaContainer.error){
+			$(document.body).empty();
+			$(document.body).append('<div>Interception!  40 ... 30 ... 25 ... 20 ... He could go ... all ... the ... way! </div>');
+			return;
+		}
+		
 		var years = selectionCriteriaContainer.years;
 
 		var yearOptions = [];

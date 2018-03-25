@@ -34,20 +34,20 @@ import nflpicks.model.Player;
 //		player, season, week, record
 //PlayerPlayoffRecord
 //		player, season, record
-public class PlayerWeeksWon {
+public class WeekRecordsForPlayer {
 	
 	protected Player player;
 	
 	protected List<WeekRecord> weekRecords;
 
-	public PlayerWeeksWon(){
+	public WeekRecordsForPlayer(){
 	}
 	
-	public PlayerWeeksWon(Player player){
+	public WeekRecordsForPlayer(Player player){
 		this(player, null);
 	}
 	
-	public PlayerWeeksWon(Player player, List<WeekRecord> weekRecords){
+	public WeekRecordsForPlayer(Player player, List<WeekRecord> weekRecords){
 		this.player = player;
 		this.weekRecords = weekRecords;
 	}

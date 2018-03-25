@@ -4,16 +4,16 @@ import java.util.List;
 
 import nflpicks.model.Player;
 
-public class PlayerChampionships {
+public class ChampionshipsForPlayer {
 
 	protected Player player;
 	
 	protected List<Championship> championships;
 	
-	public PlayerChampionships(){
+	public ChampionshipsForPlayer(){
 	}
 	
-	public PlayerChampionships(Player player, List<Championship> championships){
+	public ChampionshipsForPlayer(Player player, List<Championship> championships){
 		this.player = player;
 		this.championships = championships;
 	}
