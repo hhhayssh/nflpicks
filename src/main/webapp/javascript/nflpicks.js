@@ -507,7 +507,7 @@ function updateStats(){
 			
 			var playerWeekRecords = $.parseJSON(data);
 			
-			statsHtml = createBestWeeksHtml(playerWeekRecords);
+			statsHtml = createWeekStandingsHtml(playerWeekRecords);
 		}
 		
 		$('#contentContainer').empty();
@@ -1151,7 +1151,7 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	return weekRecordsByPlayerHtml;
 }
 
-function createBestWeeksHtml(playerWeekRecords){
+function createWeekStandingsHtml(playerWeekRecords){
 	
 	var standingsHtml = '';
 	
@@ -1182,17 +1182,17 @@ function createBestWeeksHtml(playerWeekRecords){
 	
 	var tiesHeader = '';
 	if (areThereAnyTies){
-		tiesHeader = '<th class="standings-table-header">T</th>';
+		tiesHeader = '<th class="standings-table-header-small">T</th>';
 	}
 	
 	var standingsHeaderHtml = '<thead class="standings-table-head">' +
 						 	'<th class="standings-table-player-header"></th>' +
 						 	yearHeader + 
 						 	weekHeader +
-						 	'<th class="standings-table-header">W</th>' + 
-						 	'<th class="standings-table-header">L</th>' +
+						 	'<th class="standings-table-header-small">W</th>' + 
+						 	'<th class="standings-table-header-small">L</th>' +
 						 	tiesHeader + 
-						 	'<th class="standings-table-header">%</th>';
+						 	'<th class="standings-table-header-small">%</th>';
 	
 	
 	standingsHeaderHtml = standingsHeaderHtml + '</thead>';
@@ -1285,7 +1285,7 @@ function createBestWeeksHtml(playerWeekRecords){
 		
 		var tiesCell = '';
 		if (areThereAnyTies){
-			tiesCell = '<td class="standings-table-cell">' + playerWeekRecord.record.ties + '</td>';
+			tiesCell = '<td class="standings-table-cell-small">' + playerWeekRecord.record.ties + '</td>';
 		}
 		
 		rowsHtml = rowsHtml + 
@@ -1293,10 +1293,10 @@ function createBestWeeksHtml(playerWeekRecords){
 						'<td class="standings-table-player-cell">' + rankText + '. ' + playerWeekRecord.player.name + '</td>' +
 						yearCell +
 						weekCell +
-						'<td class="standings-table-cell">' + playerWeekRecord.record.wins + '</td>' +
-						'<td class="standings-table-cell">' + playerWeekRecord.record.losses + '</td>' +
+						'<td class="standings-table-cell-small">' + playerWeekRecord.record.wins + '</td>' +
+						'<td class="standings-table-cell-small">' + playerWeekRecord.record.losses + '</td>' +
 						tiesCell + 
-						'<td class="standings-table-cell">' + percentageString + '</td>';
+						'<td class="standings-table-cell-small">' + percentageString + '</td>';
 		
 		rowsHtml = rowsHtml + '</tr>';
 		

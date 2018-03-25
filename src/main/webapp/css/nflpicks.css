@@ -207,8 +207,12 @@ html, body {
 	padding-left: 10px;
 }
 
+.standings-table-header-small {
+	padding-left: 5px;
+}
+
 .standings-table-player-header {
-	padding-right: 15px;
+	padding-right: 10px;
 }
 
 .standings-table-body {
@@ -219,11 +223,15 @@ html, body {
 }
 
 .standings-table-player-cell {
-	padding-right: 15px;
+	padding-right: 10px;
 }
 
 .standings-table-cell {
 	padding-left: 10px;
+}
+
+.standings-table-cell-small{
+	padding-left: 5px;
 }
 
 .standings-table-cell-list {
