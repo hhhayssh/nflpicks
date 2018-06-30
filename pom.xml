@@ -53,7 +53,7 @@
                 					<goal>copy-dependencies</goal>
             					</goals>
             					<configuration>
-                					<outputDirectory>${project.build.directory}/lib</outputDirectory>
+                					<outputDirectory>${project.build.directory}/nflpicks-data-manager/lib</outputDirectory>
                 					<overWriteReleases>true</overWriteReleases>
                 					<overWriteSnapshots>true</overWriteSnapshots>
                 					<overWriteIfNewer>true</overWriteIfNewer>
@@ -78,7 +78,36 @@
                 					<mainClass>nflpicks.NFLPicksDataManager</mainClass>
             					</manifest>
         					</archive>
+        					<outputDirectory>${project.build.directory}/nflpicks-data-manager</outputDirectory>
     					</configuration>
+					</plugin>
+					<!-- This plugin will copy the nflpicks.properties file to the output directory so everything is in the same
+						 place.
+					 -->
+					<plugin>
+						<groupId>org.apache.maven.plugins</groupId>
+    					<artifactId>maven-resources-plugin</artifactId>
+    					<executions>
+    						<execution>
+    							<id>copy-resources</id>
+    							<phase>compile</phase>
+    							<goals>
+    								<goal>copy-resources</goal>
+    							</goals>
+    							<configuration>
+    								<outputDirectory>${project.build.directory}/nflpicks-data-manager</outputDirectory>
+    								<resources>
+    									<resource>
+    										<directory>src/main/resources</directory>
+    										<includes>
+    											<include>nflpicks.properties</include>
+    										</includes>
+    										<filtering>true</filtering>
+    									</resource>
+    								</resources>
+    							</configuration>
+    						</execution>
+    					</executions>
 					</plugin>
 				</plugins>
 			</build>

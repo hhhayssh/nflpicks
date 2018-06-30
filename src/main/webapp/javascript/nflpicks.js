@@ -506,6 +506,7 @@ function updateStats(){
 	}
 	else if (statName == 'champions' || statName == 'championshipStandings'){
 		setSelectedPlayer('all');
+		setSelectedYear('all');
 	}
 
 	player = getSelectedPlayer();

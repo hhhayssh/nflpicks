@@ -1684,21 +1684,13 @@ public class NFLPicksDataService {
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, Integer.parseInt(week));
 			statement.setString(2, year);
-			statement.setString(3, awayTeamAbbreviation);
-			statement.setString(4, homeTeamAbbreviation);
+			statement.setString(3, homeTeamAbbreviation);
+			statement.setString(4, awayTeamAbbreviation);
 			
 			results = statement.executeQuery();
 			
-			while (results.next()){
-				
-				if (game == null){
-					game = mapGame(results);
-				}
-				else {
-					log.error("Found more than one game for input! year = " + year + ", week = " + week + ", awayTeamAbbreviation = " + awayTeamAbbreviation + 
-							  ", homeTeamAbbreviation = " + homeTeamAbbreviation);
-					return null;
-				}
+			if (results.next()){
+				game = mapGame(results);
 			}
 		}
 		catch (Exception e){
@@ -1743,15 +1735,8 @@ public class NFLPicksDataService {
 			
 			results = statement.executeQuery();
 			
-			while (results.next()){
-				
-				if (game == null){
-					game = mapGame(results);
-				}
-				else {
-					log.error("Found more than one game for input! year = " + year + ", week = " + week + ", teamAbbreviation = " + teamAbbreviation);
-					return null;
-				}
+			if (results.next()){
+				game = mapGame(results);
 			}
 		}
 		catch (Exception e){
