@@ -655,12 +655,7 @@ function updateStats(){
 			statsHtml = createWeekStandingsHtml(playerWeekRecords);
 		}
 		else if ('pickAccuracy' == statName){
-			
 			var pickAccuracySummaries = $.parseJSON(data);
-
-			console.log('lo ...');
-			console.log(pickAccuracySummaries);
-			
 			statsHtml = createPickAccuracySummariesHtml(pickAccuracySummaries);
 		}
 		
@@ -1880,6 +1875,7 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 							 		'<tr><td>Predicted record</td><td style="text-align: right;">' + pickAccuracySummary.predictedWins + ' - ' + pickAccuracySummary.predictedLosses + '</td></tr>' +
 							 		'<tr><td>Times picked to win (record)</td><td style="text-align: right;">' + timesPickedToWin + ' (' + pickAccuracySummary.timesPickedToWinRight + ' - ' + pickAccuracySummary.timesPickedToWinWrong + ')</td></tr>' +
 							 		'<tr><td>Times picked to lose (record)</td><td style="text-align: right;">' + timesPickedToLose + ' (' + pickAccuracySummary.timesPickedToLoseRight + ' - ' + pickAccuracySummary.timesPickedToLoseWrong + ')</td></tr>' +
+							 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + recordPicksLink + '</tr></td>' +
 							 	'</table>' + 
 						 	'</td>' + 
 						 '</tr>';

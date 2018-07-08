@@ -196,7 +196,7 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			long elapsed = System.currentTimeMillis() - start;
 			
-			System.out.println("000000 ------ " + elapsed);
+			System.out.println("Time to get compact grid =  " + elapsed);
 			
 		}
 		else if (TARGET_PICKS_GRID.equals(target)){
