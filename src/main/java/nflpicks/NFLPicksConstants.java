@@ -1,6 +1,7 @@
 package nflpicks;
 
 import java.util.List;
+import java.util.Map;
 
 import nflpicks.model.Game;
 
@@ -151,6 +152,19 @@ public interface NFLPicksConstants {
 	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_WRONG = "timesPickedToWinWrong";
 	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_RIGHT = "timesPickedToLoseRight";
 	public static final String JSON_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_WRONG = "timesPickedToLoseWrong";
+	
+	public static final String JSON_COMPACT_PICK_GRID_PLAYERS = "players";
+	public static final String JSON_COMPACT_PICK_GRID_PICKS = "picks";
+	
+	public static final String JSON_COMPACT_PICK_YEAR = "year";
+	public static final String JSON_COMPACT_PICK_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_COMPACT_PICK_HOME_TEAM_ABBREVIATION = "homeTeamAbbreviation";
+	public static final String JSON_COMPACT_PICK_AWAY_TEAM_ABBREVIATION = "awayTeamAbbreviation";
+	public static final String JSON_COMPACT_PICK_WINNING_TEAM_ABBREVIATION = "winningTeamAbbreviation";
+	public static final String JSON_COMPACT_PICK_PLAYER_PICKS = "playerPicks";
+	
+	public static final String JSON_COMPACT_PLAYER_PICK_PLAYER = "player";
+	public static final String JSON_COMPACT_PLAYER_PICK_PICK = "pick";
 	
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	

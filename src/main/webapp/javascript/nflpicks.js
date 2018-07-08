@@ -1,6 +1,8 @@
 
 var previousType = null;
 
+var havePicksBeenShown = false;
+
 $(document).ready(
 	function(){
 		//Do this in edit too....
@@ -48,6 +50,10 @@ function setSelectionsFromParameters(parameters){
 	
 	if (isDefined(parameters.week)){
 		setSelectedWeek(parameters.week);
+	}
+	
+	if (isDefined(parameters.team)){
+		setSelectedTeam(parameters.team);
 	}
 	
 	if (isDefined(parameters.statName)){
@@ -139,7 +145,7 @@ function getSelectionCriteriaAndInitialize(){
 function updateView(){
 	
 	var type = $('#type option:selected').val();
-
+	
 	updateSelectors(type);
 	
 	if ('picks' == type){
@@ -166,29 +172,58 @@ function updateSelectors(type){
 	}
 }
 
+
+/**
+ * 
+ * Updates the selectors so that they're good to go for when the type is picks.
+ * 
+ * Shows:
+ * 		year, player, team, week
+ * Hides:
+ * 		stat name
+ * 
+ * Only shows or hides something if the given type isn't the previous selected type.
+ * 
+ * @param type
+ * @returns
+ */
 function updatePicksSelectors(type){
 	
-	if (previousType == type){
+	var previousSelectedType = getPreviousType();
+	
+	if (previousSelectedType == type){
 		return;
 	}
 	
 	hideStatNameContainer();
-	hideTeamContainer();
 
 	showPlayerContainer();
-	
+	showAllPlayerOption();
 	showYearContainer();
-	hideAllYearOption();
-	
+	showTeamContainer();
 	showWeekContainer();
-	hideAllWeekOption();
 	
-	previousType = type;
+	setPreviousType(type);
 }
 
+/**
+ * 
+ * Updates the selectors so that they're right for browsing the "standings".
+ * 
+ * Shows:
+ * 		player, year, week
+ * Hides:
+ * 		team, stat name
+ * 
+ * Only shows or hides something if the given type isn't the previous selected type.
+ * 
+ * @param type
+ * @returns
+ */
 function updateStandingsSelectors(type){
 	
-	if (previousType == type){
+	var previousSelectedType = getPreviousType();
+	if (previousSelectedType == type){
 		return;
 	}
 	
@@ -197,23 +232,54 @@ function updateStandingsSelectors(type){
 	
 	showPlayerContainer();
 	showAllPlayerOption();
-	
 	showYearContainer();
-	showAllYearOption();
-	
 	showWeekContainer();
-	showAllWeekOption();
 	
-	previousType = type;
-	
-	previousType = type;
+	setPreviousType(type);
 }
 
+/**
+ * 
+ * Updates the selectors so that they're good to go for browsing the
+ * "stats"
+ * 
+ * Shows:
+ * 		stat name, others depending on the stat name
+ * Hides:
+ * 		depends on the stat name
+ * 
+ * Stat name:
+ * 		champions
+ * 			shows: Nothing
+ * 			hides: player, year, week, team
+ * 		championship standings
+ * 			shows: Nothing
+ * 			hides: player, year, week, team
+ * 		week standings
+ * 			shows: player, year, week
+ * 			hides: team
+ * 		weeks won standings
+ * 			shows: year
+ * 			hides: player, team, week
+ * 		weeks won by week
+ * 			shows: year, week
+ * 			hides: team
+ * 		week records by player
+ * 			shows: year, week, player
+ * 			hides: team
+ * 		pick accuracy
+ * 			shows: year, player, team
+ * 			hides: week
+ * 
+ * @param type
+ * @returns
+ */
 function updateStatsSelectors(type){
+	
 	showStatNameContainer();
 	
 	var statName = getSelectedStatName();
-
+	
 	if ('champions' == statName){
 		hidePlayerContainer();
 		hideYearContainer();
@@ -231,7 +297,6 @@ function updateStatsSelectors(type){
 		showPlayerContainer();
 		showAllPlayerOption();
 		showWeekContainer();
-		showAllWeekOption();
 		hideTeamContainer();
 	}
 	else if ('weeksWonStandings' == statName){
@@ -243,25 +308,26 @@ function updateStatsSelectors(type){
 	else if ('weeksWonByWeek' == statName){
 		showYearContainer();
 		showWeekContainer();
-		showAllWeekOption();
+		hidePlayerContainer();
 		hideTeamContainer();
 	}
 	else if ('weekRecordsByPlayer' == statName){
 		showYearContainer();
 		showPlayerContainer();
-		hideAllPlayerOption();
 		showWeekContainer();
-		showAllWeekOption();
 		hideTeamContainer();
+		hideAllPlayerOption();
 	}
 	else if ('pickAccuracy' == statName){
 		showYearContainer();
-		showAllYearOption();
 		showPlayerContainer();
-		hideAllPlayerOption();
+		showAllPlayerOption();
 		hideWeekContainer();
 		showTeamContainer();
+		hideAllPlayerOption();
 	}
+	
+	setPreviousType(type);
 }
 
 function getSelectedType(){
@@ -272,6 +338,14 @@ function setSelectedType(type){
 	if (doesSelectHaveOptionWithValue('type', type)){
 		$('#type').val(type);
 	}
+}
+
+function getPreviousType(){
+	return previousType;
+}
+
+function setPreviousType(newPreviousType){
+	previousType = newPreviousType;
 }
 
 function getSelectedPlayer(){
@@ -319,8 +393,8 @@ function getSelectedTeam(){
 }
 
 function setSelectedTeam(team){
-	if (doesSelectHaveOptionWithValue('team', statName)){
-		$('#team').val(statName);
+	if (doesSelectHaveOptionWithValue('team', team)){
+		$('#team').val(team);
 	}
 }
 
@@ -412,20 +486,20 @@ function hideWeekContainer(){
 	$('#weekContainer').hide();
 }
 
-function showStatNameContainer(){
-	$('#statNameContainer').show();
-}
-
-function hideStatNameContainer(){
-	$('#statNameContainer').hide();
-}
-
 function showTeamContainer(){
 	$('#teamContainer').show();
 }
 
 function hideTeamContainer(){
 	$('#teamContainer').hide();
+}
+
+function showStatNameContainer(){
+	$('#statNameContainer').show();
+}
+
+function hideStatNameContainer(){
+	$('#statNameContainer').hide();
 }
 
 function showStandingsSelectors(){
@@ -458,25 +532,37 @@ function hideStatsSelectors(){
 }
 
 function updatePicks(){
+	
 	var player = getSelectedPlayer();
-//	if ('all' == player){
-//		//Get the first player option's value
-//		player = $('#player option')[1].value;
-//		setSelectedPlayer(player);
-//	}
 	var year = getSelectedYear();
-	if ('all' == year){
-		year = $('#year option')[1].value;
-		setSelectedYear(year);
-	}
-	var week = getSelectedWeek();
-	if ('all' == week){
-		//Get the first player option's value
-		week = $('#week option')[1].value;
-		setSelectedWeek(week);
+	
+	var parameters = getUrlParameters();
+	
+	var hasYearInUrl = false;
+	if (isDefined(parameters) && isDefined(parameters.year)){
+		hasYearInUrl = true;
 	}
 	
-	$.ajax({url: 'nflpicks?target=picksGrid&player=' + player + '&year=' + year + '&week=' + week,
+	if ('all' == year && !havePicksBeenShown && !hasYearInUrl){
+		year = getYearForCurrentSeason();
+		setSelectedYear(year);
+	}
+	
+	var hasWeekInUrl = false;
+	if (isDefined(parameters) && isDefined(parameters.week)){
+		hasWeekInUrl = true;
+	}
+	
+	var week = getSelectedWeek();
+	if ('all' == week && !havePicksBeenShown && !hasWeekInUrl){
+		week = "1";
+		setSelectedWeek(week);
+	}
+	var team = getSelectedTeam();
+	
+	havePicksBeenShown = true;
+	
+	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + player + '&year=' + year + '&week=' + week + '&team=' + team,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -777,15 +863,30 @@ function createStandingsGridHtml(records){
 
 function createPicksGridHtml(picksGrid){
 	
+	var yearHeader = '';
+	var weekHeader = '';
+	
+	var yearSelected = isSpecificYearSelected();
+	if (!yearSelected){
+		yearHeader = '<th align="left" class="table-header">Year</th>';
+	}
+	
+	var weekSelected = isSpecificWeekSelected();
+	if (!weekSelected){
+		weekHeader = '<th align="left" class="table-header">Week</th>';
+	}
+	
 	var picksGridHtml = '';
 	
 	var gridHeaderHtml = '<thead>' +
+							yearHeader + 
+							weekHeader + 
 						 	'<th align="left" class="table-header">Game</th>';
 	
 	for (var index = 0; index < picksGrid.players.length; index++){
 		var player = picksGrid.players[index];
 		
-		gridHeaderHtml = gridHeaderHtml + '<th align="left" colspan="2" class="table-header">' + player.name + '</th>';
+		gridHeaderHtml = gridHeaderHtml + '<th align="left" colspan="2" class="table-header">' + player + '</th>';
 	}
 	
 	gridHeaderHtml = gridHeaderHtml + '</thead>';
@@ -803,8 +904,8 @@ function createPicksGridHtml(picksGrid){
 	
 	var pickRowsHtml = '';
 	
-	for (var index = 0; index < picksGrid.games.length; index++){
-		var game = picksGrid.games[index];
+	for (var index = 0; index < picksGrid.picks.length; index++){
+		var pick = picksGrid.picks[index];
 		
 		var rowClassName = 'even-row';
 		if (index % 2 == 1){
@@ -815,7 +916,7 @@ function createPicksGridHtml(picksGrid){
 		var pickTeamClass = 'pick-team';
 		var pickResultClass = 'pick-result';
 		
-		if (index + 1 >= picksGrid.games.length){
+		if (index + 1 >= picksGrid.picks.length){
 			pickGameClass = 'last-pick-game';
 			pickTeamClass = 'last-pick-team';
 			pickResultClass = 'last-pick-result';
@@ -823,51 +924,95 @@ function createPicksGridHtml(picksGrid){
 		
 		var homeTeamClass = '';
 		var awayTeamClass = '';
-		if (isDefined(game.winningTeam) && game.winningTeam.id != 0){
-			if (game.winningTeam.id == game.awayTeam.id){
+		if (isDefined(pick.winningTeamAbbreviation)){
+			if (pick.winningTeamAbbreviation == pick.awayTeamAbbreviation){
 				awayTeamClass = 'winner';
 			}
-			else if (game.winningTeam.id == game.homeTeam.id){
+			else if (pick.winningTeamAbbreviation == pick.homeTeamAbbreviation){
 				homeTeamClass = 'winner';
 			}
+			else {
+				awayTeamClass = 'tie';
+				homeTeamClass = 'tie';
+			}
 		}
-		else if (game.tie == true){
-			awayTeamClass = 'tie';
-			homeTeamClass = 'tie';
+		
+		//Should make a class called CompactPickGrid
+		//has:
+		//	players
+		//		playerId
+		//		name
+		//	games
+		//		game
+		//			year
+		//			weekNumber
+		//			awayTeam
+		//			homeTeam
+		//			winningTeam
+		//			picks
+		//				playerId
+		//				pickedTeam
+		var year = '';
+		var week = '';
+		
+		if (!yearSelected){
+			year = '<td class="' + pickGameClass + '">' + pick.year + '</td>';
+		}
+		
+		if (!weekSelected){
+			week = '<td class="' + pickGameClass + '">' + pick.weekNumber + '</td>';
 		}
 		
 		var gameRow = '<tr class="' + rowClassName + '">' + 
+						year +
+						week +
 						'<td class="' + pickGameClass + '">' + 
-							'<span class="' + awayTeamClass + '">' + game.awayTeam.abbreviation + '</span>' + 
+							'<span class="' + awayTeamClass + '">' + pick.awayTeamAbbreviation + '</span>' + 
 							' @ ' + 
-							'<span class="' + homeTeamClass + '">' + game.homeTeam.abbreviation + '</span>' +  
+							'<span class="' + homeTeamClass + '">' + pick.homeTeamAbbreviation + '</span>' +  
 						'</td>';
 	
-		var gameId = game.id;
-		
 		for (var playerIndex = 0; playerIndex < picksGrid.players.length; playerIndex++){
-			var playerId = picksGrid.players[playerIndex].id;
-			var pickForGame = getPickForGame(picksGrid, playerId, gameId);
+			var playerName = picksGrid.players[playerIndex];
+			
+			var pickForPlayer = null;
+			
+			for (var pickIndex = 0; pickIndex < pick.playerPicks.length; pickIndex++){
+				var playerPick = pick.playerPicks[pickIndex];
+				
+				if (playerPick.player == playerName){
+					pickForPlayer = playerPick.pick;
+					break;
+				}
+			}
 			
 			var doesGameHaveResult = false;
-			if ((isDefined(game.winningTeam) && game.winningTeam.id != 0) || game.tie){
+			if (isDefined(pick.winningTeamAbbreviation)){
 				doesGameHaveResult = true;
 			}
 			
-			var team = '';
+			var team = '&nbsp;';
 			var result = '';
 			var winnerOrLoserClass = '';
 			
-			team = 'NONE';
-			
-			if (isDefined(pickForGame) && isDefined(pickForGame.team)){
-				team = pickForGame.team.abbreviation;
+			if (isDefined(pickForPlayer)){
+				team = pickForPlayer;
 			}
 			
 			if (doesGameHaveResult){
-				if (isDefined(pickForGame) && isDefined(pickForGame.result)){
-					result = pickForGame.result;
+				
+				if (isDefined(pickForPlayer)){
+					if (pick.winningTeamAbbreviation == 'TIE'){
+						result = 'T';
+					}
+					else if (pick.winningTeamAbbreviation == pickForPlayer){
+						result = 'W';
+					}
+					else {
+						result = 'L';
+					}
 				}
+				
 				//If they didn't make a pick, that doesn't qualify as
 				//a loss.  We don't count it as anything.  When retrieving
 				//the records for the standings, we don't count missing picks as
@@ -889,10 +1034,12 @@ function createPicksGridHtml(picksGrid){
 			
 			gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
 									'<span class="' + winnerOrLoserClass + '">' + team + '</span>' + 
-								'</td>' + 
+								'</td>' 
+									+ 
 								'<td class="' + pickResultClass + '">' +
 									'<span class="' + winnerOrLoserClass + '">' + result + '</span>' + 
-								'</td>';
+								'</td>'
+									;
 		}
 		
 		gameRow = gameRow + '</tr>';
@@ -918,7 +1065,16 @@ function createPicksGridHtml(picksGrid){
 		weekRecordHtml = weekRecordHtml + playerRecordHtml;
 	}
 	
-	weekRecordHtml = '<tr><td class="last-pick-game"></td>' + weekRecordHtml + '</tr>';
+	var extra = '';
+	if (!weekSelected){
+		extra = '<td class="last-pick-game"></td>';
+	}
+	
+	if (!yearSelected){
+		extra = extra + '<td class="last-pick-game"></td>';
+	}
+	
+	weekRecordHtml = '<tr><td class="last-pick-game"></td>' + extra + weekRecordHtml + '</tr>';
 	
 	var gridBodyHtml = '<tbody>' + weekRecordHtml + pickRowsHtml + '</tbody>';
 	
@@ -1029,10 +1185,15 @@ function createWeeksWonHtml(weekRecords){
 			if (showYear){
 				year = record.season.year + ', ';
 			}
-			var recordHtml = year + record.week.label + ' (' + record.record.wins + ' - ' + record.record.losses +
+			//createPicksLink
+			//createPicksLink(linkText, year, week, team, player)
+			
+			var recordText = year + record.week.label + ' (' + record.record.wins + ' - ' + record.record.losses +
 							 ties + ')';
 			
-			weekRecordsHtml = weekRecordsHtml + '<li>' + recordHtml + '</li>';
+			var picksLink = createPicksLink(recordText, record.season.year, record.week.weekNumber, null, weekRecord.player.name);
+			
+			weekRecordsHtml = weekRecordsHtml + '<li>' + picksLink + '</li>';
 		}
 		
 		weekRecordsHtml = weekRecordsHtml + '</ul></div>';
@@ -1152,6 +1313,17 @@ function isSpecificTeamSelected(){
 	return true;
 }
 
+function isSpecificWeekSelected(){
+
+	var selectedWeek = getSelectedWeek();
+	
+	if ('all' == selectedWeek){
+		return false;
+	}
+	
+	return true;
+}
+
 function createWeekRecordsByPlayerHtml(weekRecords){
 	
 	var tiesHeader = '';
@@ -1211,9 +1383,13 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 			yearCell = '<td class="standings-table-player-cell">' + weekRecord.season.year + '</td>';
 		}
 		
+		var weekLabel = shortenWeekLabel(weekRecord.week.label);
+		
+		var playerPicksLink = createPicksLink(weekLabel, weekRecord.season.year, weekRecord.week.weekNumber, null, weekRecord.player.name);
+		
 		var row = '<tr class="standings-table-row">' +
 					yearCell +
-					'<td class="' + weekClass + '">' + shortenWeekLabel(weekRecord.week.label) + '</td>' +
+					'<td class="' + weekClass + '">' + playerPicksLink + '</td>' +
 					'<td class="standings-table-cell">' + weekRecord.record.wins + '</td>' +
 					'<td class="standings-table-cell">' + weekRecord.record.losses + '</td>' +
 					tiesCell +
@@ -1359,7 +1535,10 @@ function createWeekStandingsHtml(playerWeekRecords){
 		
 		var weekCell = '';
 		if (!isWeekSelected){
-			weekCell = '<td class="standings-table-cell">' + shortenWeekLabel(playerWeekRecord.week.label) + '</td>';
+			var labelToUse = shortenWeekLabel(playerWeekRecord.week.label);
+			//function createPicksLink(linkText, year, week, team, player){
+			var picksLink = createPicksLink(labelToUse, playerWeekRecord.season.year, playerWeekRecord.week.weekNumber, null, playerWeekRecord.player.name);
+			weekCell = '<td class="standings-table-cell">' + picksLink + '</td>';
 		}
 		
 		var tiesCell = '';
@@ -1581,7 +1760,9 @@ function createWeeksWonByWeek(weeksWonByWeek){
 		for (var playerIndex = 0; playerIndex < weekRecord.players.length; playerIndex++){
 			var player = weekRecord.players[playerIndex];
 			
-			var plHtml = '<li>' + player.name + '</li>';
+			var playerPicksLink = createPicksLink(player.name, weekRecord.season.year, weekRecord.week.weekNumber, null, player.name);
+			
+			var plHtml = '<li>' + playerPicksLink + '</li>';
 			playerHtml = playerHtml + plHtml;
 		}
 		
@@ -1687,8 +1868,10 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 		if (pickAccuracySummary.actualTies > 0){
 			hasTies = true;
 			tiesRecord = ' - ' + pickAccuracySummary.actualTies;
-			console.log('0!!!');
 		}
+
+		var year = getSelectedYear();
+		var recordPicksLink = createPicksLink('Picks', year, null, pickAccuracySummary.team.abbreviation, pickAccuracySummary.player.name);
 		
 		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
 						    '<td class="standings-table-cell" colspan="5">' + 
@@ -1763,6 +1946,67 @@ function toggleShowPickAccuracyDetails(index){
 	}
 }
 
+function createPicksLink(linkText, year, week, team, player){
+	
+	var picksLink = '<a href="javascript:" onClick="showPickView(';
+	
+	if (isDefined(year)){
+		picksLink = picksLink + '\'' + year + '\', ';
+	}
+	else {
+		picksLink = picksLink + 'null, ';
+	}
+	
+	if (isDefined(week)){
+		picksLink = picksLink + '\'' + week + '\', ';
+	}
+	else {
+		picksLink = picksLink + 'null, ';
+	}
+	
+	if (isDefined(team)){
+		picksLink = picksLink + '\'' + team + '\', ';
+	}
+	else {
+		picksLink = picksLink + 'null, ';
+	}
+	
+	if (isDefined(player)){
+		picksLink = picksLink + '\'' + player + '\'';
+	}
+	else {
+		picksLink = picksLink + 'null';
+	}
+	
+	picksLink = picksLink + ');">' + linkText + '</a>';
+	
+	return picksLink;
+}
+
+function showPickView(year, week, team, player){
+
+	havePicksBeenShown = true;
+	
+	setSelectedType('picks');
+	
+	if (isDefined(year)){
+		setSelectedYear(year);
+	}
+	
+	if (isDefined(week)){
+		setSelectedWeek(week);
+	}
+	
+	if (isDefined(player)){
+		setSelectedPlayer(player);
+	}
+	
+	if (isDefined(team)){
+		setSelectedTeam(team);
+	}
+	
+	updateView();
+}
 
 function shortenWeekLabel(label){
 	
@@ -1771,4 +2015,12 @@ function shortenWeekLabel(label){
 	}
 	
 	return label;
+}
+
+function getYearForCurrentSeason(){
+	var currentDate = new Date();
+	
+	var year = currentDate.getFullYear();
+	
+	return year;
 }

@@ -1,7 +1,7 @@
 package nflpicks.model;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 
@@ -26,10 +26,10 @@ public class CompactPick {
 	
 	protected String winningTeamAbbreviation;
 	
-	protected Map<String, String> playerPicks;
+	protected List<CompactPlayerPick> playerPicks;
 	
 	public CompactPick(){
-		this.playerPicks = new HashMap<String, String>();
+		this.playerPicks = new ArrayList<CompactPlayerPick>();
 	}
 
 	public String getYear() {
@@ -72,11 +72,11 @@ public class CompactPick {
 		this.winningTeamAbbreviation = winningTeamAbbreviation;
 	}
 
-	public Map<String, String> getPlayerPicks() {
+	public List<CompactPlayerPick> getPlayerPicks() {
 		return playerPicks;
 	}
 
-	public void setPlayerPicks(Map<String, String> playerPicks) {
+	public void setPlayerPicks(List<CompactPlayerPick> playerPicks) {
 		this.playerPicks = playerPicks;
 	}
 	
@@ -166,7 +166,7 @@ public class CompactPick {
 			}
 		}
 		
-		Map<String, String> otherPlayerPicks = otherCompactPick.getPlayerPicks();
+		List<CompactPlayerPick> otherPlayerPicks = otherCompactPick.getPlayerPicks();
 		
 		if (playerPicks != null){
 			if (!playerPicks.equals(otherPlayerPicks)){

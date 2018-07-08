@@ -135,6 +135,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			List<Game> games = dataService.getGames(year, weekInt);
 			
 			List<Pick> picks = null;
+			
 			if ("all".equals(player)){
 				picks = dataService.getPicks(year, weekInt);
 			}

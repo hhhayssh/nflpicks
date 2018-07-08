@@ -6,12 +6,12 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 
 import nflpicks.model.CompactPick;
+import nflpicks.model.CompactPlayerPick;
 import nflpicks.model.Player;
 
 /**
@@ -337,17 +337,23 @@ public class NFLPicksDataExporter {
 		String awayTeamAbbreviation = compactPick.getAwayTeamAbbreviation();
 		String homeTeamAbbreviation = compactPick.getHomeTeamAbbreviation();
 		String winningTeamAbbreviation = compactPick.getWinningTeamAbbreviation();
-		Map<String, String> playerPicksMap = compactPick.getPlayerPicks();
+		List<CompactPlayerPick> playerPicks = compactPick.getPlayerPicks();
 		
-		List<String> playerPicks = new ArrayList<String>();
+		List<String> picks = new ArrayList<String>();
 		
 		for (int playerNameIndex = 0; playerNameIndex < playerNames.size(); playerNameIndex++){
 			String playerName = playerNames.get(playerNameIndex);
-			String playerPick = playerPicksMap.get(playerName);
-			playerPicks.add(playerPick);
+			
+			for (int pickIndex = 0; pickIndex < playerPicks.size(); pickIndex++){
+				CompactPlayerPick playerPick = playerPicks.get(pickIndex);
+				
+				if (playerName.equals(playerPick.getPlayer())){
+					picks.add(playerPick.getPick());
+				}
+			}
 		}
 		
-		writeLine(writer, year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, playerPicks);
+		writeLine(writer, year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, picks);
 	}
 	
 	/**

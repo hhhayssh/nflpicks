@@ -6,6 +6,8 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import nflpicks.model.CompactPick;
+import nflpicks.model.CompactPlayerPick;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
@@ -1114,6 +1116,160 @@ public class JSONUtil {
 		
 		return jsonObject;
 	}
+
+	
+	/**
+	 * 
+	 * Converts the given list of compact picks into a json string.
+	 * 
+	 * @param games
+	 * @return
+	 */
+	public static String compactPicksToJSONString(List<CompactPick> picks){
+		
+		JSONArray jsonArray = compactPicksToJSONArray(picks);
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of picks into a json array.
+	 * 
+	 * @param games
+	 * @return
+	 */
+	public static JSONArray compactPicksToJSONArray(List<CompactPick> picks){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < picks.size(); index++){
+			CompactPick pick = picks.get(index);
+			JSONObject jsonObject = compactPickToJSONObject(pick);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
+	
+	/**
+	 * 
+	 * Converts the given compact pick to a json formatted string.
+	 * 
+	 * @param game
+	 * @return
+	 */
+	public static String compactPickToJSONString(CompactPick compactPick){
+		
+		JSONObject jsonObject = compactPickToJSONObject(compactPick);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given compact pick to a json object.  Not much to it.
+	 * 
+	 * @param game
+	 * @return
+	 */
+	public static JSONObject compactPickToJSONObject(CompactPick pick){
+		
+		//Steps to do:
+		//	1. Just go through and copy all the values and convert
+		//	   the ones that are objects into json objects first.
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_YEAR, pick.getYear());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WEEK_NUMBER, pick.getWeekNumber());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_HOME_TEAM_ABBREVIATION, pick.getHomeTeamAbbreviation());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_AWAY_TEAM_ABBREVIATION, pick.getAwayTeamAbbreviation());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WINNING_TEAM_ABBREVIATION, pick.getWinningTeamAbbreviation());
+		
+		JSONArray playerPicksArray = compactPlayerPicksToJSONArray(pick.getPlayerPicks());
+
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_PLAYER_PICKS, playerPicksArray);
+		
+		return jsonObject;
+	}
+	
+	
+	/**
+	 * 
+	 * Converts the given list of compact picks into a json string.
+	 * 
+	 * @param games
+	 * @return
+	 */
+	public static String compactPlayerPicksToJSONString(List<CompactPlayerPick> playerPicks){
+		
+		JSONArray jsonArray = compactPlayerPicksToJSONArray(playerPicks);
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of player picks into a json array.
+	 * 
+	 * @param games
+	 * @return
+	 */
+	public static JSONArray compactPlayerPicksToJSONArray(List<CompactPlayerPick> playerPicks){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < playerPicks.size(); index++){
+			CompactPlayerPick pick = playerPicks.get(index);
+			JSONObject jsonObject = compactPlayerPickToJSONObject(pick);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
+	
+	/**
+	 * 
+	 * Converts the given compact player pick to a json formatted string.
+	 * 
+	 * @param game
+	 * @return
+	 */
+	public static String compactPlayerPickToJSONString(CompactPlayerPick playerPick){
+		
+		JSONObject jsonObject = compactPlayerPickToJSONObject(playerPick);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given compact player pick to a json object.  Not much to it.
+	 * 
+	 * @param game
+	 * @return
+	 */
+	public static JSONObject compactPlayerPickToJSONObject(CompactPlayerPick playerPick){
+		
+		//Steps to do:
+		//	1. Just go through and copy all the values and convert
+		//	   the ones that are objects into json objects first.
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PLAYER_PICK_PLAYER, playerPick.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PLAYER_PICK_PICK, playerPick.getPick());
+		
+		return jsonObject;
+	}
+	
 	
 	
 	

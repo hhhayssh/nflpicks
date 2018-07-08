@@ -19,6 +19,7 @@ import org.apache.log4j.Logger;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import nflpicks.model.CompactPick;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
@@ -41,6 +42,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_PLAYERS = "players";
 	protected static final String TARGET_PICKS = "picks";
 	protected static final String TARGET_PICKS_GRID = "picksGrid";
+	protected static final String TARGET_COMPACT_PICKS_GRID = "compactPicksGrid";
 	protected static final String TARGET_STANDINGS = "standings";
 	protected static final String TARGET_SELECTION_CRITERIA = "selectionCriteria";
 	protected static final String TARGET_EDIT_SELECTION_CRITERIA = "editSelectionCriteria";
@@ -111,48 +113,161 @@ public class NFLPicksServlet extends HttpServlet {
 			json = JSONUtil.playersToJSONString(players);
 		}
 		else if (TARGET_PICKS.equals(target)){
-			String playerName = getParameter(request, PARAMETER_NAME_PLAYER);
-			String year = getParameter(request, PARAMETER_NAME_YEAR);
-			String weekString = getParameter(request, PARAMETER_NAME_WEEK);
-			int week = Util.parseInt(weekString, 0);
-			
-			List<Pick> picks = null;
-			if (PARAMETER_VALUE_ALL.equals(playerName)){
-				picks = dataService.getPicks(year, week);
-			}
-			else {
-				picks = dataService.getPicks(playerName, year, week);
-			}
-			
-			json = JSONUtil.picksToJSONString(picks);
+//			String playerName = getParameter(request, PARAMETER_NAME_PLAYER);
+//			String year = getParameter(request, PARAMETER_NAME_YEAR);
+//			String weekString = getParameter(request, PARAMETER_NAME_WEEK);
+//			int week = Util.parseInt(weekString, 0);
+//			
+//			List<Pick> picks = null;
+//			if (PARAMETER_VALUE_ALL.equals(playerName)){
+//				picks = dataService.getPicks(year, week);
+//			}
+//			else {
+//				picks = dataService.getPicks(playerName, year, week);
+//			}
+//			
+//			json = JSONUtil.picksToJSONString(picks);
 		}
-		else if (TARGET_PICKS_GRID.equals(target)){
-			//Escape this name
-			//let this be multiple players
-			String playerName = Util.replaceUrlCharacters(request.getParameter(PARAMETER_NAME_PLAYER));
-			String year = getParameter(request, PARAMETER_NAME_YEAR);
-			String weekString = getParameter(request, PARAMETER_NAME_WEEK);
-			int week = Util.parseInt(weekString, 0);
+		else if (TARGET_COMPACT_PICKS_GRID.equals(target)){
+			long start = System.currentTimeMillis();
+			
+			String yearParameter = getParameter(request, PARAMETER_NAME_YEAR);
+			String weekParameter = getParameter(request, PARAMETER_NAME_WEEK);
+			String playerParameter = Util.replaceUrlCharacters(request.getParameter(PARAMETER_NAME_PLAYER));
+			String teamParameter = getParameter(request, PARAMETER_NAME_TEAM);
+			
+			List<String> years = Util.delimitedStringToList(yearParameter, ",");
+			List<String> weeks = Util.delimitedStringToList(weekParameter, ",");
+			List<String> teams = Util.delimitedStringToList(teamParameter, ",");
+			List<String> playerNames = Util.delimitedStringToList(playerParameter, ",");
+			
+			boolean isAllYears = isAllParameterValue(years);
+			boolean isAllWeeks = isAllParameterValue(weeks);
+			boolean isAllPlayers = isAllParameterValue(playerNames);
+			boolean isAllTeams = isAllParameterValue(teams);
+			
+			if (isAllYears){
+				years = null;
+			}
+			
+			if (isAllWeeks){
+				weeks = null;
+			}
+			
+			if (isAllPlayers){
+				playerNames = null;
+			}
+			
+			if (isAllTeams){
+				teams = null;
+			}
 			
 			List<Player> players = null;
-			if (PARAMETER_VALUE_ALL.equals(playerName)){
+			if (isAllPlayers){
+				if (isAllYears){
+					players = dataService.getPlayers();
+				}
+				else {
+					players = dataService.getActivePlayers(years);
+					
+					if (players.size() == 0){
+						players = dataService.getPlayers();
+					}
+				}
+				
+				playerNames = new ArrayList<String>();
+				
+				for (int index = 0; index < players.size(); index++){
+					Player player = players.get(index);
+					playerNames.add(player.getName());
+				}
+			}
+			else {
+				players = dataService.getPlayers(playerNames);
+			}
+
+			List<CompactPick> picks = dataService.getCompactPicks(years, weeks, playerNames, teams);
+			
+			JSONObject gridJSONObject = new JSONObject();
+			gridJSONObject.put(NFLPicksConstants.JSON_COMPACT_PICK_GRID_PLAYERS, playerNames);
+			gridJSONObject.put(NFLPicksConstants.JSON_COMPACT_PICK_GRID_PICKS, JSONUtil.compactPicksToJSONArray(picks));
+			
+			json = gridJSONObject.toString();
+			
+			long elapsed = System.currentTimeMillis() - start;
+			
+			System.out.println("000000 ------ " + elapsed);
+			
+		}
+		else if (TARGET_PICKS_GRID.equals(target)){
+			/*
+			 
+			 	selected = year = all, week = all, player = all, team = all ... should a team selection be forced when year = all or week = all?  No, that doesn't make sense.
+			 	would be confusing for people ... better to just put out a huge grid
+			 	year	week	game	benny	bruce	chance
+			 	
+			 	selected = year = 2016, week = all, player = all
+			 	week	game	benny	bruce	chance
+			 	
+			 	
+			 	The all parameter shouldn't get outside of here
+			 	
+			 	dataService.getPicks(year, week, team, player)
+			 	
+			 	This should do it so it's the most flexible
+			 	dataService.getPicks(years, weeks, teams, players)
+			 	
+			 	Would also need to get the games for the years, weeks, and teams
+			
+				When rendering, just check whether all is selected for years. if it is, show the year column
+				if week is all, show the week column
+			 
+			 */
+			
+			//dataService.getCompactPicks(years, weekNumbers, playerNames)?
+			
+			String yearParameter = getParameter(request, PARAMETER_NAME_YEAR);
+			String weekParameter = getParameter(request, PARAMETER_NAME_WEEK);
+			String playerParameter = Util.replaceUrlCharacters(request.getParameter(PARAMETER_NAME_PLAYER));
+			String teamParameter = getParameter(request, PARAMETER_NAME_TEAM);
+			
+			List<String> years = Util.delimitedStringToList(yearParameter, ",");
+			List<String> weeks = Util.delimitedStringToList(weekParameter, ",");
+			List<String> teams = Util.delimitedStringToList(teamParameter, ",");
+			List<String> playerNames = Util.delimitedStringToList(playerParameter, ",");
+			
+			boolean isAllYears = isAllParameterValue(years);
+			boolean isAllWeeks = isAllParameterValue(weeks);
+			boolean isAllPlayers = isAllParameterValue(playerNames);
+			boolean isAllTeams = isAllParameterValue(teams);
+			
+			if (isAllYears){
+				years = null;
+			}
+			
+			if (isAllWeeks){
+				weeks = null;
+			}
+			
+			if (isAllPlayers){
+				playerNames = null;
+			}
+			
+			if (isAllTeams){
+				teams = null;
+			}
+			
+			List<Player> players = null;
+			if (isAllPlayers){
 				players = dataService.getPlayers();
 			}
 			else {
-				Player player = dataService.getPlayer(playerName);
-				players = new ArrayList<Player>();
-				players.add(player);
+				players = dataService.getPlayers(playerNames);
 			}
 			
-			List<Game> games = dataService.getGames(year, week);
+			List<Game> games = dataService.getGames(years, weeks, teams);
 			
-			List<Pick> picks = null;
-			if (PARAMETER_VALUE_ALL.equals(playerName)){
-				picks = dataService.getPicks(year, week);
-			}
-			else {
-				picks = dataService.getPicks(playerName, year, week);
-			}
+			List<Pick> picks = dataService.getPicks(years, weeks, playerNames, teams);
 			
 			JSONObject gridJSONObject = new JSONObject();
 			gridJSONObject.put(NFLPicksConstants.JSON_PICK_GRID_PLAYERS, JSONUtil.playersToJSONArray(players));
@@ -535,6 +650,26 @@ public class NFLPicksServlet extends HttpServlet {
 		String unescapedValue = Util.replaceUrlCharacters(value);
 		
 		return unescapedValue;
+	}
+	
+	protected boolean isAllParameterValue(List<String> parameterValues){
+		
+		if (parameterValues == null){
+			return false;
+		}
+		
+		if (parameterValues.size() != 1){
+			return false;
+		}
+		
+		String parameterValue = parameterValues.get(0);
+		
+		if (PARAMETER_VALUE_ALL.equals(parameterValue)){
+			return true;
+		}
+		
+		return false;
+		
 	}
 	
 	public void destroy() {

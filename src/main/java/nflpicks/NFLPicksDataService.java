@@ -19,6 +19,7 @@ import javax.sql.DataSource;
 import org.apache.log4j.Logger;
 
 import nflpicks.model.CompactPick;
+import nflpicks.model.CompactPlayerPick;
 import nflpicks.model.Conference;
 import nflpicks.model.Division;
 import nflpicks.model.Game;
@@ -268,8 +269,8 @@ public class NFLPicksDataService {
 															 "best_weeks.losses, " + 
 															 "best_weeks.ties, " + 
 															 "best_weeks.number_of_games, " + 
-															 "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3) as win_percentage, " + 
-															 "(best_weeks.number_of_games * round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3)) - best_weeks.losses as score " + 
+															 "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3) as win_percentage " + 
+															 //"(best_weeks.number_of_games * round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3)) - best_weeks.losses as score " + 
 															"from (select pick_totals.season_id, " + 
 																	     "pick_totals.year, " + 
 																	     "pick_totals.player_id, " + 
@@ -280,7 +281,7 @@ public class NFLPicksDataService {
 																	     "sum(pick_totals.wins) as wins, " + 
 																	     "sum(pick_totals.losses) as losses, " + 
 																	     "sum(pick_totals.ties) as ties, " + 
-																	     "(select count(id) from game gx where gx.week_id = pick_totals.week) as number_of_games " + 
+																	     "(select count(id) from game gx where gx.week_id = pick_totals.week_id) as number_of_games " + 
 																 "from (select pl.id as player_id, " + 
 																 	 		  "pl.name as player_name, " + 
 																 	 		  "s.id as season_id, " + 
@@ -308,7 +309,7 @@ public class NFLPicksDataService {
 																 	  ") pick_totals " + 
 																"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label " + 
 													") best_weeks " + 
-													"order by score desc ";
+													"order by win_percentage desc, wins desc ";
 	
 	protected static final String SELECT_RECORDS_FOR_YEAR = "select pick_totals.season_id, " + 
 																   "pick_totals.year, " + 
@@ -1657,6 +1658,111 @@ public class NFLPicksDataService {
 		return games;
 	}
 	
+	public List<Game> getGames(List<String> years, List<String> weeks, List<String> teams){
+		
+		List<Game> games = new ArrayList<Game>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_GAME;
+			
+			boolean addedWhere = true;
+			
+			if (years != null && years.size() > 0){
+				String yearsParameterString = DatabaseUtil.createInClauseParameterString(years.size());
+				query = query + " where week_id in (select id " + 
+												   "from week " + 
+												   "where season_id in (select id " + 
+												   					   "from season " + 
+												   					   "where year in (" + yearsParameterString + "))) ";
+				
+				addedWhere = true;
+			}
+			
+			if (weeks != null && weeks.size() > 0){
+				String weeksParameterString = DatabaseUtil.createInClauseParameterString(weeks.size());
+				
+				if (addedWhere){
+					query = query + " and ";
+				}
+				else {
+					query = query + " where ";
+					addedWhere = true;
+				}
+				
+				query = query + " week_id in (select id " +
+											 "from week " + 
+											 "where week in (" + weeksParameterString + ")) ";
+			}
+			
+			if (teams != null && teams.size() > 0){
+				String teamsParameterString = DatabaseUtil.createInClauseParameterString(weeks.size());
+				
+				if (addedWhere){
+					query = query + " and ";
+				}
+				else {
+					query = query + " where ";
+					addedWhere = true;
+				}
+				
+				query = query + " (home_team_id in (select id " + 
+												   "from team " + 
+												   "where abbreviation in (" + teamsParameterString + ")) " +
+								  "or away_team_id in (select id " + 
+												   	  "from team " + 
+												   	  "where abbreviation in (" + teamsParameterString + "))) ";
+			}
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			
+			int argumentNumber = 1;
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(argumentNumber, year);
+					argumentNumber++;
+				}
+			}
+			
+			if (weeks != null && weeks.size() > 0){
+				for (int index = 0; index < weeks.size(); index++){
+					String week = weeks.get(index);
+					int weekNumber = Integer.parseInt(week);
+					statement.setInt(argumentNumber, weekNumber);
+					argumentNumber++;
+				}
+			}
+			
+			if (teams != null && teams.size() > 0){
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(argumentNumber, team);
+					argumentNumber++;
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Game game = mapGame(results);
+				games.add(game);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting games! years = " + years + ", weeks = " + weeks + ", teams = " + teams, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return games;
+	}
+	
 	public Game getGame(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation){
 		
 		Game game = null;
@@ -2004,49 +2110,143 @@ public class NFLPicksDataService {
 		return pick;
 	}
 	
-	public List<Pick> getPicks(String playerName, String year, int week){
-		
-		List<Pick> picks = new ArrayList<Pick>();
-		
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet results = null;
-		
-		try {
-			connection = getConnection();
-			String query = SELECT_PICK +
-						   "where player_id in (select id " +
-						   					   "from player " +
-						   					   "where name = ? )" +
-						   	      "and game_id in (select id " +
-							   					  "from game " + 
-							   					  "where week_id in (select id " + 
-							   					 				    "from week " + 
-							   					 				    "where season_id in (select id " +
-							   					 				   					    "from season " +
-							   					 				   					    "where year = ?) " +
-							   					 				   		  "and week = ? ))";
-			statement = connection.prepareStatement(query);
-			statement.setString(1, playerName);
-			statement.setString(2, year);
-			statement.setInt(3, week);
-			results = statement.executeQuery();
-			
-			while (results.next()){
-				Pick pick = mapPick(results);
-				picks.add(pick);
-			}
-		}
-		catch (Exception e){
-			log.error("Error getting picks! playerName = " + playerName + ", year = " + year + ", week = " + week, e);
-		}
-		finally {
-			close(results, statement, connection);
-		}
-		
-		return picks;
-	}
-	
+//	public List<Pick> getPicks(String playerName){
+//		
+//		List<Pick> picks = getPicks(playerName, null);
+//		
+//		return picks;
+//	}
+//	
+//	public List<Pick> getPicks(String playerName, String team){
+//		
+//		List<Pick> picks = getPicks(playerName, team, null);
+//		
+//		return picks;
+//	}
+//	
+//	public List<Pick> getPicks(String playerName, String team, String year){
+//		
+//		List<Pick> picks = getPicks(playerName, team, year, -1);
+//		
+//		return picks;
+//	}
+//	
+//	public List<Pick> getPicks(String playerName, String team, String year, int week){
+//		
+//		List<Pick> picks = new ArrayList<Pick>();
+//		
+//		Connection connection = null;
+//		PreparedStatement statement = null;
+//		ResultSet results = null;
+//		
+//		try {
+//			connection = getConnection();
+//			String query = SELECT_PICK;
+//			
+//			boolean addedWhere = false;
+//
+//			if (playerName != null){
+//				addedWhere = true;
+//				query = query + " where player_id = (select id " + 
+//													"from player " + 
+//													"where name = ? ) ";
+//			}
+//			
+//			if (team != null){
+//				
+//				if (addedWhere){
+//					query = query + " and ";
+//				}
+//				else {
+//					addedWhere = true;
+//					query = query + " where ";
+//				}
+//				
+//				query = query + " game_id in (select id " + 
+//											 "from game " + 
+//											 "where home_team_id in (select id " + 
+//											 					 	"from team " + 
+//											 					 	"where name = ?) " +
+//											 	   "or away_team_id in (select id " + 
+//											 					 	   "from team " +
+//											 					 	   "where name = ?)) ";
+//			}
+//			
+//			if (year != null){
+//				
+//				if (addedWhere){
+//					query = query + " and ";
+//				}
+//				else {
+//					addedWhere = true;
+//					query = query + " where ";
+//				}
+//				
+//				query = query + " game_id in (select id " + 
+//											 "from game " + 
+//											 "where week_id in (select id " +
+//											 				   "from week " + 
+//											 				   "where season_id in (select id " + 
+//											 				   					   "from season " + 
+//											 				   					   "where year = ? ))) ";
+//			}
+//			
+//			if (week != -1){
+//				if (addedWhere){
+//					query = query + " and ";
+//				}
+//				else {
+//					addedWhere = true;
+//					query = query + " where ";
+//				}
+//				
+//				query = query + " game_id in (select id " + 
+//											 "from game " + 
+//											 "where week_id in (select id " +
+//											 				   "from week " + 
+//											 				   "where week = ?)) ";
+//			}
+//			
+//			statement = connection.prepareStatement(query);
+//			
+//			int argumentNumber = 1;
+//
+//			if (playerName != null){
+//				statement.setString(argumentNumber, playerName);
+//				argumentNumber++;
+//			}
+//			
+//			if (team != null){
+//				statement.setString(argumentNumber, team);
+//				argumentNumber++;
+//			}
+//			
+//			if (year != null){
+//				statement.setString(argumentNumber, year);
+//				argumentNumber++;
+//			}
+//			
+//			if (week != -1){
+//				statement.setInt(argumentNumber, week);
+//			}
+//			
+//			results = statement.executeQuery();
+//			
+//			while (results.next()){
+//				Pick pick = mapPick(results);
+//				picks.add(pick);
+//			}
+//		}
+//		catch (Exception e){
+//			log.error("Error getting picks! playerName = " + playerName + ", year = " + year + ", week = " + week, e);
+//		}
+//		finally {
+//			close(results, statement, connection);
+//		}
+//		
+//		return picks;
+//	}
+//	
 	public List<Pick> getPicks(int playerId, String year, int week){
 		
 		List<Pick> picks = new ArrayList<Pick>();
@@ -2088,7 +2288,30 @@ public class NFLPicksDataService {
 		return picks;
 	}
 	
-	public List<Pick> getPicks(List<String> years, List<String> weekNumbers, List<String> playerNames){
+	public List<Pick> getPicks(String year, int week){
+		
+		List<String> years = Arrays.asList(year);
+		List<String> weekNumbers = Arrays.asList(String.valueOf(week));
+		
+		List<Pick> picks = getPicks(years, weekNumbers, null, null);
+		
+		return picks;
+	}
+	
+	public List<Pick> getPicks(String player, String year, int week){
+		
+		List<String> players = Arrays.asList(player);
+		List<String> years = Arrays.asList(year);
+		List<String> weekNumbers = Arrays.asList(String.valueOf(week));
+		
+		List<Pick> picks = getPicks(years, weekNumbers, players, null);
+		
+		return picks;
+	}
+	
+	
+	
+	public List<Pick> getPicks(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teamNames){
 		
 		List<Pick> picks = new ArrayList<Pick>();
 		
@@ -2117,60 +2340,74 @@ public class NFLPicksDataService {
 				hasPlayers = true;
 			}
 			
-			String query = SELECT_PICK +
-					   "where game_id in (select id " +
-					   					 "from game " + 
-					   					 "where week_id in (select id " + 
-					   					 				   "from week ";
+			boolean hasTeams = false;
+			if (teamNames != null && teamNames.size() > 0){
+				hasTeams = true;
+			}
 			
-			//could have weeks without years, years without weeks, or both
-			/*
-			 select *
-			 from pick
-			 where game_id in (select id
-			 				   from game 
-			 				   where week_id in (select id
-			 				   					 from week
-			 				   					 where week in (?, ?, ?, ?)
-			 				   					       and season_id in (select id
-			 				   					       				 	 from season
-			 				   					       				 	 where year in (?, ?, ?,)
-			 				   					       				 	)
-			 				   					)
-			 				   )
-			 	  and player_id in (select id
-			 	  					from player
-			 	  					where player_name in (?, ?, ?))
-			 */
+			String query = SELECT_PICK;
+			
+			boolean addedWhere = false;
+			
 			if (hasWeeks){
-				query = query + " where week in " + DatabaseUtil.createInClauseParameterString(weekNumberIntegers.size());
+				query = query + " where game_id in (select id " + 
+												   "from game " + 
+												   "where week_id in (select id " + 
+												   					 "from week" +
+												   					 "where week in (" + DatabaseUtil.createInClauseParameterString(weekNumberIntegers.size()) + "))) ";
+				
+				addedWhere = true;
 			}
 			
 			if (hasYears){
 				
-				if (hasWeeks){
+				if (addedWhere){
 					query = query + " and ";
 				}
 				else {
 					query = query + " where ";
 				}
 				
-				query = query + " season_id in (select id from season where year in " + DatabaseUtil.createInClauseParameterString(years.size()) + " ) ";
+				query = query +  " where game_id in (select id " + 
+						   							"from game " + 
+						   							"where week_id in (select id " + 
+						   											  "from week" +
+						   											  "where season_id in (select id " +
+						   											  					  "from season " + 
+						   											  					  "where year in (" + DatabaseUtil.createInClauseParameterString(years.size()) + ")))) ";
 			}
 			
-			query = query + ")";
-			
-			query = query + ")";
 			
 			if (hasPlayers){
-				query = query + " and player_id in (select id from player where name in " + DatabaseUtil.createInClauseParameterString(playerNames.size()) + " ) ";
+				
+				if (addedWhere){
+					query = query + " and ";
+				}
+				else {
+					query = query + " where ";
+				}
+				
+				query = query + " player_id in (select id from player where name in " + DatabaseUtil.createInClauseParameterString(playerNames.size()) + " ) ";
+			}
+			
+			if (hasTeams){
+				
+				if (addedWhere){
+					query = query + " and ";
+				}
+				else {
+					query = query + " where ";
+				}
+				
+				query = query + " team_id in (select id from team where abbreviation in " + DatabaseUtil.createInClauseParameterString(teamNames.size()) + " ) ";
 			}
 			
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
 			
+			int parameterIndex = 1;
 			if (hasWeeks){
-				int parameterIndex = 1;
+				
 				for (int index = 0; index < weekNumberIntegers.size(); index++){
 					Integer weekNumber = weekNumberIntegers.get(index);
 					statement.setInt(parameterIndex, weekNumber);
@@ -2179,7 +2416,6 @@ public class NFLPicksDataService {
 			}
 			
 			if (hasYears){
-				int parameterIndex = 1;
 				for (int index = 0; index < years.size(); index++){
 					String year = years.get(index);
 					statement.setString(parameterIndex, year);
@@ -2188,10 +2424,17 @@ public class NFLPicksDataService {
 			}
 			
 			if (hasPlayers){
-				int parameterIndex = 1;
 				for (int index = 0; index < playerNames.size(); index++){
 					String playerName = playerNames.get(index);
 					statement.setString(parameterIndex, playerName);
+					parameterIndex++;
+				}
+			}
+			
+			if (hasTeams){
+				for (int index = 0; index < teamNames.size(); index++){
+					String teamName = teamNames.get(index);
+					statement.setString(parameterIndex, teamName);
 					parameterIndex++;
 				}
 			}
@@ -2204,7 +2447,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting picks! years = " + years + ", weekNumbers = " + weekNumbers + ", playerNames = " + playerNames, e);
+			log.error("Error getting picks! years = " + years + ", weekNumbers = " + weekNumbers + ", playerNames = " + playerNames + ", teamNames = " + teamNames, e);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2213,45 +2456,6 @@ public class NFLPicksDataService {
 		return picks;
 	}
 	
-	public List<Pick> getPicks(String year, int week){
-		
-		List<Pick> picks = new ArrayList<Pick>();
-		
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet results = null;
-		
-		try {
-			log.info("Getting picks... year = " + year + ", week = " + week);
-			connection = getConnection();
-			String query = SELECT_PICK +
-						   "where game_id in (select id " +
-						   					 "from game " + 
-						   					 "where week_id in (select id " + 
-						   					 				   "from week " + 
-						   					 				   "where season_id in (select id " +
-						   					 				   					   "from season " +
-						   					 				   					   "where year = ?) " +
-						   					 				   		 "and week = ? ))";
-			statement = connection.prepareStatement(query);
-			statement.setString(1, year);
-			statement.setInt(2, week);
-			results = statement.executeQuery();
-			
-			while (results.next()){
-				Pick pick = mapPick(results);
-				picks.add(pick);
-			}
-		}
-		catch (Exception e){
-			log.error("Error getting picks! year = " + year + ", week = " + week, e);
-		}
-		finally {
-			close(results, statement, connection);
-		}
-		
-		return picks;
-	}
 	
 	public List<Pick> getPicks(){
 		
@@ -2636,6 +2840,8 @@ public class NFLPicksDataService {
 		return players;
 	}
 	
+	
+	
 	public Player getPlayer(int id){
 		
 		Player player = null;
@@ -2664,6 +2870,52 @@ public class NFLPicksDataService {
 		}
 		
 		return player;
+	}
+	
+	public List<Player> getActivePlayers(List<String> years){
+		
+		List<Player> players = new ArrayList<Player>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			String yearInParameterString = DatabaseUtil.createInClauseParameterString(years.size());
+			
+			String query = SELECT_PLAYER + 
+						   "where id in (select player_id " + 
+						   				"from pick " + 
+						   				"where game_id in (select id " + 
+						   								  "from game " + 
+						   								  "where week_id in (select id " + 
+						   								  					"from week " + 
+						   								  					"where season_id in (select id " + 
+						   								  										"from season " + 
+						   								  										"where year in " + yearInParameterString + " ))))";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			for (int index = 0; index < years.size(); index++){
+				String year = years.get(index);
+				int parameterIndex = index + 1;
+				statement.setString(parameterIndex, year);
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Player playerInfo = mapPlayer(results);
+				players.add(playerInfo);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting players!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return players;
 	}
 	
 	public boolean wasPlayerActiveInYear(String player, String year){
@@ -2919,12 +3171,12 @@ order by s.year asc, w.week asc, g.id asc;
 	 */
 	public List<CompactPick> getCompactPicks(){
 		
-		List<CompactPick> compactPicks = getCompactPicks(null, null, null);
+		List<CompactPick> compactPicks = getCompactPicks(null, null, null, null);
 		
 		return compactPicks;
 		
 	}
-	public List<CompactPick> getCompactPicks(List<String> years, List<Integer> weekNumbers, List<String> playerNames) {
+	public List<CompactPick> getCompactPicks(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teams) {
 		
 		List<CompactPick> compactPicks = new ArrayList<CompactPick>();
 		
@@ -2987,6 +3239,7 @@ order by s.year asc, w.week asc, g.id asc;
 			boolean addedWhere = false;
 			boolean hasYears = Util.hasSomething(years);
 			boolean hasWeeks = Util.hasSomething(weekNumbers);
+			boolean hasTeams = Util.hasSomething(teams);
 			
 			if (hasYears){
 				addedWhere = true;
@@ -3001,10 +3254,26 @@ order by s.year asc, w.week asc, g.id asc;
 				}
 				else {
 					whereBase = "where ";
+					addedWhere = true;
 				}
 				
 				String inParameterString = DatabaseUtil.createInClauseParameterString(weekNumbers.size());
 				whereBase = whereBase + " w.week in " + inParameterString;
+			}
+			
+			if (hasTeams){
+				
+				if (addedWhere){
+					whereBase = whereBase + " and ";
+				}
+				else {
+					whereBase = "where ";
+					addedWhere = true;
+				}
+				
+				String inParameterString = DatabaseUtil.createInClauseParameterString(teams.size());
+				whereBase = whereBase + " (home_team.abbreviation in " + inParameterString + 
+									 	  "or away_team.abbreviation in " + inParameterString + ") ";
 			}
 			
 			String orderBy = "order by s.year asc, w.week asc, g.id asc ";
@@ -3031,8 +3300,22 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			if (hasWeeks){
 				for (int index = 0; index < weekNumbers.size(); index++){
-					Integer weekNumber = weekNumbers.get(index);
-					statement.setInt(parameterIndex, weekNumber);
+					String weekNumber = weekNumbers.get(index);
+					statement.setInt(parameterIndex, Integer.parseInt(weekNumber));
+					parameterIndex++;
+				}
+			}
+			
+			if (hasTeams){
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
 					parameterIndex++;
 				}
 			}
@@ -3077,14 +3360,15 @@ order by s.year asc, w.week asc, g.id asc;
 		String awayTeamAbbreviation = results.getString("away_team_abbreviation");
 		String winningTeamAbbreviation = results.getString("winning_team_abbreviation");
 		
-		Map<String, String> playerPicks = new HashMap<String, String>();
+		List<CompactPlayerPick> playerPicks = new ArrayList<CompactPlayerPick>();
 		for (int index = 0; index < playerNamesToUse.size(); index++){
 			String playerNameToUse = playerNamesToUse.get(index);
 			String playerName = playerNames.get(index);
 			
-			String playerPick = results.getString(playerNameToUse);
+			String pick = results.getString(playerNameToUse);
+			CompactPlayerPick playerPick = new CompactPlayerPick(playerName, pick);
 			
-			playerPicks.put(playerName, playerPick);
+			playerPicks.add(playerPick);
 		}
 		
 		compactPick.setYear(year);

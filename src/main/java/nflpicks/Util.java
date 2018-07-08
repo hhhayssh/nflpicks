@@ -234,6 +234,45 @@ public class Util {
 		return values;
 	}
 	
+	public static List<Integer> delimitedStringToIntegerList(String value, String delimiter){
+		
+		if (value == null || delimiter == null){
+			return null;
+		}
+		
+		String[] valuesArray = value.split(delimiter, -1);
+		
+		List<Integer> values = new ArrayList<Integer>(valuesArray.length);
+		
+		for (int index = 0; index < valuesArray.length; index++){
+			String currentValue = valuesArray[index];
+			currentValue = hardcoreTrim(currentValue);
+			values.add(Integer.parseInt(currentValue));
+		}
+		
+		return values;
+	}
+	
+	public static List<Integer> convertStringsToIntegers(List<String> stringValues){
+		
+		if (stringValues == null){
+			return null;
+		}
+		
+		List<Integer> integerValues = new ArrayList<Integer>();
+		
+		for (int index = 0; index < stringValues.size(); index++){
+			String stringValue = stringValues.get(index);
+			
+			Integer integerValue = Integer.parseInt(stringValue);
+			
+			integerValues.add(integerValue);
+		}
+		
+		return integerValues;
+		
+	}
+	
 	public static String[] fillArray(String[] array, int size, String fillString){
 		
 		if (array == null){
