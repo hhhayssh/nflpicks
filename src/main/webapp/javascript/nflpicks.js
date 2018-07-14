@@ -907,18 +907,9 @@ function createPicksGridHtml(picksGrid){
 			rowClassName = 'odd-row';
 		}
 		
-		var pickGameClass = 'pick-game';
-		var pickTeamClass = 'pick-team';
-		var pickResultClass = 'pick-result';
-		
-		if (index + 1 >= picksGrid.picks.length){
-			pickGameClass = 'last-pick-game';
-			pickTeamClass = 'last-pick-team';
-			pickResultClass = 'last-pick-result';
-		}
-		
 		var homeTeamClass = '';
 		var awayTeamClass = '';
+
 		if (isDefined(pick.winningTeamAbbreviation)){
 			if (pick.winningTeamAbbreviation == pick.awayTeamAbbreviation){
 				awayTeamClass = 'winner';
@@ -932,40 +923,77 @@ function createPicksGridHtml(picksGrid){
 			}
 		}
 		
-		//Should make a class called CompactPickGrid
-		//has:
-		//	players
-		//		playerId
-		//		name
-		//	games
-		//		game
-		//			year
-		//			weekNumber
-		//			awayTeam
-		//			homeTeam
-		//			winningTeam
-		//			picks
-		//				playerId
-		//				pickedTeam
+		//on the bottom row.
+		var isBottomRow = false;
+		if (index + 1 == picksGrid.picks.length){
+			isBottomRow = true;
+		}
+		
 		var year = '';
 		var week = '';
 		
 		if (!yearSelected){
-			year = '<td class="' + pickGameClass + '">' + pick.year + '</td>';
+			var cssClassToUse = 'first-pick-cell';
+			if (isBottomRow){
+				cssClassToUse = 'first-pick-cell-bottom';
+			}
+			
+			year = '<td class="' + cssClassToUse + '">' + pick.year + '</td>';
 		}
 		
 		if (!weekSelected){
-			week = '<td class="' + pickGameClass + '">' + pick.weekNumber + '</td>';
+			
+			var cssClassToUse = null;
+			
+			if (!yearSelected && !isBottomRow){
+				cssClassToUse = 'pick-cell';
+			}
+			else if (!yearSelected && isBottomRow){
+				cssClassToUse = 'pick-cell-bottom';
+			}
+			else if (yearSelected && !isBottomRow){
+				cssClassToUse = 'first-pick-cell';
+			}
+			else if (yearSelected && isBottomRow){
+				cssClassToUse = 'first-pick-cell-bottom';
+			}
+		
+			week = '<td class="' + cssClassToUse + '">' + pick.weekNumber + '</td>';
+		}
+
+		var isPickFirstCell = weekSelected && yearSelected;
+		
+		var pickCssClassToUse = null;
+		
+		if (!isPickFirstCell && !isBottomRow){
+			pickCssClassToUse = 'pick-cell';
+		}
+		else if (!isPickFirstCell && isBottomRow){
+			pickCssClassToUse = 'pick-cell-bottom';
+		}
+		else if (isPickFirstCell && !isBottomRow){
+			pickCssClassToUse = 'first-pick-cell';
+		}
+		else if (isPickFirstCell && isBottomRow){
+			pickCssClassToUse = 'first-pick-cell-bottom';
 		}
 		
 		var gameRow = '<tr class="' + rowClassName + '">' + 
 						year +
 						week +
-						'<td class="' + pickGameClass + '">' + 
+						'<td class="' + pickCssClassToUse + '">' + 
 							'<span class="' + awayTeamClass + '">' + pick.awayTeamAbbreviation + '</span>' + 
 							' @ ' + 
 							'<span class="' + homeTeamClass + '">' + pick.homeTeamAbbreviation + '</span>' +  
 						'</td>';
+		
+		var pickGameClass = '';
+		var pickResultClass = 'pick-cell';
+		
+		if (isBottomRow){
+			pickGameClass = 'pick-game-bottom';
+			pickResultClass = 'pick-cell-bottom';
+		}
 	
 		for (var playerIndex = 0; playerIndex < picksGrid.players.length; playerIndex++){
 			var playerName = picksGrid.players[playerIndex];
@@ -1027,7 +1055,7 @@ function createPicksGridHtml(picksGrid){
 				}
 			}
 			
-			gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
+			gameRow = gameRow + '<td class="' + pickGameClass + '">' + 
 									'<span class="' + winnerOrLoserClass + '">' + team + '</span>' + 
 								'</td>' 
 									+ 
@@ -1043,6 +1071,7 @@ function createPicksGridHtml(picksGrid){
 	}
 
 	var weekRecordHtml = '';
+	
 	for (var index = 0; index < playerRecords.length; index++){
 		var playerRecord = playerRecords[index];
 		var pickRecordRowCss = 'pick-record';
@@ -1061,15 +1090,26 @@ function createPicksGridHtml(picksGrid){
 	}
 	
 	var extra = '';
-	if (!weekSelected){
-		extra = '<td class="last-pick-game"></td>';
-	}
 	
 	if (!yearSelected){
-		extra = extra + '<td class="last-pick-game"></td>';
+		extra = extra + '<td class="first-pick-cell-bottom"></td>';
 	}
 	
-	weekRecordHtml = '<tr><td class="last-pick-game"></td>' + extra + weekRecordHtml + '</tr>';
+	if (!weekSelected){
+		var cssClassToUse = 'pick-cell-bottom';
+		if (yearSelected){
+			cssClassToUse = 'first-pick-cell-bottom';
+		}
+		
+		extra = extra + '<td class="' + cssClassToUse + '"></td>';
+	}
+	
+	var xCssClassToUse = 'pick-cell-bottom';
+	if (yearSelected && weekSelected){
+		xCssClassToUse = 'first-pick-cell-bottom';
+	}
+	
+	weekRecordHtml = '<tr>' + extra + '<td class="' + xCssClassToUse + '"></td>' +  weekRecordHtml + '</tr>';
 	
 	var gridBodyHtml = '<tbody>' + weekRecordHtml + pickRowsHtml + '</tbody>';
 	

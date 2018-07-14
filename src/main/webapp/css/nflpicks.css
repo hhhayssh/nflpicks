@@ -76,6 +76,35 @@ html, body {
 	padding-right: 15px;
 }
 
+.end-pick-game {
+	border-left: thin solid black;
+	border-right: thin solid black;
+}
+
+.first-pick-cell {
+	border-left: thin solid black;
+	border-right: thin solid black;
+}
+
+.pick-cell {
+	border-right: thin solid black;
+}
+
+.pick-cell-bottom {
+	border-right: thin solid black;
+	border-bottom: thin solid black;
+}
+
+.first-pick-cell-bottom {
+	border-left: thin solid black;
+	border-right: thin solid black;
+	border-bottom: thin solid black;
+}
+
+.pick-game-bottom {
+	border-bottom: thin solid black;
+}
+
 .pick-game {
 	border-left: thin solid black;
 	border-right: thin solid black;
