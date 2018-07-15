@@ -403,7 +403,15 @@ function updateRecords(){
 	var year = getSelectedYear();
 	var week = getSelectedWeek();
 	
-	$.ajax({url: 'nflpicks?target=standings&player=' + player + '&year=' + year + '&week=' + week,
+	var weekToUse = week;
+	if ('regular-season' == week){
+		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
+	}
+	else if ('playoffs' == week){
+		weekToUse = '18,19,20,21';
+	}
+	
+	$.ajax({url: 'nflpicks?target=standings&player=' + player + '&year=' + year + '&week=' + weekToUse,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -562,7 +570,20 @@ function updatePicks(){
 	
 	havePicksBeenShown = true;
 	
-	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + player + '&year=' + year + '&week=' + week + '&team=' + team,
+	//change this to take fromYear and toYear?
+	//or just put in the weeks ...
+	//regular season = 1,2,3, ... 17
+	//playoffs = 18 ... 21
+	
+	var weekToUse = week;
+	if ('regular-season' == week){
+		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
+	}
+	else if ('playoffs' == week){
+		weekToUse = '18,19,20,21';
+	}
+	
+	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + player + '&year=' + year + '&week=' + weekToUse + '&team=' + team,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -601,7 +622,15 @@ function updateStats(){
 	var week = getSelectedWeek();
 	var team = getSelectedTeam();
 	
-	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + week + '&team=' + team,
+	var weekToUse = week;
+	if ('regular-season' == week){
+		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
+	}
+	else if ('playoffs' == week){
+		weekToUse = '18,19,20,21';
+	}
+	
+	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + weekToUse + '&team=' + team,
 			contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -866,7 +895,8 @@ function createPicksGridHtml(picksGrid){
 		yearHeader = '<th align="left" class="table-header">Year</th>';
 	}
 	
-	var weekSelected = isSpecificWeekSelected();
+	var selectedWeek = getSelectedWeek();
+	var weekSelected = !('all' == selectedWeek || 'regular-season' == selectedWeek || 'playoffs' == selectedWeek);
 	if (!weekSelected){
 		weekHeader = '<th align="left" class="table-header">Week</th>';
 	}
