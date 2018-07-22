@@ -3,6 +3,12 @@ var previousType = null;
 
 var havePicksBeenShown = false;
 
+var pushPreviousParameters = true;
+var previousParameters = null;
+
+var navigationForwardStack = [];
+var navigationBackwardStack = [];
+
 $(document).ready(
 	function(){
 		//Do this in edit too....
@@ -81,6 +87,20 @@ function getUrlParameters() {
     return urlParameters;
 }
 
+function getSelectedParameters(){
+	
+	var parameters = {};
+	
+	parameters.type = getSelectedType();
+	parameters.player = getSelectedPlayer();
+	parameters.year = getSelectedYear();
+	parameters.week = getSelectedWeek();
+	parameters.statName = getSelectedStatName();
+	parameters.team = getSelectedTeam();
+	
+	return parameters;
+}
+
 function getSelectionCriteriaAndInitialize(){
 	
 	$.ajax({url: 'nflpicks?target=selectionCriteria',
@@ -142,9 +162,79 @@ function getSelectionCriteriaAndInitialize(){
 	});
 }
 
-function updateView(){
+function navigateForward(){
 	
+	//When navigating foward...
+	//	1. The current parameters should go on the previous stack.
+	//	2. Get the forward parameters off the forward stack.
+	//	3. Set them as the selections.
+	//	4. Update the view and make sure it doesn't push any parameters on any
+	//	   stack
+	//	5. Flip the switch back so any other navigation will push parameters
+	//	   on the previous stack.
+	var currentParameters = getSelectedParameters();
+	navigationBackwardStack.push(currentParameters);
+	
+	var parameters = navigationForwardStack.pop();
+	
+	setSelectionsFromParameters(parameters);
+	
+	pushPreviousParameters = false;
+	updateView();
+	pushPreviousParameters = true;
+}
+
+function navigateBackward(){
+
+	//When navigating backward...
+	//	1. The current parameters should go on the forward stack since they're
+	//	   what we want to show if people navigate forward
+	//	2. The parameters we want to use come off the backward stack.
+	//	3. Flip the switch that says to not push any parameters on in the view function.
+	//	4. Update based on the parameters we got.
+	//	5. Flip the switch back so that any other navigation causes the parameters
+	//	   to go on the previous stack.
+	
+	var currentParameters = getSelectedParameters();
+	navigationForwardStack.push(currentParameters);
+	
+	var parameters = navigationBackwardStack.pop();
+	
+	setSelectionsFromParameters(parameters);
+	
+	pushPreviousParameters = false;
+	updateView();
+	pushPreviousParameters = true;
+}
+
+function updateNavigationLinksVisibility(){
+	
+	if (navigationForwardStack.length == 0){
+		$('#navigationFowardContainer').hide();
+	}
+	else {
+		$('#navigationFowardContainer').show();
+	}
+	
+	if (navigationBackwardStack.length == 0){
+		$('#navigationBackwardContainer').hide();
+	}
+	else {
+		$('#navigationBackwardContainer').show();
+	}
+}
+
+function updateView(){
+
 	var type = $('#type option:selected').val();
+	
+	//we want to push the previous parameters if we came here from a navigation
+	//if we came here from the back button, we don't want to
+	//Don't do this if it came from the back button...
+	if (previousParameters != null && pushPreviousParameters){
+		pushBackwardParameters(previousParameters);
+		navigationForwardStack = [];
+	}
 	
 	updateSelectors(type);
 	
@@ -157,6 +247,20 @@ function updateView(){
 	else if ('stats' == type){
 		updateStats();
 	}
+	
+	//At this point, these are the current parameters...
+	//We want to push the previous ones ...
+	//these should be in like a "staging area
+	previousParameters = getSelectedParameters();
+	updateNavigationLinksVisibility();
+}
+
+function pushFowardParameters(parameters){
+	navigationForwardStack.push(parameters);
+}
+
+function pushBackwardParameters(parameters){
+	navigationBackwardStack.push(parameters);
 }
 
 function updateSelectors(type){
@@ -1256,9 +1360,10 @@ function createWeeksWonHtml(weekRecords){
 			var recordText = year + record.week.label + ' (' + record.record.wins + ' - ' + record.record.losses +
 							 ties + ')';
 			
-			var picksLink = createPicksLink(recordText, record.season.year, record.week.weekNumber, null, weekRecord.player.name);
+			var picksLink = createPicksLink(record.week.label, record.season.year, record.week.weekNumber, null, weekRecord.player.name);
 			
-			weekRecordsHtml = weekRecordsHtml + '<li>' + picksLink + '</li>';
+			weekRecordsHtml = weekRecordsHtml + '<li>' + year + picksLink + ' (' + record.record.wins + ' - ' + record.record.losses +
+			 ties + ')' + '</li>';
 		}
 		
 		weekRecordsHtml = weekRecordsHtml + '</ul></div>';
@@ -1486,7 +1591,7 @@ function createWeekStandingsHtml(playerWeekRecords){
 	var isWeekSelected = true;
 	var weekHeader = '';
 	var selectedWeek = getSelectedWeek();
-	if ('all' == selectedWeek){
+	if ('all' == selectedWeek || 'regular-season' == selectedWeek || 'playoffs' == selectedWeek){
 		isWeekSelected = false;
 		weekHeader = '<th class="standings-table-header">Week</th>';
 	}
