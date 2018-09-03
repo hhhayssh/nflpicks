@@ -153,72 +153,83 @@ public class NFLPicksDataService {
 	//queries to pull that info out.  Here because it's faster to do that work on the database side than to
 	//pull all the crap out and do it in java.
 	protected static final String SELECT_RECORD = "select pick_totals.player_id, " + 
-													    "pick_totals.player_name, " + 
-													    "sum(pick_totals.wins) as wins, " + 
-													    "sum(pick_totals.losses) as losses, " +
-													    "sum(pick_totals.ties) as ties " +
-												 "from (select pl.id as player_id, " + 
-												 			  "pl.name as player_name, " + 
-												 			 "(case when p.team_id = g.winning_team_id " + 
-												 			 	   "then 1 " + 
-												 			 	   "else 0 " + 
-												 			  "end) as wins, " + 
-												 			 //Only count the pick as a loss if there was a pick.  If there wasn't (p.team_id = null), then
-												 			 //don't count that.
-												 			 "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
-												 			 	   "then 1 " + 
-												 			 	   "else 0 " + 
-												 			  "end) as losses, " + 
-												 			 "(case when g.winning_team_id = -1 " + 
+													     "pick_totals.player_name, " + 
+													     "sum(pick_totals.wins) as wins, " + 
+													     "sum(pick_totals.losses) as losses, " +
+													     "sum(pick_totals.ties) as ties " +
+												  "from (select pl.id as player_id, " + 
+												 			   "pl.name as player_name, " + 
+												 			  "(case when p.team_id = g.winning_team_id " + 
+												 			 	    "then 1 " + 
+												 			 	    "else 0 " + 
+												 			   "end) as wins, " + 
+												 			  //Only count the pick as a loss if there was a pick.  If there wasn't (p.team_id = null), then
+												 			  // don't count that.
+												 			  "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+												 			 	    "then 1 " + 
+												 			 	    "else 0 " + 
+												 			   "end) as losses, " + 
+												 			  "(case when g.winning_team_id = -1 " + 
 												 			 	    "then 1 " + 
 												 			 	    "else 0 " +
-												 			  "end) as ties " +
-												 			  "from pick p join game g on p.game_id = g.id " + 
-												 			  	   "join player pl on p.player_id = pl.id " +
+												 			   "end) as ties " +
+												 	    "from pick p join game g on p.game_id = g.id " + 
+												 			 "join player pl on p.player_id = pl.id " +
 												 			  	   //This will be inserted later so that we only get the records we need.  Makes it
 												 			  	   //so we can restrict on stuff like the season, the player, ....
 												 			  	   "%s " + 
 												 		") pick_totals " + 
 												"group by pick_totals.player_id, pick_totals.player_name ";
 	
+	/**
+	 * 
+	 * This query will get the records that the players have in a week.  It'll let you put in the criteria
+	 * for selecting the weeks and then group the records by their weeks in the select.  
+	 * 
+	 */
 	protected static final String SELECT_WEEK_RECORDS = "select pick_totals.season_id, " + 
-													 		"pick_totals.year, " + 
-													 		"pick_totals.player_id, " + 
-													 		"pick_totals.player_name, " + 
-													 		"pick_totals.week_id, " + 
-													 		"pick_totals.week, " + 
-													 		"pick_totals.week_label, " + 
-													 		"sum(pick_totals.wins) as wins, " + 
-													 		"sum(pick_totals.losses) as losses, " + 
-													 		"sum(pick_totals.ties) as ties " + 
-													 "from (select pl.id as player_id, " + 
-													 		 	  "pl.name as player_name, " + 
-													 		 	  "s.id as season_id, " + 
-													 		 	  "s.year as year, " + 
-													 		 	  "w.id as week_id, " + 
-													 		 	  "w.week as week, " + 
-													 		 	  "w.label as week_label, " + 
-													 		 	  "(case when p.team_id = g.winning_team_id " + 
-													 		 	  	    "then 1 " + 
-													 		 	  	    "else 0 " + 
-													 		 	  "end) as wins, " + 
-													 		 	  "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
-													 		 	  	    "then 1 " + 
-													 		 	  	    "else 0 " + 
-													 		 	  "end) as losses, " + 
-													 		 	  "(case when g.winning_team_id = -1 " + 
-													 		 	  	    "then 1 " + 
-													 		 	  	    "else 0 " + 
-													 		 	  "end) as ties " + 
-													 	   "from pick p join game g on p.game_id = g.id " + 
-													 	        "join player pl on p.player_id = pl.id " + 
-													 	        "join week w on g.week_id = w.id " + 
-													 	        "join season s on w.season_id = s.id " + 
-													 	        " %s " + 
-													 	   ") pick_totals " + 
-													"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label " + 
-													"order by year, week, player_name ";
+													 		   "pick_totals.year, " + 
+													 		   "pick_totals.player_id, " + 
+													 		   "pick_totals.player_name, " + 
+													 		   "pick_totals.week_id, " + 
+													 		   "pick_totals.week, " + 
+													 		   "pick_totals.week_label, " + 
+													 		   "sum(pick_totals.wins) as wins, " + 
+													 		   "sum(pick_totals.losses) as losses, " + 
+													 		   "sum(pick_totals.ties) as ties " + 
+													    "from (select pl.id as player_id, " + 
+													 		 	  	 "pl.name as player_name, " + 
+													 		 	  	 "s.id as season_id, " + 
+													 		 	  	 "s.year as year, " + 
+													 		 	  	 "w.id as week_id, " + 
+													 		 	  	 "w.week as week, " + 
+													 		 	  	 "w.label as week_label, " + 
+													 		 	  	 "(case when p.team_id = g.winning_team_id " + 
+													 		 	  	       "then 1 " + 
+													 		 	  	       "else 0 " + 
+													 		 	  	 "end) as wins, " + 
+													 		 	  	 "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+													 		 	  	       "then 1 " + 
+													 		 	  	       "else 0 " + 
+													 		 	  	 "end) as losses, " + 
+													 		 	  	 "(case when g.winning_team_id = -1 " + 
+													 		 	  	       "then 1 " + 
+													 		 	  	       "else 0 " + 
+													 		 	     "end) as ties " + 
+													 		  "from pick p join game g on p.game_id = g.id " + 
+													 	           "join player pl on p.player_id = pl.id " + 
+													 	           "join week w on g.week_id = w.id " + 
+													 	           "join season s on w.season_id = s.id " + 
+													 	           " %s " + 
+													 	     ") pick_totals " + 
+													    "group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label " + 
+													    "order by year, week, player_name ";
 	
+	/**
+	 * 
+	 * A "base" query for selecting the records for weeks.  Doesn't do any ordering and expects to be ran as part of another query.
+	 * 
+	 */
 	protected static final String SELECT_WEEK_RECORDS_BASE = "select pick_totals.season_id, " + 
 															 		"pick_totals.year, " + 
 															 		"pick_totals.player_id, " + 
@@ -256,8 +267,24 @@ public class NFLPicksDataService {
 															 	   ") pick_totals " + 
 															"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label ";
 	
+	/**
+	 * 
+	 * Gets the week records and orders them so that we can easily go through and pick out the best records for 
+	 * a given week.
+	 * 
+	 */
 	protected static final String SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD = SELECT_WEEK_RECORDS_BASE + " order by year asc, week asc, wins desc, losses asc ";
 	
+	/**
+	 * 
+	 * This query will get the best weeks that we have for a group of players, weeks, years... or whatever.  It will calculate
+	 * the win percentage for each week and use the wins in case of a tie.
+	 * 
+	 * First, it gets every pick and marks a 1 for each win or loss.  Then, it groups them by player and week and adds up the totals
+	 * for each "mark" it made for each win or loss.  Then, gets the win percentage of each week and sorts by that.  So, it's 3 queries
+	 * wrapped into one.
+	 * 
+	 */
 	protected static final String SELECT_BEST_WEEKS = "select best_weeks.season_id, " + 
 															 "best_weeks.year, " + 
 															 "best_weeks.player_id, " + 
@@ -269,8 +296,7 @@ public class NFLPicksDataService {
 															 "best_weeks.losses, " + 
 															 "best_weeks.ties, " + 
 															 "best_weeks.number_of_games, " + 
-															 "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3) as win_percentage " + 
-															 //"(best_weeks.number_of_games * round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3)) - best_weeks.losses as score " + 
+															 "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3) as win_percentage " +  
 															"from (select pick_totals.season_id, " + 
 																	     "pick_totals.year, " + 
 																	     "pick_totals.player_id, " + 
@@ -311,41 +337,98 @@ public class NFLPicksDataService {
 													") best_weeks " + 
 													"order by win_percentage desc, wins desc ";
 	
-	protected static final String SELECT_RECORDS_FOR_YEAR = "select pick_totals.season_id, " + 
-																   "pick_totals.year, " + 
-																   "pick_totals.player_id, " + 
-																   "pick_totals.player_name, " + 
-																   "sum(pick_totals.wins) as wins, " + 
-																   "sum(pick_totals.losses) as losses, " + 
-																   "sum(pick_totals.ties) as ties\n" + 
-														    "from (select pl.id as player_id, " + 
-																		 "pl.name as player_name, " + 
-																		 "s.id as season_id, " + 
-																		 "s.year as year, " + 
-																		 "w.id as week_id, " + 
-																		 "w.week as week, " + 
-																		 "w.label as week_label, " + 
-																		 "(case when p.team_id = g.winning_team_id " + 
-																		 "then 1 " + 
-																		 "else 0 " + 
-																		 "end) as wins, " + 
-																		 "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
-																		 "then 1 " + 
-																		 "else 0 " + 
-																		 "end) as losses, " + 
-																		 "(case when g.winning_team_id = -1 " + 
-																		 "then 1 " + 
-																		 "else 0 " + 
-																		 "end) as ties " + 
-																 "from pick p join game g on p.game_id = g.id " + 
-																 	  "join player pl on p.player_id = pl.id " + 
-																 	  "join week w on g.week_id = w.id " + 
-																 	  "join season s on w.season_id = s.id " + 
-																 " %s " +
-																") pick_totals " + 
-														  "group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
-														  "order by year asc, wins desc, player_id ";
+	/**
+	 * 
+	 * Gets the records for a period of time and orders them so that it's easy to pick out the person who
+	 * has the best record for that period of time.  It marks each win or loss with a 1 and then adds up each
+	 * to get the total number of wins or losses.  Then, it orders by year, wins, and player, so that the person
+	 * with the best record for a period of time will be at the top of that "period" of time.
+	 * 
+	 * Like if the "period of time" is a year, then we can get the first person for a year and then skip to the next year to get
+	 * the person for the next year.  
+	 * 
+	 * I made it so we could, hopefully, answer the question "who has the best record for period 'X'?" in a fast way.  I thought
+	 * about doing this only in sql, but then I think I would have had to use the "rank" feature and that seems like it might not
+	 * be "database independent" and might tie this to postgres.  There's probably a way to do it all in "ansi" sql, but I think
+	 * doing it this way and then getting the best one for each period in java seems ok. 
+	 * 
+	 * 
+	 */
+	protected static final String SELECT_ORDERED_BEST_RECORDS = "select pick_totals.season_id, " + 
+																   	   "pick_totals.year, " + 
+																   	   "pick_totals.player_id, " + 
+																   	   "pick_totals.player_name, " + 
+																   	   "sum(pick_totals.wins) as wins, " + 
+																   	   "sum(pick_totals.losses) as losses, " + 
+																   	   "sum(pick_totals.ties) as ties " + 
+														         "from (select pl.id as player_id, " + 
+																		 	  "pl.name as player_name, " + 
+																		 	  "s.id as season_id, " + 
+																		 	  "s.year as year, " + 
+																		 	  "w.id as week_id, " + 
+																		 	  "w.week as week, " + 
+																		 	  "w.label as week_label, " + 
+																		 	  "(case when p.team_id = g.winning_team_id " + 
+																		 	  "then 1 " + 
+																		 	  "else 0 " + 
+																		 	  "end) as wins, " + 
+																		 	  "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+																		 	  "then 1 " + 
+																		 	  "else 0 " + 
+																		 	  "end) as losses, " + 
+																		 	  "(case when g.winning_team_id = -1 " + 
+																		 	  "then 1 " + 
+																		 	  "else 0 " + 
+																		 	  "end) as ties " + 
+																	  "from pick p join game g on p.game_id = g.id " + 
+																 	  	   "join player pl on p.player_id = pl.id " + 
+																 	  	   "join week w on g.week_id = w.id " + 
+																 	  	   "join season s on w.season_id = s.id " + 
+																 	  " %s " +
+																      ") pick_totals " + 
+															    "group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
+															    "order by year asc, wins desc, player_id ";
 	
+	/**
+	 * 
+	 * This monster of a query gets how accurate a player's picks were for a given team over a given time period.
+	 * 
+	 * First, it does a "cross join" of teams, players, and seasons so that we have something like this:
+	 * 
+	 * 		Jonathan	BUF		2016
+	 * 		Tim			IND		2015
+	 * 		...
+	 * 
+	 * So, basically, we get the set of all possible player, year, and team combinations, for a given "time period".  Like we can say "oh, only
+	 * when the year is 2015, or only when the team is buffalo, or only when the player is Benny boy.  Then, it just goes through and "picks"
+	 * out the the individual picks for each team, player and year from the "game" and "pick" tables using the player, team,
+	 * and year in the set.
+	 * 
+	 * So, for example, if the player was Jonathan, the team Buffalo, and the year 2016, we'd want to find out these things:
+	 * 
+	 * 		1. How many wins did the Bills have in 2016?
+	 * 		2. How many losses?
+	 * 		3. How many times did Jonathan predict they would win?
+	 * 		4. How many times did he predict they would lose?
+	 * 		5. How many times was he right when picking they would win?
+	 *		6. How many times was he wrong when picking they would win?
+	 *		7. How many times was he right when picking they would lose?
+	 *		8. How many times was he wrong when picking they would lose?
+	 *
+	 *		... Spoiler alert, he was never wrong and they never lost.
+	 *
+	 * To find out each one, we just have to look at the pick and game tables.  We can take the team and season and figure out
+	 * how many times a team won or lost from the game table.  We can take the team, season, and player, go to the game
+	 * and pick tables, and figure out how many times a player picked a team in a given season and whether that team won or 
+	 * lost the game they picked.
+	 * 
+	 * It's almost like there are two steps:
+	 * 
+	 * 		1. Get the set of all possible "coordinates" (team, player, and year).
+	 * 		2. Use each combination of coordinates to figure out the specific counts by going
+	 * 		   into the pick and games tables with the ids of the coordinates (team id, player id, season id).
+	 * 
+	 */
 	protected static final String SELECT_PICK_ACCURACY_SUMMARY = "select pick_accuracy_summary.player_id as player_id, " + 
 																 	    "pick_accuracy_summary.player_name as player_name, " + 
 																 	    "pick_accuracy_summary.team_id as team_id, " +
@@ -372,6 +455,8 @@ public class NFLPicksDataService {
 																 			  "t.name as team_name, " + 
 																 			  "t.nickname as team_nickname, " +
 																 			  "t.abbreviation as team_abbreviation, " + 
+																 			  //The number of wins for the team is the number of times the team with their id
+																 			  //was the winning time in weeks that were in the season that we're on.
 																 			  "(select count(*) " + 
 																 			   "from game g " + 
 																 			   "where (g.home_team_id = t.id or " + 
@@ -381,6 +466,8 @@ public class NFLPicksDataService {
 																 			    	  					"from week w " + 
 																 			    	  					"where w.season_id = s.id) " + 
 																 			  ") as actual_wins, " + 
+																 			  //Same deal with losses, except we need to count when it wasn't them and when
+																 			  //it wasn't a tie (team id = -1).
 																 			  "(select count(*) " + 
 																 			   "from game g " + 
 																 			   "where (g.home_team_id = t.id or " + 
@@ -390,6 +477,7 @@ public class NFLPicksDataService {
 																 			   	 	  					"from week w " + 
 																 			   	 	  					"where w.season_id = s.id) " + 
 																 			  ") as actual_losses, " + 
+																 			  //With ties, it's just the number of times they were in a game where the winning team was "-1".
 																 			  "(select count(*) " + 
 																 			   "from game g " + 
 																 			   "where (g.home_team_id = t.id or " + 
@@ -399,6 +487,13 @@ public class NFLPicksDataService {
 																 			   	      				    "from week w " + 
 																 			   	      				    "where w.season_id = s.id) " + 
 																 			  ") as actual_ties, " + 
+																 			  //To get the predicted wins, we just have to look at the picks and see
+																 			  //how many times the player we're on picked the team we're on to win in 
+																 			  //a week that's in the season we're on.
+																 			  //
+																 			  //We have 3 "coordinates" at this point: team id, player id, season id.
+																 			  //We just have to go and do a normal query to see how many times the player
+																 			  //picked the team to win in the season.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -407,6 +502,10 @@ public class NFLPicksDataService {
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id) " + 
 																 			  ") as predicted_wins, " + 
+																 			  //With losses, they didn't pick the team, so we can't use the team id to go
+																 			  //directly into the pick table.  Instead, we have to go through the game
+																 			  //table and get the game that involves the team they picked (whether they're the
+																 			  //home or away team), and then go to the pick table with that game. 
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -415,7 +514,9 @@ public class NFLPicksDataService {
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id) " + 
-																 			  ") as predicted_losses, " + 
+																 			  ") as predicted_losses, " +
+																 			  //The number of times they were right is the number of times the game involved the team
+																 			  //we're on, they picked that team, and the week is in the season we're on.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -425,15 +526,21 @@ public class NFLPicksDataService {
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id) " + 
 																 			  ") as times_right, " + 
+																 			  //The number of times they were wrong is the number of times the game involved the 
+																 			  //team we're on, the winning team isn't the team they picked, and the game is in
+																 			  //a week that's in the season we're on.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
 																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-																 			   		 "and g.winning_team_id != p.team_id " + 
+																 			   		 "and g.winning_team_id != p.team_id " +
+																 			   		 "and g.winning_team_id != -1 " + 
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id) " + 
 																 			  ") as times_wrong, " + 
+																 			  //The number of times they picked a team to win and they were right is when
+																 			  //they picked the team, the team won the game, and the week is in the season we're on.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -443,6 +550,9 @@ public class NFLPicksDataService {
 																 			   		 				   "where w.season_id = s.id) " + 
 																 			   		 "and g.winning_team_id = p.team_id " + 
 																 			  ") as times_picked_to_win_right, " + 
+																 			  //The number of times they picked a team to win and they were wrong is when they
+																 			  //picked the team, the team didn't win the game, it wasn't a tie, and the game 
+																 			  //is in the season we're on.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -451,7 +561,11 @@ public class NFLPicksDataService {
 																 			   	     				   "from week w " + 
 																 			   	     				   "where w.season_id = s.id) " + 
 																 			   	     "and g.winning_team_id != p.team_id " + 
-																 			  ") as times_picked_to_win_wrong, " + 
+																 			   	     "and g.winning_team_id != -1 " +
+																 			  ") as times_picked_to_win_wrong, " +
+																 			  //The number of times they picked a team to lose and were right is when the game
+																 			  //involves the team we're on, their pick for the game wasn't the team we're on,
+																 			  //and the winning team isn't the team we're on (and it wasn't a tie).
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -460,8 +574,12 @@ public class NFLPicksDataService {
 																 			     	 "and g.week_id in (select w.id " + 
 																 			     	 				   "from week w " + 
 																 			     	 				   "where w.season_id = s.id) " + 
-																 			     	 "and g.winning_team_id != t.id " + 
+																 			     	 "and g.winning_team_id != t.id " +
+																 			     	 "and g.winning_team_id != -1 " +
 																 			  ") as times_picked_to_lose_right, " + 
+																 			  //The number of times they picked a team to lose and were wrong is when the game
+																 			  //involves the team we're on, they didn't pick that team to win, the team won anyway,
+																 			  //and the week is in the season we're on.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -472,9 +590,15 @@ public class NFLPicksDataService {
 																 			   	 	 				   "where w.season_id = s.id) " + 
 																 			   	 	 "and g.winning_team_id = t.id " + 
 																 			   ") as times_picked_to_lose_wrong " + 
+																 	    //These "cross joins" give us the "cartesian product" of all the players, teams, and season.
+																 		//This basically gives us the set of coordinates and we just have to take each "coordinate"
+																 	    //(each team, player, and season) and use it to do the counts.
 																 	    "from team t cross join player pl cross join season s " + 
+																 	    //This is so we can add in a filter for only a certain teams, players, or seasons.
 																 	    " %s " + 
 																		") pick_accuracy_summary " + 
+																 //We want everything per player and team, so make sure we group by that so that we get counts
+															     //for a player's picks for a particular team.
 															     "group by player_id, player_name, team_id, team_name, team_nickname, team_abbreviation, division_id ";
 	
 	/**
@@ -497,22 +621,6 @@ public class NFLPicksDataService {
 		setDataSource(dataSource);
 	}
 	
-	//get all
-	//get get all shallow
-	//get one id
-	//get one id shallow
-	//save
-	//update
-	//insert
-	
-	//season
-	//conference
-	//division
-	//team
-	//game
-	//player
-	//pick
-
 	/**
 	 * 
 	 * This function gets full versions of all the season objects.  Not much to it.
@@ -2353,7 +2461,7 @@ public class NFLPicksDataService {
 				query = query + " where game_id in (select id " + 
 												   "from game " + 
 												   "where week_id in (select id " + 
-												   					 "from week" +
+												   					 "from week " +
 												   					 "where week in (" + DatabaseUtil.createInClauseParameterString(weekNumberIntegers.size()) + "))) ";
 				
 				addedWhere = true;
@@ -2366,15 +2474,16 @@ public class NFLPicksDataService {
 				}
 				else {
 					query = query + " where ";
+					addedWhere = true;
 				}
 				
-				query = query +  " where game_id in (select id " + 
-						   							"from game " + 
-						   							"where week_id in (select id " + 
-						   											  "from week" +
-						   											  "where season_id in (select id " +
-						   											  					  "from season " + 
-						   											  					  "where year in (" + DatabaseUtil.createInClauseParameterString(years.size()) + ")))) ";
+				query = query +  " game_id in (select id " + 
+						   					  "from game " + 
+						   					  "where week_id in (select id " + 
+						   									    "from week " +
+						   										"where season_id in (select id " +
+						   														    "from season " + 
+						   											  				"where year in (" + DatabaseUtil.createInClauseParameterString(years.size()) + ")))) ";
 			}
 			
 			
@@ -2385,6 +2494,7 @@ public class NFLPicksDataService {
 				}
 				else {
 					query = query + " where ";
+					addedWhere = true;
 				}
 				
 				query = query + " player_id in (select id from player where name in " + DatabaseUtil.createInClauseParameterString(playerNames.size()) + " ) ";
@@ -2397,6 +2507,7 @@ public class NFLPicksDataService {
 				}
 				else {
 					query = query + " where ";
+					addedWhere = true;
 				}
 				
 				query = query + " team_id in (select id from team where abbreviation in " + DatabaseUtil.createInClauseParameterString(teamNames.size()) + " ) ";
@@ -4199,7 +4310,7 @@ order by s.year asc, w.week asc, g.id asc;
 				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(years.size());
 			}
 			
-			String query = String.format(SELECT_RECORDS_FOR_YEAR, recordsForYearCriteria);
+			String query = String.format(SELECT_ORDERED_BEST_RECORDS, recordsForYearCriteria);
 			
 			statement = connection.prepareStatement(query);
 			

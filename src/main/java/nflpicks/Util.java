@@ -347,6 +347,10 @@ public class Util {
 	
 	public static String replaceUrlCharacters(String value){
 		
+		if (value == null){
+			return null;
+		}
+		
 		String replacedValue = value.replace("%20", " ");
 		
 		return replacedValue;

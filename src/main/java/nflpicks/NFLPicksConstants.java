@@ -1,10 +1,5 @@
 package nflpicks;
 
-import java.util.List;
-import java.util.Map;
-
-import nflpicks.model.Game;
-
 /**
  * 
  * This is so there's one place for the constants that get used
@@ -166,7 +161,17 @@ public interface NFLPicksConstants {
 	public static final String JSON_COMPACT_PLAYER_PICK_PLAYER = "player";
 	public static final String JSON_COMPACT_PLAYER_PICK_PICK = "pick";
 	
+	/**
+	 * 
+	 * Says we're doing an import of picks with the data manager.
+	 * 
+	 */
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	
+	/**
+	 * 
+	 * Says we're doing an export of picks with the data manager.
+	 * 
+	 */
 	public static final String DATA_MANAGEMENT_TYPE_EXPORT = "export";
 }
