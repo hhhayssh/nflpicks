@@ -4287,6 +4287,47 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 	}
 	
+	public List<String> getCompletedYears(){
+		
+		List<String> completedYears = new ArrayList<String>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = dataSource.getConnection();
+			
+			String query = "select s.year " +
+						   "from season s " + 
+						   "where s.id in (select w.season_id " + 
+						   				  "from week w " + 
+						   				  "where w.week = 21 " + 
+						   				  	    "and w.id in (select g.week_id " + 
+						   				  	    			 "from game g " + 
+						   				  	    			 "where g.winning_team_id is not null)) ";
+			
+			statement = connection.prepareStatement(query);
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				String year = results.getString("year");
+				completedYears.add(year);
+			}
+			
+			Collections.sort(completedYears);
+		}
+		catch (Exception e){
+			log.error("Error getting completed years!", e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return completedYears;
+	}
+	
 	public List<Championship> getChampionships(List<String> years){
 		
 		//have to get all the records?
@@ -4306,9 +4347,14 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			String recordsForYearCriteria = "";
 			
+			if (years == null || years.size() > 0){
+				years = getCompletedYears();
+			}
+			
 			if (years != null && years.size() > 0){
 				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(years.size());
 			}
+			
 			
 			String query = String.format(SELECT_ORDERED_BEST_RECORDS, recordsForYearCriteria);
 			
