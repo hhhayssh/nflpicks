@@ -85,6 +85,25 @@ public class DatabaseUtil {
 	
 	/**
 	 * 
+	 * Tries to rollback the given connection and catches any errors that
+	 * happen.
+	 * 
+	 * @param connection
+	 */
+	public static void rollback(Connection connection){
+		
+		try {
+			if (connection != null){
+				connection.rollback();
+			}
+		}
+		catch (Exception e){
+			log.error("Error rolling back connection!", e);
+		}
+	}
+	
+	/**
+	 * 
 	 * This function will create a string like "(?, ?, ?, ?, ...)"
 	 * that can be used as part of an "in" clause in an sql query.
 	 * 

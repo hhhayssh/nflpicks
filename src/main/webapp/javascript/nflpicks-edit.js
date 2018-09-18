@@ -312,6 +312,9 @@ function createEditGamesGridHtml(games){
 		if (isDefined(game.winningTeam)){
 			winningTeamId = game.winningTeam.id;
 		}
+		else if (isDefined(game.tie) && game.tie){
+			winningTeamId = -1;
+		}
 		
 		var teamSelectHtml = createSelectHtml(selectId, options, winningTeamId, 'team-select', null); 
 		

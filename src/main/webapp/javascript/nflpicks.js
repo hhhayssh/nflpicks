@@ -2195,3 +2195,223 @@ function getYearForCurrentSeason(){
 	
 	return year;
 }
+
+function updateMakePicks(){
+	
+	$.ajax({url: 'nflpicks?target=makePicks',
+			contentType: 'application/json; charset=UTF-8'}
+	)
+	.done(function(data) {
+		var gamesForNextWeek = $.parseJSON(data);
+		
+		var picksGridHtml = createMakePicksGrid(gamesForNextWeek);
+		
+		currentMakePicksGames = gamesForNextWeek;
+		
+		$('#contentContainer').empty();
+		$('#contentContainer').append(picksGridHtml);
+	})
+	.fail(function() {
+	})
+	.always(function() {
+	});
+	
+}
+
+var currentMakePicksGames = null;
+
+function createMakePicksGrid(games){
+	var picksGridHtml = '';
+	
+	var gridHeaderHtml = '<thead>' +
+						 	'<th align="left" class="table-header">Game</th>' + 
+						 	'<th class="table-header">Pick</th>' + 
+						 '</thead>';
+	
+	var pickRowsHtml = '';
+	
+	for (var index = 0; index < games.length; index++){
+		var game = games[index];
+		
+		var rowClassName = 'even-row';
+		
+		if (index % 2 == 1){
+			rowClassName = 'odd-row';
+		}
+
+		var pickGameClass = 'edit-pick-game';
+		var pickTeamClass = 'edit-pick-team';
+		
+		if (index + 1 >= games.length){
+			pickGameClass = 'edit-pick-last-game';
+			pickTeamClass = 'edit-pick-last-team';
+		}
+		
+		var homeTeamClass = '';
+		var awayTeamClass = '';
+		
+		if (isDefined(game.winningTeam) && game.winningTeam.id != 0){
+			if (game.winningTeam.id == game.awayTeam.id){
+				awayTeamClass = 'winner';
+			}
+			else if (game.winningTeam.id = game.homeTeam.id){
+				homeTeamClass = 'winner';
+			}
+		}
+		
+		var gameRow = '<tr class="' + rowClassName + '">' + 
+						'<td class="' + pickGameClass + '">' + 
+							'<span class="' + awayTeamClass + '">' + game.awayTeam.abbreviation + '</span>' + 
+							' @ ' + 
+							'<span class="' + homeTeamClass + '">' + game.homeTeam.abbreviation + '</span>' +  
+						'</td>';
+	
+		var gameId = game.id;
+		var options = [{label: '', value: '0'},
+		               {label: game.homeTeam.abbreviation, value: game.homeTeam.id},
+		               {label: game.awayTeam.abbreviation, value: game.awayTeam.id}];
+		var selectPickId = 'pick-' + game.id;
+		//function createSelectHtml2(selectId, options, selectedValue, cssClass, style, onChange){
+		var selectPickHtml = createSelectHtml2(selectPickId, options, null, 'edit-pick-select', null, 'updatePickedPicks()');
+		//var selectPickHtml = createSelectHtml(selectPickId, options, null, 'edit-pick-select', null);
+					
+		gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
+								selectPickHtml + 
+							'</td>' +
+				  '</tr>';
+		
+		pickRowsHtml = pickRowsHtml + gameRow;
+	}
+
+	var gridBodyHtml = '<tbody>' + pickRowsHtml + '</tbody>';
+	
+	picksGridHtml = '<table class="edit-picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>' +
+						'<div style="margin-top: 20px; margin-bottom: 40px; text-align: center;">' +
+							'<textarea id="picked-picks" style="width: 300px; height: 100px;">&nbsp;</textarea>' + 
+						'</div>';
+//						'<div style="margin-top: 20px; margin-bottom: 40px; text-align: center;">' + 
+//						'<button onClick="updatePicksMade();" style="padding: 10px;">Update</button>' + 
+//				  	'</div>';
+	
+	picksGridHtml = '<div style="text-align: center;"><p>The teams you pick will go in a box at the bottom.  Copy and paste it into a text to pick the games.</p><p style="font-weight:bold;">Just picking them without sending them to me doesn\'t do jack squat.</p><p>Happy now, Jerry and Benny boy?</p></div>' + picksGridHtml;
+	
+	return picksGridHtml;
+}
+
+function updatePickedPicks(){
+	
+	console.log('up d...');
+	
+	var pickedPicksUpdate = '';
+	
+	for (var index = 0; index < currentMakePicksGames.length; index++){
+		var game = currentMakePicksGames[index];
+		
+		var selectedPick = getSelectedPick(game.id);
+		
+		var abbreviation = '';
+		if (game.homeTeam.id == selectedPick){
+			abbreviation = game.homeTeam.abbreviation;
+		}
+		else if (game.awayTeam.id == selectedPick){
+			abbreviation = game.awayTeam.abbreviation;
+		}
+		
+		if (abbreviation != ''){
+			
+			if ('' != pickedPicksUpdate){
+				pickedPicksUpdate = pickedPicksUpdate + ', ';
+			}
+
+			pickedPicksUpdate = pickedPicksUpdate + abbreviation; 
+		}
+	}
+	
+	$('#picked-picks').val(pickedPicksUpdate);
+}
+
+function updatePicksMade(){
+	
+	var picksGridHtml = createPicksMadeGrid(currentMakePicksGames);
+	
+	picksGridHtml = '<div style="font-size: 16px; font-weight: bold; color: red; text-align: center;">This does NOT submit your picks.  This is for lazy people like Jerry for whom typing the team names is too burdensome.</div>' + picksGridHtml;
+	
+	$('#contentContainer').empty();
+	$('#contentContainer').append(picksGridHtml);
+}
+
+function createPicksMadeGrid(games){
+	var picksGridHtml = '';
+	
+	var gridHeaderHtml = '<thead>' +
+						 	'<th align="left" class="table-header">Game</th>' + 
+						 	'<th class="table-header">Pick</th>' + 
+						 '</thead>';
+	
+	var pickRowsHtml = '';
+	
+	for (var index = 0; index < games.length; index++){
+		var game = games[index];
+		
+		var rowClassName = 'even-row';
+		
+		if (index % 2 == 1){
+			rowClassName = 'odd-row';
+		}
+
+		var pickGameClass = 'edit-pick-game';
+		var pickTeamClass = 'edit-pick-team';
+		
+		if (index + 1 >= games.length){
+			pickGameClass = 'edit-pick-last-game';
+			pickTeamClass = 'edit-pick-last-team';
+		}
+		
+		var homeTeamClass = '';
+		var awayTeamClass = '';
+		
+		if (isDefined(game.winningTeam) && game.winningTeam.id != 0){
+			if (game.winningTeam.id == game.awayTeam.id){
+				awayTeamClass = 'winner';
+			}
+			else if (game.winningTeam.id = game.homeTeam.id){
+				homeTeamClass = 'winner';
+			}
+		}
+		
+		var gameRow = '<tr class="' + rowClassName + '">' + 
+						'<td class="' + pickGameClass + '">' + 
+							'<span class="' + awayTeamClass + '">' + game.awayTeam.abbreviation + '</span>' + 
+							' @ ' + 
+							'<span class="' + homeTeamClass + '">' + game.homeTeam.abbreviation + '</span>' +  
+						'</td>';
+	
+		var selectedPick = getSelectedPick(game.id);
+		
+		var abbreviation = '';
+		if (game.homeTeam.id == selectedPick){
+			abbreviation = game.homeTeam.abbreviation;
+		}
+		else if (game.awayTeam.id == selectedPick){
+			abbreviation = game.awayTeam.abbreviation;
+		}
+					
+		gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
+								abbreviation + 
+							'</td>' +
+				  '</tr>';
+		
+		pickRowsHtml = pickRowsHtml + gameRow;
+	}
+
+	var gridBodyHtml = '<tbody>' + pickRowsHtml + '</tbody>';
+	
+	picksGridHtml = '<table class="edit-picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>' +
+				  	'</div>';
+	
+	return picksGridHtml;
+}
+
+function getSelectedPick(gameId){
+	return $('#pick-' + gameId).val();
+}

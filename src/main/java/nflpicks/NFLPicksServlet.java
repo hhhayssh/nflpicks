@@ -48,6 +48,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_EDIT_SELECTION_CRITERIA = "editSelectionCriteria";
 	protected static final String TARGET_EXPORT_PICKS = "exportPicks";
 	protected static final String TARGET_STATS = "stats";
+	protected static final String TARGET_MAKE_PICKS = "makePicks";
 	
 	protected static final String STAT_NAME_WEEKS_WON_STANDINGS = "weeksWonStandings";
 	protected static final String STAT_NAME_WEEKS_WON_BY_WEEK = "weeksWonByWeek";
@@ -510,6 +511,12 @@ public class NFLPicksServlet extends HttpServlet {
 				
 				json = JSONUtil.pickAccuracySummariesListToJSONString(pickAccuracySummaries);
 			}
+		}
+		else if (TARGET_MAKE_PICKS.equals(target)){
+			
+			List<Game> gamesForNextWeek = dataService.getGamesForNextWeek();
+			
+			json = JSONUtil.gamesToJSONString(gamesForNextWeek);
 		}
 		
 		writeJSONResponse(response, json);

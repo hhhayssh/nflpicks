@@ -670,6 +670,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting seasons!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -707,6 +708,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting season! id = " + id + ", shallow = " + shallow, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -748,6 +750,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting conferences!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -790,6 +793,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting divisions!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -819,6 +823,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting divisions!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -857,6 +862,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting teams!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -887,6 +893,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting team! abbreviation = " + abbreviation, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -917,6 +924,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting team! id = " + id, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1001,6 +1009,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting seasons!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1031,6 +1040,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting season! year = " + year, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1108,6 +1118,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting years!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1117,7 +1128,33 @@ public class NFLPicksDataService {
 	}
 	
 	
-	
+	public String getCurrentYear(){
+		
+		String currentYear = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement("select year from season order by year desc");
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				currentYear = results.getString(1);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting current year!", e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return currentYear;
+	}
 	
 	
 	//we need to:
@@ -1153,6 +1190,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting weeks! year = " + year, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1267,6 +1305,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting weeks!  years = " + years + ", weeks = " + weeks + ", shallow = " + shallow, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1298,6 +1337,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting weeks! seasonId = " + seasonId, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1328,6 +1368,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting week! id = " + id, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1376,6 +1417,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error inserting season! season = " + season, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -1404,6 +1446,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error updating season! season = " + season, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -1452,6 +1495,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error inserting player! player = " + player, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -1480,6 +1524,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error updating player! player = " + player, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -1530,6 +1575,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error inserting week! week = " + week, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -1560,6 +1606,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error inserting week! week = " + week, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -1593,6 +1640,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting week! seasonId = " + seasonId + ", week = " + week, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1636,12 +1684,54 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting week! year = " + year + ", week = " + week, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
 		}
 		
 		return retrievedWeek;
+	}
+	
+	public Week getCurrentWeek() {
+		
+		//SELECT_WEEK
+		
+		String currentYear = getCurrentYear();
+		
+		Week currentWeek = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			connection = getConnection();
+			String query = SELECT_WEEK + 
+						   "where season_id in (select id " +
+						   					   "from season " +
+						   					   "where year = ? ) " +
+						   		 "and w.id in (select g.week_id " + 
+						   					  "from game g " + 
+						   					  "where g.winning_team_id is not null) " + 
+						   "order by week desc ";
+			statement = connection.prepareStatement(query);
+			statement.setString(1, currentYear);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				currentWeek = mapWeek(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting week! currentYear = " + currentYear, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return currentWeek;
 	}
 	
 	protected Week mapWeek(ResultSet result) throws SQLException {
@@ -1692,6 +1782,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting games! weekId = " + weekId, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1720,6 +1811,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting games!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1758,12 +1850,98 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting games! week = " + week + ", year = " + year, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
 		}
 		
 		return games;
+	}
+	
+	/*
+	 
+	 select *
+from game g
+where g.week_id in (select w.id
+		    from week w
+		    where w.season_id in (select s.id
+					  from season s
+					  where s.year = '2018')
+			  and w.week in (select w2.week + 1
+					 from week w2
+					 where w2.id in (select g2.week_id
+							      from game g2
+							      where g2.winning_team_id is not null 
+								    and g2.week_id in (select w3.id
+										   from week w3
+										   where w3.season_id in (select s3.id
+													  from season s3
+					 								  where s3.year = '2018')))
+					 order by w2.week desc
+					 limit 1
+					)
+		   )
+	 
+	 */
+	public List<Game> getGamesForNextWeek(){
+		
+		List<Game> games = new ArrayList<Game>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		//Get the current year (most recent)
+		//Get the week number that has the most recent results and add one to it
+		
+		try {
+			String query = SELECT_GAME + 
+						   "where week_id in (select w.id " + 
+						   					   "from week w " + 
+						   					   "where w.season_id in (select s.id " + 
+						   					   						 "from season s " + 
+						   					   						 "order by s.year desc " +
+						   					   						 "limit 1) " + 
+						   					   		 "and w.week in (select w2.week + 1 " + 
+	   					   						 	   			    "from week w2 " + 
+	   					   						 	   				"where w2.id in (select g2.week_id " + 
+	   					   						 	   				  			    "from game g2 " + 
+	   					   						 	   				  			    "where g2.winning_team_id is not null  " + 
+	   					   						 	   				  			          "and g2.week_id in (select w3.id " + 
+	   					   						 	   				  			            				 "from week w3 " + 
+	   					   						 	   				  			            				 "where w3.season_id in (select s3.id " + 
+	   					   						 	   				  			            				   						"from season s3 " +
+	   					   						 	   				  			            				   						"order by s3.year desc " + 
+	   					   						 	   				  			            				   						"limit 1) " +
+	   					   						 	   				  			            				 ") " + 
+	   					   						 	   				  			   ") " + 
+	   					   						 	   				"order by w2.week desc " + 
+	   					   						 	   				"limit 1 " + 
+	   					   						 	   				") " + 
+	   					   						  ") " + 
+	   					   	"order by id asc ";
+			
+			connection = dataSource.getConnection();
+			statement = connection.prepareStatement(query);
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Game game = mapGame(results);
+				games.add(game);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting for next week!", e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return games;
+		
 	}
 	
 	public List<Game> getGames(List<String> years, List<String> weeks, List<String> teams){
@@ -1863,6 +2041,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting games! years = " + years + ", weeks = " + weeks + ", teams = " + teams, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1910,6 +2089,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			log.error("Error getting game! year = " + year + ", week = " + week + ", awayTeamAbbreviation = " + awayTeamAbbreviation + 
 					  ", homeTeamAbbreviation = " + homeTeamAbbreviation, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1955,6 +2135,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting game! year = " + year + ", week = " + week + ", teamAbbreviation = " + teamAbbreviation, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -1989,6 +2170,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting game! weekId = " + weekId + ", homeTeamId = " + homeTeamId + ", awayTeamId = " + awayTeamId, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2020,6 +2202,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting game! id = " + id, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2088,6 +2271,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error inserting game! game = " + game, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -2132,6 +2316,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error updating game! game = " + game, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -2210,6 +2395,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			log.error("Error getting picks! playerName = " + playerName + ", year = " + year + ", week = " + week + 
 					  ", homeTeamAbbreviation = " + homeTeamAbbreviation + ", awayTeamAbbreviation = " + awayTeamAbbreviation, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2388,6 +2574,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting picks! playerId = " + playerId + ", year = " + year + ", week = " + week, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2559,6 +2746,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting picks! years = " + years + ", weekNumbers = " + weekNumbers + ", playerNames = " + playerNames + ", teamNames = " + teamNames, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2588,6 +2776,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting picks!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2646,6 +2835,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error inserting pick! pick = " + pick, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -2684,6 +2874,7 @@ public class NFLPicksDataService {
 		catch (Exception e){
 			numberOfAffectedRows = -1;
 			log.error("Error updating pick! pick = " + pick, e);
+			rollback(connection);
 		}
 		finally {
 			close(null, statement, connection);
@@ -2716,6 +2907,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting pick! gameId = " + gameId + ", playerId = " + playerId, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2746,6 +2938,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting pick! id = " + id, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2853,6 +3046,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting players!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2913,6 +3107,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting players!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2943,6 +3138,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting players!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -2975,6 +3171,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting player! id = " + id, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -3021,6 +3218,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting players!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -3064,6 +3262,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error checking whether player was active in year!  player = " + player + ", year = " + year, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -3098,6 +3297,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting player! name = " + name, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -3168,6 +3368,7 @@ public class NFLPicksDataService {
 		}
 		catch (Exception e){
 			log.error("Error getting records! years = " + years + ", weeks = " + weeks + ", players = " + players, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -3440,6 +3641,7 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		catch (Exception e){
 			log.error("Error getting compact picks!", e);
+			rollback(connection);
 		}
 		finally {
 			DatabaseUtil.close(results, statement, connection);
@@ -4032,6 +4234,7 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		catch (Exception e){
 			log.error("Error getting records! years = " + years + ", weeks = " + weeks + ", players = " + players, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -4225,6 +4428,7 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		catch (Exception e){
 			log.error("Error getting records! years = " + years + ", weeks = " + weeks + ", players = " + players, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -4320,6 +4524,7 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		catch (Exception e){
 			log.error("Error getting completed years!", e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -4418,6 +4623,7 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		catch (Exception e){
 			log.error("Error getting championships! years = " + years, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -4564,6 +4770,7 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 		catch (Exception e){
 			log.error("Error getting pick accuracy summary!  players = " + players + ", years = " + years + ", teamAbbreviations = " + teamAbbreviations, e);
+			rollback(connection);
 		}
 		finally {
 			close(results, statement, connection);
@@ -4607,6 +4814,10 @@ order by s.year asc, w.week asc, g.id asc;
 	
 	protected void close(ResultSet results, PreparedStatement statement, Connection connection){
 		DatabaseUtil.close(results, statement, connection);
+	}
+	
+	protected void rollback(Connection connection){
+		DatabaseUtil.rollback(connection);
 	}
 	
 	protected Connection getConnection(){

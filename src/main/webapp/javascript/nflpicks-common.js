@@ -68,6 +68,46 @@ function createSelectHtml(selectId, options, selectedValue, cssClass, style){
 	return selectHtml;
 }
 
+function createSelectHtml2(selectId, options, selectedValue, cssClass, style, onChange){
+	
+	var selectHtml = '<select ';
+	
+	if (isDefined(selectId)){
+		selectHtml = selectHtml + ' id="' + selectId + '" ';
+	}
+	
+	if (isDefined(cssClass)){
+		selectHtml = selectHtml + ' class="' + cssClass + '" ';
+	}
+	
+	if (isDefined(style)){
+		selectHtml = selectHtml + ' style="' + style + '" ';
+	}
+	
+	if (isDefined(onChange)){
+		selectHtml = selectHtml + ' onChange="' + onChange + '" ';
+	}
+	
+	selectHtml = selectHtml + '>';
+	
+	for (var index = 0; index < options.length; index++){
+		var option = options[index];
+		
+		selectHtml = selectHtml + 
+					 '<option value="' + option.value + '" ';
+		
+		if (option.value == selectedValue){
+			selectHtml = selectHtml + ' selected ';
+		}
+		
+		selectHtml = selectHtml + '>' + option.label + '</option>';
+	}
+	
+	selectHtml = selectHtml + '</select>';
+	
+	return selectHtml;
+}
+
 function doesSelectHaveOptionWithValue(selectId, value){
 	
 	var option = $('#' + selectId + ' option[value="' + value + '"]');
