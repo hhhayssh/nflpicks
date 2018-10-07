@@ -11,7 +11,7 @@ import java.util.Scanner;
  * 		java -jar nflpicks.jar import nflpicks.properties import-data.csv
  * 		java -jar nflpicks.jar export nflpicks.properties export-2018-01-01.csv
  * 
- * 		Or without the arguemnts and it'll ask for them: 
+ * 		Or without the arguments and it'll ask for them: 
  * 
  * 		java -jar nflpicks.jar
  * 		

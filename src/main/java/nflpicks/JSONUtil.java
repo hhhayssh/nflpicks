@@ -10,6 +10,7 @@ import nflpicks.model.CompactPick;
 import nflpicks.model.CompactPlayerPick;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
+import nflpicks.model.PickSplit;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Season;
@@ -1269,6 +1270,84 @@ public class JSONUtil {
 		
 		return jsonObject;
 	}
+	
+	/**
+	 * 
+	 * Converts the given list of pick splits into a json string.
+	 * 
+	 * @param games
+	 * @return
+	 */
+	public static String pickSplitsToJSONString(List<PickSplit> pickSplits){
+		
+		JSONArray jsonArray = pickSplitsToJSONArray(pickSplits);
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of pick splits into a json array.
+	 * 
+	 * @param pickSplits
+	 * @return
+	 */
+	public static JSONArray pickSplitsToJSONArray(List<PickSplit> pickSplits){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < pickSplits.size(); index++){
+			PickSplit pickSplit = pickSplits.get(index);
+			JSONObject jsonObject = pickSplitToJSONObject(pickSplit);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
+	
+	/**
+	 * 
+	 * Converts the given pick split to a json formatted string.
+	 * 
+	 * @param pickSplit
+	 * @return
+	 */
+	public static String pickSplitToJSONString(PickSplit pickSplit){
+		
+		JSONObject jsonObject = pickSplitToJSONObject(pickSplit);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given pick split to a json object.  Not much to it.
+	 * 
+	 * @param pickSplit
+	 * @return
+	 */
+	public static JSONObject pickSplitToJSONObject(PickSplit pickSplit){
+		
+		//Steps to do:
+		//	1. Just go through and copy all the values and convert
+		//	   the ones that are objects into json objects first.
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_YEAR, pickSplit.getYear());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WEEK_NUMBER, pickSplit.getWeekNumber());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_HOME_TEAM_ABBREVIATION, pickSplit.getHomeTeamAbbreviation());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_AWAY_TEAM_ABBREVIATION, pickSplit.getAwayTeamAbbreviation());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WINNING_TEAM_ABBREVIATION, pickSplit.getWinningTeamAbbreviation());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_HOME_TEAM_PLAYERS, pickSplit.getHomeTeamPlayers());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_AWAY_TEAM_PLAYERS, pickSplit.getAwayTeamPlayers());
+		
+		return jsonObject;
+	}
+	
 	
 	
 	

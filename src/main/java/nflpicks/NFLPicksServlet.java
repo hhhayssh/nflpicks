@@ -22,9 +22,11 @@ import org.json.JSONObject;
 import nflpicks.model.CompactPick;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
+import nflpicks.model.PickSplit;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Team;
+import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
@@ -57,6 +59,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String STAT_NAME_CHAMPIONS = "champions";
 	protected static final String STAT_NAME_CHAMPIONSHIP_STANDINGS = "championshipStandings";
 	protected static final String STAT_NAME_PICK_ACCURACY = "pickAccuracy";
+	protected static final String STAT_NAME_PICK_SPLITS = "pickSplits";
 
 	protected static final String PARAMETER_NAME_TARGET = "target";
 	protected static final String PARAMETER_NAME_PLAYER = "player";
@@ -75,6 +78,8 @@ public class NFLPicksServlet extends HttpServlet {
 	
 	protected static final String PARAMETER_VALUE_ALL = "all";
 	protected static final String PARAMETER_VALUE_DELIMITER = ",";
+	protected static final String PARAMETER_VALUE_CURRENT = "current";
+	protected static final String PARAMETER_VALUE_NEXT = "next";
 	
 	protected static final String ERROR_JSON_RESPONSE = "{\"error\": true}";
 	
@@ -328,6 +333,12 @@ public class NFLPicksServlet extends HttpServlet {
 			List<Team> teams = dataService.getTeams();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_TEAMS, teams);
 			
+			int currentWeekNumber = dataService.getCurrentWeekNumber();
+			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_WEEK_NUMBER, currentWeekNumber);
+			
+			String currentYear = dataService.getCurrentYear();
+			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_YEAR, currentYear);
+			
 			json = selectionCriteriaJSONObject.toString();
 		}
 		else if (TARGET_EDIT_SELECTION_CRITERIA.equals(target)){
@@ -510,6 +521,47 @@ public class NFLPicksServlet extends HttpServlet {
 				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummaries(years, players, teams);
 				
 				json = JSONUtil.pickAccuracySummariesListToJSONString(pickAccuracySummaries);
+			}
+			else if (STAT_NAME_PICK_SPLITS.equals(statName)){
+				
+				String playersString = getParameter(request, PARAMETER_NAME_PLAYER);
+				List<String> players = null;
+				if (!PARAMETER_VALUE_ALL.equals(playersString)){
+					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
+				}
+
+				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weeks = null;
+				if (PARAMETER_VALUE_CURRENT.equals(weeksString)){
+					int currentWeekNumber = dataService.getCurrentWeekNumber();
+					weeks = new ArrayList<String>();
+					weeks.add(String.valueOf(currentWeekNumber));
+				}
+				else if (PARAMETER_VALUE_NEXT.equals(weeksString)){
+					int nextWeekNumber = dataService.getNextWeekNumber();
+					weeks = new ArrayList<String>();
+					weeks.add(String.valueOf(nextWeekNumber));
+				}
+				else if (!PARAMETER_VALUE_ALL.equals(weeksString)){
+					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				
+				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
+				List<String> years = null; 
+				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+				List<String> teams = null;
+				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				List<PickSplit> pickSplits = dataService.getPickSplits(years, weeks, players, teams);
+				
+				json = JSONUtil.pickSplitsToJSONString(pickSplits);
 			}
 		}
 		else if (TARGET_MAKE_PICKS.equals(target)){

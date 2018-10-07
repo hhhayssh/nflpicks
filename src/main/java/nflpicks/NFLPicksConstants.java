@@ -1,5 +1,7 @@
 package nflpicks;
 
+import java.util.List;
+
 /**
  * 
  * This is so there's one place for the constants that get used
@@ -55,6 +57,13 @@ public interface NFLPicksConstants {
 	 * 
 	 */
 	public static final String TIE_TEAM_ABBREVIATION = "TIE";
+	
+	/**
+	 * 
+	 * The team id we use when there's a tie.
+	 * 
+	 */
+	public static final int TIE_WINNING_TEAM_ID = -1;
 	
 	// Constants for the names of json fields.  They're here because I'm not doing any of that
 	// auto crap and I wanted to use constants.
@@ -134,6 +143,9 @@ public interface NFLPicksConstants {
 	public static final String JSON_SELECTION_CRITERIA_PLAYERS = "players";
 	public static final String JSON_SELECTION_CRITERIA_TEAMS = "teams";
 	
+	public static final String JSON_CURRENT_YEAR = "currentYear";
+	public static final String JSON_CURRENT_WEEK_NUMBER = "currentWeekNumber";
+	
 	public static final String JSON_PICK_ACCURACY_SUMMARY_PLAYER = "player";
 	public static final String JSON_PICK_ACCURACY_SUMMARY_TEAM = "team";
 	public static final String JSON_PICK_ACCURACY_SUMMARY_ACTUAL_WINS = "actualWins";
@@ -160,6 +172,14 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_COMPACT_PLAYER_PICK_PLAYER = "player";
 	public static final String JSON_COMPACT_PLAYER_PICK_PICK = "pick";
+	
+	public static final String JSON_PICK_SPLIT_YEAR = "year";
+	public static final String JSON_PICK_SPLIT_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_PICK_SPLIT_HOME_TEAM_ABBREVIATION = "homeTeamAbbreviation";
+	public static final String JSON_PICK_SPLIT_AWAY_TEAM_ABBREVIATION = "awayTeamAbbreviation";
+	public static final String JSON_PICK_SPLIT_WINNING_TEAM_ABBREVIATION = "winningTeamAbbreviation";
+	public static final String JSON_PICK_SPLIT_HOME_TEAM_PLAYERS = "homeTeamPlayers";
+	public static final String JSON_PICK_SPLIT_AWAY_TEAM_PLAYERS = "awayTeamPlayers";
 	
 	/**
 	 * 

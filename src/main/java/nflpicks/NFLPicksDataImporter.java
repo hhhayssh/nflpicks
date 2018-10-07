@@ -382,7 +382,7 @@ public class NFLPicksDataImporter {
 		Season season = seasonCache.get(year);
 		
 		if (season == null){
-			season = dataService.getSeason(year);
+			season = dataService.getSeasonByYear(year);
 			seasonCache.put(year, season);
 		}
 		
@@ -476,7 +476,7 @@ public class NFLPicksDataImporter {
 		Team team = teamCache.get(teamAbbreviation);
 		
 		if (team == null){
-			team = dataService.getTeam(teamAbbreviation);
+			team = dataService.getTeamByAbbreviation(teamAbbreviation);
 			teamCache.put(teamAbbreviation, team);
 		}
 		

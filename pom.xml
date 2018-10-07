@@ -19,8 +19,9 @@
 			 To use it:
 			 	1. Build the jar:
 			 		 mvn clean compile org.apache.maven.plugins:maven-dependency-plugin:copy-dependencies@copy-libraries jar:jar -Pnflpicks-data-manager
-			 	   This cleans the target folder, compiles it, copies the dependencies to the target/lib folder, jars the classes folder
-			 	   and makes it so the resulting jar will run the NFLPicksDataManager class.
+			 	   This cleans the target folder, compiles it, copies the dependencies, jars the classes folder, and makes it so the resulting jar will 
+			 	   run the NFLPicksDataManager class.
+			 	   You should set the nflpicks.jdbc.password in your settings.xml in order for it to get put in the nflpicks.properties (or set it manually afterwards).
 			 	2. Copy the nflpicks.jar and lib folder to where you want to run it.
 			 	3. Run it with:
 			 		java -jar nflpicks.jar
@@ -30,6 +31,22 @@
 			 	2. We need it to refer to a different log file and not /var/log/nflpicks/nflpicks.log
 			 	
 			 The best and cleanest way to do those two things is to put them both in a separate profile. 
+			 
+			 It will make this structure when it's finished:
+			 
+			 	nflpicks-data-manager
+			 		bin
+			 			nflpicks.jar
+			 			lib
+		 			conf
+		 				nflpicks.properties
+	 				input
+	 					nflpicks_create_tables.sql
+    					nflpicks_create_views.sql
+    					nflpicks_insert_teams.sql
+    				output
+	 			
+	 			And that should have everything we need to do any importing/exporting of the data.
 		 -->
 		<profile>
 			<id>nflpicks-data-manager</id>
@@ -53,7 +70,7 @@
                 					<goal>copy-dependencies</goal>
             					</goals>
             					<configuration>
-                					<outputDirectory>${project.build.directory}/nflpicks-data-manager/lib</outputDirectory>
+                					<outputDirectory>${project.build.directory}/nflpicks-data-manager/bin/lib</outputDirectory>
                 					<overWriteReleases>true</overWriteReleases>
                 					<overWriteSnapshots>true</overWriteSnapshots>
                 					<overWriteIfNewer>true</overWriteIfNewer>
@@ -78,24 +95,25 @@
                 					<mainClass>nflpicks.NFLPicksDataManager</mainClass>
             					</manifest>
         					</archive>
-        					<outputDirectory>${project.build.directory}/nflpicks-data-manager</outputDirectory>
+        					<outputDirectory>${project.build.directory}/nflpicks-data-manager/bin</outputDirectory>
     					</configuration>
 					</plugin>
-					<!-- This plugin will copy the nflpicks.properties file to the output directory so everything is in the same
-						 place.
+					<!-- This plugin will copy the nflpicks.properties to the "conf" folder and the and sql files to the 
+						 input directory so everything is ready to go.
+						 The nflpicks.properties will get filtered and the sql won't.  
 					 -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
     					<artifactId>maven-resources-plugin</artifactId>
     					<executions>
     						<execution>
-    							<id>copy-resources</id>
+    							<id>copy-nflpicks-properties</id>
     							<phase>compile</phase>
     							<goals>
     								<goal>copy-resources</goal>
     							</goals>
     							<configuration>
-    								<outputDirectory>${project.build.directory}/nflpicks-data-manager</outputDirectory>
+    								<outputDirectory>${project.build.directory}/nflpicks-data-manager/conf</outputDirectory>
     								<resources>
     									<resource>
     										<directory>src/main/resources</directory>
@@ -107,7 +125,47 @@
     								</resources>
     							</configuration>
     						</execution>
+    						<execution>
+    							<id>copy-nflpicks-sql</id>
+    							<phase>compile</phase>
+    							<goals>
+    								<goal>copy-resources</goal>
+    							</goals>
+    							<configuration>
+    								<outputDirectory>${project.build.directory}/nflpicks-data-manager/input</outputDirectory>
+    								<resources>
+    									<resource>
+    										<directory>src/main/sql</directory>
+    										<includes>
+    											<include>nflpicks_create_tables.sql</include>
+    											<include>nflpicks_create_views.sql</include>
+    											<include>nflpicks_insert_teams.sql</include>
+    										</includes>
+    										<filtering>false</filtering>
+    									</resource>
+    								</resources>
+    							</configuration>
+    						</execution>
     					</executions>
+					</plugin>
+					<!-- Creates an empty directory called "output" so we have bin, conf, input, and output directories. -->
+					<plugin>
+  						<groupId>org.apache.maven.plugins</groupId>
+  						<artifactId>maven-antrun-plugin</artifactId>
+  						<executions>
+    						<execution>
+      							<id>create-output-directory</id>
+      							<phase>compile</phase>
+      							<goals>
+        							<goal>run</goal>
+      							</goals>
+      							<configuration>
+        							<tasks>
+          								<mkdir dir="${project.build.directory}/nflpicks-data-manager/output" />
+        							</tasks>
+      							</configuration>
+    						</execution>
+  						</executions>
 					</plugin>
 				</plugins>
 			</build>

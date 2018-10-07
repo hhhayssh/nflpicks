@@ -24,6 +24,7 @@ import nflpicks.model.Conference;
 import nflpicks.model.Division;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
+import nflpicks.model.PickSplit;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Season;
@@ -158,17 +159,19 @@ public class NFLPicksDataService {
 													     "sum(pick_totals.losses) as losses, " +
 													     "sum(pick_totals.ties) as ties " +
 												  "from (select pl.id as player_id, " + 
-												 			   "pl.name as player_name, " + 
+												 			   "pl.name as player_name, " +
+												 			  //Count the game as a win if the picked team is the team that won the game.
 												 			  "(case when p.team_id = g.winning_team_id " + 
 												 			 	    "then 1 " + 
 												 			 	    "else 0 " + 
 												 			   "end) as wins, " + 
 												 			  //Only count the pick as a loss if there was a pick.  If there wasn't (p.team_id = null), then
-												 			  // don't count that.
+												 			  //don't count that as a loss.
 												 			  "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
 												 			 	    "then 1 " + 
 												 			 	    "else 0 " + 
 												 			   "end) as losses, " + 
+												 			  //If it was a tie, we don't care what they picked.
 												 			  "(case when g.winning_team_id = -1 " + 
 												 			 	    "then 1 " + 
 												 			 	    "else 0 " +
@@ -296,7 +299,8 @@ public class NFLPicksDataService {
 															 "best_weeks.losses, " + 
 															 "best_weeks.ties, " + 
 															 "best_weeks.number_of_games, " + 
-															 "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3) as win_percentage " +  
+															 "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3) as win_percentage " +
+															//Add up all the wins, losses and ties, so we have totals for the time period.
 															"from (select pick_totals.season_id, " + 
 																	     "pick_totals.year, " + 
 																	     "pick_totals.player_id, " + 
@@ -307,7 +311,9 @@ public class NFLPicksDataService {
 																	     "sum(pick_totals.wins) as wins, " + 
 																	     "sum(pick_totals.losses) as losses, " + 
 																	     "sum(pick_totals.ties) as ties, " + 
-																	     "(select count(id) from game gx where gx.week_id = pick_totals.week_id) as number_of_games " + 
+																	     "(select count(id) from game gx where gx.week_id = pick_totals.week_id) as number_of_games " +
+																 //The "base" query.  "Mark" each pick as a win or loss so the outer query can sum them up and
+																 //get totals.
 																 "from (select pl.id as player_id, " + 
 																 	 		  "pl.name as player_name, " + 
 																 	 		  "s.id as season_id, " + 
@@ -601,6 +607,64 @@ public class NFLPicksDataService {
 															     //for a player's picks for a particular team.
 															     "group by player_id, player_name, team_id, team_name, team_nickname, team_abbreviation, division_id ";
 	
+	/*
+	 select s.year,
+	 		w.week,
+	 		g.id as game_id,
+	 		g.winning_team_id as winning_team_id
+	 		home_team.abbreviation as home_team,
+	 		away_team.abbreviation as away_team,
+	 		winning_team.abbreviation as winning_team,
+	 		pl.id as player_id,
+	 		pl.name as player,
+	 		pick_team.abbreviation as pick_team
+	 from pick p join game g on p.game_id = g.id
+	 	  join week w on g.week_id = w.id
+	 	  join season s on w.season_id = s.id
+	 	  join player pl on p.player_id = pl.id
+	 	  join team home_team on g.home_team_id = home_team.id
+	 	  join team away_team on g.away_team_id = away_team.id
+	 	  left outer join team winning_team on g.winning_team_id = winning_team.id
+	 	  left outer join team pick_team on p.team_id = pick_team.id;
+	 */
+	protected static final String SELECT_PICK_SPLIT_BASE = "select s.year, " + 
+																  "w.week, " + 
+																  "g.id as game_id, " +
+																  "g.winning_team_id as winning_team_id, " +
+																  "home_team.abbreviation as home_team, " + 
+																  "away_team.abbreviation as away_team, " + 
+																  "winning_team.abbreviation as winning_team, " +
+																  "pl.id as player_id, " + 
+																  "pl.name as player, " + 
+																  "pick_team.abbreviation as pick_team " + 
+														  "from pick p join game g on p.game_id = g.id " + 
+														  	   "join week w on g.week_id = w.id " + 
+														  	   "join season s on w.season_id = s.id " + 
+														  	   "join player pl on p.player_id = pl.id " + 
+														  	   "join team home_team on g.home_team_id = home_team.id " + 
+														  	   "join team away_team on g.away_team_id = away_team.id " + 
+														  	   "left outer join team winning_team on g.winning_team_id = winning_team.id " + 
+														  	   "left outer join team pick_team on p.team_id = pick_team.id ";
+	
+	/**
+	 //year, week, home team abbreviation, away team abbreviation, winning team abbreviation, player name, pick
+	 select s.year,
+	 		w.week,
+	 		home_t.abbreviation,
+	 		away_t.abbreviation,
+	 		winning_t.abbreviation,
+	 		pl.name,
+	 		pick_t.abbreviation
+	 from pick p join game g on p.game_id = g.id
+	 	  join week w on g.week_id = w.id
+	 	  join season s on w.season_id = s.id
+	 	  join player pl on p.player_id = pl.id
+	 	  join team home_t on g.home_team_id = home_t.id
+	 	  join team away_t on g.away_team_id = away_t.id
+	 	  left outer join team winning_t on g.winning_team_id = winning_t.id;
+	 
+	 */
+	
 	/**
 	 * 
 	 * Usually pays off to have an empty constructor.  If you use this one, you should
@@ -679,6 +743,14 @@ public class NFLPicksDataService {
 		return seasons;
 	}
 	
+	/**
+	 * 
+	 * Gets the season with the given id.  It will do a "full" get (not a shallow one), so
+	 * it'll come back with all the weeks and games.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public Season getSeason(int id){
 		
 		Season season = getSeason(id, false);
@@ -686,7 +758,21 @@ public class NFLPicksDataService {
 		return season;
 	}
 	
+	/**
+	 * 
+	 * Gets the season with the given id.  If "shallow" is true, it just gets that season.
+	 * If it's false, it will get all the weeks and games in the season too.
+	 * 
+	 * @param id
+	 * @param shallow
+	 * @return
+	 */
 	public Season getSeason(int id, boolean shallow){
+		
+		//Steps to do:
+		//	1. Run the query and map the results.
+		//	2. That's it.  The map function takes care of the deep retrieve
+		//	   if it needs to do that.
 		
 		Season season = null;
 		
@@ -731,7 +817,20 @@ public class NFLPicksDataService {
 		return conferences;
 	}
 	
+	/**
+	 * 
+	 * This function will get the conferences.  If shallow is false, it'll
+	 * get all the divisions and teams in each division too.  If it's true, it'll
+	 * just get the conferences themselves.
+	 * 
+	 * @param shallow
+	 * @return
+	 */
 	public List<Conference> getConferences(boolean shallow){
+		
+		//Steps to do:
+		//	1. Run the query.
+		//	2. Map the results.
 		
 		List<Conference> conferences = new ArrayList<Conference>();
 		
@@ -759,7 +858,22 @@ public class NFLPicksDataService {
 		return conferences;
 	}
 	
+	/**
+	 * 
+	 * This function will turn the result of a query to the conference table (for all the columns) into
+	 * an object.  If "shallow" is false, it'll go through and get all the divisions in the conference
+	 * too.
+	 * 
+	 * @param results
+	 * @param shallow
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Conference mapConferenceResult(ResultSet results, boolean shallow) throws SQLException {
+		
+		//Steps to do:
+		//	1. Make the conference object.
+		//	2. Add in the divisions if it's not supposed to be shallow.
 		
 		Conference conference = new Conference();
 		conference.setId(results.getInt("id"));
@@ -767,27 +881,54 @@ public class NFLPicksDataService {
 		
 		if (!shallow){
 			int conferenceId = results.getInt("id");
-			List<Division> divisions = getDivisions(conferenceId, shallow);
+			List<Division> divisions = getDivisionsInConference(conferenceId, shallow);
 			conference.setDivisions(divisions);
 		}
 		
 		return conference;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the divisions.  It'll do a "deep" retrieve
+	 * and get all the teams too.
+	 * 
+	 * @return
+	 */
 	public List<Division> getDivisions(){
+		
+		List<Division> divisions = getDivisions(false);
+		
+		return divisions;
+	}
+	
+	/**
+	 * 
+	 * This function will get all the divisions.  If shallow is false, it'll get all
+	 * the teams too.  If it's true, it won't.
+	 * 
+	 * @param shallow
+	 * @return
+	 */
+	public List<Division> getDivisions(boolean shallow){
+		
+		//Steps to do:
+		//	1. Run the query for the division and then map it.
+		//	2. That's it.
 		
 		List<Division> divisions = new ArrayList<Division>();
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
+		
 		try {
 			connection = getConnection();
-			statement = connection.prepareStatement(SELECT_CONFERENCE);
+			statement = connection.prepareStatement(SELECT_DIVISION);
 			results = statement.executeQuery();
 			
 			while (results.next()){
-				Division division = mapDivisionResult(results);
+				Division division = mapDivisionResult(results, shallow);
 				divisions.add(division);
 			}
 		}
@@ -802,13 +943,27 @@ public class NFLPicksDataService {
 		return divisions;
 	}
 	
-	public List<Division> getDivisions(int conferenceId, boolean shallow){
+	/**
+	 * 
+	 * This function will get the divisions in the given conference.  If shallow is false,
+	 * it'll get the teams too.  If it's true, it won't.
+	 * 
+	 * @param conferenceId
+	 * @param shallow
+	 * @return
+	 */
+	public List<Division> getDivisionsInConference(int conferenceId, boolean shallow){
+		
+		//Steps to do:
+		//	1. Run the query and map the results.
+		//	2. That's it.
 		
 		List<Division> divisions = new ArrayList<Division>();
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
+		
 		try {
 			String query = SELECT_DIVISION + " where conference_id = ? ";
 			connection = getConnection();
@@ -817,7 +972,7 @@ public class NFLPicksDataService {
 			results = statement.executeQuery();
 			
 			while (results.next()){
-				Division division = mapDivisionResult(results);
+				Division division = mapDivisionResult(results, shallow);
 				divisions.add(division);
 			}
 		}
@@ -833,23 +988,49 @@ public class NFLPicksDataService {
 		
 	}
 	
-	protected Division mapDivisionResult(ResultSet results) throws SQLException {
+	/**
+	 * 
+	 * This function will take the result of a query to the division table for all the columns into
+	 * a Division object.  If shallow is false, it'll get all the teams too.  If it's true, it won't.
+	 * 
+	 * @param results
+	 * @param shallow
+	 * @return
+	 * @throws SQLException
+	 */
+	protected Division mapDivisionResult(ResultSet results, boolean shallow) throws SQLException {
 		
 		Division division = new Division();
 		division.setId(results.getInt("id"));
 		division.setConferenceId(results.getInt("conferenceId"));
 		division.setName(results.getString("name"));
 		
+		if (!shallow){
+			List<Team> teams = getTeamsInDivision(division.getId());
+			division.setTeams(teams);
+		}
+		
 		return division;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the teams.  That's it.
+	 * 
+	 * @return
+	 */
 	public List<Team> getTeams(){
+		
+		//Steps to do:
+		//	1. Run the query and map the results.
+		//	2. That's it.
 		
 		List<Team> teams = new ArrayList<Team>();
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
+		
 		try {
 			connection = getConnection();
 			statement = connection.prepareStatement(SELECT_TEAM);
@@ -871,7 +1052,59 @@ public class NFLPicksDataService {
 		return teams;
 	}
 	
-	public Team getTeam(String abbreviation){
+	/**
+	 * 
+	 * This function will get all the teams in the given division.
+	 * 
+	 * @param divisionId
+	 * @param shallow
+	 * @return
+	 */
+	public List<Team> getTeamsInDivision(int divisionId){
+		
+		List<Team> teams = new ArrayList<Team>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			String query = SELECT_TEAM + 
+						   " where division_id = ? ";
+		
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Team teamInfo = mapTeamsResult(results);
+				teams.add(teamInfo);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting teams!", e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return teams;
+		
+	}
+	
+	/**
+	 * 
+	 * This function will get the team with the given abbreviation.  It's here because
+	 * that's usually how we get a team from the outside.
+	 * 
+	 * @param abbreviation
+	 * @return
+	 */
+	public Team getTeamByAbbreviation(String abbreviation){
+		
+		//Steps to do:
+		//	1. Run the query and send back the result.
 		
 		Team team = null;
 		
@@ -882,6 +1115,7 @@ public class NFLPicksDataService {
 		try {
 			String query = SELECT_TEAM + 
 						   "where abbreviation = ? ";
+			
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
 			statement.setString(1, abbreviation);
@@ -902,6 +1136,13 @@ public class NFLPicksDataService {
 		return team;
 	}
 	
+	/**
+	 * 
+	 * This function will get the team with the given id.  Not much to it!
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public Team getTeam(int id){
 		
 		Team team = null;
@@ -933,7 +1174,17 @@ public class NFLPicksDataService {
 		return team;
 	}
 	
-	protected Team mapTeamsResult(ResultSet result) throws SQLException{
+	/**
+	 * 
+	 * This function will map the given result to a team object.  It expects the result to have 
+	 * all of the team table's columns in it.
+	 * 
+	 * @param result
+	 * @return
+	 * @throws SQLException
+	 */
+	protected Team mapTeamsResult(ResultSet result) throws SQLException {
+		
 		Team team = new Team();
 		team.setId(result.getInt("id"));
 		team.setDivisionId(result.getInt("division_id"));
@@ -983,6 +1234,7 @@ public class NFLPicksDataService {
 		ResultSet results = null;
 		
 		try {
+			//We'll have to have a ? in the string for each year in the query.
 			String yearInClause = DatabaseUtil.createInClauseParameterString(years.size());
 			
 			String query = SELECT_SEASON + " where year in " + yearInClause;
@@ -1018,7 +1270,17 @@ public class NFLPicksDataService {
 		return seasons;
 	}
 	
-	public Season getSeason(String year){
+	/**
+	 * 
+	 * This function will get the season for the given year.
+	 * 
+	 * @param year
+	 * @return
+	 */
+	public Season getSeasonByYear(String year){
+		
+		//Steps to do:
+		//	1. Run the query and map the results.
 		
 		Season season = null;
 		
@@ -1028,8 +1290,10 @@ public class NFLPicksDataService {
 		
 		try {
 			connection = getConnection();
+			
 			String query = SELECT_SEASON + 
 						   "where year = ? ";
+			
 			statement = connection.prepareStatement(query);
 			statement.setString(1, year);
 			results = statement.executeQuery();
@@ -1049,13 +1313,16 @@ public class NFLPicksDataService {
 		return season;
 	}
 	
-	protected Season mapSeason(ResultSet result) throws SQLException {
-		
-		Season season = mapSeason(result, false);
-		
-		return season;
-	}
-	
+	/**
+	 * 
+	 * This function will map the given season result to an object.  The result should have all
+	 * the columns from the season table.  If shallow is false, it'll map all the weeks too.
+	 * 
+	 * @param result
+	 * @param shallow
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Season mapSeason(ResultSet result, boolean shallow) throws SQLException {
 		
 		Season season = new Season();
@@ -1070,22 +1337,6 @@ public class NFLPicksDataService {
 		
 		return season;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	///////////////////////////////////////////////////////////////
-	
-	
 	
 	/**
 	 * 
@@ -1127,8 +1378,18 @@ public class NFLPicksDataService {
 		return years;
 	}
 	
-	
+	/**
+	 * 
+	 * This function will get the "current" year.  It says which year is current by just ordering the
+	 * seasons by their years and picking the first one.
+	 * 
+	 * @return
+	 */
 	public String getCurrentYear(){
+		
+		//Steps to do:
+		//	1. Order the seasons by their year and then the current one
+		//	   will be on top.
 		
 		String currentYear = null;
 		
@@ -1156,49 +1417,6 @@ public class NFLPicksDataService {
 		return currentYear;
 	}
 	
-	
-	//we need to:
-	//	1. create the right number of "in (?, ?)" question marks
-	//	2. add those parameters to the prepared statement.
-	//	1. the creation of the string has to happen before the creation of the prepared
-	//	   statement ... it has to be separate
-	
-	public List<String[]> getWeeksAndLabels(String year){
-		
-		List<String[]> weeksAndLabels = new ArrayList<String[]>();
-		
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet results = null;
-		
-		try {
-			connection = getConnection();
-			String query = SELECT_WEEK + 
-						   "where season_id in (select season_id " +
-						   				  	   "from season " + 
-						   				  	   "where year = ? )";
-			statement = connection.prepareStatement(query);
-			statement.setString(1, year);
-			results = statement.executeQuery();
-			
-			while (results.next()){
-				int week = results.getInt("week");
-				String label = results.getString("label");
-				String[] weekAndLabel = new String[]{String.valueOf(week), label};
-				weeksAndLabels.add(weekAndLabel);
-			}
-		}
-		catch (Exception e){
-			log.error("Error getting weeks! year = " + year, e);
-			rollback(connection);
-		}
-		finally {
-			close(results, statement, connection);
-		}
-		
-		return weeksAndLabels;
-	}
-
 	public List<Week> getWeeks(){
 		
 		List<Week> weeks = getWeeks(null, null, false);
@@ -1393,7 +1611,7 @@ public class NFLPicksDataService {
 		Season savedSeason = null;
 		
 		if (numberOfAffectedRows == 1){
-			savedSeason = getSeason(season.getYear());
+			savedSeason = getSeasonByYear(season.getYear());
 		}
 		
 		return savedSeason;
@@ -1693,9 +1911,28 @@ public class NFLPicksDataService {
 		return retrievedWeek;
 	}
 	
-	public Week getCurrentWeek() {
+	public int getCurrentWeekNumber(){
 		
-		//SELECT_WEEK
+		Week currentWeek = getCurrentWeek();
+		
+		int currentWeekNumber = currentWeek.getWeekNumber();
+		
+		return currentWeekNumber;
+	}
+	
+	public int getNextWeekNumber(){
+		
+		int currentWeekNumber = getCurrentWeekNumber();
+		
+		int nextWeekNumber = currentWeekNumber + 1;
+		if (nextWeekNumber > 21){
+			nextWeekNumber = 21;
+		}
+		
+		return nextWeekNumber;
+	}
+	
+	public Week getCurrentWeek() {
 		
 		String currentYear = getCurrentYear();
 		
@@ -1707,14 +1944,17 @@ public class NFLPicksDataService {
 		
 		try {
 			connection = getConnection();
+			
 			String query = SELECT_WEEK + 
 						   "where season_id in (select id " +
 						   					   "from season " +
 						   					   "where year = ? ) " +
-						   		 "and w.id in (select g.week_id " + 
-						   					  "from game g " + 
-						   					  "where g.winning_team_id is not null) " + 
-						   "order by week desc ";
+						   		 "and id in (select g.week_id " + 
+				   		 			  		"from game g " + 
+				   		 			  		"where g.winning_team_id is not null) " +
+						   "order by week desc " +
+				   		   "offset 0 limit 1 ";
+
 			statement = connection.prepareStatement(query);
 			statement.setString(1, currentYear);
 			results = statement.executeQuery();
@@ -4810,6 +5050,212 @@ order by s.year asc, w.week asc, g.id asc;
 																		  timesPickedToWinRight, timesPickedToWinWrong, timesPickedToLoseRight, timesPickedToLoseWrong);
 		
 		return pickAccuracySummary;
+	}
+	
+	public List<PickSplit> getPickSplits(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teams){
+		
+		List<PickSplit> pickSplits = new ArrayList<PickSplit>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		StringBuilder stringBuilder = new StringBuilder(SELECT_PICK_SPLIT_BASE);
+		
+		try {
+			connection = getConnection();
+			
+			String whereBase = "";
+			
+			boolean addedWhere = false;
+			boolean hasPlayers = Util.hasSomething(playerNames);
+			boolean hasYears = Util.hasSomething(years);
+			boolean hasWeeks = Util.hasSomething(weekNumbers);
+			boolean hasTeams = Util.hasSomething(teams);
+			
+			if (hasPlayers){
+				if (addedWhere){
+					whereBase = whereBase + " and ";
+				}
+				else {
+					whereBase = "where ";
+					addedWhere = true;
+				}
+				
+				String inParameterString = DatabaseUtil.createInClauseParameterString(playerNames.size());
+				whereBase = whereBase + " pl.name in " + inParameterString;
+			}
+			
+			if (hasYears){
+				if (addedWhere){
+					whereBase = whereBase + " and ";
+				}
+				else {
+					whereBase = "where ";
+					addedWhere = true;
+				}
+				
+				String inParameterString = DatabaseUtil.createInClauseParameterString(years.size());
+				whereBase = whereBase + " s.year in " + inParameterString;
+			}
+			
+			if (hasWeeks){
+				
+				if (addedWhere){
+					whereBase = whereBase + " and ";
+				}
+				else {
+					whereBase = "where ";
+					addedWhere = true;
+				}
+				
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weekNumbers.size());
+				whereBase = whereBase + " w.week in " + inParameterString;
+			}
+			
+			if (hasTeams){
+				
+				if (addedWhere){
+					whereBase = whereBase + " and ";
+				}
+				else {
+					whereBase = "where ";
+					addedWhere = true;
+				}
+				
+				String inParameterString = DatabaseUtil.createInClauseParameterString(teams.size());
+				whereBase = whereBase + " (home_team.abbreviation in " + inParameterString + 
+									 	  "or away_team.abbreviation in " + inParameterString + ") ";
+			}
+			
+			stringBuilder.append(whereBase);
+			
+			String orderBy = "order by year asc, week asc, game_id asc, player_id asc ";
+			
+			stringBuilder.append(orderBy);
+			
+			String query = stringBuilder.toString();
+			
+			statement = connection.prepareStatement(query);
+			
+			int parameterIndex = 1;
+			
+			if (hasPlayers){
+				for (int index = 0; index < playerNames.size(); index++){
+					String playerName = playerNames.get(index);
+					statement.setString(parameterIndex, playerName);
+					parameterIndex++;
+				}
+			}
+			
+			if (hasYears){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			if (hasWeeks){
+				for (int index = 0; index < weekNumbers.size(); index++){
+					String weekNumber = weekNumbers.get(index);
+					statement.setInt(parameterIndex, Integer.parseInt(weekNumber));
+					parameterIndex++;
+				}
+			}
+			
+			if (hasTeams){
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			int currentGameId = -1;
+			int winningTeamId = -1;
+			String year = null;
+			int weekNumber = -1;
+			String homeTeam = null;
+			String awayTeam = null;
+			String winningTeam = null;
+			String player = null;
+			String pickTeam = null;
+			
+			List<String> homeTeamPlayers = null;
+			List<String> awayTeamPlayers = null;
+			
+			PickSplit currentPickSplit = null;
+			
+			while (results.next()){
+				
+				int gameId = results.getInt("game_id");
+				
+				if (gameId != currentGameId){
+					
+					if (currentPickSplit != null){
+						pickSplits.add(currentPickSplit);
+					}
+					
+					currentGameId = gameId;
+					
+					winningTeamId = results.getInt("winning_team_id");
+					year = results.getString("year");
+					weekNumber = results.getInt("week");
+					homeTeam = results.getString("home_team");
+					awayTeam = results.getString("away_team");
+					winningTeam = results.getString("winning_team");
+					
+					currentPickSplit = new PickSplit();
+					currentPickSplit.setYear(year);
+					currentPickSplit.setWeekNumber(weekNumber);
+					currentPickSplit.setHomeTeamAbbreviation(homeTeam);
+					currentPickSplit.setAwayTeamAbbreviation(awayTeam);
+					if (winningTeamId == -1){
+						currentPickSplit.setWinningTeamAbbreviation(NFLPicksConstants.TIE_TEAM_ABBREVIATION);
+					}
+					else {
+						currentPickSplit.setWinningTeamAbbreviation(winningTeam);
+					}
+					
+					homeTeamPlayers = new ArrayList<String>();
+					awayTeamPlayers = new ArrayList<String>();
+					currentPickSplit.setHomeTeamPlayers(homeTeamPlayers);
+					currentPickSplit.setAwayTeamPlayers(awayTeamPlayers);
+				}
+				
+				pickTeam = results.getString("pick_team");
+				player = results.getString("player");
+				
+				
+				if (homeTeam.equals(pickTeam)){
+					homeTeamPlayers.add(player);
+				}
+				else if (awayTeam.equals(pickTeam)){
+					awayTeamPlayers.add(player);
+				}
+			}
+			
+			if (currentPickSplit != null){
+				pickSplits.add(currentPickSplit);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting pick splits!  years = " + years + ", weekNumbers = " + weekNumbers + ", playerNames = " + playerNames + ", teams = " + teams, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return pickSplits;
 	}
 	
 	protected void close(ResultSet results, PreparedStatement statement, Connection connection){

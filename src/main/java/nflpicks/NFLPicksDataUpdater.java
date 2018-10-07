@@ -112,7 +112,7 @@ public class NFLPicksDataUpdater {
 					
 					Game game = dataService.getGame(year, weekInt, winner);
 					
-					Team winningTeam = dataService.getTeam(winner);
+					Team winningTeam = dataService.getTeamByAbbreviation(winner);
 					
 					game.setWinningTeam(winningTeam);
 					
@@ -180,7 +180,7 @@ public class NFLPicksDataUpdater {
 					}
 					games.add(game);
 					
-					Team team = dataService.getTeam(teamAbbreviation);
+					Team team = dataService.getTeamByAbbreviation(teamAbbreviation);
 					teams.add(team);
 				}
 				

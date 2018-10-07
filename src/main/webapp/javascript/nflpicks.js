@@ -1,42 +1,194 @@
 
+//next up...
+
+//	1. refactoring the grid rendering
+//	2. commenting this file and organizing it...
+
+//SHOULD START WITH A SUMMARY OF THE CURRENT YEAR STANDINGS...
+//prefix global variables with a year?
+//or make an object called "GLOBAL"? or NFLPicks?
+/**
+ * 
+ * This is the "container" for global variables.  I made it so we won't have to worry
+ * about "conflicts" with local variable names.
+ * 
+ */
+var NFL_PICKS_GLOBAL = {
+	/**
+	 * The previous type they picked.  This is so we can decide how much of the view we need
+	 * to "refresh" when we update it.
+	 */
+	previousType: null,
+	
+	/**
+	 * Switches that say whether these pick grids have been shown.  If they haven't, we want
+	 * to make sure we don't show the picks for all years and weeks (unless they specifically asked
+	 * for that).
+	 * We don't want to do that because that's a lot of info to show.  So, these are here basically
+	 * so we can "smartly" default the year and week selections for the picks and pick splits grids.
+	 */
+	havePicksBeenShown: false,
+	havePickSplitsBeenShown: false,
+	
+	/**
+	 * Whether we should push the previous parameters onto the backward navigation stack.
+	 */
+	pushPreviousPrameters: true,
+	/**
+	 * The previous parameters that were used to show the view.  This is so they can go back
+	 * and forth pretty easily.
+	 */
+	previousParameters: null,
+	
+	/**
+	 * The stacks for navigating forward and backward.  They hold the parameters that were shown for the "view".
+	 * When they change the view, we put the previous parameters on the backward stack and when they navigate backward,
+	 * we pop those parameters off to change the view and put the previous ones on the forward stack.
+	 */
+	navigationForwardStack: [],
+	navigationBackwardStack: [],
+	
+	/**
+	 * So we can get the current year and week number which come in handy.
+	 */
+	currentYear: null,
+	currentWeekNumber: null,
+	
+	/**
+	 * For holding the initial selections for when the page first shows up.  We set some of these
+	 * variables with values from the server (like the year) and others (like the type) to constants.
+	 */
+	initialType: null,
+	initialYear: null,
+	initialWeek: null,
+	initialPlayer: null,
+	initialTeam: null,
+	initialStatName: null
+};
+
 var previousType = null;
 
 var havePicksBeenShown = false;
 
-var pushPreviousParameters = true;
+var pickSplitsBeenShown = false;
+
+//var pushPreviousParameters = true;
 var previousParameters = null;
 
 var navigationForwardStack = [];
 var navigationBackwardStack = [];
 
+/**
+ * When the document's been loaded on the browser, we want to:
+ * 
+ * 		1. Go to the server and get the selection criteria (teams, players, initial values).
+ * 		2. Initialize the UI based on those values. 
+ */
 $(document).ready(
 	function(){
-		//Do this in edit too....
-		//other stuff to do:
-		//	1. make it work without javascript
-		//	1. add stats
-		//	2. add comments and clean up code
-		//	3. insert everything from the csvs
 		getSelectionCriteriaAndInitialize();
 });
 
+/**
+ * 
+ * This function will initialize the view.  It assumes all the stuff from the server
+ * that's needed to initialize is setup.
+ * 
+ * @returns
+ */
 function initializeView(){
-	setSelectionsFromUrlParameters();
+	
+	//Steps to do:
+	//	1. Set the initial selections for the type, year, week, ...
+	//	2. Update the view based on those selections.
+	
+	initializeSelections();
 	updateView();
 }
 
-function setSelectionsFromUrlParameters(){
+/**
+ * 
+ * Sets the initial selections for the type, year, week...
+ * They're all set like this:
+ * 
+ * 		1. The initial value comes from NFL_PICKS_GLOBAL.
+ * 		2. If there's a url parameter for the selection, it's used instead.
+ * 
+ * This way, we...
+ * 
+ * 		1. Set the initial values when loading the data from the server (for stuff like
+ * 		   week and year).
+ * 		2. Allow the overriding of the values by url parameters.
+ * 
+ * Number 2 makes it so people can send direct urls and get the view they want the first
+ * time the page shows up.
+ * 
+ * @returns
+ */
+function initializeSelections(){
+
+	//Steps to do:
+	//	1. Get the parameters that were sent in the url.
+	//	2. Initialize each selection with its global initial value.
+	//	3. If there's a value for it in the url, use that instead so the url
+	//	   overrides what we assume initially.
 	
 	var parameters = getUrlParameters();
 	
-	if (!isDefined(parameters)){
-		return;
+	var type = NFL_PICKS_GLOBAL.initialType;
+	if (isDefined(parameters) && isDefined(parameters.type)){
+		type = parameters.type;
 	}
+	setSelectedType(type);
 	
-	setSelectionsFromParameters(parameters);
+	var year = NFL_PICKS_GLOBAL.initialYear;
+	if (isDefined(parameters) && isDefined(parameters.year)){
+		year = parameters.year;
+	}
+	setSelectedYear(year);
+	
+	var week = NFL_PICKS_GLOBAL.initialWeek;
+	if (isDefined(parameters) && isDefined(parameters.week)){
+		week = parameters.week;
+	}
+	setSelectedWeek(week);
+	
+	var player = NFL_PICKS_GLOBAL.player;
+	if (isDefined(parameters) && isDefined(parameters.player)){
+		player = parameters.player;
+	}
+	setSelectedPlayer(player);
+	
+	var statName = NFL_PICKS_GLOBAL.initialStatName;
+	if (isDefined(parameters) && isDefined(parameters.statName)){
+		statName = parameters.statName;
+	}
+	setSelectedStatName(statName);
+	
+	var team = NFL_PICKS_GLOBAL.initialTeam;
+	if (isDefined(parameters) && isDefined(parameters.team)){
+		team = parameters.team;
+	}
+	setSelectedTeam(team);
 }
 
+/**
+ * 
+ * This function will set all the selections from the given parameters.  It's here
+ * so that we can do the "navigate forward and backward" thing.  We keep those parameters
+ * in maps and then, to go forward and backward, we just have to feed the map we want to
+ * this function.
+ * 
+ * This function <i>WON'T</i> update the view.  You'll have to do that yourself after calling it.
+ * 
+ * @param parameters
+ * @returns
+ */
 function setSelectionsFromParameters(parameters){
+	
+	//Steps to do:
+	//	1. If the parameters don't have anything, there's nothing to do.
+	//	2. Otherwise, just go through and set each individual value.
 	
 	if (!isDefined(parameters)){
 		return;
@@ -67,7 +219,21 @@ function setSelectionsFromParameters(parameters){
 	}
 }
 
+/**
+ * 
+ * This function will get the parameters in a map from the url in the browser.  If there
+ * aren't any parameters, it'll return null.  Otherwise, it'll return a map with the parameter
+ * names as the keys and the values as the url.
+ * 
+ * @returns
+ */
 function getUrlParameters() {
+	
+	//Steps to do:
+	//	1. If there aren't any parameters, there's nothing to do.
+	//	2. Otherwise, each parameter should be separated by an ampersand, so break them apart on that.
+	//	3. Go through each parameter and get the key and value and that's a parameter.
+	//	4. That's it.
 	
 	if (isBlank(location.search)){
 		return null;
@@ -79,6 +245,7 @@ function getUrlParameters() {
     
     for (var index = 0; index < parameterNamesAndValues.length; index++) {
         var parameterNameAndValue = parameterNamesAndValues[index].split('=');
+        //Make sure to decode both the name and value in case there are weird values in them.
         var name = decodeURIComponent(parameterNameAndValue[0]);
         var value = decodeURIComponent(parameterNameAndValue[1]);
         urlParameters[name] = value;
@@ -87,6 +254,16 @@ function getUrlParameters() {
     return urlParameters;
 }
 
+/**
+ * 
+ * Gets all the values for each kind of parameter (type, year, week, ...)
+ * and returns them in a map with the key being the parameter.
+ * 
+ * Here so we can easily get what's selected (for the navigate forward and backward
+ * stuff).
+ * 
+ * @returns
+ */
 function getSelectedParameters(){
 	
 	var parameters = {};
@@ -101,7 +278,34 @@ function getSelectedParameters(){
 	return parameters;
 }
 
+/**
+ * 
+ * This function will get the initial selection criteria (teams, players, ...)
+ * from the server and create the selection criteria for those options.
+ * 
+ * It will also initialize the NFL_PICKS_GLOBAL values (some are pulled from the server,
+ * so that's why we do it in this function) and call the function that initializes the view 
+ * once it's ready.
+ * 
+ * Those initial values will be:
+ * 
+ * 		1. type - standings
+ * 		2. year - current
+ * 		3. week - all
+ * 		4. player - all
+ * 		5. team - all
+ * 		6. statName - champions
+ * 
+ * @returns
+ */
 function getSelectionCriteriaAndInitialize(){
+	
+	//Steps to do:
+	//	1. Send the request to the server to get the selection criteria.
+	//	2. When it comes back, pull out the years, players, and teams
+	//	   and set the options for them in each select.
+	//	3. Set the initial values in the NFL_PICKS_GLOBAL variable.
+	//	4. Now that we have all the criteria and initial values, we can initialize the view.
 	
 	$.ajax({url: 'nflpicks?target=selectionCriteria',
 			contentType: 'application/json; charset=UTF-8'}
@@ -110,29 +314,25 @@ function getSelectionCriteriaAndInitialize(){
 		var selectionCriteriaContainer = $.parseJSON(data);
 		
 		var years = selectionCriteriaContainer.years;
-		
+		//We want the "all" year option to be first.
 		var yearOptions = [{label: 'All', value: 'all'}];
-
 		for (var index = 0; index < years.length; index++){
 			var year = years[index];
 			yearOptions.push({label: year, value: year});
 		}
-		
 		setOptionsInSelect('year', yearOptions);
 		
 		var players = selectionCriteriaContainer.players;
-		
+		//We want the "all" player option to be the first one.
 		var playerOptions = [{label: 'Everybody', value: 'all'}];
-		
 		for (var index = 0; index < players.length; index++){
 			var player = players[index];
 			playerOptions.push({label: player, value: player});
 		}
-		
 		setOptionsInSelect('player', playerOptions);
 		
 		var teams = selectionCriteriaContainer.teams;
-		
+		//Sort the teams in alphabetical order to make sure we show them in a consistent order.
 		teams.sort(function (teamA, teamB){
 			
 			if (teamA.abbreviation < teamB.abbreviation){
@@ -144,15 +344,25 @@ function getSelectionCriteriaAndInitialize(){
 			
 			return 0;
 		});
-		
+		//We also want the "all" option to be first.
 		var teamOptions = [{label: 'All', value: 'all'}];
-		
 		for (var index = 0; index < teams.length; index++){
 			var team = teams[index];
 			teamOptions.push({label: team.abbreviation, value: team.abbreviation});
 		}
-		
 		setOptionsInSelect('team', teamOptions);
+
+		//The current year and week come from the server.
+		NFL_PICKS_GLOBAL.currentYear = selectionCriteriaContainer.currentYear;
+		NFL_PICKS_GLOBAL.currentWeekNumber = selectionCriteriaContainer.currentWeekNumber;
+		//Initially, we want to see the standings for the current year for everybody, so set those
+		//as the initial types.
+		NFL_PICKS_GLOBAL.initialType = 'standings';
+		NFL_PICKS_GLOBAL.initialYear = NFL_PICKS_GLOBAL.currentYear;
+		NFL_PICKS_GLOBAL.initialWeek = 'all';
+		NFL_PICKS_GLOBAL.initialPlayer = 'all';
+		NFL_PICKS_GLOBAL.initialTeam = 'all';
+		NFL_PICKS_GLOBAL.initialStatName = 'champions';
 		
 		initializeView();
 	})
@@ -162,61 +372,118 @@ function getSelectionCriteriaAndInitialize(){
 	});
 }
 
+/**
+ * 
+ * This function will cause the view to "navigate forward".  We can only do that if
+ * we've gone back.  So, this function will check the stack that holds the "forward parameters",
+ * pop the top of it off (if there's something in it), and then cause the view to have those
+ * parameters.
+ * 
+ * Before navigating, it will take the current parameters and put them on the previous stack
+ * so they can go back if they hit "back".
+ * 
+ * @returns
+ */
 function navigateForward(){
 	
-	//When navigating foward...
-	//	1. The current parameters should go on the previous stack.
-	//	2. Get the forward parameters off the forward stack.
-	//	3. Set them as the selections.
-	//	4. Update the view and make sure it doesn't push any parameters on any
+	//Steps to do:
+	//	1. If there aren't any forward parameters, there's no way to go forward.
+	//	2. The current parameters should go on the previous stack.
+	//	3. Get the forward parameters off the forward stack.
+	//	4. Set them as the selections.
+	//	5. Update the view and make sure it doesn't push any parameters on any
 	//	   stack
-	//	5. Flip the switch back so any other navigation will push parameters
+	//	6. Flip the switch back so any other navigation will push parameters
 	//	   on the previous stack.
-	var currentParameters = getSelectedParameters();
-	navigationBackwardStack.push(currentParameters);
 	
-	var parameters = navigationForwardStack.pop();
+	if (NFL_PICKS_GLOBAL.navigationForwardStack.length == 0){
+		return;
+	}
+	
+	var currentParameters = getSelectedParameters();
+	NFL_PICKS_GLOBAL.navigationBackwardStack.push(currentParameters);
+	
+	var parameters = NFL_PICKS_GLOBAL.navigationForwardStack.pop();
 	
 	setSelectionsFromParameters(parameters);
 	
-	pushPreviousParameters = false;
+	//Before updating the view, flip the switch that the updateView function uses to 
+	//decide whether to push the parameters for the current view on the stack or not.
+	//Since we're navigating forward, we take care of that in this function instead.
+	//A little bootleg, so it probably means I designed it wrong...
+	NFL_PICKS_GLOBAL.pushPreviousParameters = false;
 	updateView();
-	pushPreviousParameters = true;
+	NFL_PICKS_GLOBAL.pushPreviousParameters = true;
 }
 
+/**
+ * 
+ * This function will cause the view to show the previous view.  It's the same thing
+ * as going backward except will pull from the navigate backward stack.  The previous parameters
+ * for the view are stored on a stack, so to go backward, we just have to pop those parameters
+ * off, set them as the selections, and the update the view.  
+ * 
+ * It'll also take the current parameters (before going backward) and push them on the forward stack
+ * so navigating forward, after going backward, brings them back to where they were.
+ * 
+ * @returns
+ */
 function navigateBackward(){
 
-	//When navigating backward...
-	//	1. The current parameters should go on the forward stack since they're
+	//Steps to do:
+	//	1. If there isn't anything to backward to, there's nothing to do.
+	//	2. The current parameters should go on the forward stack since they're
 	//	   what we want to show if people navigate forward
-	//	2. The parameters we want to use come off the backward stack.
-	//	3. Flip the switch that says to not push any parameters on in the view function.
-	//	4. Update based on the parameters we got.
-	//	5. Flip the switch back so that any other navigation causes the parameters
+	//	3. The parameters we want to use come off the backward stack.
+	//	4. Flip the switch that says to not push any parameters on in the view function.
+	//	5. Update based on the parameters we got.
+	//	6. Flip the switch back so that any other navigation causes the parameters
 	//	   to go on the previous stack.
 	
-	var currentParameters = getSelectedParameters();
-	navigationForwardStack.push(currentParameters);
+	if (NFL_PICKS_GLOBAL.navigationBackwardStack.length == 0){
+		return;
+	}
 	
-	var parameters = navigationBackwardStack.pop();
+	var currentParameters = getSelectedParameters();
+	NFL_PICKS_GLOBAL.navigationForwardStack.push(currentParameters);
+	
+	var parameters = NFL_PICKS_GLOBAL.navigationBackwardStack.pop();
 	
 	setSelectionsFromParameters(parameters);
 	
-	pushPreviousParameters = false;
+	//Just like when navigating forward, we don't want the updateView function to fiddle
+	//with the navigation stacks since we're doing it here.  After the view has been updated, though,
+	//flip the switch back so that any other navigation cause the updateView function save the
+	//current view before changing.
+	NFL_PICKS_GLOBAL.pushPreviousParameters = false;
 	updateView();
-	pushPreviousParameters = true;
+	NFL_PICKS_GLOBAL.pushPreviousParameters = true;
 }
 
+/**
+ * 
+ * This function will make it so we only show the forward and backward
+ * links if they can actually navigate forward and backward.  It just checks
+ * the length of the stacks and uses that to decide whether to show
+ * or hide each link.
+ * 
+ * @returns
+ */
 function updateNavigationLinksVisibility(){
 	
-	if (navigationForwardStack.length == 0){
+	//Steps to do:
+	//	1. If the stack doesn't have anything in it, we shouldn't show
+	//	   the link.
+	//	2. Otherwise, we should.
+	
+	if (NFL_PICKS_GLOBAL.navigationForwardStack.length == 0){
 		$('#navigationFowardContainer').hide();
 	}
 	else {
 		$('#navigationFowardContainer').show();
 	}
 	
-	if (navigationBackwardStack.length == 0){
+	if (NFL_PICKS_GLOBAL.navigationBackwardStack.length == 0){
 		$('#navigationBackwardContainer').hide();
 	}
 	else {
@@ -224,25 +491,55 @@ function updateNavigationLinksVisibility(){
 	}
 }
 
+/**
+ * 
+ * The "main" function for the UI.  Makes it so we show what they picked on the screen.
+ * It bases its decision on the "type" variable and then just calls the right function
+ * based on what that is.
+ * 
+ * If the NFL_PICKS_GLOBAL.pushPreviousParameters switch is flipped, it'll also update
+ * the navigation stacks.  That switch is there so that:
+ * 
+ * 		1. When they do any non-forward or backward navigation action, we update the stacks.
+ * 		2. When they push forward or backward, we can handle the stacks other places.
+ * 
+ * @returns
+ */
 function updateView(){
 
-	var type = $('#type option:selected').val();
+	//Steps to do:
+	//	1. Before doing anything, if the switch is flipped, we should save the parameters
+	//	   from the last navigation on the backward stack so they can go backward to what
+	//	   we're currently on, if they want.
+	//	2. Get the type of view they want.
+	//	3. Update the selector view based on the type.
+	//	4. Decide which function to call based on that.
+	//	5. After the view is updated, keep the current selected parameters around so we can push
+	//	   them on the "back" stack the next time they make a change.
+	//	6. Make sure we're showing the right "navigation" links.
 	
-	//we want to push the previous parameters if we came here from a navigation
-	//if we came here from the back button, we don't want to
-	//Don't do this if it came from the back button...
-	if (previousParameters != null && pushPreviousParameters){
-		pushBackwardParameters(previousParameters);
-		navigationForwardStack = [];
+	//If there are previous parameters, and we should push them, push them on the backward
+	//navigation stack so they can go back to that view with the back button.
+	//If we shouldn't push them, that means the caller is handling the stack stuff themselves.
+	//And, if we should push them, that means they did some "action" that takes them on a
+	//different "branch", so we should clear out the forward stack since they can't go
+	//forward anymore.
+	if (previousParameters != null && NFL_PICKS_GLOBAL.pushPreviousParameters){
+		NFL_PICKS_GLOBAL.navigationBackwardStack.push(parameters);
+		NFL_PICKS_GLOBAL.navigationForwardStack = [];
 	}
 	
+	var type = getSelectedType();
+	
+	//Update the selectors that get shown.  We want to show different things depending
+	//on the type.
 	updateSelectors(type);
 	
 	if ('picks' == type){
 		updatePicks();
 	}
 	else if ('standings' == type) {
-		updateRecords();
+		updateStandings();
 	}
 	else if ('stats' == type){
 		updateStats();
@@ -255,15 +552,18 @@ function updateView(){
 	updateNavigationLinksVisibility();
 }
 
-function pushFowardParameters(parameters){
-	navigationForwardStack.push(parameters);
-}
-
-function pushBackwardParameters(parameters){
-	navigationBackwardStack.push(parameters);
-}
-
+/**
+ * 
+ * This function will update the selectors for the given type.  It just calls
+ * the specific type's update function.
+ * 
+ * @param type
+ * @returns
+ */
 function updateSelectors(type){
+	
+	//Steps to do:
+	//	1. Call the function based on the type.
 	
 	if ('picks' == type){
 		updatePicksSelectors(type);
@@ -292,6 +592,12 @@ function updateSelectors(type){
  * @returns
  */
 function updatePicksSelectors(type){
+
+	//Steps to do:
+	//	1. If the previous type is the same as the given one, we don't need
+	//	   to do anything to the selectors.
+	//	2. Show and hide what we need to.
+	//	3. Store the type we were given for next time.
 	
 	var previousSelectedType = getPreviousType();
 	
@@ -325,6 +631,12 @@ function updatePicksSelectors(type){
  * @returns
  */
 function updateStandingsSelectors(type){
+	
+	//Steps to do:
+	//	1. If the previous type is the same as the given one, we don't need
+	//	   to do anything to the selectors.
+	//	2. Show and hide what we need to.
+	//	3. Store the type we were given for next time.
 	
 	var previousSelectedType = getPreviousType();
 	if (previousSelectedType == type){
@@ -380,6 +692,12 @@ function updateStandingsSelectors(type){
  */
 function updateStatsSelectors(type){
 	
+	//Steps to do:
+	//	1. We always want to show the stat name container.
+	//	2. Get the name of the stat we want to show.
+	//	3. Show and hide what we need to based on the kind of stat we want to show.
+	//	4. Store the type we were given for next time.
+	
 	showStatNameContainer();
 	
 	var statName = getSelectedStatName();
@@ -430,83 +748,218 @@ function updateStatsSelectors(type){
 		showTeamContainer();
 		hideAllPlayerOption();
 	}
+	else if ('pickSplits' == statName){
+		showYearContainer();
+		showWeekContainer();
+		showTeamContainer();
+		hidePlayerContainer();
+		hideAllPlayerOption();
+	}
 	
 	setPreviousType(type);
 }
 
+/**
+ * 
+ * Gets the selected value for the type.
+ * 
+ * @returns
+ */
 function getSelectedType(){
 	return $('#type option:selected').val();
 }
 
+/**
+ * 
+ * Sets the selected value for the type to the given type.  Only does it
+ * if the type select input has the given type as an option.
+ * 
+ * @param type
+ * @returns
+ */
 function setSelectedType(type){
 	if (doesSelectHaveOptionWithValue('type', type)){
 		$('#type').val(type);
 	}
 }
 
+/**
+ * 
+ * Gets the previous type that was selected.  This is so we can decide
+ * whether to update stuff or not when the type changes.
+ * 
+ * @returns
+ */
 function getPreviousType(){
-	return previousType;
+	return NFL_PICKS_GLOBAL.previousType;
 }
 
+/**
+ * 
+ * Sets the previous type in the NFL_PICKS_GLOBAL variable.  This is so we can decide
+ * whether to update stuff or not when the type changes.
+ * 
+ * @param newPreviousType
+ * @returns
+ */
 function setPreviousType(newPreviousType){
-	previousType = newPreviousType;
+	NFL_PICKS_GLOBAL.previousType = newPreviousType;
 }
 
+/**
+ * 
+ * Gets the player that's selected.
+ * 
+ * @returns
+ */
 function getSelectedPlayer(){
 	return $('#player option:selected').val();
 }
 
+/**
+ * 
+ * Sets the selected player to the given one if that player is
+ * one of the player input's options.
+ * 
+ * @param player
+ * @returns
+ */
 function setSelectedPlayer(player){
 	if (doesSelectHaveOptionWithValue('player', player)){
 		$('#player').val(player);
 	}
 }
 
+/**
+ * 
+ * Gets the selected year.
+ * 
+ * @returns
+ */
 function getSelectedYear(){
 	return $('#year option:selected').val();
 }
 
+/**
+ * 
+ * Sets the selected year if the year input has the given
+ * year as an option.
+ * 
+ * @param year
+ * @returns
+ */
 function setSelectedYear(year){
 	if (doesSelectHaveOptionWithValue('year', year)){
 		$('#year').val(year);
 	}
 }
 
+/**
+ * 
+ * Gets the selected week.
+ * 
+ * @returns
+ */
 function getSelectedWeek(){
 	return $('#week option:selected').val();
 }
 
+/**
+ * 
+ * Sets the selected week to the given week if it's one of
+ * the week input's options.
+ * 
+ * @param week
+ * @returns
+ */
 function setSelectedWeek(week){
 	if (doesSelectHaveOptionWithValue('week', week)){
 		$('#week').val(week);
 	}
 }
 
+/**
+ * 
+ * Gets the selected stat name.
+ * 
+ * @returns
+ */
 function getSelectedStatName(){
 	return $('#statName option:selected').val();
 }
 
+/**
+ * 
+ * Sets the selected stat name if it's one of the options
+ * on the stat name input.
+ * 
+ * @param statName
+ * @returns
+ */
 function setSelectedStatName(statName){
 	if (doesSelectHaveOptionWithValue('statName', statName)){
 		$('#statName').val(statName);
 	}
 }
 
+/**
+ * 
+ * Gets the selected team.
+ * 
+ * @returns
+ */
 function getSelectedTeam(){
 	return $('#team option:selected').val();
 }
 
+/**
+ * 
+ * Sets the selected team if the given team is one of the
+ * options in the team input.
+ * 
+ * @param team
+ * @returns
+ */
 function setSelectedTeam(team){
 	if (doesSelectHaveOptionWithValue('team', team)){
 		$('#team').val(team);
 	}
 }
 
-function updateRecords(){
+/**
+ * 
+ * This function will set the given html as the content we show.  It'll clear out what's
+ * in there now.
+ * 
+ * @param contentHtml
+ * @returns
+ */
+function setContent(contentHtml){
+	$('#contentContainer').empty();
+	$('#contentContainer').append(contentHtml);
+}
+
+/**
+ * 
+ * This function will go get the standings from the server and show them on the UI.
+ * 
+ * What standings it gets depends on the player, year, and week that are selected.
+ * 
+ * @returns
+ */
+function updateStandings(){
+
+	//Steps to do:
+	//	1. Get the parameters to send (player, year, and week).
+	//	2. Send them to the server.
+	//	3. Update the UI with the results.
+	
 	var player = getSelectedPlayer();
 	var year = getSelectedYear();
 	var week = getSelectedWeek();
 	
+	//If they picked "regular season", that's weeks 1-17.
+	//Otherwise, if they picked the playoffs, that's weeks 18-21.
 	var weekToUse = week;
 	if ('regular-season' == week){
 		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
@@ -520,29 +973,35 @@ function updateRecords(){
 	)
 	.done(function(data) {
 		var standingsContainer = $.parseJSON(data);
+		//We want to show the records that came back, but we're going to have to sort them
+		//to make sure they're in the order we want.
 		var records = standingsContainer.records;
 
-		records.sort(function (a, b){
-			if (a.wins > b.wins){
+		//We want the record with the most wins coming first.  If they have the same number
+		//of wins, we want the one with fewer losses coming first.
+		records.sort(function (record1, record2){
+			if (record1.wins > record2.wins){
 				return -1;
 			}
-			else if (a.wins < b.wins){
+			else if (record1.wins < record2.wins){
 				return 1;
 			}
 			else {
-				if (a.losses < b.losses){
+				if (record1.losses < record2.losses){
 					return -1;
 				}
-				else if (a.losses > b.losses){
+				else if (record1.losses > record2.losses){
 					return 1;
 				}
 			}
 			return 0;
 		});
 		
-		var standingsGridHtml = createStandingsGridHtml(standingsContainer.records);
-		$('#contentContainer').empty();
-		$('#contentContainer').append(standingsGridHtml);
+		//Now that we have them sorted, we can create the html for the standings.
+		var standingsHtml = createStandingsHtml(standingsContainer.records);
+		
+		//And set it as the content.
+		setContent(standingsHtml);
 	})
 	.fail(function() {
 	})
@@ -614,71 +1073,73 @@ function hideStatNameContainer(){
 	$('#statNameContainer').hide();
 }
 
-function showStandingsSelectors(){
-	$('#playerContainer').show();
-	$('#yearContainer').show();
-	$('#weekContainer').show();
-}
-
-function hideStandingsSelectors(){
-	$('#playerContainer').hide();
-	$('#yearContainer').hide();
-	$('#weekContainer').hide();
-}
-
-function showPicksSelectors(){
-	$('#playerContainer').show();
-	$('#yearContainer').show();
-	$('#weekContainer').show();
-}
-
-function hidePicksSelectors(){
-	$('#playerContainer').hide();
-	$('#yearContainer').hide();
-	$('#weekContainer').hide();
-}
-
-function hideStatsSelectors(){
-	hideStatNameContainer();
-	$('#yearContainer').hide();
-}
-
+/**
+ * 
+ * This function will update the picks grid with the current selectors they ... picked.
+ * It'll get the parameters, go to the server to get the picks, and then update the UI
+ * with the grid.
+ * 
+ * @returns
+ */
 function updatePicks(){
 	
-	var player = getSelectedPlayer();
+	//Steps to do:
+	//	1. Get the parameters they picked.
+	//	2. Default the year and week to the current year and week if we should.
+	//	3. Go to the server and get the picks.
+	//	4. Update the UI with the picks grid.
+	
 	var year = getSelectedYear();
-	
+	var player = getSelectedPlayer();
+	var week = getSelectedWeek();
+	var team = getSelectedTeam();
+
+	//We need to make sure we only use "all" for the year if they explicitly set it.
+	//
+	//That should only happen if:
+	//	1. It's "all" in the url.
+	//	2. Or, they have seen the picks and have set it to "all" themselves.
+	//
+	//I'm doing it like this because using "all" for the year might bring back a lot
+	//of picks, so we should only do it if that's what they want to do.
 	var parameters = getUrlParameters();
-	
+
 	var hasYearInUrl = false;
 	if (isDefined(parameters) && isDefined(parameters.year)){
 		hasYearInUrl = true;
 	}
-	
-	if ('all' == year && !havePicksBeenShown && !hasYearInUrl){
-		year = getYearForCurrentSeason();
+
+	//We want to default it to the current year if:
+	//
+	//	1. It's "all"
+	//	2. We haven't shown the picks before
+	//	3. The "all" isn't from the url.
+	//
+	//In that situation, they didn't "explicitly" set it to "all", so we want to show
+	//only picks for the current year to start off with.
+	if ('all' == year && !NFL_PICKS_GLOBAL.havePicksBeenShown && !hasYearInUrl){
+		year = NFL_PICKS_GLOBAL.currentYear;
 		setSelectedYear(year);
 	}
-	
+
+	//Do the same thing with the week.  We only want to show picks for all the weeks if
+	//they went out of their way to say that's what they wanted to do.
 	var hasWeekInUrl = false;
 	if (isDefined(parameters) && isDefined(parameters.week)){
 		hasWeekInUrl = true;
 	}
 	
-	var week = getSelectedWeek();
-	if ('all' == week && !havePicksBeenShown && !hasWeekInUrl){
-		week = "1";
+	//If it's "all" and the picks haven't been shown and the "all" didn't come from the url,
+	//it's their first time seeing the picks, so we should show the ones for the current week.
+	if ('all' == week && !NFL_PICKS_GLOBAL.havePicksBeenShown && !hasWeekInUrl){
+		week = NFL_PICKS_GLOBAL.currentWeekNumber + '';
 		setSelectedWeek(week);
 	}
-	var team = getSelectedTeam();
 	
-	havePicksBeenShown = true;
-	
-	//change this to take fromYear and toYear?
-	//or just put in the weeks ...
-	//regular season = 1,2,3, ... 17
-	//playoffs = 18 ... 21
-	
+	//At this point, we're going to show them the picks, so we should flip that switch.
+	NFL_PICKS_GLOBAL.havePicksBeenShown = true;
+
+	//If the week is a "special" one, put in the actual numbers instead.
 	var weekToUse = week;
 	if ('regular-season' == week){
 		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
@@ -686,15 +1147,16 @@ function updatePicks(){
 	else if ('playoffs' == week){
 		weekToUse = '18,19,20,21';
 	}
-	
+
+	//Go to the server and get the grid.
 	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + player + '&year=' + year + '&week=' + weekToUse + '&team=' + team,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
+		//Update the UI with what the server sent back.
 		var picksGrid = $.parseJSON(data);
 		var picksGridHtml = createPicksGridHtml(picksGrid);
-		$('#contentContainer').empty();
-		$('#contentContainer').append(picksGridHtml);
+		setContent(picksGridHtml);
 	})
 	.fail(function() {
 	})
@@ -702,30 +1164,80 @@ function updatePicks(){
 	});
 }
 
-var statsData = null;
-
+/**
+ * 
+ * This function will get the stats from the server and update them on the ui.  The stat that
+ * it shows depends on the statName they picked.
+ * 
+ * @returns
+ */
 function updateStats(){
+	
+	//Steps to do:
+	//	1. Get the selected parameters.
+	//	2. Make sure they're ok based on the stat name.
+	//	3. Go to the server and get the stats.
+	//	4. Update the UI with what came back.
 	
 	var statName = getSelectedStatName();
 	var player = getSelectedPlayer();
+	var year = getSelectedYear();
+	var week = getSelectedWeek();
+	var team = getSelectedTeam();
 
+	//If the stat is "week records by player" or "pick accuracy", then they have to pick
+	//a player, so set it to the first player if there isn't one or it's "all".
 	if (statName == 'weekRecordsByPlayer' || statName == 'pickAccuracy'){
 		if (!isDefined(player) || 'all' == player){
 			var firstRealPlayer = $('#player option')[1].value;
 			setSelectedPlayer(firstRealPlayer);
 		}
 	}
+	//If we're showing the champions or championship standings, we want to show them
+	//for all players and all years.
 	else if (statName == 'champions' || statName == 'championshipStandings'){
 		setSelectedPlayer('all');
 		setSelectedYear('all');
 	}
+	//If the stat name is the "pick splits", we want to do the same thing we do with the picks grid.
+	//Only show "all" for the year or the week if they actually set it to "all".
+	//If it's the first time we're showing the pick splits, we only want to show all of them if that
+	//was in the url.
+	else if (statName == 'pickSplits'){
+		var urlParameters = getUrlParameters();
+		
+		//Same deal as with the picks grid...
+		var hasYearInUrl = false;
+		if (isDefined(urlParameters) && isDefined(urlParameters.year)){
+			hasYearInUrl = true;
+		}
+		
+		//If the year is "all", we haven't shown the picks, and "all" didn't come from the url, then we
+		//want the year we show the pick splits for to be the current year.
+		if ('all' == year && !NFL_PICKS_GLOBAL.havePickSplitsBeenShown && !hasYearInUrl){
+			year = NFL_PICKS_GLOBAL.currentYear;
+			setSelectedYear(year);
+		}
+		
+		//Same deal as with the year and with the picks grid...
+		var hasWeekInUrl = false;
+		if (isDefined(urlParameters) && isDefined(urlParameters.week)){
+			hasWeekInUrl = true;
+		}
+		
+		//If the week is "all", we haven't shown the picks, and "all" didn't come from the url, then we
+		//want the week we show the pick splits for to be the current week.
+		if ('all' == week && !NFL_PICKS_GLOBAL.havePickSplitsBeenShown && !hasWeekInUrl){
+			week = NFL_PICKS_GLOBAL.currentWeekNumber + '';
+			setSelectedWeek(week);
+		}
+		
+		//And, since we're here, that means we've shown the pick splits to the user, so the next time, we won't
+		//do the funny business with the week and year.
+		NFL_PICKS_GLOBAL.havePickSplitsBeenShown = true;
+	}
 
-	player = getSelectedPlayer();
-	
-	var year = getSelectedYear();
-	var week = getSelectedWeek();
-	var team = getSelectedTeam();
-	
+	//If the week was one of the "special" ones, use the actual weeks instead.
 	var weekToUse = week;
 	if ('regular-season' == week){
 		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
@@ -734,66 +1246,53 @@ function updateStats(){
 		weekToUse = '18,19,20,21';
 	}
 	
+	//Send the request to the server.
 	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + weekToUse + '&team=' + team,
 			contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
-		statsData = data;
-		
 		var statsHtml = '';
-		
+
+		//Make the html for the kind of stat they wanted to see.
 		if ('champions' == statName){
-			
 			var championships = $.parseJSON(data);
-			
 			statsHtml = createChampionsHtml(championships);
 			
 		}
 		else if ('championshipStandings' == statName){
-			
 			var championships = $.parseJSON(data);
-			
 			statsHtml = createChampionshipStandingsHtml(championships);
 		}
 		else if ('weeksWonStandings' == statName){
-			
 			var weekRecords = $.parseJSON(data);
+			//We want to sort the records before we show them so we can show the rank.
 			sortWeekRecords(weekRecords);
-		
 			statsHtml = createWeeksWonHtml(weekRecords);
 		}
 		else if ('weeksWonByWeek' == statName){
-			
 			var weeksWonByWeek = $.parseJSON(data);
-			
 			statsHtml = createWeeksWonByWeek(weeksWonByWeek);
 		}
 		else if ('weekRecordsByPlayer' == statName){
-			//add in the player here and get the default
-			//this will show somebody's records throughout a season or through all time
-			//along with the rank of each one...
-			//
-			//Year	Week	Record
-			//All	All		298 - 90 (2nd)
-			//2017	3		9 - 7 (5th)
-			
 			var weekRecords = $.parseJSON(data);
+			//Like with the other records, we want to sort them before we show them.
 			sortWeekRecordsBySeasonAndWeek(weekRecords);
 			statsHtml = createWeekRecordsByPlayerHtml(weekRecords);
 		}
 		else if ('weekStandings' == statName){
-			
 			var playerWeekRecords = $.parseJSON(data);
-			
 			statsHtml = createWeekStandingsHtml(playerWeekRecords);
 		}
 		else if ('pickAccuracy' == statName){
 			var pickAccuracySummaries = $.parseJSON(data);
 			statsHtml = createPickAccuracySummariesHtml(pickAccuracySummaries);
 		}
+		else if ('pickSplits' == statName){
+			var pickSplits = $.parseJSON(data);
+			statsHtml = createPickSplitsGridHtml(pickSplits);
+		}
 		
-		$('#contentContainer').empty();
-		$('#contentContainer').append(statsHtml);
+		setContent(statsHtml);
 	})
 	.fail(function() {
 	})
@@ -802,36 +1301,18 @@ function updateStats(){
 	
 }
 
-function getPickForGame(picksGrid, playerId, gameId){
-	
-	for (var index = 0; index < picksGrid.picks.length; index++){
-		var pick = picksGrid.picks[index];
-		
-		if (pick.game.id == gameId && pick.player.id == playerId){
-			return pick;
-		}
-	}
-	
-	return null;
-}
-
-function getPicksForGame(picksGrid, gameId){
-	
-	var picksForGame = [];
-	
-	for (var index = 0; index < picksGrid.picks.length; index++){
-		var pick = picksGrid.picks[index];
-		
-		if (pick.game.id == gameId){
-			picksForGame.push(pick);
-		}
-	}
-	
-	return picksForGame;
-	
-}
-
+/**
+ * 
+ * A "convenience" function that says whether any record in the given
+ * array has any ties.
+ * 
+ * @param records
+ * @returns
+ */
 function hasTies(records){
+	
+	//Steps to do:
+	//	1. Go through all the records and return true if one has a tie.
 	
 	if (!isDefined(records)){
 		return false;
@@ -848,7 +1329,170 @@ function hasTies(records){
 	return false;
 }
 
-function createStandingsGridHtml(records){
+/**
+ * 
+ * This function will compare the given records and return -1 if the first record
+ * has more wins than the second, 1 if it has more, and 0 if it's the same.
+ * 
+ * If the records have the same number of wins, then it bases the comparison on the
+ * losses.  If record1 has the same wins but fewer losses, it should go first, so it 
+ * returns -1.
+ * 
+ * It'll return 0 if they have the exact same number of wins and losses.
+ * 
+ * We do this in a few different places, so I decided to make a function.
+ * 
+ * @param record1
+ * @param record2
+ * @returns
+ */
+function recordWinComparisonFunction(record1, record2){
+	
+	//Steps to do:
+	//	1. Compare based on the wins first.
+	//	2. If they're the same, compare on the losses.
+	
+	//More wins should go first.
+	if (record1.wins > record2.wins){
+		return -1;
+	}
+	//Fewer wins should go last.
+	else if (record1.wins < record2.wins){
+		return 1;
+	}
+	else {
+		//With the same number of wins, fewer losses should go first.
+		if (record1.losses < record2.losses){
+			return -1;
+		}
+		//And more losses should go second.
+		else if (record1.losses > record2.losses){
+			return 1;
+		}
+	}
+	
+	//Same wins and losses = same record.
+	return 0;
+}
+
+/**
+ * 
+ * This function will create the html for showing the standings for the given records.
+ * It expects them to be sorted in the order they should be shown already, so it won't do any
+ * sorting of them (it's up to the caller to do that).
+ * 
+ * @param records
+ * @returns
+ */
+function createStandingsHtml(records){
+	
+	//Steps to do:
+	//	1. Create the header for the standings.
+	//	2. Figure out what the most wins and losses are for the records (so
+	//	   we can get the games back when making them).
+	//	3. Go through each record, get its rank, and add it to the table.
+	//	4. Put all the parts of the table together.	
+	
+	var standingsHtml = '';
+	
+	//We only want to include the ties header if there's a record in there
+	//with a tie.
+	var areThereAnyTies = hasTies(records);
+	var tiesHeader = '';
+	if (areThereAnyTies){
+		tiesHeader = '<th class="standings-table-header">T</th>';
+	}
+	
+	var standingsHeaderHtml = '<thead class="standings-table-head">' +
+						 	  	'<th class="standings-table-player-header"></th>' +
+						 	  	'<th class="standings-table-header">W</th>' + 
+						 	  	'<th class="standings-table-header">L</th>' +
+						 	  	tiesHeader + 
+						 	  	'<th class="standings-table-header">%</th>' + 
+						 	  	'<th class="standings-table-header">GB</th>' + 
+						 	  '</thead>';
+
+	//For holding the table rows.
+	var rowsHtml = '';
+	
+	//Here so we can figure out how many games back a record is from the top.
+	var topWins = 0;
+	var topLosses = 0;
+	
+	if (!isEmpty(records)){
+		topWins = records[0].wins;
+		topLosses = records[0].losses;
+	}
+	//If there aren't any records, then we should just show that there aren't any results.
+	else {
+		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
+	}
+
+	for (var index = 0; index < records.length; index++){
+		var record = records[index];
+
+		//Get the rank of this record within all the other records.  The "rank" function
+		//takes care of doing that.  We just have to tell it how to compare two records and
+		//when records are exactly the same.
+		//The "recordWinComparisonFunction" compares records based on their wins and losses,
+		//and the inline function says a record is exactly the same when it's for the same player.
+		var recordRank = rank(record, records, recordWinComparisonFunction, function (record1, record2){
+			
+			if (record1.player.id == record2.player.id){
+				return true;
+			}
+			
+			return false;
+		});
+		
+		//We want to show the percentage too.
+		var percentage = record.wins / (record.wins + record.losses);
+		var percentageString = '';
+		//And we want it to 3 decimal places.
+		if (!isNaN(percentage)){
+			percentageString = percentage.toPrecision(3);
+		}
+		
+		var gamesBack = '';
+		if (record.losses == topLosses && record.wins == topWins){
+			gamesBack = '-';
+		}
+		else {
+			var calculatedGamesBack = topWins - record.wins;
+			gamesBack = calculatedGamesBack + '';
+		}
+		
+		var tiesCell = '';
+		if (areThereAnyTies){
+			tiesCell = '<td class="standings-table-cell">' + record.ties + '</td>';
+		}
+		
+		var rankText = recordRank.rank + '';
+		if (recordRank.tie){
+			rankText = rankText + 't';
+		}
+		
+		//Now we have everything we need for the row.
+		rowsHtml = rowsHtml + 
+				  '<tr class="standings-table-row">' +
+				  	'<td class="standings-table-player-cell">' + rankText + '. ' + record.player.name + '</td>' +
+				  	'<td class="standings-table-cell">' + record.wins + '</td>' +
+				  	'<td class="standings-table-cell">' + record.losses + '</td>' +
+				  	tiesCell + 
+				  	'<td class="standings-table-cell">' + percentageString + '</td>' +
+				  	'<td class="standings-table-cell">' + gamesBack + '</td>' + 
+				  '</tr>';
+	}
+
+	//And now we just have to put them together.
+	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
+	
+	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
+	
+	return standingsHtml;
+}
+
+function createStandingsGridHtml2(records){
 	
 	var standingsHtml = '';
 	
@@ -989,24 +1633,41 @@ function createStandingsGridHtml(records){
 	return standingsHtml;
 }
 
+/**
+ * 
+ * This function will make the grid that holds the given picks in it.  It gets a little
+ * hard to follow explaining how the css works, so hopefully I do an ok job explaining that.
+ * 
+ * @param picksGrid
+ * @returns
+ */
 function createPicksGridHtml(picksGrid){
+
+	//Steps to do:
+	//	1. This would get too long, so I'll do it old school like how I did in college.
 	
+	//If they selected a year, we don't want to show it as a column.  But, if the year
+	//is "all", then we're going to be showing multiple years, so we want a column for it.
 	var yearHeader = '';
-	var weekHeader = '';
-	
 	var yearSelected = isSpecificYearSelected();
 	if (!yearSelected){
 		yearHeader = '<th align="left" class="table-header">Year</th>';
 	}
 	
+	//Same deal with the week.  If they don't have a specific week selected, we want to show the week.  If they
+	//do, then we don't.
+	var weekHeader = '';
 	var selectedWeek = getSelectedWeek();
-	var weekSelected = !('all' == selectedWeek || 'regular-season' == selectedWeek || 'playoffs' == selectedWeek);
+	var weekSelected = isSpecificWeekSelected();
 	if (!weekSelected){
 		weekHeader = '<th align="left" class="table-header">Week</th>';
 	}
 	
-	var picksGridHtml = '';
-	
+	//The grid will have:
+	//	1. The year (if we have it)
+	//	2. The week (if we have it)
+	//	3. The game
+	//	4. Each player's pick.
 	var gridHeaderHtml = '<thead>' +
 							yearHeader + 
 							weekHeader + 
@@ -1015,13 +1676,16 @@ function createPicksGridHtml(picksGrid){
 	for (var index = 0; index < picksGrid.players.length; index++){
 		var player = picksGrid.players[index];
 		
+		//Each player's pick will have two columns: the pick and the result, so we want the player name
+		//to span both of them.
 		gridHeaderHtml = gridHeaderHtml + '<th align="left" colspan="2" class="table-header">' + player + '</th>';
 	}
 	
 	gridHeaderHtml = gridHeaderHtml + '</thead>';
 
+	//We want to show the records for the picks right below the player names.  This just initializes
+	//them all to 0.  We'll fill them in as we're going through the picks and then add them at the end.
 	var playerRecords = [];
-	
 	for (var index = 0; index < picksGrid.players.length; index++){
 		var player = picksGrid.players[index];
 		var playerRecord = {player: player,
@@ -1031,19 +1695,21 @@ function createPicksGridHtml(picksGrid){
 		playerRecords[index] = playerRecord;
 	}
 	
+	//Ok, now it's game time...
 	var pickRowsHtml = '';
 	
 	for (var index = 0; index < picksGrid.picks.length; index++){
 		var pick = picksGrid.picks[index];
 		
+		//We want the rows to have different backgrounds for even and odd so it's easy to see.
 		var rowClassName = 'even-row';
 		if (index % 2 == 1){
 			rowClassName = 'odd-row';
 		}
 		
+		//And we want to use different css to indicate winners and losers.
 		var homeTeamClass = '';
 		var awayTeamClass = '';
-
 		if (isDefined(pick.winningTeamAbbreviation)){
 			if (pick.winningTeamAbbreviation == pick.awayTeamAbbreviation){
 				awayTeamClass = 'winner';
@@ -1057,122 +1723,154 @@ function createPicksGridHtml(picksGrid){
 			}
 		}
 		
-		//on the bottom row.
+		//We need to do some different things when we're on the bottom row, so we should check
+		//that switch.
 		var isBottomRow = false;
 		if (index + 1 == picksGrid.picks.length){
 			isBottomRow = true;
 		}
-		
-		var year = '';
-		var week = '';
-		
+
+		//If they didn't pick a year, we'll want to add the cell for the year first.
+		var yearCell = '';
 		if (!yearSelected){
+			//And, we know that the year should be the first column, so it should use that css.
 			var cssClassToUse = 'first-pick-cell';
+			//And the first column, bottom row css if it's the bottom row (so the border is right).
 			if (isBottomRow){
 				cssClassToUse = 'first-pick-cell-bottom';
 			}
 			
-			year = '<td class="' + cssClassToUse + '">' + pick.year + '</td>';
+			yearCell = '<td class="' + cssClassToUse + '">' + pick.year + '</td>';
 		}
 		
+		//Same deal with the week.  If they didn't pick one, add in a column for it.
+		var weekCell = '';
 		if (!weekSelected){
 			
 			var cssClassToUse = null;
 			
+			//A little more complicated than the year because it might or might not be the first column.
+			
+			//If the year isn't selected, and it's not the bottom, then we're showing the year, so the week
+			//is just a middle column.
 			if (!yearSelected && !isBottomRow){
 				cssClassToUse = 'pick-cell';
 			}
+			//If it's a middle column, but it's on the bottom, we want the one with the bottom border.
 			else if (!yearSelected && isBottomRow){
 				cssClassToUse = 'pick-cell-bottom';
 			}
+			//If the year was picked, then this is going to be the first column.
 			else if (yearSelected && !isBottomRow){
 				cssClassToUse = 'first-pick-cell';
 			}
+			//And this is for if it's the first column and on the bottom (so it gets the bottom border).
 			else if (yearSelected && isBottomRow){
 				cssClassToUse = 'first-pick-cell-bottom';
 			}
 		
-			week = '<td class="' + cssClassToUse + '">' + pick.weekNumber + '</td>';
+			weekCell = '<td class="' + cssClassToUse + '">' + pick.weekNumber + '</td>';
 		}
 
-		var isPickFirstCell = weekSelected && yearSelected;
-		
-		var pickCssClassToUse = null;
-		
-		if (!isPickFirstCell && !isBottomRow){
-			pickCssClassToUse = 'pick-cell';
+		//Now, we have to do the same thing with the game that we did with the week.
+		//It'll be the first column in the table if the week and year are selected (because
+		//that means they won't be shown as columns).
+		var isGameFirstColumn = weekSelected && yearSelected;
+
+		var gameCssClassToUse = null;
+		if (!isGameFirstColumn && !isBottomRow){
+			gameCssClassToUse = 'pick-cell';
 		}
-		else if (!isPickFirstCell && isBottomRow){
-			pickCssClassToUse = 'pick-cell-bottom';
+		else if (!isGameFirstColumn && isBottomRow){
+			gameCssClassToUse = 'pick-cell-bottom';
 		}
-		else if (isPickFirstCell && !isBottomRow){
-			pickCssClassToUse = 'first-pick-cell';
+		else if (isGameFirstColumn && !isBottomRow){
+			gameCssClassToUse = 'first-pick-cell';
 		}
-		else if (isPickFirstCell && isBottomRow){
-			pickCssClassToUse = 'first-pick-cell-bottom';
+		else if (isGameFirstColumn && isBottomRow){
+			gameCssClassToUse = 'first-pick-cell-bottom';
 		}
-		
+
+		//Now we can put the first part of the pick row together.
+		//It's the year and week (if they're there), followed by the game.
 		var gameRow = '<tr class="' + rowClassName + '">' + 
-						year +
-						week +
-						'<td class="' + pickCssClassToUse + '">' + 
+						yearCell +
+						weekCell +
+						'<td class="' + gameCssClassToUse + '">' + 
 							'<span class="' + awayTeamClass + '">' + pick.awayTeamAbbreviation + '</span>' + 
 							' @ ' + 
 							'<span class="' + homeTeamClass + '">' + pick.homeTeamAbbreviation + '</span>' +  
 						'</td>';
 		
-		var pickGameClass = '';
+		//And now we have to add in the player picks.
+		//There'll be two parts: the team they picked, and the result. 
+		var pickTeamClass = '';
 		var pickResultClass = 'pick-cell';
 		
+		//If we're on the bottom row, we want them to have a bottom border.
 		if (isBottomRow){
-			pickGameClass = 'pick-game-bottom';
+			pickTeamClass = 'pick-game-bottom';
 			pickResultClass = 'pick-cell-bottom';
 		}
 	
+		//Go through each player and add a column for each one.
 		for (var playerIndex = 0; playerIndex < picksGrid.players.length; playerIndex++){
 			var playerName = picksGrid.players[playerIndex];
-			
-			var pickForPlayer = null;
-			
+
+			//We have to get the team they picked from the "playerPicks" for the game.  It has a list
+			//of playerPick structs, and we just have to get the one for the player we're on to get their pick.
+			var pickedTeamForPlayer = null;
 			for (var pickIndex = 0; pickIndex < pick.playerPicks.length; pickIndex++){
 				var playerPick = pick.playerPicks[pickIndex];
 				
 				if (playerPick.player == playerName){
-					pickForPlayer = playerPick.pick;
+					pickedTeamForPlayer = playerPick.pick;
 					break;
 				}
 			}
 			
+			
+			//If the game doesn't have a result, we just want that part to be blank.
 			var doesGameHaveResult = false;
 			if (isDefined(pick.winningTeamAbbreviation)){
 				doesGameHaveResult = true;
 			}
 			
+			//Assume both the team and result are blank to start off with.
 			var team = '&nbsp;';
-			var result = '';
+			var result = '&nbsp;';
 			var winnerOrLoserClass = '';
 			
-			if (isDefined(pickForPlayer)){
-				team = pickForPlayer;
+			//And use the actual pick for the team if they picked somebody.
+			if (isDefined(pickedTeamForPlayer)){
+				team = pickedTeamForPlayer;
 			}
-			
+
+			//If the game has a result, figure out what that result should be.
 			if (doesGameHaveResult){
-				
-				if (isDefined(pickForPlayer)){
-					if (pick.winningTeamAbbreviation == 'TIE'){
-						result = 'T';
-					}
-					else if (pick.winningTeamAbbreviation == pickForPlayer){
+				//If they picked a team, then use that to decide what the result is.
+				//If they didn't pick a team, it's like we're going to ignore it.
+				if (isDefined(pickedTeamForPlayer)){
+					//If they picked the winnig team, that's a W.
+					if (pick.winningTeamAbbreviation == pickedTeamForPlayer){
 						result = 'W';
 					}
+					//If nobody won, that's a tie.
+					else if (pick.winningTeamAbbreviation == 'TIE'){
+						result = 'T';
+					}
+					//If we're here, they picked a team, it wasn't the winner, and the game wasn't
+					//a tie ... So, in conclusion: L.
 					else {
 						result = 'L';
 					}
 				}
 				
-				//If they didn't make a pick, that doesn't qualify as
-				//a loss.  We don't count it as anything.  When retrieving
-				//the records for the standings, we don't count missing picks as
+				//And, since there was a result, we can add that to the player's record.
+				//
+				//If they didn't make a pick, that doesn't qualify as a loss.  We don't count it as 
+				//anything, so there's nothing for it here.  
+				//When retrieving the records for the standings, we don't count missing picks as
 				//losses anymore so we shouldn't do it here.
 				
 				if (result == 'W'){
@@ -1189,14 +1887,14 @@ function createPicksGridHtml(picksGrid){
 				}
 			}
 			
-			gameRow = gameRow + '<td class="' + pickGameClass + '">' + 
+			//And now, we can the player's pick to the row.
+			gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
 									'<span class="' + winnerOrLoserClass + '">' + team + '</span>' + 
 								'</td>' 
 									+ 
 								'<td class="' + pickResultClass + '">' +
 									'<span class="' + winnerOrLoserClass + '">' + result + '</span>' + 
-								'</td>'
-									;
+								'</td>';
 		}
 		
 		gameRow = gameRow + '</tr>';
@@ -1204,12 +1902,17 @@ function createPicksGridHtml(picksGrid){
 		pickRowsHtml = pickRowsHtml + gameRow;
 	}
 
+	//Now that we're basically done with the table and the picks in it, we know that we have
+	//all the player records filled in, so we can make the row for them.
 	var weekRecordHtml = '';
 	
+	//Just go through them all (they should be in the same order that the players were in),
+	//and add a column for each.
 	for (var index = 0; index < playerRecords.length; index++){
 		var playerRecord = playerRecords[index];
 		var pickRecordRowCss = 'pick-record';
 		
+		//The last one needs a border on the right.
 		if (index + 1 >= playerRecords.length){
 			pickRecordRowCss = 'last-pick-record';
 		}
@@ -1219,40 +1922,67 @@ function createPicksGridHtml(picksGrid){
 			tiesString = ' - ' + playerRecord.ties;
 		}
 		
+		//We want it to span 2 columns because the picks have two columns (one for the pick, one for the result).
 		var playerRecordHtml = '<td colspan="2" class="' + pickRecordRowCss + '">' + playerRecord.wins + ' - ' + playerRecord.losses + tiesString + '</td>';
 		weekRecordHtml = weekRecordHtml + playerRecordHtml;
 	}
 	
-	var extra = '';
-	
+	//If year and week weren't selected, we're going to need blank cells for them 
+	//on the records row.
+	var blankCells = '';
 	if (!yearSelected){
-		extra = extra + '<td class="first-pick-cell-bottom"></td>';
+		//It will always be the first cell and we'll always want it to have
+		//a bottom.
+		blankCells = blankCells + '<td class="first-pick-cell-bottom"></td>';
 	}
 	
+	//Same thing with the week.
 	if (!weekSelected){
+		//It might or might not be the first cell, though.
 		var cssClassToUse = 'pick-cell-bottom';
 		if (yearSelected){
 			cssClassToUse = 'first-pick-cell-bottom';
 		}
 		
-		extra = extra + '<td class="' + cssClassToUse + '"></td>';
+		blankCells = blankCells + '<td class="' + cssClassToUse + '"></td>';
 	}
 	
-	var xCssClassToUse = 'pick-cell-bottom';
+	//The css for the game cell might change depending on whether it's the first column
+	//or not (will be if both year and week are selected).
+	var blankGameCssClassToUse = 'pick-cell-bottom';
 	if (yearSelected && weekSelected){
-		xCssClassToUse = 'first-pick-cell-bottom';
+		blankGameCssClassToUse = 'first-pick-cell-bottom';
 	}
+	blankCells = blankCells + '<td class="' + blankGameCssClassToUse + '"></td>';
 	
-	weekRecordHtml = '<tr>' + extra + '<td class="' + xCssClassToUse + '"></td>' +  weekRecordHtml + '</tr>';
+	//We want the blank cells in there before the current record cells.
+	weekRecordHtml = '<tr>' + blankCells + weekRecordHtml + '</tr>';
 	
+	//And we want the week record to be the first row, so add it in before the other rows.
 	var gridBodyHtml = '<tbody>' + weekRecordHtml + pickRowsHtml + '</tbody>';
 	
-	picksGridHtml = '<table class="picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>';
+	//Finally, complete the grid.
+	var picksGridHtml = '<table class="picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>';
 	
 	return picksGridHtml;
 }
 
+/**
+ * 
+ * This function switches the element with the given id from visibile to 
+ * hidden or back (with the jquery "hide" and "show" functions).
+ * 
+ * It decides whether something is visible by using the ":visible" property
+ * in jquery.  If it's visible, it hides it.  Otherwise, it shows it.
+ * 
+ * @param id
+ * @returns
+ */
 function toggleVisibilty(id){
+	
+	//Steps to do:
+	//	1. Get whether the element is visible.
+	//	2. Hide it if it is and show it if it's not.
 	
 	var isVisible = $('#' + id).is(':visible');
 	
@@ -1264,7 +1994,21 @@ function toggleVisibilty(id){
 	}
 }
 
+/**
+ * 
+ * This function will toggle the visibility the weeks for the given week records
+ * at the given index.  If they're shown, it'll hide them.  If they're hidden,
+ * it'll show them.  It's specific to the "weeks won" stat thing for now.
+ * 
+ * @param index
+ * @returns
+ */
 function toggleShowWeeks(index){
+	
+	//Steps to do:
+	//	1. Get whether the week records are shown now.
+	//	2. If they are, then hide them and change the link text.
+	//	3. Otherwise, show them and change the link text.
 	
 	var isVisible = $('#week-records-' + index).is(':visible');
 	
@@ -1277,6 +2021,9 @@ function toggleShowWeeks(index){
 		$('#show-weeks-link-' + index).text('hide weeks');
 	}
 }
+
+//STOPPED HERE!!!!!
+
 
 function createWeeksWonHtml(weekRecords){
 	//sort on the number of weeks won
@@ -1487,7 +2234,7 @@ function isSpecificWeekSelected(){
 
 	var selectedWeek = getSelectedWeek();
 	
-	if ('all' == selectedWeek){
+	if ('all' == selectedWeek || 'regular-season' == selectedWeek || 'playoffs' == selectedWeek){
 		return false;
 	}
 	
@@ -2156,7 +2903,7 @@ function createPicksLink(linkText, year, week, team, player){
 
 function showPickView(year, week, team, player){
 
-	havePicksBeenShown = true;
+	NFL_PICKS_GLOBAL.havePicksBeenShown = true;
 	
 	setSelectedType('picks');
 	
@@ -2414,4 +3161,177 @@ function createPicksMadeGrid(games){
 
 function getSelectedPick(gameId){
 	return $('#pick-' + gameId).val();
+}
+
+function createPickSplitsGridHtml(pickSplits){
+	
+	var yearSelected = isSpecificYearSelected();
+	var weekSelected = isSpecificWeekSelected();
+	
+	var yearHeader = '';
+	if (!yearSelected){
+		yearHeader = '<th class="table-header">Year</th>';
+	}
+	
+	var weekHeader = '';
+	if (!weekSelected){
+		weekHeader = '<th class="table-header">Week</th>';
+	}
+	
+	var pickSplitsHeaderHtml = '<thead>' +
+								 yearHeader + 
+								 weekHeader + 
+							 	 '<th class="table-header">Game</th>' + 
+							 	 '<th class="table-header">Picked Home</th>' + 
+							 	 '<th class="table-header">Picked Away</th>' +
+							 '</thead>';
+	
+	var rowsHtml = '';
+	
+	for (var index = 0; index < pickSplits.length; index++){
+		var pickSplit = pickSplits[index];
+		
+		var isBottomRow = false;
+		if (index + 1 == pickSplits.length){
+			isBottomRow = true;
+		}
+	
+		var rowClassName = 'even-row';
+		if (index % 2 == 1){
+			rowClassName = 'odd-row';
+		}
+
+		var homePlayersClass = '';
+		var awayPlayersClass = '';
+		var homeTeamClass = '';
+		var awayTeamClass = '';
+
+		if (isDefined(pickSplit.winningTeamAbbreviation)){
+			if (pickSplit.winningTeamAbbreviation == pickSplit.awayTeamAbbreviation){
+				awayTeamClass = 'winner';
+				homePlayersClass = 'loser';
+				awayPlayersClass = 'winner';
+			}
+			else if (pickSplit.winningTeamAbbreviation == pickSplit.homeTeamAbbreviation){
+				homeTeamClass = 'winner';
+				homePlayersClass = 'winner';
+				awayPlayersClass = 'loser';
+			}
+			else {
+				awayTeamClass = 'tie';
+				homeTeamClass = 'tie';
+				homePlayersClass = 'tie';
+				awayPlayersClass = 'tie';
+			}
+		}
+
+		var year = '';
+		var week = '';
+		
+		if (!yearSelected){
+			var cssClassToUse = 'first-pick-cell';
+			if (isBottomRow){
+				cssClassToUse = 'first-pick-cell-bottom';
+			}
+			
+			year = '<td class="' + cssClassToUse + '">' + pickSplit.year + '</td>';
+		}
+		
+		if (!weekSelected){
+			
+			var cssClassToUse = null;
+			
+			if (!yearSelected && !isBottomRow){
+				cssClassToUse = 'pick-cell';
+			}
+			else if (!yearSelected && isBottomRow){
+				cssClassToUse = 'pick-cell-bottom';
+			}
+			else if (yearSelected && !isBottomRow){
+				cssClassToUse = 'first-pick-cell';
+			}
+			else if (yearSelected && isBottomRow){
+				cssClassToUse = 'first-pick-cell-bottom';
+			}
+		
+			week = '<td class="' + cssClassToUse + '">' + pickSplit.weekNumber + '</td>';
+		}
+
+		var isPickFirstCell = weekSelected && yearSelected;
+		
+		var pickCssClassToUse = null;
+		
+		if (!isPickFirstCell && !isBottomRow){
+			pickCssClassToUse = 'pick-cell';
+		}
+		else if (!isPickFirstCell && isBottomRow){
+			pickCssClassToUse = 'pick-cell-bottom';
+		}
+		else if (isPickFirstCell && !isBottomRow){
+			pickCssClassToUse = 'first-pick-cell';
+		}
+		else if (isPickFirstCell && isBottomRow){
+			pickCssClassToUse = 'first-pick-cell-bottom';
+		}
+		
+		var gameRow = '<tr class="' + rowClassName + '">' + 
+						year +
+						week +
+						'<td class="' + pickCssClassToUse + '">' + 
+							'<span class="' + awayTeamClass + '">' + pickSplit.awayTeamAbbreviation + '</span>' + 
+							' @ ' + 
+							'<span class="' + homeTeamClass + '">' + pickSplit.homeTeamAbbreviation + '</span>' +  
+						'</td>';
+		
+		var numberOfHomePlayers = 0;
+		var homePlayersString = '';
+		if (isDefined(pickSplit.homeTeamPlayers) && pickSplit.homeTeamPlayers.length > 0){
+			numberOfHomePlayers = pickSplit.homeTeamPlayers.length;
+			for (var playerIndex = 0; playerIndex < pickSplit.homeTeamPlayers.length; playerIndex++){
+				var player = pickSplit.homeTeamPlayers[playerIndex];
+				
+				if (playerIndex > 0){
+					homePlayersString = homePlayersString + ', ';
+				}
+				
+				homePlayersString = homePlayersString + player;
+			}
+		}
+		
+		var numberOfAwayPlayers = 0;
+		var awayPlayersString = '';
+		if (isDefined(pickSplit.awayTeamPlayers) && pickSplit.awayTeamPlayers.length > 0){
+			numberOfAwayPlayers = pickSplit.awayTeamPlayers.length;
+			for (var playerIndex = 0; playerIndex < pickSplit.awayTeamPlayers.length; playerIndex++){
+				var player = pickSplit.awayTeamPlayers[playerIndex];
+				
+				if (playerIndex > 0){
+					awayPlayersString = awayPlayersString + ', ';
+				}
+				
+				awayPlayersString = awayPlayersString + player;
+			}
+		}
+		
+		var pickGameClass = '';
+		var pickResultClass = 'pick-cell';
+		
+		if (isBottomRow){
+			pickGameClass = 'pick-game-bottom';
+			pickResultClass = 'pick-cell-bottom';
+		}
+		
+		gameRow = gameRow + 
+				  '<td class="' + pickResultClass + '"><span class="' + homePlayersClass + '">' + pickSplit.homeTeamAbbreviation + ' (' + numberOfHomePlayers + ')<br/> ' + homePlayersString + '</span></td>' + 
+				  '<td class="' + pickResultClass + '"><span class="' + awayPlayersClass + '">' + pickSplit.awayTeamAbbreviation + ' (' + numberOfAwayPlayers + ')<br/> ' + awayPlayersString + '</span></td>' + 
+				  '</tr>';
+		
+		rowsHtml = rowsHtml + gameRow;
+	}
+		
+	var pickSplitsBodyHtml = '<tbody>' + rowsHtml + '</tbody>';
+	
+	var pickSplitsHtml = '<table class="picks-table" align="center">' + pickSplitsHeaderHtml + pickSplitsBodyHtml + '</table>';;
+	
+	return pickSplitsHtml;
 }
