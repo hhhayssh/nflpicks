@@ -3370,7 +3370,7 @@ function createMakePicksGrid(games){
 	var gridBodyHtml = '<tbody>' + pickRowsHtml + '</tbody>';
 	
 	picksGridHtml = '<table class="edit-picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>' +
-						'<div id="missing-picks-container" style="text-align:center></div>' + 
+						'<div id="missing-picks-container" style="text-align:center; padding-top: 15px;"></div>' + 
 						'<div style="margin-top: 20px; margin-bottom: 40px; text-align: center;">' +
 							'<textarea id="picked-picks" style="width: 300px; height: 100px;">&nbsp;</textarea>' + 
 						'</div>';
@@ -3436,7 +3436,12 @@ function updatePickedPicks(){
 	
 	$('#missing-picks-container').empty();
 	if (numberOfMissingPicks > 0){
-		$('#missing-picks-container').append('There are ' + numberOfMissingPicks + ' missing picks: ' + missingPicksString);
+		if (numberOfMissingPicks == 1){
+			$('#missing-picks-container').append('There is ' + numberOfMissingPicks + ' missing pick: ' + missingPicksString);
+		}
+		else {
+			$('#missing-picks-container').append('There are ' + numberOfMissingPicks + ' missing picks: ' + missingPicksString);
+		}
 	}
 	
 	$('#picked-picks').val(pickedPicksUpdate);
