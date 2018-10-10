@@ -32,7 +32,7 @@ function isEmpty(value){
 	return false;
 }
 
-function createSelectHtml(selectId, options, selectedValue, cssClass, style){
+function createSelectHtml0(selectId, options, selectedValue, cssClass, style){
 	
 	var selectHtml = '<select ';
 	
@@ -68,7 +68,7 @@ function createSelectHtml(selectId, options, selectedValue, cssClass, style){
 	return selectHtml;
 }
 
-function createSelectHtml2(selectId, options, selectedValue, cssClass, style, onChange){
+function createSelectHtml(selectId, options, selectedValue, cssClass, style, onChange){
 	
 	var selectHtml = '<select ';
 	

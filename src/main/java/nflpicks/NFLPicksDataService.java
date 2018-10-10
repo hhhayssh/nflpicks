@@ -5202,6 +5202,8 @@ order by s.year asc, w.week asc, g.id asc;
 				if (gameId != currentGameId){
 					
 					if (currentPickSplit != null){
+						Collections.sort(currentPickSplit.getHomeTeamPlayers());
+						Collections.sort(currentPickSplit.getAwayTeamPlayers());
 						pickSplits.add(currentPickSplit);
 					}
 					
@@ -5245,6 +5247,9 @@ order by s.year asc, w.week asc, g.id asc;
 			}
 			
 			if (currentPickSplit != null){
+				//We want the player names sorted in a consistent order.
+				Collections.sort(currentPickSplit.getHomeTeamPlayers());
+				Collections.sort(currentPickSplit.getAwayTeamPlayers());
 				pickSplits.add(currentPickSplit);
 			}
 		}

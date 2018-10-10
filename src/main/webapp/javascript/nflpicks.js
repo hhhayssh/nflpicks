@@ -33,7 +33,7 @@ var NFL_PICKS_GLOBAL = {
 	/**
 	 * Whether we should push the previous parameters onto the backward navigation stack.
 	 */
-	pushPreviousPrameters: true,
+	pushPreviousParameters: true,
 	/**
 	 * The previous parameters that were used to show the view.  This is so they can go back
 	 * and forth pretty easily.
@@ -53,6 +53,11 @@ var NFL_PICKS_GLOBAL = {
 	 */
 	currentYear: null,
 	currentWeekNumber: null,
+	
+	/**
+	 * So we can show the games for the current week.
+	 */
+	gamesForCurrentWeek: null,
 	
 	/**
 	 * For holding the initial selections for when the page first shows up.  We set some of these
@@ -525,7 +530,7 @@ function updateView(){
 	//different "branch", so we should clear out the forward stack since they can't go
 	//forward anymore.
 	if (previousParameters != null && NFL_PICKS_GLOBAL.pushPreviousParameters){
-		NFL_PICKS_GLOBAL.navigationBackwardStack.push(parameters);
+		NFL_PICKS_GLOBAL.navigationBackwardStack.push(previousParameters);
 		NFL_PICKS_GLOBAL.navigationForwardStack = [];
 	}
 	
@@ -686,6 +691,9 @@ function updateStandingsSelectors(type){
  * 		pick accuracy
  * 			shows: year, player, team
  * 			hides: week
+ * 		pick splits:
+ * 			shows: year, week, team
+ * 			hides: player
  * 
  * @param type
  * @returns
@@ -753,7 +761,6 @@ function updateStatsSelectors(type){
 		showWeekContainer();
 		showTeamContainer();
 		hidePlayerContainer();
-		hideAllPlayerOption();
 	}
 	
 	setPreviousType(type);
@@ -1184,13 +1191,14 @@ function updateStats(){
 	var year = getSelectedYear();
 	var week = getSelectedWeek();
 	var team = getSelectedTeam();
-
+	
 	//If the stat is "week records by player" or "pick accuracy", then they have to pick
 	//a player, so set it to the first player if there isn't one or it's "all".
 	if (statName == 'weekRecordsByPlayer' || statName == 'pickAccuracy'){
 		if (!isDefined(player) || 'all' == player){
 			var firstRealPlayer = $('#player option')[1].value;
 			setSelectedPlayer(firstRealPlayer);
+			player = getSelectedPlayer();
 		}
 	}
 	//If we're showing the champions or championship standings, we want to show them
@@ -1198,12 +1206,17 @@ function updateStats(){
 	else if (statName == 'champions' || statName == 'championshipStandings'){
 		setSelectedPlayer('all');
 		setSelectedYear('all');
+		player = getSelectedPlayer();
+		year = getSelectedYear();
 	}
 	//If the stat name is the "pick splits", we want to do the same thing we do with the picks grid.
 	//Only show "all" for the year or the week if they actually set it to "all".
 	//If it's the first time we're showing the pick splits, we only want to show all of them if that
 	//was in the url.
 	else if (statName == 'pickSplits'){
+		//Since we're showing how players are split up, we want to show all players.
+		setSelectedPlayer('all');
+		player = getSelectedPlayer();
 		var urlParameters = getUrlParameters();
 		
 		//Same deal as with the picks grid...
@@ -1217,6 +1230,7 @@ function updateStats(){
 		if ('all' == year && !NFL_PICKS_GLOBAL.havePickSplitsBeenShown && !hasYearInUrl){
 			year = NFL_PICKS_GLOBAL.currentYear;
 			setSelectedYear(year);
+			year = getSelectedYear();
 		}
 		
 		//Same deal as with the year and with the picks grid...
@@ -1230,6 +1244,7 @@ function updateStats(){
 		if ('all' == week && !NFL_PICKS_GLOBAL.havePickSplitsBeenShown && !hasWeekInUrl){
 			week = NFL_PICKS_GLOBAL.currentWeekNumber + '';
 			setSelectedWeek(week);
+			week = getSelectedWeek();
 		}
 		
 		//And, since we're here, that means we've shown the pick splits to the user, so the next time, we won't
@@ -2022,25 +2037,30 @@ function toggleShowWeeks(index){
 	}
 }
 
-//STOPPED HERE!!!!!
-
-
+/**
+ * 
+ * Creates the html for showing who's won the most weeks.  It expects the records to be
+ * in the order that you want to show them.
+ * 
+ * The html it makes will be a standings like table that shows how many weeks a person won
+ * and then a link that shows the specific weeks. 
+ * 
+ * @param weekRecords
+ * @returns
+ */
 function createWeeksWonHtml(weekRecords){
-	//sort on the number of weeks won
-	//rank on that
-	
-	var selectedYear = getSelectedYear();
-	var showYear = false;
-	if ('all' == selectedYear){
-		showYear = true;
-	}
+
+	//Steps to do:
+	//	1. Make the header.
+	//	2. Go through every "week record" and get its rank within all the records.
+	//	3. Add an entry in the table for it.
+	//	4. Add the link that'll show the weeks they won too.
 	
 	var weeksWonHtml = '<table class="standings-table">' + 
 							'<thead class="standings-table-head">' + 
 								'<tr class="standings-table-row">' + 
 									'<th class="standings-table-player-header"></th>' +
 									'<th class="standings-table-header">Weeks won</th>' +
-									//'<th>Weeks</th>' +
 								'</tr>' + 
 							'</thead>';
 	
@@ -2049,6 +2069,14 @@ function createWeeksWonHtml(weekRecords){
 	for (var index = 0; index < weekRecords.length; index++){
 		var weekRecord = weekRecords[index];
 		
+		//The records are already in the right order, we just need to find out what the 
+		//"rank" for this particular one is within the whole list.
+		//A little slower than if we did it in a non-generic way, but I think it's worth
+		//it to have it more "clear" and (hopefully) easier to understand.
+		//
+		//The first function is used to figure out where the record ranks among all the records.
+		//The second is used as part of that too, but says when a record is exactly the same
+		//as another (so when we see the record we're on in the list, we don't say it's a tie).
 		var recordRank = rank(weekRecord, weekRecords, function(record1, record2){
 			
 			if (record1.weekRecords.length > record2.weekRecords.length){
@@ -2067,46 +2095,64 @@ function createWeeksWonHtml(weekRecords){
 			
 			return false;
 		});
-		
+
+		//The number we want to show is the "rank" and we want to add a "t" if it's a tie.
 		var rankText = recordRank.rank;
-		
 		if (recordRank.tie){
-			rankText = rankText + 'T';
+			rankText = rankText + 't';
 		}
-		
 		
 		weeksWonTableBody = weeksWonTableBody + 
 							'<tr class="standings-table-row">' + 
 								'<td class="standings-table-player-cell">' + rankText + '. ' + weekRecord.player.name + '</td>';
 
 		var numberOfWeeksWon = weekRecord.weekRecords.length;
+		//Add some padding if so everything lines up if some records have two digits.
 		if (weekRecord.weekRecords.length < 10){
 			numberOfWeeksWon = numberOfWeeksWon + '&nbsp;';
 		}
+		
+		//This is for the link that'll let them see exactly what weeks the person won.
 		var detailId = 'week-records-' + index;
-		var weekRecordsHtml = '<div style="">' + numberOfWeeksWon + ' <a id="show-weeks-link-' + index + '" href="javascript:" onClick="toggleShowWeeks(' + index + ')" style="margin-left: 20px; float:right;">show weeks</a></div>' + 
+		var weekRecordsHtml = '<div>' + numberOfWeeksWon + 
+								' <a id="show-weeks-link-' + index + '" href="javascript:" onClick="toggleShowWeeks(' + index + ')" style="margin-left: 20px; float:right;">show weeks</a>' + 
+							  '</div>' + 
+							  //This is the container for list of weeks they won.  We want it hidden initially and they can click the link to show it.
 							  '<div id="' + detailId + '" style="display: none;"><ul class="standings-table-cell-list">';
 
+		//If they don't select a year, there might be weeks from multiple years in the list,
+		//so we'll want to show the year alongside the week.
+		var selectedYear = getSelectedYear();
+		var showYear = false;
+		if ('all' == selectedYear){
+			showYear = true;
+		}
 		
+		//We want to make sure the weeks are in ascending order by year and week (oldest week at the top, newest
+		//at the bottom.
 		sortWeekRecordsBySeasonAndWeek(weekRecord.weekRecords);
 		
-		for (var bIndex = 0; bIndex < weekRecord.weekRecords.length; bIndex++){
-			var record = weekRecord.weekRecords[bIndex];
+		for (var recordIndex = 0; recordIndex < weekRecord.weekRecords.length; recordIndex++){
+			var record = weekRecord.weekRecords[recordIndex];
 
+			//Show that there were ties if there were.
 			var ties = '';
 			if (record.record.ties > 0){
 				ties = ' - ' + record.record.ties;
 			}
+			
+			//And add in the year at the beginning if the year wasn't selected.
 			var year = '';
 			if (showYear){
 				year = record.season.year + ', ';
 			}
-			//createPicksLink
-			//createPicksLink(linkText, year, week, team, player)
 			
+			//The line should be like: 2016, Week 5 (10 - 5 - 1)
 			var recordText = year + record.week.label + ' (' + record.record.wins + ' - ' + record.record.losses +
 							 ties + ')';
 			
+			//And we want the link that'll show the actual picks for the person, year, and week, so they can jump directly to
+			//what they picked.
 			var picksLink = createPicksLink(record.week.label, record.season.year, record.week.weekNumber, null, weekRecord.player.name);
 			
 			weekRecordsHtml = weekRecordsHtml + '<li>' + year + picksLink + ' (' + record.record.wins + ' - ' + record.record.losses +
@@ -2124,14 +2170,46 @@ function createWeeksWonHtml(weekRecords){
 	return weeksWonHtml;
 }
 
+/**
+ * 
+ * This function will get the number rank of the given object in the given list.
+ * It will use the given comparison function to compare the object with other objects
+ * in the given list to decide where it fits, and it'll use the given "sameObjectFunction"
+ * to make sure an object doesn't "tie with itself".
+ * 
+ * I made it because I wanted to do it in a few places (the original standings, weeks won standings,
+ * and a few other places).
+ * 
+ * The given list <i>doesn't</i> need to be sorted in order for it to find the object's
+ * rank.  
+ * 
+ * It'll return an object that's like: {rank: 12, tie: true}, so people can get the
+ * numeric rank and whether it ties any other object in the list.
+ * 
+ * Doing it this way, you'll have to call it for every object in the list ... This function
+ * is O(n), so that makes ranking every object in a list O(n^2).  That kind of sucks,
+ * but it should be ok because we shouldn't be sorting hundreds or thousands of objects.
+ * I felt like it was ok to give up some speed to have it so each of the "standings"
+ * functions not have to duplicate the ranking code.
+ * 
+ * @param object
+ * @param list
+ * @param comparisonFunction
+ * @param sameObjectFunction
+ * @returns
+ */
 function rank(object, list, comparisonFunction, sameObjectFunction){
+
+	//Steps to do:
+	//	1. Create the initial "rank" for the object and assume it has the highest rank.
+	//	2. Go through each object in the list and run the comparison object on it.
+	//	3. If it returns a positive number, that means the object is after the current
+	//	   one we're comparing it to, so we need to up the rank.
+	//	4. If it says they're the same, and the object hasn't already tied another object, 
+	//	   then use the "sameObjectFunction" to see whether they're the exact same object or not.
+	//	5. If they aren't, then it's a real tie.  If they aren't, then it's not.
 	
 	var objectRank = {rank: 1, tie: false};
-	
-	//for every object it's less than, its rank goes up 1
-	//it starts in last...
-	//
-	//will be O(n^2) without sorting...
 	
 	var numberOfRecordsBetter = 0;
 	var tie = false;
@@ -2143,63 +2221,90 @@ function rank(object, list, comparisonFunction, sameObjectFunction){
 		
 		if (comparisonResult > 0){
 			objectRank.rank++;
-			//numberOfRecordsBetter++;
 		}
 		else if (comparisonResult == 0){
 
 			if (objectRank.tie == false){
-				if (isDefined(sameObjectFunction)){
-					var isSameObject = sameObjectFunction(object, currentObject);
-					
-					if (!isSameObject){
-						objectRank.tie = true;
-					}
-				}
-				else {
+				var isSameObject = sameObjectFunction(object, currentObject);
+
+				if (!isSameObject){
 					objectRank.tie = true;
 				}
 			}
 		}
 	}
 	
-	//objectRank.rank = 1 + numberOfRecordsBetter; 
-	
 	return objectRank;
 }
 
+/**
+ * 
+ * A convenience function that'll sort the given weekRecords array
+ * by each weekRecord's length.  A "weekRecord" will have a list
+ * of records for each week inside it.  This will sort it so that
+ * the one with the most weeks comes first.  
+ * 
+ * This is for when we're ranking how many weeks a person has won and
+ * we want the person who's won the most weeks (has the most records)
+ * first.
+ * 
+ * @param weekRecords
+ * @returns
+ */
 function sortWeekRecords(weekRecords){
 	
-	weekRecords.sort(function (a, b){
-		if (a.weekRecords.length > b.weekRecords.length){
+	//Steps to do:
+	//	1. Just run the sorting function on the records we were given.
+	
+	weekRecords.sort(function (weekRecord1, weekRecord2){
+		if (weekRecord1.weekRecords.length > weekRecord2.weekRecords.length){
 			return -1;
 		}
-		else if (a.weekRecords.length < b.weekRecords.length){
+		else if (weekRecord1.weekRecords.length < weekRecord2.weekRecords.length){
 			return 1;
 		}
 		return 0;
 	});
 }
 
+/**
+ * 
+ * This function will sort the given week records by season and week
+ * so that the "oldest" records appear first.  It's here for when we're showing
+ * how many weeks a person one and we want to show the weeks in chronological
+ * order.  This function will make sure they're in chronological order.
+ * 
+ * @param weekRecords
+ * @returns
+ */
 function sortWeekRecordsBySeasonAndWeek(weekRecords){
 	
-	weekRecords.sort(function (a, b){
-		var yearA = parseInt(a.season.year);
-		var yearB = parseInt(b.season.year);
+	//Steps to do:
+	//	1. Just run the sorting function on the array 
+	//	   we were given.
+	
+	weekRecords.sort(function (weekRecord1, weekRecord2){
+		var year1 = parseInt(weekRecord1.season.year);
+		var year2 = parseInt(weekRecord2.season.year);
 		
-		if (yearA < yearB){
+		//If the year from one is before the other, we want the earlier one first.
+		if (year1 < year2){
 			return -1;
 		}
-		else if (yearA > yearB){
+		//And later one second.
+		else if (year1 > year2){
 			return 1;
 		}
 		else {
-			var weekA = a.week.weekNumber;
-			var weekB = b.week.weekNumber;
+			//Otherwise, compare on the weeks.
+			var week1 = weekRecord1.week.weekNumber;
+			var week2 = weekRecord2.week.weekNumber;
 			
-			if (weekA < weekB){
+			//With the earlier week first.
+			if (week1 < week2){
 				return -1;
 			}
-			else if (weekA > weekB){
+			else if (week1 > week2){
 				return 1;
 			}
 		}
@@ -2208,6 +2313,13 @@ function sortWeekRecordsBySeasonAndWeek(weekRecords){
 	});
 }
 
+/**
+ * 
+ * This function will say whether a "specific" year was selected
+ * (basically if the year isn't "all").
+ * 
+ * @returns
+ */
 function isSpecificYearSelected(){
 
 	var selectedYear = getSelectedYear();
@@ -2219,6 +2331,13 @@ function isSpecificYearSelected(){
 	return true;
 }
 
+/**
+ * 
+ * This function will say whether a "specific" team was selected
+ * (basically if the team isn't "all").
+ * 
+ * @returns
+ */
 function isSpecificTeamSelected(){
 	
 	var selectedTeam = getSelectedTeam();
@@ -2230,6 +2349,14 @@ function isSpecificTeamSelected(){
 	return true;
 }
 
+/** 
+ * 
+ * This function will say whether a "specific" week was selected.
+ * If the week is all, "regular-season", or "playoffs", then it takes
+ * that to mean a specific one isn't and a "range" is instead.
+ * 
+ * @returns
+ */
 function isSpecificWeekSelected(){
 
 	var selectedWeek = getSelectedWeek();
@@ -2241,21 +2368,34 @@ function isSpecificWeekSelected(){
 	return true;
 }
 
+/**
+ * 
+ * This function will create the html that shows the weekly records
+ * for a player.  It expects the given records to be sorted in the order
+ * they should be shown in, and it assumes they're all for the same player.
+ * 
+ * @param weekRecords
+ * @returns
+ */
 function createWeekRecordsByPlayerHtml(weekRecords){
+	
+	//Steps to do:
+	//	1. Make the header (add in one for ties and a year if they haven't picked one).
+	//	2. Go through and output each record and that's pretty much it.
 	
 	var tiesHeader = '';
 	
-	var xHasTies = false;
+	var areThereAnyTies = false;
 	for (var index = 0; index < weekRecords.length; index++){
 		var weekRecord = weekRecords[index];
 		
 		if (weekRecord.record.ties > 0){
-			xHasTies = true;
+			areThereAnyTies = true;
 			break;
 		}
 	}
 	
-	if (xHasTies){
+	if (areThereAnyTies){
 		tiesHeader = '<th class="standings-table-header">T</th>';
 	}
 	
@@ -2283,18 +2423,6 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	for (var index = 0; index < weekRecords.length; index++){
 		var weekRecord = weekRecords[index];
 		
-		var tiesCell = '';
-		
-		if (xHasTies){
-			tiesCell = '<td class="standings-table-cell">' + weekRecord.record.ties + '</td>';
-		}
-		
-		var percentage = weekRecord.record.wins / (weekRecord.record.wins + weekRecord.record.losses);
-		var percentageString = '';
-		if (!isNaN(percentage)){
-			percentageString = percentage.toPrecision(3);
-		}
-		
 		var yearCell = '';
 		if (!aYearIsSelected){
 			yearCell = '<td class="standings-table-player-cell">' + weekRecord.season.year + '</td>';
@@ -2303,6 +2431,15 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 		var weekLabel = shortenWeekLabel(weekRecord.week.label);
 		
 		var playerPicksLink = createPicksLink(weekLabel, weekRecord.season.year, weekRecord.week.weekNumber, null, weekRecord.player.name);
+
+		var tiesCell = '';
+		//Add a cell for ties if there are any.
+		if (areThereAnyTies){
+			tiesCell = '<td class="standings-table-cell">' + weekRecord.record.ties + '</td>';
+		}
+		
+		//And we want to show the winning percentage too.
+		var percentageString = getWinningPercentage(weekRecord.record.wins, weekRecord.record.losses);
 		
 		var row = '<tr class="standings-table-row">' +
 					yearCell +
@@ -2323,22 +2460,60 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	return weekRecordsByPlayerHtml;
 }
 
+/**
+ * 
+ * This function will get the winning percentage.  Here because we almost always want
+ * it formatted the same way, so I figured it was better to do it in a function.
+ * 
+ * @param wins
+ * @param losses
+ * @returns
+ */
+function getWinningPercentage(wins, losses){
+	
+	//Steps to do:
+	//	1. Get the actual percentage.
+	//	2. Make it 3 decimal places if it's a real number and blank if it's not.
+	
+	var percentage = wins / (wins + losses);
+	
+	var percentageString = '';
+	if (!isNaN(percentage)){
+		percentageString = percentage.toPrecision(3);
+	}
+	
+	return percentageString;
+}
+
+/**
+ * 
+ * Shows the best weekly records in a table.  Here so we can see the best
+ * records over a year, or like over all time.  The given records should
+ * be sorted in the order we want them shown in. 
+ * 
+ * @param playerWeekRecords
+ * @returns
+ */
 function createWeekStandingsHtml(playerWeekRecords){
+
+	//Steps to do:
+	//	1. Make the header (add in the year and week if they aren't selected and
+	//	   a header for ties if they are).
+	//	2. Go through and add a row for each record with a link to the picks
+	//	   for the week.
+	//	3. That's pretty much it.
 	
 	var standingsHtml = '';
 	
-	var isYearSelected = true;
+	var isYearSelected = isSpecificYearSelected();
 	var yearHeader = '';
-	var selectedYear = getSelectedYear();
-	if ('all' == selectedYear){
-		isYearSelected = false;
+	if (!isYearSelected){
 		yearHeader = '<th class="standings-table-header">Year</th>';
 	}
 	
-	var isWeekSelected = true;
+	var isWeekSelected = isSpecificWeekSelected();
 	var weekHeader = '';
-	var selectedWeek = getSelectedWeek();
-	if ('all' == selectedWeek || 'regular-season' == selectedWeek || 'playoffs' == selectedWeek){
+	if (!isWeekSelected){
 		isWeekSelected = false;
 		weekHeader = '<th class="standings-table-header">Week</th>';
 	}
@@ -2374,6 +2549,10 @@ function createWeekStandingsHtml(playerWeekRecords){
 	if (isEmpty(playerWeekRecords)){
 		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
 	}
+	
+	//Going to keep this "old school" since doing it "new school" would mean O(n^) for 
+	//getting a record's rank ... and we could have hundreds of records (since there might be a
+	//lot of players, with 17 * number of years worth of weeks for each player.
 
 	//The steps for calculating the rank:
 	//	1. Have three variables: rank, nextRank, and tieIndependentRank.
@@ -2439,12 +2618,7 @@ function createWeekStandingsHtml(playerWeekRecords){
 			rankText = rankText + 't';
 		}
 		
-		var percentage = playerWeekRecord.record.wins / (playerWeekRecord.record.wins + playerWeekRecord.record.losses);
-		var percentageString = '';
-		if (!isNaN(percentage)){
-			percentageString = percentage.toPrecision(3);
-		}
-		
+		//Add in the year and week if they weren't selected.
 		var yearCell = '';
 		if (!isYearSelected){
 			yearCell = '<td class="standings-table-cell">' + playerWeekRecord.season.year + '</td>';
@@ -2462,6 +2636,8 @@ function createWeekStandingsHtml(playerWeekRecords){
 		if (areThereAnyTies){
 			tiesCell = '<td class="standings-table-cell-small">' + playerWeekRecord.record.ties + '</td>';
 		}
+		
+		var percentageString = getWinningPercentage(playerWeekRecord.record.wins, playerWeekRecord.record.losses);
 		
 		rowsHtml = rowsHtml + 
 					   '<tr class="standings-table-row">' +
@@ -2487,7 +2663,20 @@ function createWeekStandingsHtml(playerWeekRecords){
 	return standingsHtml;
 }
 
+/**
+ * 
+ * This one will create the html for showing all the champions and when they won them.
+ * The given array should be sorted in the order that we want it shown in.
+ * 
+ * @param championships
+ * @returns
+ */
 function createChampionsHtml(championships){
+	
+	//Steps to do:
+	//	1. Make the header and add ties if there are any.
+	//	2. Go through and add a row for each championship.
+	//	3. That's it.
 	
 	var areThereAnyTies = false;
 	for (var index = 0; index < championships.length; index++){
@@ -2524,11 +2713,7 @@ function createChampionsHtml(championships){
 			tiesCell = '<td class="standings-table-cell">' + championship.record.ties + '</td>';
 		}
 		
-		var percentage = championship.record.wins / (championship.record.wins + championship.record.losses);
-		var percentageString = '';
-		if (!isNaN(percentage)){
-			percentageString = percentage.toPrecision(3);
-		}
+		var percentageString = getWinningPercentage(championship.record.wins, championship.record.losses);
 		
 		var championshipRowHtml = '<tr class="standings-table-row">' + 
 								  	'<td class="standings-table-player-cell">' + championship.player.name + '</td>' +
@@ -2549,7 +2734,23 @@ function createChampionsHtml(championships){
 	return championshipsHtml;
 }
 
+/**
+ * 
+ * This one will create the html for showing who has the most championships.  It doesn't
+ * expect the given array to be sorted.  Each entry in the array will be the player with
+ * all the championships they have (not just the count).  We want the whole thing
+ * because we want to show the years and records.
+ * 
+ * @param playerChampionshipsList
+ * @returns
+ */
 function createChampionshipStandingsHtml(playerChampionshipsList){
+	
+	//Steps to do:
+	//	1. Make the header.
+	//	2. Make sure they're in the right order by who has the most titles.
+	//	3. Make a row in the standings for each person and their titles.
+	//	4. That's it.
 	
 	var championshipsStandingsHeaderHtml = '<thead class="standings-table-head">' +
 										  	'<tr class="standings-table-row">' +
@@ -2562,21 +2763,29 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 	
 	var championshipsStandingsBodyHtml = '<tbody class="standings-table-body">';
 	
-	playerChampionshipsList.sort(function (a, b){
+	//Each item in the list is the player and all another list that has their championships in it.
+	//We want the list sorted so that the person with the most championships comes first.
+	playerChampionshipsList.sort(function (playerChampionships1, playerChampionships2){
 		
-		if (a.championships.length > b.championships.length){
+		//More championships should come first.
+		if (playerChampionships1.championships.length > playerChampionships2.championships.length){
 			return -1;
 		}
-		else if (a.championships.length < b.championships.length){
+		//Fewer should come last.
+		else if (playerChampionships1.championships.length < playerChampionships2.championships.length){
 			return 1;
 		}
 		
 		return 0;
 	});
 	
+	//Now that they're sorted, we just have to make a row for each one.
 	for (var index = 0; index < playerChampionshipsList.length; index++){
 		var playerChampionships = playerChampionshipsList[index];
 		
+		//And we want each one's rank before we make the row.
+		//The rank is based on how many championships a person has, so that's why the first function compares
+		//on that.
 		var championshipsRank = rank(playerChampionships, playerChampionshipsList, function(playerChampionships1, playerChampionships2){
 			
 			if (playerChampionships1.championships.length > playerChampionships2.championships.length){
@@ -2607,6 +2816,7 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 											'<td class="standings-table-player-cell">' + rankText + '. ' + playerChampionships.player.name + '</td>' +
 											'<td class="standings-table-cell">' + playerChampionships.championships.length + '</td>';
 		
+		//We want to show all the years they won too, so add them as a list.
 		var championshipYearsHtml = '<ul class="standings-table-cell-list">';
 
 		for (var championshipIndex = 0; championshipIndex < playerChampionships.championships.length; championshipIndex++){
@@ -2636,10 +2846,23 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 	return championshipsStandingsHtml;
 }
 
+/**
+ * 
+ * This function will create a table that shows who won each week in sequential order.
+ * If there's a tie, it'll show all the people who tied as having won the week.
+ * 
+ * @param weeksWonByWeek
+ * @returns
+ */
 function createWeeksWonByWeek(weeksWonByWeek){
+
+	//Steps to do:
+	//	1. Make the header (and add the year in if we have it).
+	//	2. Add in a row for each week and a list for each player who won
+	//	   that week.
+	//	3. That's it.
 	
 	var yearSelected = isSpecificYearSelected();
-	
 	
 	var yearHeader = '';
 	if (!yearSelected){
@@ -2671,6 +2894,7 @@ function createWeeksWonByWeek(weeksWonByWeek){
 			recordHtml = recordHtml + ' - ' + weekRecord.record.ties;
 		}
 		
+		//We want to show the players in a consistent order, so sort them by name.
 		sortPlayersByName(weekRecord.players);
 		
 		var playerHtml = '<ul class="standings-table-cell-list">';
@@ -2700,10 +2924,20 @@ function createWeeksWonByWeek(weeksWonByWeek){
 	var weeksWonByWeekHtml = '<table class="standings-table">' + weeksWonByWeekHeaderHtml + weeksWonByWeekBodyHtml + '</table>';
 	
 	return weeksWonByWeekHtml;
-	
 }
 
+/**
+ * 
+ * A convenience function for sorting players by their name.  Here in case
+ * we do it in multiple places.
+ * 
+ * @param players
+ * @returns
+ */
 function sortPlayersByName(players){
+	
+	//Steps to do:
+	//	1. Just compare each player by its name.
 	
 	players.sort(function (player1, player2){
 		
@@ -2716,11 +2950,46 @@ function sortPlayersByName(players){
 		
 		return 0;
 	});
-	
 }
 
+/**
+ * 
+ * Here for when we're sorting something alphabetically and we don't
+ * care what kind of string it is.
+ * 
+ * @param values
+ * @returns
+ */
+function sortAlphabetically(values){
+	
+	values.sort(function (value1, value2){
+		if (value1 < value2){
+			return -1;
+		}
+		else if (value1 > value2){
+			return 1;
+		}
+		return 0;
+	});
+}
+
+/**
+ * 
+ * This function will create the html table that shows how accurate people's picks are.
+ * Here so people can see if they suck with certain teams.  It doesn't expect the given
+ * summaries to be sorted, so it'll do the sorting.
+ * 
+ * @param pickAccuracySummaries
+ * @returns
+ */
 function createPickAccuracySummariesHtml(pickAccuracySummaries){
 
+	//Steps to do:
+	//	1. Make the header.
+	//	2. Make sure they're sorted in the right order (by how many times somebody was right).
+	//	3. Go through and add a row for each team and its accuracy.
+	//	4. Add a detail link that shows more details (how many times picked to win, lose, ...).
+	
 	var specificTeamSelected = isSpecificTeamSelected();
 	var teamHeader = '';
 	if (!specificTeamSelected){
@@ -2744,37 +3013,16 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 	for (var index = 0; index < pickAccuracySummaries.length; index++){
 		var pickAccuracySummary = pickAccuracySummaries[index];
 		
+		//Add in the team if they didn't pick a specific one.
 		var teamCell = '';
 		if (!specificTeamSelected){
 			teamCell = '<td class="standings-table-cell">' + pickAccuracySummary.team.abbreviation + '</td>';
 		}
 		
-		var percentage = getPercentage(pickAccuracySummary.timesRight, pickAccuracySummary.timesRight + pickAccuracySummary.timesWrong);
+		var percentage = getWinningPercentage(pickAccuracySummary.timesRight, pickAccuracySummary.timesWrong);
 
 		var detailId = 'pick-accuracy-details-' + index;
 
-		/*
-		 actualLosses: 15
-	actualWins: 17
-	player: Object { name: "Benny boy", id: 1 }
-	predictedLosses: 14
-	predictedWins: 13
-	team: Object { name: "Baltimore Ravens", nickname: "Ravens", id: 5, … }
-	timesPickedToLoseRight: 8
-	timesPickedToLoseWrong: 6
-	timesPickedToWinRight: 9
-	timesPickedToWinWrong: 4
-	timesRight: 17
-	timesWrong: 10
-
-	Team (if not picked)	Right	Wrong	% 	Details
-
-		Details
-			Actual record:
-			Predicted record:
-			Times picked to win: (record in parentheses)
-			Times picked to lose: (record in parentheses)
-		 */
 		var tiesHtml = '';
 		
 		var timesPickedToWin = pickAccuracySummary.timesPickedToWinRight + pickAccuracySummary.timesPickedToWinWrong;
@@ -2788,8 +3036,11 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 		}
 
 		var year = getSelectedYear();
+		//Add in a link so they can see the exact picks they made with the team.
 		var recordPicksLink = createPicksLink('Picks', year, null, pickAccuracySummary.team.abbreviation, pickAccuracySummary.player.name);
 		
+		//And add the detail that says how many times they picked them to win and lose, and how many times they were right
+		//with each.
 		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
 						    '<td class="standings-table-cell" colspan="5">' + 
 							    '<table style="width: 100%;">' +
@@ -2823,24 +3074,26 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 	return pickAccuracySummariesHtml;
 }
 
-function getPercentage(value, total){
-	var percentage = value / total;
-	var percentageString = '';
-	
-	if (!isNaN(percentage)){
-		percentageString = percentage.toPrecision(3);
-	}
-	
-	return percentageString;
-}
-
+/**
+ * 
+ * Here so we can make sure the pick accuracies are in the right order (with the most
+ * accuracte team coming first).
+ * 
+ * @param pickAccuracySummaries
+ * @returns
+ */
 function sortPickAccuracySummariesByTimesRight(pickAccuracySummaries){
 	
+	//Steps to do:
+	//	1. Just sort them by how many times the person was right picking a team.
+	
 	pickAccuracySummaries.sort(function (pickAccuracySummaryA, pickAccuracySummaryB){
-		
+
+		//More times right = front of the list.
 		if (pickAccuracySummaryA.timesRight > pickAccuracySummaryB.timesRight){
 			return -1;
 		}
+		//Fewer times right = back of the list.
 		else if (pickAccuracySummaryA.timesRight < pickAccuracySummaryB.timesRight){
 			return 1;
 		}
@@ -2850,7 +3103,19 @@ function sortPickAccuracySummariesByTimesRight(pickAccuracySummaries){
 	});
 }
 
+/**
+ * 
+ * Shows or hides the details for pick accuracy.  If it's currently shown, it'll hide
+ * it and if it's currently hidden, it'll show it.
+ * 
+ * @param index
+ * @returns
+ */
 function toggleShowPickAccuracyDetails(index){
+	
+	//Steps to do:
+	//	1. Get whether the container at the index is shown.
+	//	2. Hide it if it is, show it if it's not.
 	
 	var isVisible = $('#pick-accuracy-details-' + index).is(':visible');
 	
@@ -2864,7 +3129,26 @@ function toggleShowPickAccuracyDetails(index){
 	}
 }
 
+/**
+ * 
+ * This function will create a link that'll take them to the picks for the given
+ * year, week, team, and player (all optional) and show the given text.  Here because
+ * we wanted to do this in a few places, so I figured it was best to do it as a function.
+ * 
+ * @param linkText
+ * @param year
+ * @param week
+ * @param team
+ * @param player
+ * @returns
+ */
 function createPicksLink(linkText, year, week, team, player){
+	
+	//Steps to do:
+	//	1. Just make a link that'll call the javascript function
+	//	   that actually updates the view.
+	//	2. All the arguments are optional, so only add them in if
+	//	   they're given.
 	
 	var picksLink = '<a href="javascript:" onClick="showPickView(';
 	
@@ -2901,8 +3185,34 @@ function createPicksLink(linkText, year, week, team, player){
 	return picksLink;
 }
 
+/**
+ * 
+ * This function will show the picks grid for the given year, week, team, and player.
+ * All the arguments are optional.  It will just set each one as the selected
+ * year, week, team, and player (if it's given) and then cause the picks to be shown.
+ * 
+ * It'll flip the global "havePicksBeenShown" switch to true so that the view shows
+ * all the picks for the given parameters and doesn't try to overrule it and only show
+ * a week's worth of picks.
+ * 
+ * @param year
+ * @param week
+ * @param team
+ * @param player
+ * @returns
+ */
 function showPickView(year, week, team, player){
 
+	//Steps to do:
+	//	1. If we're coming from this function, then we don't want
+	//	   the updatePicks function saying "no, you can't see all the picks",
+	//	   so we need to flip the switch that disables that feature.
+	//	2. Set all the parameters that were given.
+	//	3. Call the function that'll show them on the screen.
+	
+	//If this switch is true, we'll show the picks for the parameters no matter
+	//whether it's a week's worth or not.  If it's not, it'll show only a week's
+	//worth as a way to prevent accidentally showing all the picks (which takes a while to do).
 	NFL_PICKS_GLOBAL.havePicksBeenShown = true;
 	
 	setSelectedType('picks');
@@ -2926,6 +3236,15 @@ function showPickView(year, week, team, player){
 	updateView();
 }
 
+/**
+ * 
+ * This function will shorten the given label so it's easier
+ * to show on phones and stuff with small widths.  Up yours, twitter
+ * and bootstrap.
+ * 
+ * @param label
+ * @returns
+ */
 function shortenWeekLabel(label){
 	
 	if ('Conference Championship' == label){
@@ -2935,25 +3254,38 @@ function shortenWeekLabel(label){
 	return label;
 }
 
-function getYearForCurrentSeason(){
-	var currentDate = new Date();
-	
-	var year = currentDate.getFullYear();
-	
-	return year;
-}
+/**
+ * Here to hold the current weeks games so we can reference them when showing the picks
+ * that people make.
+ * 
+ * I think this is the only global "non-global" variable
+ */
+//var currentMakePicksGames = null;
 
+/**
+ * 
+ * This function will get the picks for the current week so that people
+ * can "make" their own picks easier.
+ * 
+ * @returns
+ */
 function updateMakePicks(){
+	
+	//Steps to do:
+	//	1. Send the request to the server.
+	//	2. Keep the current games around in case we want to use them later.
+	//	3. Make the html table.
+	//	4. Show it as the content.
 	
 	$.ajax({url: 'nflpicks?target=makePicks',
 			contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
 		var gamesForNextWeek = $.parseJSON(data);
+
+		NFL_PICKS_GLOBAL.gamesForCurrentWeek = gamesForNextWeek;
 		
 		var picksGridHtml = createMakePicksGrid(gamesForNextWeek);
-		
-		currentMakePicksGames = gamesForNextWeek;
 		
 		$('#contentContainer').empty();
 		$('#contentContainer').append(picksGridHtml);
@@ -2965,9 +3297,25 @@ function updateMakePicks(){
 	
 }
 
-var currentMakePicksGames = null;
-
+/**
+ * 
+ * This function will make a grid that makes it so they can make picks for all
+ * the given games.  The actual picks will just go in a text area, but that's better
+ * than nothing!
+ * 
+ * When they make a pick, it'll call the "updatePickedPicks" function and that'll update
+ * a text area with the picks down below.
+ * 
+ * @param games
+ * @returns
+ */
 function createMakePicksGrid(games){
+	
+	//Steps to do:
+	//	1. Make the header.
+	//	2. Add a row for each game.
+	//	3. That's it.
+	
 	var picksGridHtml = '';
 	
 	var gridHeaderHtml = '<thead>' +
@@ -2986,6 +3334,7 @@ function createMakePicksGrid(games){
 			rowClassName = 'odd-row';
 		}
 
+		//Here so the borders are right.
 		var pickGameClass = 'edit-pick-game';
 		var pickTeamClass = 'edit-pick-team';
 		
@@ -2994,23 +3343,11 @@ function createMakePicksGrid(games){
 			pickTeamClass = 'edit-pick-last-team';
 		}
 		
-		var homeTeamClass = '';
-		var awayTeamClass = '';
-		
-		if (isDefined(game.winningTeam) && game.winningTeam.id != 0){
-			if (game.winningTeam.id == game.awayTeam.id){
-				awayTeamClass = 'winner';
-			}
-			else if (game.winningTeam.id = game.homeTeam.id){
-				homeTeamClass = 'winner';
-			}
-		}
-		
 		var gameRow = '<tr class="' + rowClassName + '">' + 
 						'<td class="' + pickGameClass + '">' + 
-							'<span class="' + awayTeamClass + '">' + game.awayTeam.abbreviation + '</span>' + 
+							'<span>' + game.awayTeam.abbreviation + '</span>' + 
 							' @ ' + 
-							'<span class="' + homeTeamClass + '">' + game.homeTeam.abbreviation + '</span>' +  
+							'<span>' + game.homeTeam.abbreviation + '</span>' +  
 						'</td>';
 	
 		var gameId = game.id;
@@ -3018,9 +3355,9 @@ function createMakePicksGrid(games){
 		               {label: game.homeTeam.abbreviation, value: game.homeTeam.id},
 		               {label: game.awayTeam.abbreviation, value: game.awayTeam.id}];
 		var selectPickId = 'pick-' + game.id;
-		//function createSelectHtml2(selectId, options, selectedValue, cssClass, style, onChange){
-		var selectPickHtml = createSelectHtml2(selectPickId, options, null, 'edit-pick-select', null, 'updatePickedPicks()');
-		//var selectPickHtml = createSelectHtml(selectPickId, options, null, 'edit-pick-select', null);
+
+		//When they change a pick, call the "updatePickedPicks" function to update how we show what they picked.
+		var selectPickHtml = createSelectHtml(selectPickId, options, null, 'edit-pick-select', null, 'updatePickedPicks()');
 					
 		gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
 								selectPickHtml + 
@@ -3033,26 +3370,40 @@ function createMakePicksGrid(games){
 	var gridBodyHtml = '<tbody>' + pickRowsHtml + '</tbody>';
 	
 	picksGridHtml = '<table class="edit-picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>' +
+						'<div id="missing-picks-container" style="text-align:center></div>' + 
 						'<div style="margin-top: 20px; margin-bottom: 40px; text-align: center;">' +
 							'<textarea id="picked-picks" style="width: 300px; height: 100px;">&nbsp;</textarea>' + 
 						'</div>';
-//						'<div style="margin-top: 20px; margin-bottom: 40px; text-align: center;">' + 
-//						'<button onClick="updatePicksMade();" style="padding: 10px;">Update</button>' + 
-//				  	'</div>';
 	
 	picksGridHtml = '<div style="text-align: center;"><p>The teams you pick will go in a box at the bottom.  Copy and paste it into a text to pick the games.</p><p style="font-weight:bold;">Just picking them without sending them to me doesn\'t do jack squat.</p><p>Happy now, Jerry and Benny boy?</p></div>' + picksGridHtml;
 	
 	return picksGridHtml;
 }
 
+/**
+ * 
+ * This function will update the picks that they made by adding them to the
+ * text area so they can be easily copied and pasted.  It'll go through
+ * the current games in the NFL_PICKS_GLOBAL.gamesForCurrentWeek array
+ * and get the pick for each one, and then add that to the text area.
+ * 
+ * @returns
+ */
 function updatePickedPicks(){
 	
-	console.log('up d...');
+	//Steps to do:
+	//	1. Go through each game in the week and get the picked they picked for it.
+	//	2. If they didn't pick a team, that's a missing pick, so keep track of that.
+	//	3. Get which team they picked and show the abbreviation for that team in the
+	//	   output.
+	//	4. Update the text area with what they picked and what picks are missing.
 	
 	var pickedPicksUpdate = '';
+	var missingPicksString = '';
+	var numberOfMissingPicks = 0;
 	
-	for (var index = 0; index < currentMakePicksGames.length; index++){
-		var game = currentMakePicksGames[index];
+	for (var index = 0; index < NFL_PICKS_GLOBAL.gamesForCurrentWeek.length; index++){
+		var game = NFL_PICKS_GLOBAL.gamesForCurrentWeek[index];
 		
 		var selectedPick = getSelectedPick(game.id);
 		
@@ -3062,6 +3413,15 @@ function updatePickedPicks(){
 		}
 		else if (game.awayTeam.id == selectedPick){
 			abbreviation = game.awayTeam.abbreviation;
+		}
+		//If we're here, they didn't pick anything for that game, so add it to the list.
+		else {
+			numberOfMissingPicks++;
+			if (missingPicksString != ''){
+				missingPicksString = missingPicksString + ', ';
+			}
+			
+			missingPicksString = missingPicksString + game.awayTeam.abbreviation + ' @ ' + game.homeTeam.abbreviation;
 		}
 		
 		if (abbreviation != ''){
@@ -3074,96 +3434,42 @@ function updatePickedPicks(){
 		}
 	}
 	
+	$('#missing-picks-container').empty();
+	if (numberOfMissingPicks > 0){
+		$('#missing-picks-container').append('There are ' + numberOfMissingPicks + ' missing picks: ' + missingPicksString);
+	}
+	
 	$('#picked-picks').val(pickedPicksUpdate);
 }
 
-function updatePicksMade(){
-	
-	var picksGridHtml = createPicksMadeGrid(currentMakePicksGames);
-	
-	picksGridHtml = '<div style="font-size: 16px; font-weight: bold; color: red; text-align: center;">This does NOT submit your picks.  This is for lazy people like Jerry for whom typing the team names is too burdensome.</div>' + picksGridHtml;
-	
-	$('#contentContainer').empty();
-	$('#contentContainer').append(picksGridHtml);
-}
-
-function createPicksMadeGrid(games){
-	var picksGridHtml = '';
-	
-	var gridHeaderHtml = '<thead>' +
-						 	'<th align="left" class="table-header">Game</th>' + 
-						 	'<th class="table-header">Pick</th>' + 
-						 '</thead>';
-	
-	var pickRowsHtml = '';
-	
-	for (var index = 0; index < games.length; index++){
-		var game = games[index];
-		
-		var rowClassName = 'even-row';
-		
-		if (index % 2 == 1){
-			rowClassName = 'odd-row';
-		}
-
-		var pickGameClass = 'edit-pick-game';
-		var pickTeamClass = 'edit-pick-team';
-		
-		if (index + 1 >= games.length){
-			pickGameClass = 'edit-pick-last-game';
-			pickTeamClass = 'edit-pick-last-team';
-		}
-		
-		var homeTeamClass = '';
-		var awayTeamClass = '';
-		
-		if (isDefined(game.winningTeam) && game.winningTeam.id != 0){
-			if (game.winningTeam.id == game.awayTeam.id){
-				awayTeamClass = 'winner';
-			}
-			else if (game.winningTeam.id = game.homeTeam.id){
-				homeTeamClass = 'winner';
-			}
-		}
-		
-		var gameRow = '<tr class="' + rowClassName + '">' + 
-						'<td class="' + pickGameClass + '">' + 
-							'<span class="' + awayTeamClass + '">' + game.awayTeam.abbreviation + '</span>' + 
-							' @ ' + 
-							'<span class="' + homeTeamClass + '">' + game.homeTeam.abbreviation + '</span>' +  
-						'</td>';
-	
-		var selectedPick = getSelectedPick(game.id);
-		
-		var abbreviation = '';
-		if (game.homeTeam.id == selectedPick){
-			abbreviation = game.homeTeam.abbreviation;
-		}
-		else if (game.awayTeam.id == selectedPick){
-			abbreviation = game.awayTeam.abbreviation;
-		}
-					
-		gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
-								abbreviation + 
-							'</td>' +
-				  '</tr>';
-		
-		pickRowsHtml = pickRowsHtml + gameRow;
-	}
-
-	var gridBodyHtml = '<tbody>' + pickRowsHtml + '</tbody>';
-	
-	picksGridHtml = '<table class="edit-picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>' +
-				  	'</div>';
-	
-	return picksGridHtml;
-}
-
+/**
+ * 
+ * Gets the pick they made for the given game when making their picks.
+ * 
+ * @param gameId
+ * @returns
+ */
 function getSelectedPick(gameId){
 	return $('#pick-' + gameId).val();
 }
 
+/**
+ * 
+ * Creates the "pick splits" grid that shows who picked who in terms of home
+ * and away, so we can see when one person was the only person to pick a team,
+ * for example.
+ * 
+ * @param pickSplits
+ * @returns
+ */
 function createPickSplitsGridHtml(pickSplits){
+	
+	//Steps to do:
+	//	1. Make the header and figure out if we need to add the year and week.
+	//	2. Go through each game and make a row for it.
+	//	3. Put the people who picked home in the home column and the away people
+	//	   in the away column.
+	//	4. That's it.  Most of the rest of the stuff is css stuff.
 	
 	var yearSelected = isSpecificYearSelected();
 	var weekSelected = isSpecificWeekSelected();
@@ -3201,6 +3507,7 @@ function createPickSplitsGridHtml(pickSplits){
 			rowClassName = 'odd-row';
 		}
 
+		//We want to show the winners in green, losers in red, and ties in yellow.
 		var homePlayersClass = '';
 		var awayPlayersClass = '';
 		var homeTeamClass = '';
@@ -3225,10 +3532,12 @@ function createPickSplitsGridHtml(pickSplits){
 			}
 		}
 
+		//Add in the year and week if they didn't pick a specific one.
 		var year = '';
 		var week = '';
 		
 		if (!yearSelected){
+			//And we have to handle whether we're on the bottom or not with the cell.
 			var cssClassToUse = 'first-pick-cell';
 			if (isBottomRow){
 				cssClassToUse = 'first-pick-cell-bottom';
@@ -3239,6 +3548,8 @@ function createPickSplitsGridHtml(pickSplits){
 		
 		if (!weekSelected){
 			
+			//Same deal with the week but we have to handle whether it's the leftmost column
+			//or if the year is first.
 			var cssClassToUse = null;
 			
 			if (!yearSelected && !isBottomRow){
@@ -3257,35 +3568,40 @@ function createPickSplitsGridHtml(pickSplits){
 			week = '<td class="' + cssClassToUse + '">' + pickSplit.weekNumber + '</td>';
 		}
 
-		var isPickFirstCell = weekSelected && yearSelected;
+		//And with the game too.  It needs different borders depending on whether it's
+		//the first column, last row, etc...
+		var isGameFirstCell = weekSelected && yearSelected;
 		
-		var pickCssClassToUse = null;
+		var gameCssClassToUse = null;
 		
-		if (!isPickFirstCell && !isBottomRow){
-			pickCssClassToUse = 'pick-cell';
+		if (!isGameFirstCell && !isBottomRow){
+			gameCssClassToUse = 'pick-cell';
 		}
-		else if (!isPickFirstCell && isBottomRow){
-			pickCssClassToUse = 'pick-cell-bottom';
+		else if (!isGameFirstCell && isBottomRow){
+			gameCssClassToUse = 'pick-cell-bottom';
 		}
-		else if (isPickFirstCell && !isBottomRow){
-			pickCssClassToUse = 'first-pick-cell';
+		else if (isGameFirstCell && !isBottomRow){
+			gameCssClassToUse = 'first-pick-cell';
 		}
-		else if (isPickFirstCell && isBottomRow){
-			pickCssClassToUse = 'first-pick-cell-bottom';
+		else if (isGameFirstCell && isBottomRow){
+			gameCssClassToUse = 'first-pick-cell-bottom';
 		}
 		
 		var gameRow = '<tr class="' + rowClassName + '">' + 
 						year +
 						week +
-						'<td class="' + pickCssClassToUse + '">' + 
+						'<td class="' + gameCssClassToUse + '">' + 
 							'<span class="' + awayTeamClass + '">' + pickSplit.awayTeamAbbreviation + '</span>' + 
 							' @ ' + 
 							'<span class="' + homeTeamClass + '">' + pickSplit.homeTeamAbbreviation + '</span>' +  
 						'</td>';
 		
+		//Now we just have to add the players who picked the home team to a string.
 		var numberOfHomePlayers = 0;
 		var homePlayersString = '';
 		if (isDefined(pickSplit.homeTeamPlayers) && pickSplit.homeTeamPlayers.length > 0){
+			//And we want to sort them so the names are shown in a consistent order.
+			//sortAlphabetically(pickSplit.homeTeamPlayers);
 			numberOfHomePlayers = pickSplit.homeTeamPlayers.length;
 			for (var playerIndex = 0; playerIndex < pickSplit.homeTeamPlayers.length; playerIndex++){
 				var player = pickSplit.homeTeamPlayers[playerIndex];
@@ -3298,9 +3614,11 @@ function createPickSplitsGridHtml(pickSplits){
 			}
 		}
 		
+		//And the same thing for the away players.
 		var numberOfAwayPlayers = 0;
 		var awayPlayersString = '';
 		if (isDefined(pickSplit.awayTeamPlayers) && pickSplit.awayTeamPlayers.length > 0){
+			//sortAlphabetically(pickSplit.awayTeamPlayers);
 			numberOfAwayPlayers = pickSplit.awayTeamPlayers.length;
 			for (var playerIndex = 0; playerIndex < pickSplit.awayTeamPlayers.length; playerIndex++){
 				var player = pickSplit.awayTeamPlayers[playerIndex];
@@ -3321,6 +3639,7 @@ function createPickSplitsGridHtml(pickSplits){
 			pickResultClass = 'pick-cell-bottom';
 		}
 		
+		//And just add the columns in for the picks and that's it.
 		gameRow = gameRow + 
 				  '<td class="' + pickResultClass + '"><span class="' + homePlayersClass + '">' + pickSplit.homeTeamAbbreviation + ' (' + numberOfHomePlayers + ')<br/> ' + homePlayersString + '</span></td>' + 
 				  '<td class="' + pickResultClass + '"><span class="' + awayPlayersClass + '">' + pickSplit.awayTeamAbbreviation + ' (' + numberOfAwayPlayers + ')<br/> ' + awayPlayersString + '</span></td>' + 
