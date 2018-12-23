@@ -4,9 +4,6 @@
 //	1. refactoring the grid rendering
 //	2. commenting this file and organizing it...
 
-//SHOULD START WITH A SUMMARY OF THE CURRENT YEAR STANDINGS...
-//prefix global variables with a year?
-//or make an object called "GLOBAL"? or NFLPicks?
 /**
  * 
  * This is the "container" for global variables.  I made it so we won't have to worry
@@ -14,6 +11,7 @@
  * 
  */
 var NFL_PICKS_GLOBAL = {
+	
 	/**
 	 * The previous type they picked.  This is so we can decide how much of the view we need
 	 * to "refresh" when we update it.
@@ -71,14 +69,12 @@ var NFL_PICKS_GLOBAL = {
 	initialStatName: null
 };
 
+//these all need to be moved into the global variable...
 var previousType = null;
 
 var havePicksBeenShown = false;
 
 var pickSplitsBeenShown = false;
-
-//var pushPreviousParameters = true;
-var previousParameters = null;
 
 var navigationForwardStack = [];
 var navigationBackwardStack = [];
@@ -158,9 +154,13 @@ function initializeSelections(){
 	}
 	setSelectedWeek(week);
 	
-	var player = NFL_PICKS_GLOBAL.player;
+	var player = NFL_PICKS_GLOBAL.initialPlayer;
 	if (isDefined(parameters) && isDefined(parameters.player)){
 		player = parameters.player;
+		//if the player has a comma in it, show the options and select multiplayer
+		if (player.indexOf(',') != -1){
+			showOptions();
+		}
 	}
 	setSelectedPlayer(player);
 	
@@ -199,6 +199,9 @@ function setSelectionsFromParameters(parameters){
 		return;
 	}
 	
+	//need to clear all parameters here...
+	//what does "clear" mean? ... it could mean different things
+	
 	if (isDefined(parameters.type)){
 		setSelectedType(parameters.type);
 	}
@@ -221,6 +224,11 @@ function setSelectionsFromParameters(parameters){
 	
 	if (isDefined(parameters.statName)){
 		setSelectedStatName(parameters.statName);
+	}
+	
+	if (isDefined(parameters.multiSelectPlayer)){
+		setMultiSelectPlayer(parameters.multiSelectPlayer);
+		updateMultiSelectVisibilityPlayer();
 	}
 }
 
@@ -279,6 +287,8 @@ function getSelectedParameters(){
 	parameters.week = getSelectedWeek();
 	parameters.statName = getSelectedStatName();
 	parameters.team = getSelectedTeam();
+	parameters.showOptions = areOptionsShown();
+	parameters.multiSelectPlayer = isMultiSelectPlayerEnabled();
 	
 	return parameters;
 }
@@ -329,12 +339,14 @@ function getSelectionCriteriaAndInitialize(){
 		
 		var players = selectionCriteriaContainer.players;
 		//We want the "all" player option to be the first one.
-		var playerOptions = [{label: 'Everybody', value: 'all'}];
+		var playerOptions = [{id: 'selected-players', label: '', value: ''},
+		                     {label: 'Everybody', value: 'all'}];
 		for (var index = 0; index < players.length; index++){
 			var player = players[index];
-			playerOptions.push({label: player, value: player});
+			playerOptions.push({id: normalizeString('player-' + player), label: player, value: player});
 		}
 		setOptionsInSelect('player', playerOptions);
+		hideSelectedPlayersOption();
 		
 		var teams = selectionCriteriaContainer.teams;
 		//Sort the teams in alphabetical order to make sure we show them in a consistent order.
@@ -454,6 +466,7 @@ function navigateBackward(){
 	
 	var parameters = NFL_PICKS_GLOBAL.navigationBackwardStack.pop();
 	
+	//stuff is updated here...
 	setSelectionsFromParameters(parameters);
 	
 	//Just like when navigating forward, we don't want the updateView function to fiddle
@@ -529,8 +542,8 @@ function updateView(){
 	//And, if we should push them, that means they did some "action" that takes them on a
 	//different "branch", so we should clear out the forward stack since they can't go
 	//forward anymore.
-	if (previousParameters != null && NFL_PICKS_GLOBAL.pushPreviousParameters){
-		NFL_PICKS_GLOBAL.navigationBackwardStack.push(previousParameters);
+	if (NFL_PICKS_GLOBAL.previousParameters != null && NFL_PICKS_GLOBAL.pushPreviousParameters){
+		NFL_PICKS_GLOBAL.navigationBackwardStack.push(NFL_PICKS_GLOBAL.previousParameters);
 		NFL_PICKS_GLOBAL.navigationForwardStack = [];
 	}
 	
@@ -550,10 +563,11 @@ function updateView(){
 		updateStats();
 	}
 	
-	//At this point, these are the current parameters...
-	//We want to push the previous ones ...
-	//these should be in like a "staging area
-	previousParameters = getSelectedParameters();
+	//At this point, the selected parameters are the current parameters.  We want to
+	//keep them around in case we need to push them on the stack the next time through.
+	NFL_PICKS_GLOBAL.previousParameters = getSelectedParameters();
+	
+	//And we need to make sure we're showing the right "forward" and "back" links.
 	updateNavigationLinksVisibility();
 }
 
@@ -579,6 +593,124 @@ function updateSelectors(type){
 	else if ('stats' == type){
 		updateStatsSelectors(type);
 	}
+	
+	updateMultiSelects(type);
+}
+
+function updateMultiSelects(type){
+	
+	updateMultiSelectPlayer();
+	
+		//I wonder if this should be called inside each selector, instead of in multi selects?
+		
+		//this should be the newly selected player
+		//they should be appended to the current selection
+		//we're taking advantage of the fact that, on the change,
+		//the value of the select will be the single value, and the 
+		//previous values will be stored in the
+		//selected-players value
+		//
+		// .... is this the way it should be done?
+		//
+		//either this, or store it on the NFL_PICKS_GLOBAL variable
+		//... we still have to have an extra one to store multiple
+		//selected players because we have to show it.
+		//var selectedPlayer = getSelectedPlayer();
+}
+
+//refreshes the player selection ... if there was a newly selected player, they'll
+//be added to the selected players.  if the same players are selected, there will be
+//a kind of refresh of the list.
+//
+//
+//This function should combine the selected player with the previous selections
+//and set that as the selected player
+function updateMultiSelectPlayer(){
+	
+	//if this is a newly selected player
+	var selectedPlayerValue = getSelectedPlayer();
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	
+	if (!multiSelectPlayerEnabled){
+		setSelectedPlayer(selectedPlayerValue);
+		updateMultiSelectVisibilityPlayer();
+		return;
+	}
+	
+	//these are the one from the container
+	var selectedPlayersValue = getSelectedPlayers();
+	
+	var selectedPlayersValueArray = selectedPlayersValue.split(',');
+	for (var index = 0; index < selectedPlayersValueArray.length; index++){
+		var selectedPlayer = selectedPlayersValueArray[index].trim();
+		selectedPlayersValueArray[index] = selectedPlayer;
+	}
+	
+	var newPlayersToSelect = selectedPlayerValue.split(',');
+	
+	for (var index = 0; index < newPlayersToSelect.length; index++){
+		var newPlayerToSelect = newPlayersToSelect[index].trim();
+		
+		if (!selectedPlayersValueArray.includes(newPlayerToSelect) &&
+				doesSelectHaveOptionWithValue('player', newPlayerToSelect)){
+		
+			if (selectedPlayersValue.length > 0){
+				selectedPlayersValue = selectedPlayersValue + ', ';
+			}
+			
+			selectedPlayersValue = selectedPlayersValue + newPlayerToSelect;
+		}
+	}
+	
+	setSelectedPlayer(selectedPlayersValue);
+	
+	updateMultiSelectVisibilityPlayer();
+}
+
+/*
+ /*
+ //this should be done outside of here
+		var currentSelectedPlayer = getSelectedPlayer();
+		if (currentSelectedPlayer != 'all'){
+			updateSelectedPlayersOption(currentSelectedPlayer);
+		}
+		else {
+			updateSelectedPlayersOption('');
+		}
+ */
+function multiSelectOptionChangePlayer(){
+	
+	//if there's a single player selected, they shold be put in the
+	//selectedPlayers
+	var currentSelectedPlayer = getSelectedPlayer();
+	
+	var currentSelectedPlayers = getSelectedPlayers();
+	
+	//what are the possibilities
+	//	there's a single player selected and they enabled it
+	//		if it's not all, make that player the selected players
+	//	there's multiple players selected and they disabled it
+	//		keep them shown i think....
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	if (multiSelectPlayerEnabled){
+		//move the selection up to the top... the update visibility function
+		//will show it.
+		if (currentSelectedPlayer != 'all'){
+			updateSelectedPlayersOption(currentSelectedPlayer);
+		}
+		//if it is all, what happens?
+		//the visibility function will hide it, so it won't be selectable, but it'll still be shown because
+		//it's currently selected.
+	}
+	else {
+		//if they switched it off, we don't need to do anything
+		//the visibility function will show all the player names and hide the multiple players option, but
+		//it'll still be shown because it's currently selected
+	}
+	
+	updateMultiSelectVisibilityPlayer();
 }
 
 
@@ -613,6 +745,7 @@ function updatePicksSelectors(type){
 	hideStatNameContainer();
 
 	showPlayerContainer();
+	
 	showAllPlayerOption();
 	showYearContainer();
 	showTeamContainer();
@@ -813,6 +946,69 @@ function setPreviousType(newPreviousType){
 	NFL_PICKS_GLOBAL.previousType = newPreviousType;
 }
 
+function showSelectMultiplePlayersOption(){
+	$('#select-multiple-players').show();
+}
+
+function hideSelectMultiplePlayersOption(){
+	$('#select-multiple-players').hide();
+}
+
+function showSelectSinglePlayersOption(){
+	$('#select-single-player').show();
+}
+
+function hideSelectSinglePlayersOption(){
+	$('#select-single-player').hide();
+}
+
+function getSelectedPlayers(){
+	return $('#selected-players').val();
+}
+
+function updateSelectedPlayersOption(selectedPlayers){
+	$('#selected-players').val(selectedPlayers);
+	$('#selected-players').text(selectedPlayers);
+}
+
+function makeSelectedPlayersOptionSelected(){
+}
+
+function showSelectedPlayersOption(){
+	$('#selected-players').show();
+}
+
+function hideSelectedPlayersOption(){
+	$('#selected-players').hide();
+}
+
+function hidePlayerOptions(players){
+	
+	var playersArray = players.split(',');
+	
+	for (var index = 0; index < playersArray.length; index++){
+		var player = playersArray[index].trim();
+		hidePlayerOption(player);
+	}
+}
+
+function hidePlayerOption(player){
+	$('#' + normalizeString('player-' + player)).hide();
+}
+
+function showAllPlayerOptions(){
+	var allOptions = $('#player option');
+	
+	for (var index = 0; index < allOptions.length; index++){
+		var option = allOptions[index];
+		
+		if (isDefined(option.id) && option.id.startsWith('player-')){
+			$('#' + option.id).show();
+		}
+		
+	}
+}
+
 /**
  * 
  * Gets the player that's selected.
@@ -832,9 +1028,43 @@ function getSelectedPlayer(){
  * @returns
  */
 function setSelectedPlayer(player){
-	if (doesSelectHaveOptionWithValue('player', player)){
-		$('#player').val(player);
+	
+	if (!isDefined(player)){
+		return;
 	}
+	
+	//if the player has a comma in it, we need to enable multi select for the player
+	//the forward and backward navigation need this...
+	if (player.indexOf(',') != -1){
+		setMultiSelectPlayer(true);
+	}
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	
+	if (!multiSelectPlayerEnabled){
+		//I think this should go away ... there should be a function that updates
+		//the visibility of the options
+		updateSelectedPlayersOption('');
+		setSelectedPlayerValue(player);
+		return;
+	}
+
+	//update its value to what was given
+	updateSelectedPlayersOption(player);
+	//make it selected in the select
+	setSelectedPlayerValue(player);
+}
+
+/**
+ * 
+ * Sets the value on the player input to the given value.  Doesn't do any
+ * funny business of trying to figure out whether it's mutliple select or not.
+ * 
+ * @param value
+ * @returns
+ */
+function setSelectedPlayerValue(value){
+	$('#player').val(value);
 }
 
 /**
@@ -933,6 +1163,46 @@ function setSelectedTeam(team){
 	}
 }
 
+
+function updateMultiSelectVisibilityPlayer(){
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	
+	if (multiSelectPlayerEnabled){
+		
+		var selectedPlayers = getSelectedPlayers();
+		
+		if ('' != selectedPlayers){
+			showSelectedPlayersOption();
+		}
+
+		showAllPlayerOptions();
+		
+		var currentSelectedPlayer = getSelectedPlayer();
+		hidePlayerOptions(currentSelectedPlayer);
+		hideAllPlayerOption();
+	}
+	else {
+		hideSelectedPlayersOption();
+		showAllPlayerOption();
+		showAllPlayerOptions();
+	}
+}
+
+function enableMultiSelectPlayer(){
+	setMultiSelectPlayer(true);
+	showOptions();
+	updateMultiSelectVisibilityPlayer();
+}
+
+function setMultiSelectPlayer(value){
+	return $('#multiSelectPlayer').prop('checked', value);
+}
+
+function isMultiSelectPlayerEnabled(){
+	return $('#multiSelectPlayer').prop('checked');
+}
+
 /**
  * 
  * This function will set the given html as the content we show.  It'll clear out what's
@@ -1017,10 +1287,12 @@ function updateStandings(){
 }
 
 function hideAllPlayerOption(){
+	console.log('hide all player');
 	$('#player option[value=all]').hide();
 }
 
 function showAllPlayerOption(){
+	console.log('show all player');
 	$('#player option[value=all]').show();
 }
 
@@ -1078,6 +1350,35 @@ function showStatNameContainer(){
 
 function hideStatNameContainer(){
 	$('#statNameContainer').hide();
+}
+
+function areOptionsShown(){
+	
+	if ($('#options').is(':visible')){
+		return true;
+	}
+	
+	return false;
+}
+
+function showOptions(){
+	$('#optionsLink').text('Hide options');
+	$('#options').show();
+}
+
+function hideOptions(){
+	$('#optionsLink').text('Options');
+	$('#options').hide();
+}
+
+function toggleOptions(){
+	
+	if (areOptionsShown()){
+		hideOptions();
+	}
+	else {
+		showOptions();
+	}
 }
 
 /**
@@ -1204,7 +1505,10 @@ function updateStats(){
 	//If we're showing the champions or championship standings, we want to show them
 	//for all players and all years.
 	else if (statName == 'champions' || statName == 'championshipStandings'){
-		setSelectedPlayer('all');
+		//With multi select, we don't want to do this
+		if (!isMultiSelectPlayerEnabled()){
+			setSelectedPlayer('all');
+		}
 		setSelectedYear('all');
 		player = getSelectedPlayer();
 		year = getSelectedYear();
@@ -3659,3 +3963,4 @@ function createPickSplitsGridHtml(pickSplits){
 	
 	return pickSplitsHtml;
 }
+

@@ -125,7 +125,19 @@ function setOptionsInSelect(selectId, options){
 	
 	for (var index = 0; index < options.length; index++){
 		var option = options[index];
-		$('#' + selectId).append('<option value="' + option.value + '">' + option.label + '</option>');
+		var optionHtml = '<option ';
+		
+		if (isDefined(option.id)){
+			optionHtml = optionHtml + ' id="' + option.id + '" ';
+		}
+		
+		if (isDefined(option.value)){
+			optionHtml = optionHtml + ' value="' + option.value + '" ';
+		}
+		
+		optionHtml = optionHtml + '>' + option.label + '</option>';
+		
+		$('#' + selectId).append(optionHtml);
 	}
 }
 
@@ -146,4 +158,18 @@ function getUrlParameters() {
         urlParameters[name] = value;
     }
     return urlParameters;
+}
+
+function normalizeString(value){
+	var normalizedValue = normalizeStringWithReplacement(value, '_');
+	
+	return normalizedValue;
+}
+
+function normalizeStringWithReplacement(value, spaceReplacement){
+	
+	//replace spaces with 
+	var normalizedValue = value.replace(' ', spaceReplacement).toLowerCase();
+	
+	return normalizedValue;
 }

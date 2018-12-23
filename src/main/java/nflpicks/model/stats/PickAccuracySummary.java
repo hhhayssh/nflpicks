@@ -5,8 +5,10 @@ import nflpicks.model.Team;
 
 public class PickAccuracySummary {
 
+	//this should be pulled up
 	protected Player player;
 	
+	//This should be pulled up
 	protected Team team;
 	
 	protected int actualWins;

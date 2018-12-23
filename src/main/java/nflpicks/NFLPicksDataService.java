@@ -3279,10 +3279,14 @@ where g.week_id in (select w.id
 			
 			results = statement.executeQuery();
 			
+			Player[] playersArray = new Player[playerNames.size()];
+			
 			while (results.next()){
 				Player playerInfo = mapPlayer(results);
-				players.add(playerInfo);
+				int indexOfPlayerName = playerNames.indexOf(playerInfo.getName());
+				playersArray[indexOfPlayerName] = playerInfo;
 			}
+			players = Arrays.asList(playersArray);
 		}
 		catch (Exception e){
 			log.error("Error getting players!", e);

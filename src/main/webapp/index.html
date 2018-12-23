@@ -18,7 +18,21 @@
 		<div class="top-header-container">
 			<h3 style="margin-top: 5px; margin-bottom: 5px;"><a href="index.html">NFL Picks</a></h3>
 		</div>
-		<div class="selectors-container">
+		<div style="text-align: center;">
+			<span><a href="javascript:" onClick="updateMakePicks()">Make picks</a></span>
+			<span>&nbsp;</span>
+			<span><a id="optionsLink" href="javascript:" onClick="toggleOptions()">Options</a></span>
+			<div id="options" style="padding-top: 10px; display: none;">
+				<span>Pick more than 1: </span>
+				<span><input id="multiSelectPlayer" type="checkbox" value="true" onChange="multiSelectOptionChangePlayer();"/><span>Player</span></span>
+				<!-- 
+				<span><input id="multiSelectYear" type="checkbox" value="true" onChange="updateMultiSelectYear();"/><span>Year</span></span>
+				<span><input id="multiSelectWeek" type="checkbox" value="true" onChange="updateMultiSelectWeek();"/><span>Week</span></span>
+				<span><input id="multiSelectTeam" type="checkbox" value="true" onChange="updateMultiSelectTeam();"/><span>Team</span></span>
+				 -->
+			</div>
+		</div>
+		<div class="selectors-container" style="padding-top: 10px;">
 			<div id="navigationBackwardContainer" class="selector-container">
 				<a href="javascript:" onClick="navigateBackward();">Back</a>
 			</div>
@@ -32,7 +46,7 @@
 			</div>
 			<div id="playerContainer" class="selector-container">
 				<div>Who</div>
-				<select id="player" onChange="updateView();" class="criteria-selector">
+				<select id="player" onChange="updateView();" class="criteria-selector" style="max-width: 175px;">
 				</select>
 			</div>
 			<div id="yearContainer" class="selector-container">
@@ -90,7 +104,6 @@
 			<div id="navigationFowardContainer" class="selector-container">
 				<a href="javascript:" onClick="navigateForward();">Forward</a>
 			</div>
-			<div style="padding-top: 15px;"><a href="javascript:" onClick="updateMakePicks()">Make picks</a></div>
 		</div>
 		<div id="contentContainer" class="content-container">
 		</div>
