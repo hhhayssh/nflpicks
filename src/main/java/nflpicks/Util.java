@@ -253,6 +253,42 @@ public class Util {
 		return values;
 	}
 	
+	public static String toCsvString(List<String> values){
+		
+		String csvString = toDelimitedString(values, ",", true);
+		
+		return csvString;
+	}
+	
+	public static String toDelimitedString(List<String> values, String delimiter, boolean trimValues){
+		
+		if (values == null || delimiter == null){
+			return null;
+		}
+		
+		StringBuilder stringBuilder = new StringBuilder();
+		
+		for (int index = 0; index < values.size(); index++){
+			String value = values.get(index);
+			
+			String valueToUse = value;
+			if (trimValues){
+				valueToUse = valueToUse.trim();
+			}
+			
+			if (index > 0){
+				stringBuilder.append(delimiter);
+			}
+			
+			stringBuilder.append(valueToUse);
+		}
+		
+		String delimitedString = stringBuilder.toString();
+		
+		return delimitedString;
+		
+	}
+	
 	public static List<Integer> convertStringsToIntegers(List<String> stringValues){
 		
 		if (stringValues == null){

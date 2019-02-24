@@ -20,6 +20,8 @@ public class CompactPick {
 	
 	protected int weekNumber;
 	
+	protected String weekLabel;
+	
 	protected String homeTeamAbbreviation;
 	
 	protected String awayTeamAbbreviation;
@@ -46,6 +48,14 @@ public class CompactPick {
 
 	public void setWeekNumber(int weekNumber) {
 		this.weekNumber = weekNumber;
+	}
+
+	public String getWeekLabel() {
+		return weekLabel;
+	}
+
+	public void setWeekLabel(String weekLabel) {
+		this.weekLabel = weekLabel;
 	}
 
 	public String getHomeTeamAbbreviation() {
@@ -203,6 +213,7 @@ public class CompactPick {
 		
 		result = primeNumber * result + (year == null ? 0 : year.hashCode());
 		result = primeNumber * result + Integer.valueOf(weekNumber).hashCode();
+		result = primeNumber * result + (weekLabel == null ? 0 : weekLabel.hashCode());
 		result = primeNumber * result + (homeTeamAbbreviation == null ? 0 : homeTeamAbbreviation.hashCode());
 		result = primeNumber * result + (awayTeamAbbreviation == null ? 0 : awayTeamAbbreviation.hashCode());
 		result = primeNumber * result + (winningTeamAbbreviation == null ? 0 : winningTeamAbbreviation.hashCode());
@@ -215,6 +226,7 @@ public class CompactPick {
 		
 		String thisObjectAsAString = "year = " + year + 
 								  	 ", weekNumber = " + weekNumber + 
+								  	 ", weekLabel = " + weekLabel +
 								  	 ", homeTeamAbbreviation = " + homeTeamAbbreviation + 
 								  	 ", awayTeamAbbreviation = " + awayTeamAbbreviation + 
 								  	 ", winningTeamAbbreviation = " + winningTeamAbbreviation + 

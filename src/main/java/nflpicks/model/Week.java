@@ -175,9 +175,9 @@ public class Week {
 			return false;
 		}
 		
-		int otherWeekNumber = otherWeek.getWeekNumber();
+		int otherNumber = otherWeek.getWeekNumber();
 		
-		if (weekNumber != otherWeekNumber){
+		if (weekNumber != otherNumber){
 			return false;
 		}
 		
@@ -220,7 +220,7 @@ public class Week {
 		
 		String thisObjectAsAString = "id = " + id + 
 									 ", seasonId = " + seasonId +
-									 ", weekNumber = " + weekNumber +
+									 ", number = " + weekNumber +
 									 ", label = " + label +
 									 ", games = " + games;
 		

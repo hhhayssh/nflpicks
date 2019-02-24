@@ -1,7 +1,10 @@
 create sequence conference_id_sequence;
 create table conference (
 	id integer primary key default nextval('conference_id_sequence'),
-	name varchar(10) not null
+	name varchar(255) not null,
+	start_year varchar(4) not null default to_char(current_date, 'yyyy'),
+	end_year varchar(4),
+	current_name varchar(255) not null
 );
 create index on conference (name);
 
@@ -9,7 +12,10 @@ create sequence division_id_sequence;
 create table division (
 	id integer primary key default nextval('division_id_sequence'),
 	conference_id integer references conference(id),
-	name varchar(10) not null
+	name varchar(255) not null,
+	start_year varchar(4) not null default to_char(current_date, 'yyyy'),
+	end_year varchar(4),
+	current_name varchar(255) not null
 );
 create index on division (conference_id);
 create index on division (name);
@@ -18,12 +24,15 @@ create sequence team_id_sequence;
 create table team (
 	id integer primary key default nextval('team_id_sequence'),
 	division_id integer references division(id) not null,
-	name varchar(50) not null,
-	nickname varchar(50) not null,
-	abbreviation varchar(10) not null
+	city varchar(255) not null,
+	nickname varchar(255) not null,
+	abbreviation varchar(255) not null,
+	start_year varchar(4) not null default to_char(current_date, 'yyyy'),
+	end_year varchar(4),
+	current_abbreviation varchar(255) not null
 );
 create index on team (division_id);
-create index on team (name);
+create index on team (city);
 create index on team (nickname);
 create index on team (abbreviation);
 
@@ -38,11 +47,11 @@ create sequence week_id_sequence;
 create table week (
 	id integer primary key default nextval('week_id_sequence'),
 	season_id integer references season(id) not null,
-	week integer not null,
-	label varchar(50) not null
+	week_number integer not null,
+	label varchar(255) not null
 );
 create index on week (season_id);
-create index on week (week);
+create index on week (week_number);
 create index on week (label);
 
 create sequence game_id_sequence;
@@ -61,7 +70,7 @@ create index on game (winning_team_id);
 create sequence player_id_sequence;
 create table player (
 	id integer primary key default nextval('player_id_sequence'),
-	name varchar(50) not null
+	name varchar(255) not null
 );
 create index on player (name);
 

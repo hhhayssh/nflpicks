@@ -32,6 +32,22 @@ public class Division {
 	 */
 	protected List<Team> teams;
 	
+	/**
+	 * The year the division started.
+	 */
+	protected String startYear;
+	
+	/**
+	 * If the division was changed, this is the year it ended.
+	 */
+	protected String endYear;
+	
+	/**
+	 * If the division has ended, this is the name of the active division it's
+	 * linked to.
+	 */
+	protected String currentName;
+	
 	public Division(){
 	}
 	
@@ -43,12 +59,18 @@ public class Division {
 	 * @param conferenceId
 	 * @param name
 	 * @param teams
+	 * @param startYear
+	 * @param endYear
+	 * @param currentName
 	 */
-	public Division(int id, int conferenceId, String name, List<Team> teams){
+	public Division(int id, int conferenceId, String name, List<Team> teams, String startYear, String endYear, String currentName){
 		this.id = id;
 		this.conferenceId = conferenceId;
 		this.name = name;
 		this.teams = teams;
+		this.startYear = startYear;
+		this.endYear = endYear;
+		this.currentName = currentName;
 	}
 
 	public int getId() {
@@ -83,6 +105,46 @@ public class Division {
 		this.teams = teams;
 	}
 	
+	public String getStartYear() {
+		return startYear;
+	}
+
+	public void setStartYear(String startYear) {
+		this.startYear = startYear;
+	}
+
+	public String getEndYear() {
+		return endYear;
+	}
+
+	public void setEndYear(String endYear) {
+		this.endYear = endYear;
+	}
+	
+	public String getCurrentName() {
+		return currentName;
+	}
+
+	public void setCurrentName(String currentName) {
+		this.currentName = currentName;
+	}
+
+	/**
+	 * 
+	 * A convenience function for figuring out whether this division is active or not
+	 * without having to do "endYear != null".
+	 * 
+	 * @return
+	 */
+	public boolean isActive(){
+		
+		if (endYear != null){
+			return false;
+		}
+		
+		return true;
+	}
+
 	/**
 	 * 
 	 * The hash code should turn this object into a relatively unique number
@@ -106,6 +168,9 @@ public class Division {
 		result = primeNumber * result + Integer.valueOf(conferenceId).hashCode();
 		result = primeNumber * result + (name == null ? 0 : name.hashCode());
 		result = primeNumber * result + (teams == null ? 0 : teams.hashCode());
+		result = primeNumber * result + (startYear == null ? 0 : startYear.hashCode());
+		result = primeNumber * result + (endYear == null ? 0 : endYear.hashCode());
+		result = primeNumber * result + (currentName == null ? 0 : currentName.hashCode());
 		
 		return result;
 	}
@@ -175,6 +240,45 @@ public class Division {
 			}
 		}
 		
+		String otherStartYear = otherDivision.getStartYear();
+		
+		if (startYear != null){
+			if (!startYear.equals(otherStartYear)){
+				return false;
+			}
+		}
+		else {
+			if (otherStartYear != null){
+				return false;
+			}
+		}
+		
+		String otherEndYear = otherDivision.getEndYear();
+		
+		if (endYear != null){
+			if (!endYear.equals(otherEndYear)){
+				return false;
+			}
+		}
+		else {
+			if (otherEndYear != null){
+				return false;
+			}
+		}
+		
+		String otherCurrentName = otherDivision.getCurrentName();
+		
+		if (currentName != null){
+			if (!currentName.equals(otherCurrentName)){
+				return false;
+			}
+		}
+		else {
+			if (otherCurrentName != null){
+				return false;
+			}
+		}
+		
 		return true;
 	}
 	
@@ -189,7 +293,9 @@ public class Division {
 		String thisObjectAsAString = "id = " + id + 
 									 ", conferenceId = " + conferenceId +
 									 ", name = " + name + 
-									 ", teams = " + teams;
+									 ", teams = " + teams + 
+									 ", startYear = " + startYear + 
+									 ", endYear = " + endYear;
 		
 		return thisObjectAsAString;
 	}

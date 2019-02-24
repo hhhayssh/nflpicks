@@ -4,6 +4,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
@@ -12,7 +13,10 @@ import org.apache.log4j.Logger;
 
 import nflpicks.model.CompactPick;
 import nflpicks.model.CompactPlayerPick;
+import nflpicks.model.Conference;
+import nflpicks.model.Division;
 import nflpicks.model.Player;
+import nflpicks.model.Team;
 
 /**
  * 
@@ -112,7 +116,7 @@ public class NFLPicksDataExporter {
 		
 		NFLPicksDataExporter exporter = new NFLPicksDataExporter(dataService);
 		
-		exporter.exportData(outputFilename);
+		exporter.exportPicksData(outputFilename);
 	}
 	
 	/**
@@ -128,11 +132,100 @@ public class NFLPicksDataExporter {
 	
 	/**
 	 * 
+	 * This function will export the conference, division, and team data to the given file.
+	 * The exported file will have all the data it needs to rebuild all the stuff again.
+	 * 
+	 * @param filename
+	 */
+	public void exportTeamData(String filename){
+		
+		//Steps to do:
+		//	1. To export the team data, we should just be able to do a "deep" retrieve
+		//	   on the conferences and they should have everything in them.
+		//	2. Each line should be a team and so that's the level where we'll print at.
+		
+		log.info("Exporting team data to " + filename + " ...");
+		long start = System.currentTimeMillis();
+		
+		PrintWriter writer = null;
+		int lineNumber = 0;
+		
+		try {
+			writer = new PrintWriter(filename);
+			
+			String header = "conference_name,current_conference_name,conference_start_year,conference_end_year,division_name,current_division_name,division_start_year,division_end_year,team_city,team_nickname,team_abbreviation,team_start_year,team_end_year,current_team_abbreviation";
+
+			writer.print(header);
+			writer.print('\n');
+			
+			List<Conference> conferences = dataService.getConferences(false);
+
+			for (int conferenceIndex = 0; conferenceIndex < conferences.size(); conferenceIndex++){
+				Conference conference = conferences.get(conferenceIndex);
+
+				String conferenceName = conference.getName();
+				String currentConferenceName = conference.getCurrentName();
+				String conferenceStartYear = conference.getStartYear();
+				String conferenceEndYear = conference.getEndYear();
+				
+				List<Division> divisions = conference.getDivisions();
+				
+				for (int divisionIndex = 0; divisionIndex < divisions.size(); divisionIndex++){
+					Division division = divisions.get(divisionIndex);
+
+					String divisionName = division.getName();
+					String currentDivisionName = division.getCurrentName();
+					String divisionStartYear = division.getStartYear();
+					String divisionEndYear = division.getEndYear();
+					
+					List<Team> teams = division.getTeams();
+
+					for (int teamIndex = 0; teamIndex < teams.size(); teamIndex++){
+						Team team = teams.get(teamIndex);
+						
+						String teamCity = team.getCity();
+						String teamNickname = team.getNickname();
+						String teamAbbreviation = team.getAbbreviation();
+						String teamStartYear = team.getStartYear();
+						String teamEndYear = team.getEndYear();
+						String currentTeamAbbreviation = team.getCurrentAbbreviation();
+						
+						List<String> values = Arrays.asList(new String[]{conferenceName, currentConferenceName, conferenceStartYear, conferenceEndYear,
+																		 divisionName, currentDivisionName, divisionStartYear, divisionEndYear,
+																		 teamCity, teamNickname, teamAbbreviation, teamStartYear, teamEndYear, currentTeamAbbreviation});
+						
+						String line = Util.toCsvString(values);
+						writer.print(line);
+						writer.print('\n');
+						lineNumber++;
+					}
+					
+					writer.flush();
+				}
+				
+				writer.flush();
+			}
+			
+			writer.flush();
+		}
+		catch (Exception e){
+			log.error("Error exporting team data!  lineNumber = " + lineNumber + ", filename = " + filename, e);
+		}
+		finally {
+			Util.closeWriter(writer);
+		}
+		
+		long elapsed = System.currentTimeMillis() - start;
+		log.info("Done exporting team data.  Took " + elapsed + " ms to export to " + filename);
+	}
+	
+	/**
+	 * 
 	 * This function will export the picks to the given file.  Not much to it!
 	 * 
 	 * @param filename
 	 */
-	public void exportData(String filename){
+	public void exportPicksData(String filename){
 		
 		//Steps to do:
 		//	1. To export, we need two things: the players and the picks.
@@ -144,7 +237,7 @@ public class NFLPicksDataExporter {
 		//	   get them from the database.
 		//	4. Use them to write the csv file.
 		
-		log.info("Exporting to " + filename + " ...");
+		log.info("Exporting picks to " + filename + " ...");
 		long start = System.currentTimeMillis();
 		
 		PrintWriter writer = null;
@@ -188,7 +281,7 @@ public class NFLPicksDataExporter {
 	 * 
 	 * @return
 	 */
-	public String exportData(){
+	public String exportPicksData(){
 		
 		//Steps to do:
 		//	1. Just like with the other export function, we just need the players

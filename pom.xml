@@ -41,9 +41,14 @@
 		 			conf
 		 				nflpicks.properties
 	 				input
-	 					nflpicks_create_tables.sql
-    					nflpicks_create_views.sql
-    					nflpicks_insert_teams.sql
+	 					sql
+	 						nflpicks_create_tables.sql
+    						nflpicks_create_views.sql
+    						nflpicks_insert_teams.sql
+    					data
+    						nflpicks_conference.csv
+    						nflpicks_division.csv
+    						nflpicks_team.csv
     				output
 	 			
 	 			And that should have everything we need to do any importing/exporting of the data.
@@ -98,9 +103,9 @@
         					<outputDirectory>${project.build.directory}/nflpicks-data-manager/bin</outputDirectory>
     					</configuration>
 					</plugin>
-					<!-- This plugin will copy the nflpicks.properties to the "conf" folder and the and sql files to the 
-						 input directory so everything is ready to go.
-						 The nflpicks.properties will get filtered and the sql won't.  
+					<!-- This plugin will copy the nflpicks.properties to the "conf" folder and the sql and initial data
+						 files to the input directory so everything is good to go.
+						 The nflpicks.properties will get filtered but the sql and initial data won't.  
 					 -->
 					<plugin>
 						<groupId>org.apache.maven.plugins</groupId>
@@ -132,7 +137,7 @@
     								<goal>copy-resources</goal>
     							</goals>
     							<configuration>
-    								<outputDirectory>${project.build.directory}/nflpicks-data-manager/input</outputDirectory>
+    								<outputDirectory>${project.build.directory}/nflpicks-data-manager/input/sql</outputDirectory>
     								<resources>
     									<resource>
     										<directory>src/main/sql</directory>
@@ -140,6 +145,25 @@
     											<include>nflpicks_create_tables.sql</include>
     											<include>nflpicks_create_views.sql</include>
     											<include>nflpicks_insert_teams.sql</include>
+    										</includes>
+    										<filtering>false</filtering>
+    									</resource>
+    								</resources>
+    							</configuration>
+    						</execution>
+    						<execution>
+    							<id>copy-nflpicks-initial-data</id>
+    							<phase>compile</phase>
+    							<goals>
+    								<goal>copy-resources</goal>
+    							</goals>
+    							<configuration>
+    								<outputDirectory>${project.build.directory}/nflpicks-data-manager/input/data</outputDirectory>
+    								<resources>
+    									<resource>
+    										<directory>src/main/data</directory>
+    										<includes>
+    											<include>nflpicks_initial_data.csv</include>
     										</includes>
     										<filtering>false</filtering>
     									</resource>

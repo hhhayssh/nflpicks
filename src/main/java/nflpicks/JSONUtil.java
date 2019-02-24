@@ -348,7 +348,7 @@ public class JSONUtil {
 		
 		jsonObject.put(NFLPicksConstants.JSON_TEAM_ID, team.getId());
 		jsonObject.put(NFLPicksConstants.JSON_TEAM_DIVISION_ID, team.getDivisionId());
-		jsonObject.put(NFLPicksConstants.JSON_TEAM_NAME, team.getName());
+		jsonObject.put(NFLPicksConstants.JSON_TEAM_CITY, team.getCity());
 		jsonObject.put(NFLPicksConstants.JSON_TEAM_NICKNAME, team.getNickname());
 		jsonObject.put(NFLPicksConstants.JSON_TEAM_ABBREVIATION, team.getAbbreviation());
 		
@@ -1187,6 +1187,7 @@ public class JSONUtil {
 		
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_YEAR, pick.getYear());
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WEEK_NUMBER, pick.getWeekNumber());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WEEK_LABEL, pick.getWeekLabel());
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_HOME_TEAM_ABBREVIATION, pick.getHomeTeamAbbreviation());
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_AWAY_TEAM_ABBREVIATION, pick.getAwayTeamAbbreviation());
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WINNING_TEAM_ABBREVIATION, pick.getWinningTeamAbbreviation());

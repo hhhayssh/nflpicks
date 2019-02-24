@@ -113,7 +113,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			
 			List<Player> players = null;
 			if ("all".equals(player)){
-				players = dataService.getPlayers(year);
+				players = dataService.getPlayersForYear(year);
 			}
 			else {
 				boolean wasPlayerActiveInYear = dataService.wasPlayerActiveInYear(player, year);
@@ -122,7 +122,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				}
 				else {
 					player = "all";
-					players = dataService.getPlayers(year);
+					players = dataService.getPlayersForYear(year);
 				}
 			}
 			
@@ -174,7 +174,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 					players = dataService.getPlayers();
 				}
 				else {
-					players = dataService.getPlayers(year);
+					players = dataService.getPlayersForYear(year);
 				}
 			}
 			else {
@@ -225,14 +225,14 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				week = "1";
 			}
 			
-			players = dataService.getPlayers(year);
+			players = dataService.getPlayersForYear(year);
 		}
 		else if ("standings".equals(type)){
 			if (year == null || "all".equals(year)){
 				players = dataService.getPlayers();
 			}
 			else {
-				players = dataService.getPlayers(year);
+				players = dataService.getPlayersForYear(year);
 			}
 		}
 		

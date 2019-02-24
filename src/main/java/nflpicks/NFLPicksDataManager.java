@@ -51,23 +51,31 @@ public class NFLPicksDataManager {
 		//	5. Do the import or export.
 		
 		String type = null;
+		String importType = null;
+		String exportType = null;
 		String propertiesFilename = null;
 		String filename = null;
 		
 		if (args.length == 0){
 			Scanner scanner = new Scanner(System.in);
 			
-			System.out.println("Import or export:");
-			type = scanner.nextLine();
-			
 			System.out.println("Properties file:");
 			propertiesFilename = scanner.nextLine();
 			
+			System.out.println("Import or export:");
+			type = scanner.nextLine();
+			
 			if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equals(type)){
+				System.out.println("Import type (picks or team_data):");
+				importType = scanner.nextLine();
+				
 				System.out.println("Import file:");
 				filename = scanner.nextLine();
 			}
 			else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equals(type)){
+				System.out.println("Export type (picks or team_data):");
+				exportType = scanner.nextLine();
+				
 				System.out.println("Export file:");
 				filename = scanner.nextLine();
 			}
@@ -75,9 +83,17 @@ public class NFLPicksDataManager {
 			scanner.close();
 		}
 		else if (args.length == 3){
-			type = args[0];
-			propertiesFilename = args[1];
-			filename = args[2];
+			propertiesFilename = args[0];
+			type = args[1];
+			
+			if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equals(type)){
+				importType = args[2];
+			}
+			else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equals(type)){
+				exportType = args[2];
+			}
+			
+			filename = args[3];
 		}
 		else {
 			System.out.println("Bad input!");
@@ -89,11 +105,22 @@ public class NFLPicksDataManager {
 		
 		if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equals(type)){
 			NFLPicksDataImporter dataImporter = new NFLPicksDataImporter(dataService);
-			dataImporter.importData(filename);
+			if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_PICKS.equals(importType)){
+				dataImporter.importPicksData(filename);
+			}
+			else if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_TEAM_DATA.equals(importType)){
+				dataImporter.importTeamData(filename);
+			}
 		}
 		else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equals(type)){
 			NFLPicksDataExporter dataExporter = new NFLPicksDataExporter(dataService);
-			dataExporter.exportData(filename);
+			
+			if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_PICKS.equals(exportType)){
+				dataExporter.exportPicksData(filename);
+			}
+			else if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_TEAM_DATA.equals(exportType)){
+				dataExporter.exportTeamData(filename);
+			}
 		}
 		else {
 			System.out.println("You suck.");

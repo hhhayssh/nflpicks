@@ -4,6 +4,85 @@
 //	1. refactoring the grid rendering
 //	2. commenting this file and organizing it...
 
+/*
+ 
+ 	The pattern is:
+ 		1. When the checkbox is changed, the changed function should:
+ 			1. Decide whether to add the selection to the multi select container
+ 			2. Update the visible options in the select
+ 		2. When an "action" is performed:
+ 			1. The update selectors function will handle setting the value of the select so that
+ 			   it's either:
+ 			   	1. The value of the multi select container, if multi select is enabled
+ 			   	2. The value of the selected option, if it's not
+ 			2. Update the visible options in the select
+ 			
+ 	An action can be triggered by:
+ 		1. A selection of an option
+ 		2. A navigation action
+ 		3. Setting the parameters through the url
+ 		
+ 	I think this design is solid and can be applied to weeks, years, and teams
+ 	It lets the getPlayer, getYear, ... functions work just like they do now and causes them
+ 	to send back comma delimited lists if it's multi select
+ 
+ 	How does multi select work?
+ 	
+ 		There's an option checkbox...
+ 		When it's clicked, this function is called:
+ 			multiSelectOptionChangePlayer();
+
+ 			This function 
+ 				Gets the current selected player
+ 				Gets the value of the multi select player container
+ 	
+ 				if the checkbox was checked...
+ 					If the current selected player is an actual player (not all), it'll
+ 					set it as the multi select player container
+ 					If it's all, it won't do anything and rely on the update visibility function
+ 					to handle it
+ 				if it wasn't, there's nothing to do
+ 					The update visibility function will handle hiding and showing the right options
+ 					** The next "action" will trigger an update of the selectors which will cause
+ 					an update of the selected player
+ 		
+ 				The update visibility function will 
+ 	
+ 					check whether multi select is enabled or not
+ 		
+ 					if it is and there's a selected player in it,
+ 					it'll show the multi select player container option
+ 					Then, it'll hide all the players that are part of the multi select
+ 					so they don't show up twice in the list
+ 					And, it'll hide the "all" player option
+ 		
+ 					if it's not, it'll hide the multi selected player container option
+ 					show all the individual player options
+ 					show the "all" player option
+ 		
+ 	
+ 	there's a function called "updateMultiSelectPlayer" that's called when updating
+ 	the selectors... 
+ 	It's called to make sure the multi select stuff is right even if the multi selection
+ 	didn't come as a result of the click of the checkbox (like if it was because
+ 	of navigation or parameter setting
+ 	it is there to basically refresh the current selected player so that it has the
+ 	right value and the right things are shown
+ 	
+ 		if multi select is enabled
+ 			get the combination of the current selected player
+ 			and the multi select player container players
+ 		if it's not
+ 			gets the current selected player
+ 		
+ 		sets the value as the selected player
+ 	
+ 		updates the visibility so that multi selected players aren't shown
+ 		as individual selections and so that the right things are visible
+ 		
+ 
+ */
+
 /**
  * 
  * This is the "container" for global variables.  I made it so we won't have to worry
@@ -158,7 +237,7 @@ function initializeSelections(){
 	if (isDefined(parameters) && isDefined(parameters.player)){
 		player = parameters.player;
 		//if the player has a comma in it, show the options and select multiplayer
-		if (player.indexOf(',') != -1){
+		if (doesValueHaveMultipleValues(player)){
 			showOptions();
 		}
 	}
@@ -228,7 +307,6 @@ function setSelectionsFromParameters(parameters){
 	
 	if (isDefined(parameters.multiSelectPlayer)){
 		setMultiSelectPlayer(parameters.multiSelectPlayer);
-		updateMultiSelectVisibilityPlayer();
 	}
 }
 
@@ -330,7 +408,9 @@ function getSelectionCriteriaAndInitialize(){
 		
 		var years = selectionCriteriaContainer.years;
 		//We want the "all" year option to be first.
-		var yearOptions = [{label: 'All', value: 'all'}];
+		var yearOptions = [{label: 'All', value: 'all'},
+		                   {label: 'Jurassic Period (2010-2015)', value: 'old'},
+		                   {label: 'Modern Era (2016 - now)', value: 'modern'}];
 		for (var index = 0; index < years.length; index++){
 			var year = years[index];
 			yearOptions.push({label: year, value: year});
@@ -598,24 +678,7 @@ function updateSelectors(type){
 }
 
 function updateMultiSelects(type){
-	
 	updateMultiSelectPlayer();
-	
-		//I wonder if this should be called inside each selector, instead of in multi selects?
-		
-		//this should be the newly selected player
-		//they should be appended to the current selection
-		//we're taking advantage of the fact that, on the change,
-		//the value of the select will be the single value, and the 
-		//previous values will be stored in the
-		//selected-players value
-		//
-		// .... is this the way it should be done?
-		//
-		//either this, or store it on the NFL_PICKS_GLOBAL variable
-		//... we still have to have an extra one to store multiple
-		//selected players because we have to show it.
-		//var selectedPlayer = getSelectedPlayer();
 }
 
 //refreshes the player selection ... if there was a newly selected player, they'll
@@ -625,18 +688,41 @@ function updateMultiSelects(type){
 //
 //This function should combine the selected player with the previous selections
 //and set that as the selected player
+/*
+ This function will
+ 	if multi select is enabled
+ 		get the combination of the current selected player
+ 		and the multi select player container players
+ 	if it's not
+ 		gets the current selected player
+ 		
+ 	sets the value as the selected player
+ 	
+ 	updates the visibility so that multi selected players aren't shown
+ 	as individual selections and so that the right things are visibile
+ */
 function updateMultiSelectPlayer(){
 	
 	//if this is a newly selected player
-	var selectedPlayerValue = getSelectedPlayer();
+	var selectedPlayerValue = null;
 	
 	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
 	
-	if (!multiSelectPlayerEnabled){
-		setSelectedPlayer(selectedPlayerValue);
-		updateMultiSelectVisibilityPlayer();
-		return;
+	if (multiSelectPlayerEnabled){
+		selectedPlayerValue = getMultiSelectCombinedValuesPlayer();
 	}
+	else {
+		selectedPlayerValue = getSelectedPlayer();
+	}
+	
+	setSelectedPlayer(selectedPlayerValue);
+	
+	updateMultiSelectVisibilityPlayer();
+}
+
+function getMultiSelectCombinedValuesPlayer(){
+	
+	var selectedPlayerValue = getSelectedPlayer();
 	
 	//these are the one from the container
 	var selectedPlayersValue = getSelectedPlayers();
@@ -663,9 +749,7 @@ function updateMultiSelectPlayer(){
 		}
 	}
 	
-	setSelectedPlayer(selectedPlayersValue);
-	
-	updateMultiSelectVisibilityPlayer();
+	return selectedPlayersValue;
 }
 
 /*
@@ -743,9 +827,7 @@ function updatePicksSelectors(type){
 	}
 	
 	hideStatNameContainer();
-
 	showPlayerContainer();
-	
 	showAllPlayerOption();
 	showYearContainer();
 	showTeamContainer();
@@ -844,14 +926,14 @@ function updateStatsSelectors(type){
 	var statName = getSelectedStatName();
 	
 	if ('champions' == statName){
-		hidePlayerContainer();
-		hideYearContainer();
+		//hidePlayerContainer();
+		//hideYearContainer();
 		hideWeekContainer();
 		hideTeamContainer();
 	}
 	else if ('championshipStandings' == statName){
-		hidePlayerContainer();
-		hideYearContainer();
+		//hidePlayerContainer();
+		//hideYearContainer();
 		hideWeekContainer();
 		hideTeamContainer();
 	}
@@ -864,14 +946,14 @@ function updateStatsSelectors(type){
 	}
 	else if ('weeksWonStandings' == statName){
 		showYearContainer();
-		hideWeekContainer();
-		hidePlayerContainer();
+		//hideWeekContainer();
+		//hidePlayerContainer();
 		hideTeamContainer();
 	}
 	else if ('weeksWonByWeek' == statName){
 		showYearContainer();
 		showWeekContainer();
-		hidePlayerContainer();
+		//hidePlayerContainer();
 		hideTeamContainer();
 	}
 	else if ('weekRecordsByPlayer' == statName){
@@ -879,21 +961,21 @@ function updateStatsSelectors(type){
 		showPlayerContainer();
 		showWeekContainer();
 		hideTeamContainer();
-		hideAllPlayerOption();
+		//hideAllPlayerOption();
 	}
 	else if ('pickAccuracy' == statName){
 		showYearContainer();
 		showPlayerContainer();
 		showAllPlayerOption();
-		hideWeekContainer();
+		//hideWeekContainer();
 		showTeamContainer();
-		hideAllPlayerOption();
+		//hideAllPlayerOption();
 	}
 	else if ('pickSplits' == statName){
 		showYearContainer();
 		showWeekContainer();
 		showTeamContainer();
-		hidePlayerContainer();
+		//hidePlayerContainer();
 	}
 	
 	setPreviousType(type);
@@ -971,9 +1053,6 @@ function updateSelectedPlayersOption(selectedPlayers){
 	$('#selected-players').text(selectedPlayers);
 }
 
-function makeSelectedPlayersOptionSelected(){
-}
-
 function showSelectedPlayersOption(){
 	$('#selected-players').show();
 }
@@ -1035,7 +1114,7 @@ function setSelectedPlayer(player){
 	
 	//if the player has a comma in it, we need to enable multi select for the player
 	//the forward and backward navigation need this...
-	if (player.indexOf(',') != -1){
+	if (doesValueHaveMultipleValues(player)){
 		setMultiSelectPlayer(true);
 	}
 	
@@ -1079,6 +1158,39 @@ function getSelectedYear(){
 
 /**
  * 
+ * Gets the years to use when sending a request to the server.  We use aliases
+ * for the "jurassic" period (2010-2015) and the "modern" era (2016-?) in the
+ * select dropdown and we don't want the server to have to figure out what
+ * the aliases are or how to handle them.  We want to keep it dumb.
+ * 
+ * It'll get the same value as getSelectedYear unless the selected year is...
+ * 
+ * 		old - It'll get 2010,2011,2012,2013,2014,2015
+ * 		modern - It'll get 2016,2017,2018
+ * 
+ * @returns
+ */
+function getSelectedYearToUse(){
+	
+	//Steps to do:
+	//	1. Get the normal year.
+	//	2. If it's one of the special ones, translate it to the real
+	//	   values.
+	
+	var yearToUse = getSelectedYear();
+	
+	if ('old' == yearToUse){
+		yearToUse = '2010,2011,2012,2013,2014,2015';
+	}
+	else if ('modern' == yearToUse){
+		yearToUse = '2016,2017,2018';
+	}
+	
+	return yearToUse;
+}
+
+/**
+ * 
  * Sets the selected year if the year input has the given
  * year as an option.
  * 
@@ -1099,6 +1211,34 @@ function setSelectedYear(year){
  */
 function getSelectedWeek(){
 	return $('#week option:selected').val();
+}
+
+/**
+ * 
+ * Gets the selected week we should use when sending a request to the server.
+ * We use aliases in the display that the server doesn't understand, and this
+ * makes it so we do the translation here instead of expecting the server to
+ * understand weird stuff.
+ * 
+ * It'll return the value of getSelectedWeek unless the week is:
+ * 
+ * 		regular-season - It'll return all the weeks (1,2,3,4,...)
+ * 		playoffs - It'll return everything after week 17 (18,19,20,21)
+ * 
+ * @returns
+ */
+function getSelectedWeekToUse(){
+	
+	var weekToUse = getSelectedWeek();
+	
+	if ('regular-season' == weekToUse){
+		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
+	}
+	else if ('playoffs' == weekToUse){
+		weekToUse = '18,19,20,21';
+	}
+	
+	return weekToUse;
 }
 
 /**
@@ -1189,12 +1329,6 @@ function updateMultiSelectVisibilityPlayer(){
 	}
 }
 
-function enableMultiSelectPlayer(){
-	setMultiSelectPlayer(true);
-	showOptions();
-	updateMultiSelectVisibilityPlayer();
-}
-
 function setMultiSelectPlayer(value){
 	return $('#multiSelectPlayer').prop('checked', value);
 }
@@ -1232,18 +1366,11 @@ function updateStandings(){
 	//	3. Update the UI with the results.
 	
 	var player = getSelectedPlayer();
-	var year = getSelectedYear();
+	var year = getSelectedYearToUse();
 	var week = getSelectedWeek();
-	
 	//If they picked "regular season", that's weeks 1-17.
 	//Otherwise, if they picked the playoffs, that's weeks 18-21.
-	var weekToUse = week;
-	if ('regular-season' == week){
-		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
-	}
-	else if ('playoffs' == week){
-		weekToUse = '18,19,20,21';
-	}
+	var weekToUse = getSelectedWeekToUse();
 	
 	$.ajax({url: 'nflpicks?target=standings&player=' + player + '&year=' + year + '&week=' + weekToUse,
 		contentType: 'application/json; charset=UTF-8'}
@@ -1287,12 +1414,10 @@ function updateStandings(){
 }
 
 function hideAllPlayerOption(){
-	console.log('hide all player');
 	$('#player option[value=all]').hide();
 }
 
 function showAllPlayerOption(){
-	console.log('show all player');
 	$('#player option[value=all]').show();
 }
 
@@ -1447,17 +1572,13 @@ function updatePicks(){
 	//At this point, we're going to show them the picks, so we should flip that switch.
 	NFL_PICKS_GLOBAL.havePicksBeenShown = true;
 
+	//Get the right year in case they picked a special one.
+	var yearToUse = getSelectedYearToUse();
 	//If the week is a "special" one, put in the actual numbers instead.
-	var weekToUse = week;
-	if ('regular-season' == week){
-		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
-	}
-	else if ('playoffs' == week){
-		weekToUse = '18,19,20,21';
-	}
+	var weekToUse = getSelectedWeekToUse();
 
 	//Go to the server and get the grid.
-	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + player + '&year=' + year + '&week=' + weekToUse + '&team=' + team,
+	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + player + '&year=' + yearToUse + '&week=' + weekToUse + '&team=' + team,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -1489,29 +1610,29 @@ function updateStats(){
 	
 	var statName = getSelectedStatName();
 	var player = getSelectedPlayer();
-	var year = getSelectedYear();
-	var week = getSelectedWeek();
+	var year = getSelectedYearToUse();
+	var week = getSelectedWeekToUse();
 	var team = getSelectedTeam();
 	
 	//If the stat is "week records by player" or "pick accuracy", then they have to pick
 	//a player, so set it to the first player if there isn't one or it's "all".
 	if (statName == 'weekRecordsByPlayer' || statName == 'pickAccuracy'){
-		if (!isDefined(player) || 'all' == player){
-			var firstRealPlayer = $('#player option')[1].value;
-			setSelectedPlayer(firstRealPlayer);
-			player = getSelectedPlayer();
-		}
+//		if (!isDefined(player) || 'all' == player){
+//			var firstRealPlayer = $('#player option')[1].value;
+//			setSelectedPlayer(firstRealPlayer);
+//			player = getSelectedPlayer();
+//		}
 	}
 	//If we're showing the champions or championship standings, we want to show them
 	//for all players and all years.
 	else if (statName == 'champions' || statName == 'championshipStandings'){
 		//With multi select, we don't want to do this
-		if (!isMultiSelectPlayerEnabled()){
-			setSelectedPlayer('all');
-		}
-		setSelectedYear('all');
+//		if (!isMultiSelectPlayerEnabled()){
+//			setSelectedPlayer('all');
+//		}
+//		setSelectedYear('all');
 		player = getSelectedPlayer();
-		year = getSelectedYear();
+		year = getSelectedYearToUse();
 	}
 	//If the stat name is the "pick splits", we want to do the same thing we do with the picks grid.
 	//Only show "all" for the year or the week if they actually set it to "all".
@@ -1519,7 +1640,7 @@ function updateStats(){
 	//was in the url.
 	else if (statName == 'pickSplits'){
 		//Since we're showing how players are split up, we want to show all players.
-		setSelectedPlayer('all');
+//		setSelectedPlayer('all');
 		player = getSelectedPlayer();
 		var urlParameters = getUrlParameters();
 		
@@ -1534,7 +1655,7 @@ function updateStats(){
 		if ('all' == year && !NFL_PICKS_GLOBAL.havePickSplitsBeenShown && !hasYearInUrl){
 			year = NFL_PICKS_GLOBAL.currentYear;
 			setSelectedYear(year);
-			year = getSelectedYear();
+			year = getSelectedYearToUse();
 		}
 		
 		//Same deal as with the year and with the picks grid...
@@ -1548,7 +1669,7 @@ function updateStats(){
 		if ('all' == week && !NFL_PICKS_GLOBAL.havePickSplitsBeenShown && !hasWeekInUrl){
 			week = NFL_PICKS_GLOBAL.currentWeekNumber + '';
 			setSelectedWeek(week);
-			week = getSelectedWeek();
+			week = getSelectedWeekToUse();
 		}
 		
 		//And, since we're here, that means we've shown the pick splits to the user, so the next time, we won't
@@ -1556,17 +1677,14 @@ function updateStats(){
 		NFL_PICKS_GLOBAL.havePickSplitsBeenShown = true;
 	}
 
-	//If the week was one of the "special" ones, use the actual weeks instead.
-	var weekToUse = week;
-	if ('regular-season' == week){
-		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
-	}
-	else if ('playoffs' == week){
-		weekToUse = '18,19,20,21';
-	}
+	//If the week or year was one of the "special" ones, use the real ones instead.
+	var yearToUse = getSelectedYearToUse();
+	var weekToUse = getSelectedWeekToUse();
+	
+	console.log('y = ' + yearToUse + ', w = ' + weekToUse);
 	
 	//Send the request to the server.
-	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + year + '&player=' + player + '&week=' + weekToUse + '&team=' + team,
+	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&year=' + yearToUse + '&player=' + player + '&week=' + weekToUse + '&team=' + team,
 			contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -1595,7 +1713,9 @@ function updateStats(){
 		else if ('weekRecordsByPlayer' == statName){
 			var weekRecords = $.parseJSON(data);
 			//Like with the other records, we want to sort them before we show them.
-			sortWeekRecordsBySeasonAndWeek(weekRecords);
+			sortWeekRecordsBySeasonWeekAndRecord(weekRecords);
+			console.log('wr 3...');
+			console.log(weekRecords);
 			statsHtml = createWeekRecordsByPlayerHtml(weekRecords);
 		}
 		else if ('weekStandings' == statName){
@@ -1811,147 +1931,6 @@ function createStandingsHtml(records){
 	return standingsHtml;
 }
 
-function createStandingsGridHtml2(records){
-	
-	var standingsHtml = '';
-	
-	var areThereAnyTies = hasTies(records);
-	var tiesHeader = '';
-	if (areThereAnyTies){
-		tiesHeader = '<th class="standings-table-header">T</th>';
-	}
-	
-	var standingsHeaderHtml = '<thead class="standings-table-head">' +
-						 	'<th class="standings-table-player-header"></th>' +
-						 	'<th class="standings-table-header">W</th>' + 
-						 	'<th class="standings-table-header">L</th>' +
-						 	tiesHeader + 
-						 	'<th class="standings-table-header">%</th>' + 
-						 	'<th class="standings-table-header">GB</th>';
-	
-	
-	standingsHeaderHtml = standingsHeaderHtml + '</thead>';
-	
-	var rowsHtml = '';
-	
-	var topWins = 0;
-	var topLosses = 0;
-	
-	if (!isEmpty(records)){
-		topWins = records[0].wins;
-		topLosses = records[0].losses;
-	}
-	else {
-		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
-	}
-
-	//The steps for calculating the rank:
-	//	1. Have three variables: rank, nextRank, and tieIndependentRank.
-	//	2. rank holds the rank of the current record we're on.  
-	//	3. nextRank holds what the rank should be the next time we go through
-	//	   the loop.
-	//	4. tieIndependentRank holds the rank independent of ties.  Basically what it would be if
-	//	   there were no ties (the position of the record in the array, starting at 1).
-	//	5. Start the nextRank at 1 because that's what the rank of the next record we see will be.
-	//	6. Start going through the records.
-	//	7. Assign the nextRank that we calculated to the rank so that we use it for this record.
-	//	8. Calculate the nextRank:
-	//		1. If there's a next record and it has the same number of wins and losses as this one, then
-	//		   the nextRank will be same as the current rank because there's a tie.
-	//		2. Otherwise, it'll be whatever "tieIndepdentedRank" we have.  That's because we'll
-	//		   want to basically pick up where we left off before the ties started.
-	
-	var rank = null;
-	var nextRank = 1;
-	var nextRecord = null;
-	var previousRank = null;
-	
-	for (var index = 0; index < records.length; index++){
-		var record = records[index];
-		
-		//This is the position of the record independent of whether there are ties.  Just the "raw" position if we
-		//started counting at 1.  It will be the same as the rank if there aren't any ties.
-		var tieIndependentRank = index + 1;
-		//Set the rank to what we calculated it should be the previous time through the loop.
-		rank = nextRank;
-		
-		//Now, need to calculate what it will be the next time.
-		//If the next record has the same number of wins and losses, then it'll be the same as now because they're
-		//tied.
-		//Otherwise, if the next record doesn't, the next rank will be whatever this one's would have
-		//been without ties + 1.  If there weren't any ties, then this record's rank would be the "tieIndependentRank".
-		//So, that means the next rank would be that + 1.
-		nextRecord = null;
-		if (index + 1 < records.length){
-			nextRecord = records[index + 1];
-			
-			if (record.wins == nextRecord.wins && record.losses == nextRecord.losses){
-				//rank stays the same.
-			}
-			else {
-				//current rank would be index + 1.  We want to be one beyond that.
-				nextRank = tieIndependentRank + 1;
-			}
-		}
-		
-		//Now, we have the rank and next rank so we need to figure out if we need to put a little 't' to indicate
-		//there was a tie.
-		//There's a tie if:
-		//	1. It's the same as the next rank and we're not at the end.
-		//	2. The rank is the same as the previous rank.
-		//
-		//Number 1 should be pretty straight forward.  If this rank is the same as the next one, it's in a tie.
-		//Number 2 is there for the last tie in a series of ties.  The last tie will have a "nextRank" that's different from
-		//what it is, but we'll still want to show a tie for it.  So, in that case, we can just look to see if it's the same
-		//as the previous rank and, if it is, we know there's a tie.
-		var rankText = rank + '';
-		if ((nextRank == rank && index + 1 < records.length) || (rank == previousRank)){
-			rankText = rankText + 't';
-		}
-		
-		var percentage = record.wins / (record.wins + record.losses);
-		var percentageString = '';
-		if (!isNaN(percentage)){
-			percentageString = percentage.toPrecision(3);
-		}
-		var gamesBack = '';
-		
-		if (record.losses == topLosses && record.wins == topWins){
-			gamesBack = '-';
-		}
-		else {
-			var calculatedGamesBack = topWins - record.wins;
-			gamesBack = calculatedGamesBack + '';
-		}
-		
-		var tiesCell = '';
-		if (areThereAnyTies){
-			tiesCell = '<td class="standings-table-cell">' + record.ties + '</td>';
-		}
-		
-		rowsHtml = rowsHtml + 
-					   '<tr class="standings-table-row">' +
-						'<td class="standings-table-player-cell">' + rankText + '. ' + record.player.name + '</td>' +
-						'<td class="standings-table-cell">' + record.wins + '</td>' +
-						'<td class="standings-table-cell">' + record.losses + '</td>' +
-						tiesCell + 
-						'<td class="standings-table-cell">' + percentageString + '</td>' +
-						'<td class="standings-table-cell">' + gamesBack + '</td>';
-		
-		rowsHtml = rowsHtml + '</tr>';
-		
-		//Keep the current rank as the previous for the next time through.
-		previousRank = rank;
-		
-	}
-	
-	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
-	
-	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
-	
-	return standingsHtml;
-}
-
 /**
  * 
  * This function will make the grid that holds the given picks in it.  It gets a little
@@ -2087,8 +2066,13 @@ function createPicksGridHtml(picksGrid){
 			else if (yearSelected && isBottomRow){
 				cssClassToUse = 'first-pick-cell-bottom';
 			}
+			
+			var labelToUse = pick.weekNumber + '';
+			if (pick.weekNumber > 17){
+				labelToUse = pick.weekLabel;
+			}
 		
-			weekCell = '<td class="' + cssClassToUse + '">' + pick.weekNumber + '</td>';
+			weekCell = '<td class="' + cssClassToUse + '">' + labelToUse + '</td>';
 		}
 
 		//Now, we have to do the same thing with the game that we did with the week.
@@ -2360,6 +2344,23 @@ function createWeeksWonHtml(weekRecords){
 	//	3. Add an entry in the table for it.
 	//	4. Add the link that'll show the weeks they won too.
 	
+	if (weekRecords.length == 0){
+		var noResultsHtml = '<table class="standings-table">' + 
+								'<thead class="standings-table-head">' + 
+									'<tr class="standings-table-row">' + 
+										'<th class="standings-table-player-header"></th>' +
+										'<th class="standings-table-header">Weeks won</th>' +
+									'</tr>' + 
+								'</thead>' + 
+								'<tbody>' +
+									'<tr class="standings-table-row">' +
+										'<td colspan="2" style="text-align: center;">No results</td>' +
+									'</tr>' +
+								'</tbody>';
+		
+		return noResultsHtml;
+	}
+	
 	var weeksWonHtml = '<table class="standings-table">' + 
 							'<thead class="standings-table-head">' + 
 								'<tr class="standings-table-row">' + 
@@ -2617,10 +2618,65 @@ function sortWeekRecordsBySeasonAndWeek(weekRecords){
 	});
 }
 
+function sortWeekRecordsBySeasonWeekAndRecord(weekRecords){
+	
+	//Steps to do:
+	//	1. Just run the sorting function on the array 
+	//	   we were given.
+	
+	weekRecords.sort(function (weekRecord1, weekRecord2){
+		var year1 = parseInt(weekRecord1.season.year);
+		var year2 = parseInt(weekRecord2.season.year);
+		
+		//If the year from one is before the other, we want the earlier one first.
+		if (year1 < year2){
+			return -1;
+		}
+		//And later one second.
+		else if (year1 > year2){
+			return 1;
+		}
+		//same year
+		else {
+			//Otherwise, compare on the weeks.
+			var week1 = weekRecord1.week.weekNumber;
+			var week2 = weekRecord2.week.weekNumber;
+			
+			//With the earlier week first.
+			if (week1 < week2){
+				return -1;
+			}
+			else if (week1 > week2){
+				return 1;
+			}
+			//same week, so sort by the record.
+			else {
+				if (weekRecord1.record.wins > weekRecord2.record.wins){
+					return -1;
+				}
+				else if (weekRecord1.record.wins < weekRecord2.record.wins){
+					return 1;
+				}
+				else {
+					if (weekRecord1.record.losses < weekRecord2.record.losses){
+						return -1;
+					}
+					else if (weekRecord1.record.losses > weekRecord2.record.losses){
+						return 1;
+					}
+				}
+			}
+		}
+		
+		return 0;
+	});
+}
+
+
 /**
  * 
  * This function will say whether a "specific" year was selected
- * (basically if the year isn't "all").
+ * (basically if the year isn't "all" or one of the special ones).
  * 
  * @returns
  */
@@ -2628,7 +2684,7 @@ function isSpecificYearSelected(){
 
 	var selectedYear = getSelectedYear();
 	
-	if ('all' == selectedYear){
+	if ('all' == selectedYear || 'old' == selectedYear || 'modern' == selectedYear){
 		return false;
 	}
 	
@@ -2674,6 +2730,25 @@ function isSpecificWeekSelected(){
 
 /**
  * 
+ * This function will say whether a specific player is selected.  If the
+ * current selected player is "all", it'll say there isn't.  Otherwise, it'll
+ * say there is.
+ * 
+ * @returns
+ */
+function isSpecificPlayerSelected(){
+	
+	var selectedPlayer = getSelectedPlayer();
+	
+	if ('all' == selectedPlayer){
+		return false;
+	}
+	
+	return true;
+}
+
+/**
+ * 
  * This function will create the html that shows the weekly records
  * for a player.  It expects the given records to be sorted in the order
  * they should be shown in, and it assumes they're all for the same player.
@@ -2703,6 +2778,13 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 		tiesHeader = '<th class="standings-table-header">T</th>';
 	}
 	
+	var aPlayerIsSelected = isSpecificPlayerSelected();
+	
+	var playerHeader = '';
+	if (!aPlayerIsSelected){
+		playerHeader = '<th class="standings-table-player-header">Player</th>';
+	}
+	
 	var yearHeader = '';
 	var weekClass = 'standings-table-player-header';
 	var aYearIsSelected = isSpecificYearSelected();
@@ -2713,6 +2795,7 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	
 	var tableHead = '<thead class="standings-table-head">' + 
 						'<tr class="standings-table-row">' + 
+							playerHeader +
 							yearHeader +
 							'<th class="' + weekClass + '">Week</th>' + 
 							'<th class="standings-table-header">W</th>' + 
@@ -2726,6 +2809,11 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	
 	for (var index = 0; index < weekRecords.length; index++){
 		var weekRecord = weekRecords[index];
+		
+		var playerCell = '';
+		if (!aPlayerIsSelected){
+			playerCell = '<td class="standings-table-player-cell">' + weekRecord.player.name + '</td>';
+		}
 		
 		var yearCell = '';
 		if (!aYearIsSelected){
@@ -2746,6 +2834,7 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 		var percentageString = getWinningPercentage(weekRecord.record.wins, weekRecord.record.losses);
 		
 		var row = '<tr class="standings-table-row">' +
+					playerCell +
 					yearCell +
 					'<td class="' + weekClass + '">' + playerPicksLink + '</td>' +
 					'<td class="standings-table-cell">' + weekRecord.record.wins + '</td>' +
@@ -3009,25 +3098,38 @@ function createChampionsHtml(championships){
 	
 	var championshipsBodyHtml = '<tbody>';
 	
+	if (championships.length == 0){
+		var noResultsTable = '<table class="standings-table">' + 
+								championshipsHeaderHtml + 
+								'<tbody>' + 
+							 		'<tr class="standings-table-row">' + 
+							 			'<td colspan="6" style="text-align: center;">No results</td>' + 
+							 		'</tr>' + 
+							 	'</tbody>' + 
+							 '</table>';
+		
+		return noResultsTable;
+	}
+
 	for (var index = 0; index < championships.length; index++){
 		var championship = championships[index];
-		
+
 		var tiesCell = '';
 		if (areThereAnyTies){
 			tiesCell = '<td class="standings-table-cell">' + championship.record.ties + '</td>';
 		}
-		
+
 		var percentageString = getWinningPercentage(championship.record.wins, championship.record.losses);
-		
+
 		var championshipRowHtml = '<tr class="standings-table-row">' + 
-								  	'<td class="standings-table-player-cell">' + championship.player.name + '</td>' +
-								  	'<td class="standings-table-cell">' + championship.season.year + '</td>' +
-								  	'<td class="standings-table-cell">' + championship.record.wins + '</td>' +
-								  	'<td class="standings-table-cell">' + championship.record.losses + '</td>' + 
-								  	tiesCell +
-								  	'<td class="standings-table-cell">' + percentageString + '</td>' +
-								  '</tr>';
-		
+		'<td class="standings-table-player-cell">' + championship.player.name + '</td>' +
+		'<td class="standings-table-cell">' + championship.season.year + '</td>' +
+		'<td class="standings-table-cell">' + championship.record.wins + '</td>' +
+		'<td class="standings-table-cell">' + championship.record.losses + '</td>' + 
+		tiesCell +
+		'<td class="standings-table-cell">' + percentageString + '</td>' +
+		'</tr>';
+
 		championshipsBodyHtml = championshipsBodyHtml + championshipRowHtml;
 	}
 	
@@ -3066,6 +3168,19 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 										  		
 	
 	var championshipsStandingsBodyHtml = '<tbody class="standings-table-body">';
+	
+	if (playerChampionshipsList.length == 0){
+		var noResultsTable = '<table class="standings-table">' + 
+							 	championshipsStandingsHeaderHtml +
+								'<tbody class="standings-table-body">' +
+							 		'<tr class="standings-table-row">' + 
+							 			'<td colspan="3" style="text-align: center;">No results</td>' + 
+									'</tr>' + 
+								'</tbody>' + 
+							'</table>';
+		
+		return noResultsTable;
+	}
 	
 	//Each item in the list is the player and all another list that has their championships in it.
 	//We want the list sorted so that the person with the most championships comes first.
@@ -3964,3 +4079,13 @@ function createPickSplitsGridHtml(pickSplits){
 	return pickSplitsHtml;
 }
 
+/////////////////
+
+function doesValueHaveMultipleValues(value){
+	
+	if (isDefined(value) && value.indexOf(',') != -1){
+		return true;
+	}
+	
+	return false;
+}

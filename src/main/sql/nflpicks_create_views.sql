@@ -4,7 +4,7 @@ select c.id as conference_id,
 	   d.id as division_id,
 	   d.name as division,
 	   t.id as team_id,
-	   t.name as team_name,
+	   t.city as team_name,
 	   t.nickname as nickname,
 	   t.abbreviation as team_abbreviation
 from team t join division d on t.division_id = d.id
@@ -16,13 +16,13 @@ select s.year as year,
 	   w.label,
 	   g.id as game_id,
 	   ht.id as home_team_id,
-	   ht.name as home_team_name,
+	   ht.city as home_team_city,
 	   ht.abbreviation as home_team_abbreviation,
 	   at.id as away_team_id,
-	   at.name as away_team_name,
+	   at.city as away_team_city,
 	   at.abbreviation as away_team_abbreviation,
 	   wt.id as winning_team_id,
-	   wt.name as winning_team_name,
+	   wt.city as winning_team_city,
 	   wt.abbreviation as winning_team_abbreviation
 from game g join week w on g.week_id = w.id
      join season s on w.season_id = s.id
@@ -36,15 +36,16 @@ select pi.id as pick_id,
 	   pl.name as player_name,
 	   g.id as game_id,
 	   home_t.id as home_team_id,
-	   home_t.name as home_team_name,
+	   home_t.city as home_team_city,
 	   home_t.abbreviation as home_team_abbreviation,
 	   away_t.id as away_team_id,
-	   away_t.name as away_team_name,
+	   away_t.city as away_team_city,
 	   away_t.abbreviation as away_team_abbreviation,
 	   pick_t.id as picked_team_id,
-	   pick_t.name as picked_team_name,
+	   pick_t.city as picked_team_city,
 	   pick_t.abbreviation as picked_team_abbreviation,
-	   (case when pi.team_id = g.winning_team_id then 'W'
+	   (case when g.winning_team_id = -1 then 'T'
+	   		 when g.winning_team_id = pi.team_id then 'W'
 	         else 'L'
 	    end) as pick_result
 from pick pi join player pl on pi.player_id = pl.id
@@ -55,22 +56,24 @@ from pick pi join player pl on pi.player_id = pl.id
      
 create or replace view week_pick_view as
 select w.id as week_id,
-	   w.week as week,
+	   w.week_number as week_number,
 	   w.label as label,
 	   pi.id as pick_id,
 	   pl.id as player_id,
 	   pl.name as player_name,
 	   g.id as game_id,
 	   home_t.id as home_team_id,
-	   home_t.name as home_team_name,
+	   home_t.city as home_team_city,
 	   home_t.abbreviation as home_team_abbreviation,
 	   away_t.id as away_team_id,
-	   away_t.name as away_team_name,
+	   away_t.city as away_team_city,
 	   away_t.abbreviation as away_team_abbreviation,
 	   pick_t.id as picked_team_id,
-	   pick_t.name as picked_team_name,
+	   pick_t.city as picked_team_city,
 	   pick_t.abbreviation as picked_team_abbreviation,
-	   (case when pi.team_id = g.winning_team_id then 'W'
+	   (case when g.winning_team_id is null then ''
+	   		 when g.winning_team_id = -1 then 'T'
+	   		 when g.winning_team_id = pi.team_id then 'W'
 	         else 'L'
 	    end) as pick_result
 from week w join game g on w.id = g.week_id
@@ -95,6 +98,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Benny boy')) as benny_boy,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -111,6 +115,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Bruce')) as bruce,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -127,6 +132,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Chance')) as chance,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -143,6 +149,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Jonathan')) as jonathan,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -159,6 +166,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Mark')) as mark,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -175,6 +183,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Teddy')) as teddy,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -191,6 +200,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Tim')) as tim,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -207,6 +217,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Bookey')) as bookey,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -223,6 +234,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Jerry')) as jerry,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -239,6 +251,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Josh')) as josh,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -255,6 +268,7 @@ select w.label as week,
 	          					  from player pl
 	          					  where name = 'Doodle')) as doodle,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -269,8 +283,9 @@ select w.label as week,
 	    where p.game_id = g.id
 	          and p.player_id in (select pl.id
 	          					  from player pl
-	          					  where name = 'Doodle')) as boo,
+	          					  where name = 'Boo')) as boo,
 	   (case when g.winning_team_id is null then null
+	   		 when g.winning_team_id = -1 then 'T'
 	   		 when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
@@ -280,8 +295,15 @@ select w.label as week,
 	         then 'W'
 	         else 'L'
 	    end) as boo_pick_result,
+	    (select pick_t.abbreviation
+	    from pick p join team pick_t on p.team_id = pick_t.id
+	    where p.game_id = g.id
+	          and p.player_id in (select pl.id
+	          					  from player pl
+	          					  where name = 'Moe')) as moe,
 	    (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id in (select p.team_id
+	    	  when g.winning_team_id = -1 then 'T'
+	   		  when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
 	   								          and p.player_id in (select pl.id
@@ -290,8 +312,15 @@ select w.label as week,
 	         then 'W'
 	         else 'L'
 	    end) as moe_pick_result,
+	    (select pick_t.abbreviation
+	    from pick p join team pick_t on p.team_id = pick_t.id
+	    where p.game_id = g.id
+	          and p.player_id in (select pl.id
+	          					  from player pl
+	          					  where name = 'Var')) as var,
 	    (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id in (select p.team_id
+	    	  when g.winning_team_id = -1 then 'T'
+	   		  when g.winning_team_id in (select p.team_id
 	   								    from pick p
 	   								    where p.game_id = g.id
 	   								          and p.player_id in (select pl.id
@@ -299,6 +328,23 @@ select w.label as week,
 	   								          					  where pl.name = 'Var'))
 	         then 'W'
 	         else 'L'
-	    end) as var_pick_result
+	    end) as var_pick_result,
+	    (select pick_t.abbreviation
+	    from pick p join team pick_t on p.team_id = pick_t.id
+	    where p.game_id = g.id
+	          and p.player_id in (select pl.id
+	          					  from player pl
+	          					  where name = 'Scott')) as scott,
+	    (case when g.winning_team_id is null then null
+	    	  when g.winning_team_id = -1 then 'T'
+	   		  when g.winning_team_id in (select p.team_id
+	   								    from pick p
+	   								    where p.game_id = g.id
+	   								          and p.player_id in (select pl.id
+	   								          					  from player pl
+	   								          					  where pl.name = 'Scott'))
+	         then 'W'
+	         else 'L'
+	    end) as scott_pick_result
 from season s join week w on s.id = w.season_id 
 	 join game g on w.id = g.week_id;

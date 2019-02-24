@@ -1,7 +1,5 @@
 package nflpicks;
 
-import java.util.List;
-
 /**
  * 
  * This is so there's one place for the constants that get used
@@ -87,7 +85,7 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_TEAM_ID = "id";
 	public static final String JSON_TEAM_DIVISION_ID = "divisionId";
-	public static final String JSON_TEAM_NAME = "name";
+	public static final String JSON_TEAM_CITY = "city";
 	public static final String JSON_TEAM_NICKNAME = "nickname";
 	public static final String JSON_TEAM_ABBREVIATION = "abbreviation";
 	
@@ -165,6 +163,7 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_COMPACT_PICK_YEAR = "year";
 	public static final String JSON_COMPACT_PICK_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_COMPACT_PICK_WEEK_LABEL = "weekLabel";
 	public static final String JSON_COMPACT_PICK_HOME_TEAM_ABBREVIATION = "homeTeamAbbreviation";
 	public static final String JSON_COMPACT_PICK_AWAY_TEAM_ABBREVIATION = "awayTeamAbbreviation";
 	public static final String JSON_COMPACT_PICK_WINNING_TEAM_ABBREVIATION = "winningTeamAbbreviation";
@@ -188,10 +187,18 @@ public interface NFLPicksConstants {
 	 */
 	public static final String DATA_MANAGEMENT_TYPE_IMPORT = "import";
 	
+	public static final String DATA_MANAGEMENT_IMPORT_TYPE_PICKS = "picks";
+	
+	public static final String DATA_MANAGEMENT_IMPORT_TYPE_TEAM_DATA = "team_data";
+	
 	/**
 	 * 
 	 * Says we're doing an export of picks with the data manager.
 	 * 
 	 */
 	public static final String DATA_MANAGEMENT_TYPE_EXPORT = "export";
+	
+	public static final String DATA_MANAGEMENT_EXPORT_TYPE_PICKS = "picks";
+	
+	public static final String DATA_MANAGEMENT_EXPORT_TYPE_TEAM_DATA = "team_data";
 }

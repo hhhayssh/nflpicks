@@ -27,6 +27,22 @@ public class Conference {
 	 */
 	protected List<Division> divisions;
 	
+	/**
+	 * The year the conference started.
+	 */
+	protected String startYear;
+	
+	/**
+	 * If the conference was changed, this is the year it ended.
+	 */
+	protected String endYear;
+	
+	/**
+	 * The current name of the conference, if it's changed and is linked to a current
+	 * one.
+	 */
+	protected String currentName;
+	
 	public Conference(){
 	}
 
@@ -38,11 +54,17 @@ public class Conference {
 	 * @param id
 	 * @param name
 	 * @param divisions
+	 * @param startYear
+	 * @param endYear
+	 * @param currentName
 	 */
-	public Conference(int id, String name, List<Division> divisions){
+	public Conference(int id, String name, List<Division> divisions, String startYear, String endYear, String currentName){
 		this.id = id;
 		this.name = name;
 		this.divisions = divisions;
+		this.startYear = startYear;
+		this.endYear = endYear;
+		this.currentName = currentName;
 	}
 
 	public int getId() {
@@ -69,6 +91,46 @@ public class Conference {
 		this.divisions = divisions;
 	}
 
+	public String getStartYear() {
+		return startYear;
+	}
+
+	public void setStartYear(String startYear) {
+		this.startYear = startYear;
+	}
+
+	public String getEndYear() {
+		return endYear;
+	}
+
+	public void setEndYear(String endYear) {
+		this.endYear = endYear;
+	}
+	
+	public String getCurrentName() {
+		return currentName;
+	}
+
+	public void setCurrentName(String currentName) {
+		this.currentName = currentName;
+	}
+
+	/**
+	 * 
+	 * A convenience function for figuring out whether this conference is active or not
+	 * without having to do "endYear != null".
+	 * 
+	 * @return
+	 */
+	public boolean isActive(){
+		
+		if (endYear != null){
+			return false;
+		}
+		
+		return true;
+	}
+
 	/**
 	 * 
 	 * The hash code should turn this object into a relatively unique number
@@ -92,6 +154,9 @@ public class Conference {
 		result = primeNumber * result + Integer.valueOf(id).hashCode();
 		result = primeNumber * result + (name == null ? 0 : name.hashCode());
 		result = primeNumber * result + (divisions == null ? 0 : divisions.hashCode());
+		result = primeNumber * result + (startYear == null ? 0 : startYear.hashCode());
+		result = primeNumber * result + (endYear == null ? 0 : endYear.hashCode());
+		result = primeNumber * result + (currentName == null ? 0 : currentName.hashCode());
 		
 		return result;
 	}
@@ -155,6 +220,45 @@ public class Conference {
 			}
 		}
 		
+		String otherStartYear = otherConference.getStartYear();
+		
+		if (startYear != null){
+			if (!startYear.equals(otherStartYear)){
+				return false;
+			}
+		}
+		else {
+			if (otherStartYear != null){
+				return false;
+			}
+		}
+		
+		String otherEndYear = otherConference.getEndYear();
+		
+		if (endYear != null){
+			if (!endYear.equals(otherEndYear)){
+				return false;
+			}
+		}
+		else {
+			if (otherEndYear != null){
+				return false;
+			}
+		}
+		
+		String otherCurrentName = otherConference.getCurrentName();
+		
+		if (currentName != null){
+			if (!currentName.equals(otherCurrentName)){
+				return false;
+			}
+		}
+		else {
+			if (otherCurrentName != null){
+				return false;
+			}
+		}
+		
 		return true;
 	}
 	
@@ -168,7 +272,10 @@ public class Conference {
 		
 		String thisObjectAsAString = "id = " + id + 
 									 ", name = " + name + 
-									 ", divisions = " + divisions;
+									 ", divisions = " + divisions + 
+									 ", startYear = " + startYear + 
+									 ", endYear = " + endYear + 
+									 ", currentName = " + currentName;
 		
 		return thisObjectAsAString;
 	}

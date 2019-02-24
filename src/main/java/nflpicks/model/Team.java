@@ -21,9 +21,9 @@ public class Team {
 	protected int divisionId;
 	
 	/**
-	 * The name (like the city) of the team.
+	 * The city the team is in.
 	 */
-	protected String name;
+	protected String city;
 	
 	/**
 	 * The nickname (like the Bills).
@@ -35,6 +35,22 @@ public class Team {
 	 */
 	protected String abbreviation;
 	
+	/**
+	 * The year the team started.
+	 */
+	protected String startYear;
+	
+	/**
+	 * If the team moved, this is the year it ended.
+	 */
+	protected String endYear;
+	
+	/**
+	 * The current abbreviation of the team.  If the team has moved, this is
+	 * the abbreviation of the current team for it.
+	 */
+	protected String currentAbbreviation;
+	
 	public Team(){
 	}
 	
@@ -44,16 +60,22 @@ public class Team {
 	 * 
 	 * @param id
 	 * @param divisionId
-	 * @param name
+	 * @param city
 	 * @param nickname
 	 * @param abbreviation
+	 * @param startYear
+	 * @param endYear
+	 * @param currentAbbeviation
 	 */
-	public Team(int id, int divisionId, String name, String nickname, String abbreviation){
+	public Team(int id, int divisionId, String city, String nickname, String abbreviation, String startYear, String endYear, String currentAbbreviation){
 		this.id = id;
 		this.divisionId = divisionId;
-		this.name = name;
+		this.city = city;
 		this.nickname = nickname;
 		this.abbreviation = abbreviation;
+		this.startYear = startYear;
+		this.endYear = endYear;
+		this.currentAbbreviation = currentAbbreviation;
 	}
 	
 	public int getDivisionId() {
@@ -72,12 +94,12 @@ public class Team {
 		this.id = id;
 	}
 	
-	public String getName() {
-		return name;
+	public String getCity() {
+		return city;
 	}
 
-	public void setName(String name) {
-		this.name = name;
+	public void setCity(String city) {
+		this.city = city;
 	}
 
 	public String getNickname() {
@@ -94,6 +116,46 @@ public class Team {
 
 	public void setAbbreviation(String abbreviation) {
 		this.abbreviation = abbreviation;
+	}
+	
+	public String getStartYear() {
+		return startYear;
+	}
+
+	public void setStartYear(String startYear) {
+		this.startYear = startYear;
+	}
+
+	public String getEndYear() {
+		return endYear;
+	}
+
+	public void setEndYear(String endYear) {
+		this.endYear = endYear;
+	}
+	
+	public String getCurrentAbbreviation() {
+		return currentAbbreviation;
+	}
+
+	public void setCurrentAbbreviation(String currentAbbreviation) {
+		this.currentAbbreviation = currentAbbreviation;
+	}
+
+	/**
+	 * 
+	 * A convenience function for figuring out whether this team is active or not
+	 * without having to do "endYear != null".
+	 * 
+	 * @return
+	 */
+	public boolean isActive(){
+		
+		if (endYear != null){
+			return false;
+		}
+		
+		return true;
 	}
 	
 	/**
@@ -117,9 +179,12 @@ public class Team {
 		
 		result = primeNumber * result + Integer.valueOf(id).hashCode();
 		result = primeNumber * result + Integer.valueOf(divisionId).hashCode();
-		result = primeNumber * result + (name == null ? 0 : name.hashCode());
+		result = primeNumber * result + (city == null ? 0 : city.hashCode());
 		result = primeNumber * result + (nickname == null ? 0 : nickname.hashCode());
 		result = primeNumber * result + (abbreviation == null ? 0 : abbreviation.hashCode());
+		result = primeNumber * result + (startYear == null ? 0 : startYear.hashCode());
+		result = primeNumber * result + (endYear == null ? 0 : endYear.hashCode());
+		result = primeNumber * result + (currentAbbreviation == null ? 0 : currentAbbreviation.hashCode());
 		
 		return result;
 	}
@@ -162,15 +227,15 @@ public class Team {
 			return false;
 		}
 		
-		String otherName = otherTeam.getName();
+		String otherCity = otherTeam.getCity();
 		
-		if (name != null){
-			if (!name.equals(otherName)){
+		if (city != null){
+			if (!city.equals(otherCity)){
 				return false;
 			}
 		}
 		else {
-			if (otherName != null){
+			if (otherCity != null){
 				return false;
 			}
 		}
@@ -201,6 +266,45 @@ public class Team {
 			}
 		}
 		
+		String otherStartYear = otherTeam.getStartYear();
+		
+		if (startYear != null){
+			if (!startYear.equals(otherStartYear)){
+				return false;
+			}
+		}
+		else {
+			if (otherStartYear != null){
+				return false;
+			}
+		}
+		
+		String otherEndYear = otherTeam.getEndYear();
+		
+		if (endYear != null){
+			if (!endYear.equals(otherEndYear)){
+				return false;
+			}
+		}
+		else {
+			if (otherEndYear != null){
+				return false;
+			}
+		}
+		
+		String otherCurrentAbbreivation = otherTeam.getCurrentAbbreviation();
+		
+		if (currentAbbreviation != null){
+			if (!currentAbbreviation.equals(otherCurrentAbbreivation)){
+				return false;
+			}
+		}
+		else {
+			if (otherCurrentAbbreivation != null){
+				return false;
+			}
+		}
+		
 		return true;
 	}
 	
@@ -214,9 +318,12 @@ public class Team {
 		
 		String thisObjectAsAString = "id = " + id + 
 									 ", divisionId = " + divisionId +
-									 ", name = " + name +
+									 ", city = " + city +
 									 ", nickname = " + nickname +
-									 ", abbreviation = " + abbreviation;
+									 ", abbreviation = " + abbreviation + 
+									 ", startYear = " + startYear + 
+									 ", endYear = " + endYear + 
+									 ", currentAbbreviation = " + currentAbbreviation;
 		
 		return thisObjectAsAString;
 	}

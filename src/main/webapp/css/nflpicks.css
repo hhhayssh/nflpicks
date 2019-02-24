@@ -24,6 +24,10 @@ html, body {
 	text-align: center;
 }
 
+.criteria-selector-year {
+	max-width: 100px;
+}
+
 .criteria-selector-week {
 	max-width: 100px;
 }
