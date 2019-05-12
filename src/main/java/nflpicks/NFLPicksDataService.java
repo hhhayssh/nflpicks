@@ -509,7 +509,7 @@ public class NFLPicksDataService {
 																 			    	  "and g.winning_team_id = t.id " + 
 																 			    	  "and g.week_id in (select w.id " + 
 																 			    	  					"from week w " + 
-																 			    	  					"where w.season_id = s.id) " + 
+																 			    	  					"where w.season_id = s.id %s ) " + 
 																 			  ") as actual_wins, " + 
 																 			  //Same deal with losses, except we need to count when it wasn't them and when
 																 			  //it wasn't a tie (team id = -1).
@@ -520,7 +520,7 @@ public class NFLPicksDataService {
 																 			   	 	  "and (g.winning_team_id != t.id and g.winning_team_id != -1) " + 
 																 			   	 	  "and g.week_id in (select w.id " + 
 																 			   	 	  					"from week w " + 
-																 			   	 	  					"where w.season_id = s.id) " + 
+																 			   	 	  					"where w.season_id = s.id %s ) " + 
 																 			  ") as actual_losses, " + 
 																 			  //With ties, it's just the number of times they were in a game where the winning team was "-1".
 																 			  "(select count(*) " + 
@@ -530,7 +530,7 @@ public class NFLPicksDataService {
 																 			   	      "and g.winning_team_id = -1 " + 
 																 			   	      "and g.week_id in (select w.id " + 
 																 			   	      				    "from week w " + 
-																 			   	      				    "where w.season_id = s.id) " + 
+																 			   	      				    "where w.season_id = s.id %s ) " + 
 																 			  ") as actual_ties, " + 
 																 			  //To get the predicted wins, we just have to look at the picks and see
 																 			  //how many times the player we're on picked the team we're on to win in 
@@ -545,7 +545,7 @@ public class NFLPicksDataService {
 																 			   		 "and p.team_id = t.id " + 
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
-																 			   		 				   "where w.season_id = s.id) " + 
+																 			   		 				   "where w.season_id = s.id %s ) " + 
 																 			  ") as predicted_wins, " + 
 																 			  //With losses, they didn't pick the team, so we can't use the team id to go
 																 			  //directly into the pick table.  Instead, we have to go through the game
@@ -558,7 +558,7 @@ public class NFLPicksDataService {
 																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
-																 			   		 				   "where w.season_id = s.id) " + 
+																 			   		 				   "where w.season_id = s.id %s ) " + 
 																 			  ") as predicted_losses, " +
 																 			  //The number of times they were right is the number of times the game involved the team
 																 			  //we're on, they picked that team, and the week is in the season we're on.
@@ -569,7 +569,7 @@ public class NFLPicksDataService {
 																 			   		 "and g.winning_team_id = p.team_id " + 
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
-																 			   		 				   "where w.season_id = s.id) " + 
+																 			   		 				   "where w.season_id = s.id %s ) " + 
 																 			  ") as times_right, " + 
 																 			  //The number of times they were wrong is the number of times the game involved the 
 																 			  //team we're on, the winning team isn't the team they picked, and the game is in
@@ -582,7 +582,7 @@ public class NFLPicksDataService {
 																 			   		 "and g.winning_team_id != -1 " + 
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
-																 			   		 				   "where w.season_id = s.id) " + 
+																 			   		 				   "where w.season_id = s.id %s ) " + 
 																 			  ") as times_wrong, " + 
 																 			  //The number of times they picked a team to win and they were right is when
 																 			  //they picked the team, the team won the game, and the week is in the season we're on.
@@ -592,7 +592,7 @@ public class NFLPicksDataService {
 																 			   		 "and p.team_id = t.id " + 
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
-																 			   		 				   "where w.season_id = s.id) " + 
+																 			   		 				   "where w.season_id = s.id %s ) " + 
 																 			   		 "and g.winning_team_id = p.team_id " + 
 																 			  ") as times_picked_to_win_right, " + 
 																 			  //The number of times they picked a team to win and they were wrong is when they
@@ -604,7 +604,7 @@ public class NFLPicksDataService {
 																 			   	     "and p.team_id = t.id " + 
 																 			   	     "and g.week_id in (select w.id " + 
 																 			   	     				   "from week w " + 
-																 			   	     				   "where w.season_id = s.id) " + 
+																 			   	     				   "where w.season_id = s.id %s ) " + 
 																 			   	     "and g.winning_team_id != p.team_id " + 
 																 			   	     "and g.winning_team_id != -1 " +
 																 			  ") as times_picked_to_win_wrong, " +
@@ -618,7 +618,7 @@ public class NFLPicksDataService {
 																 			     	 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
 																 			     	 "and g.week_id in (select w.id " + 
 																 			     	 				   "from week w " + 
-																 			     	 				   "where w.season_id = s.id) " + 
+																 			     	 				   "where w.season_id = s.id  %s ) " + 
 																 			     	 "and g.winning_team_id != t.id " +
 																 			     	 "and g.winning_team_id != -1 " +
 																 			  ") as times_picked_to_lose_right, " + 
@@ -632,16 +632,21 @@ public class NFLPicksDataService {
 																 			   	 	 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
 																 			   	 	 "and g.week_id in (select w.id " + 
 																 			   	 	 				   "from week w " + 
-																 			   	 	 				   "where w.season_id = s.id) " + 
+																 			   	 	 				   "where w.season_id = s.id %s ) " + 
 																 			   	 	 "and g.winning_team_id = t.id " + 
 																 			   ") as times_picked_to_lose_wrong " + 
 																 	    //These "cross joins" give us the "cartesian product" of all the players, teams, and season.
 																 		//This basically gives us the set of coordinates and we just have to take each "coordinate"
 																 	    //(each team, player, and season) and use it to do the counts.
-																 	    "from team t cross join player pl cross join season s " + 
+																 	    "from team t cross join player pl cross join season s " +
+																 	    //We only want teams paired with the years that they were active in.
+																 	    "where (t.end_year is null or t.end_year > s.year) " +
 																 	    //This is so we can add in a filter for only a certain teams, players, or seasons.
 																 	    " %s " + 
-																		") pick_accuracy_summary " + 
+																		") pick_accuracy_summary " +
+																 //And we want to filter out teams on a by week (we can do that by requiring them to have at least 1 
+																 //win or loss.
+																 "where (pick_accuracy_summary.actual_wins > 0 or pick_accuracy_summary.actual_losses > 0) " + 
 																 //We want everything per player and team, so make sure we group by that so that we get counts
 															     //for a player's picks for a particular team.
 															     "group by player_id, player_name, team_id, team_city, team_nickname, team_abbreviation, division_id ";
@@ -4456,7 +4461,7 @@ order by s.year asc, w.week asc, g.id asc;
 	}
 	
 	//this should only return the week records for each player for the weeks that they won.
-	public List<WeekRecordsForPlayer> getWeekRecordsForPlayer(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
+	public List<WeekRecordsForPlayer> getWeeksWon(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
 
 		//We need all the players who played in the years we're interested in.
 		//That's because we need to compare the players we want with all the players to see
@@ -4479,9 +4484,6 @@ order by s.year asc, w.week asc, g.id asc;
 		
 		for (int index = 0; index < playerWeekRecords.size(); index++){
 			WeekRecordForPlayer playerWeekRecord = playerWeekRecords.get(index);
-		
-			Player player = playerWeekRecord.getPlayer();
-			
 			Record record = playerWeekRecord.getRecord();
 			
 			//query to only bring back records with a win because that query is used by other
@@ -4555,7 +4557,8 @@ order by s.year asc, w.week asc, g.id asc;
 				WeekRecordForPlayer record = records.get(recordIndex);
 				
 				Player player = record.getPlayer();
-				
+
+				//If we care about specific players and this player isn't one of them, skip
 				if (players != null && !players.contains(player.getName())){
 					continue;
 				}
@@ -5186,6 +5189,17 @@ order by s.year asc, w.week asc, g.id asc;
 				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(years.size());
 			}
 			
+			if (players != null && players.size() > 0){
+				if ("".equals(recordsForYearCriteria)){
+					recordsForYearCriteria = " where ";
+				}
+				else {
+					recordsForYearCriteria = recordsForYearCriteria + " and ";
+				}
+				
+				recordsForYearCriteria = recordsForYearCriteria + " pl.name in " + DatabaseUtil.createInClauseParameterString(players.size()); 
+			}
+			
 			//is this the best way to do it?
 			//add it up every time?
 			//i think so, otherwise we have to save it to a separate table
@@ -5310,6 +5324,8 @@ order by s.year asc, w.week asc, g.id asc;
 	}
 	
 	/*
+	 
+	 this is like the "collective accuracy" of our picks...
 	 
 	 select 
     
@@ -5487,7 +5503,7 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 		
 		try {
 			StringBuilder whereClauseStringBuilder = new StringBuilder();
-			boolean addedWhereClause = false;
+			boolean addedWhereClause = true;
 			int numberOfPlayers = 0;
 			if (players != null){
 				numberOfPlayers = players.size();
@@ -5510,7 +5526,7 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 
 			if (numberOfPlayers > 0){
 				String playerInClauseString = DatabaseUtil.createInClauseParameterString(numberOfPlayers);
-				whereClauseStringBuilder.append(" where pl.name in ").append(playerInClauseString);
+				whereClauseStringBuilder.append(" and pl.name in ").append(playerInClauseString);
 				addedWhereClause = true;
 			}
 
@@ -5526,22 +5542,10 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 				}
 
 				whereClauseStringBuilder.append(" s.year in ").append(yearInClauseString);
+				
+				//and t.end_year is null or t.end_year > s.year
 			}
 			
-			if (numberOfWeeks > 0){
-				String weekInClauseString = DatabaseUtil.createInClauseParameterString(numberOfWeeks);
-
-				if (addedWhereClause){
-					whereClauseStringBuilder.append(" and ");
-				}
-				else {
-					whereClauseStringBuilder.append(" where ");
-					addedWhereClause = true;
-				}
-
-				whereClauseStringBuilder.append(" w.week_number in ").append(weekInClauseString);
-			}
-
 			if (numberOfTeams > 0){
 				String teamInClauseString = DatabaseUtil.createInClauseParameterString(numberOfTeams);
 
@@ -5557,14 +5561,37 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 			}
 
 			String whereClause = whereClauseStringBuilder.toString();
+			
+			String weeksWhereClause = "";
+			if (numberOfWeeks > 0){
+				String weekInClauseString = DatabaseUtil.createInClauseParameterString(numberOfWeeks);
 
-			String pickAccuracyQuery = String.format(SELECT_PICK_ACCURACY_SUMMARY, whereClause);
+				weeksWhereClause = " and w.week_number in " + weekInClauseString;
+				
+				whereClauseStringBuilder.append(" w.week_number in ").append(weekInClauseString);
+			}
+
+			String pickAccuracyQuery = String.format(SELECT_PICK_ACCURACY_SUMMARY, 
+													 weeksWhereClause, weeksWhereClause, weeksWhereClause, weeksWhereClause, weeksWhereClause,
+													 weeksWhereClause, weeksWhereClause, weeksWhereClause, weeksWhereClause, weeksWhereClause,
+													 weeksWhereClause,
+												     whereClause);
 			
 			connection = dataSource.getConnection();
 			
 			statement = connection.prepareStatement(pickAccuracyQuery);
 			
 			int parameterIndex = 1;
+			
+			if (numberOfWeeks > 0){
+				for (int i = 0; i < 11; i++){
+					for (int index = 0; index < numberOfWeeks; index++){
+						String week = weeks.get(index);
+						statement.setInt(parameterIndex, Integer.parseInt(week));
+						parameterIndex++;
+					}
+				}
+			}
 			
 			for (int index = 0; index < numberOfPlayers; index++){
 				String player = players.get(index);
@@ -5575,12 +5602,6 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 			for (int index = 0; index < numberOfYears; index++){
 				String year = years.get(index);
 				statement.setString(parameterIndex, year);
-				parameterIndex++;
-			}
-			
-			for (int index = 0; index < numberOfWeeks; index++){
-				String week = weeks.get(index);
-				statement.setInt(parameterIndex, Integer.parseInt(week));
 				parameterIndex++;
 			}
 			

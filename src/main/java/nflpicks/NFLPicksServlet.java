@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,7 +27,6 @@ import nflpicks.model.PickSplit;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Team;
-import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
@@ -314,10 +314,9 @@ public class NFLPicksServlet extends HttpServlet {
 		}
 		else if (TARGET_SELECTION_CRITERIA.equals(target)){
 			
-			List<String> years = dataService.getYears();
-			
 			JSONObject selectionCriteriaJSONObject = new JSONObject();
 			
+			List<String> years = dataService.getYears();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_YEARS, years);
 			
 			List<Player> players = dataService.getPlayers();
@@ -330,6 +329,7 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			Collections.sort(playerNames);
 			
+			//this should be players, not just the names....
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_PLAYERS, playerNames);
 			
 			List<Team> teams = dataService.getTeams();
@@ -417,7 +417,7 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordsForPlayer> weeksWon = dataService.getWeekRecordsForPlayer(years, weeks, players, true);
+				List<WeekRecordsForPlayer> weeksWon = dataService.getWeeksWon(years, weeks, players, true);
 				
 				json = JSONUtil.weekRecordsForPlayerListToJSONString(weeksWon);
 			}

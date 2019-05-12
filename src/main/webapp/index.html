@@ -1,7 +1,7 @@
 <html>
 	<head>
 		<base href="nflpicks"/>
-		<script src="javascript/jquery-3.1.1.min.js"></script>
+		<script src="javascript/jquery-3.4.0.min.js"></script>
 		<script src="javascript/nflpicks-common.js?20181009"></script>
 		<script src="javascript/nflpicks.js?20181009"></script>
 		<link rel="stylesheet" type="text/css" href="css/nflpicks.css?20181009">
@@ -9,57 +9,56 @@
 		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
 		<meta content="utf-8" http-equiv="encoding">
 	</head>
-	<body>
+	<body onClick="onClickBody();">
 		<noscript>
 			<div style="text-align: center; font-size: 16px; padding-top: 50px;">
 				<h3>Click <a href="alternate">here</a> if stuff looks messed up and this site doesn't work.</h3>
 			</div>
 		</noscript>
-		<div class="top-header-container">
+		<div style="width: 100%; display: inline-block; text-align: center;">
 			<h3 style="margin-top: 5px; margin-bottom: 5px;"><a href="index.html">NFL Picks</a></h3>
 		</div>
-		<div style="text-align: center; padding-top: 20px; padding-bottom: 20px;">
-			<a style="font-weight: bold" href="message.html">A MESSAGE FROM THE FORMER CHAMPION</a>
-			<div>
-				<span><a href="javascript:" onClick="updateMakePicks()">Make picks</a></span>
-				<span>&nbsp;</span>
-				<span><a id="optionsLink" href="javascript:" onClick="toggleOptions()">Options</a></span>
-				<div id="options" style="padding-top: 10px; display: none;">
-					<span>Pick more than 1: </span>
-					<span><input id="multiSelectPlayer" type="checkbox" value="true" onChange="multiSelectOptionChangePlayer();"/><span>Player</span></span>
-					<!-- 
-					<span><input id="multiSelectYear" type="checkbox" value="true" onChange="updateMultiSelectYear();"/><span>Year</span></span>
-					<span><input id="multiSelectWeek" type="checkbox" value="true" onChange="updateMultiSelectWeek();"/><span>Week</span></span>
-					<span><input id="multiSelectTeam" type="checkbox" value="true" onChange="updateMultiSelectTeam();"/><span>Team</span></span>
-					 -->
-				</div>
-			</div>
+		<div style="width: 100%; text-align: center; padding-top: 5px;">
+			<a href="javascript:" onClick="updateMakePicks()">Make picks</a>
 		</div>
 		<div class="selectors-container">
 			<div id="navigationBackwardContainer" class="selector-container">
 				<a href="javascript:" onClick="navigateBackward();">Back</a>
 			</div>
+			<!-- Turn these into links... -->
 			<div id="typeContainer" class="selector-container">
-				<div>What</div>
-				<select id="type" onChange="updateView();" class="criteria-selector">
+				<!-- <div>What</div> -->
+				<a id="typesLink" href="javascript:" class="selector-link" onClick="onClickTypeSelector(event);">What</a>
+				<div id="typesContainer">
+				</div>
+				<select id="type" onChange="updateView();" class="criteria-selector"style="display: none;">
 					<option value="picks">Picks</option>
 					<option value="standings" selected>Standings</option>
 					<option value="stats">Stats</option>
 				</select>
 			</div>
 			<div id="playerContainer" class="selector-container">
-				<div>Who</div>
-				<select id="player" onChange="updateView();" class="criteria-selector">
+				<!-- <div>Who</div>-->
+				<a id="playersLink" href="javascript:" class="selector-link" onClick="onClickPlayerSelector(event);">Who</a>
+				<div id="playersContainer" style="display: none;">
+				</div>
+				<select id="player" onChange="updateView();" class="criteria-selector criteria-selector-player" style="display: none;">
 				</select>
 			</div>
 			<div id="yearContainer" class="selector-container">
-				<div>Year</div>
-				<select id="year" onChange="updateView();" class="criteria-selector criteria-selector-year">
+				<!-- <div>Year</div> -->
+				<a id="yearsLink" href="javascript:" class="selector-link" onClick="onClickYearSelector(event);">Year</a>
+				<div id="yearsContainer" style="display: none;">
+				</div>
+				<select id="year" onChange="updateView();" class="criteria-selector criteria-selector-year" style="display: none;">
 				</select>
 			</div>
 			<div id="weekContainer" class="selector-container">
-				<div>Week</div>
-				<select id="week" onChange="updateView();" class="criteria-selector criteria-selector-week">
+				<!-- <div>Week</div>-->
+				<a id="weeksLink" href="javascript:" class="selector-link" onClick="onClickWeekSelector(event);">Week</a> 
+				<div id="weeksContainer">
+				</div>
+				<select id="week" onChange="updateView();" class="criteria-selector criteria-selector-week" style="display: none;">
 					<option value="all" selected>All</option>
 					<option value="regular-season">Regular season</option>
 					<option value="playoffs">Playoffs</option>
@@ -87,8 +86,8 @@
 				</select>
 			</div>
 			<div id="statNameContainer" class="selector-container">
-				<div>Stat</div>
-				<select id="statName" onChange="updateView();" class="criteria-selector">
+				<!-- <div>Stat</div>-->
+				<select id="statName" onChange="updateView();" class="criteria-selector" style="display: none;">
 					<option value="champions">Champions</option>
 					<option value="championshipStandings">Championship Standings</option>
 					<option value="weekStandings">Week Standings</option>
@@ -98,21 +97,28 @@
 					<option value="pickAccuracy">Pick Accuracy</option>
 					<option value="pickSplits">Pick Splits</option>
 				</select>
+				<div>
+					<a href="javascript:">Week Records By Player</a>
+				</div>
 			</div>
 			<div id="teamContainer" class="selector-container">
 				<div>Team</div>
-				<select id="team" onChange="updateView();" class="criteria-selector">
+				<select id="team" onChange="updateView();" class="criteria-selector" style="display: none;">
 				</select>
+				<div>
+					<a href="javascript:">Buffalo Bills</a>
+				</div>
 			</div>
 			<div id="navigationFowardContainer" class="selector-container">
 				<a href="javascript:" onClick="navigateForward();">Forward</a>
 			</div>
 		</div>
+		<div id="selectorContainer" style="display:block; width: 100%; text-align: center;"></div>
+		<div style="padding-bottom: 10px;"></div>
 		<div id="contentContainer" class="content-container">
 		</div>
 		<div>
 			<p style="font-size: 11px; text-align: center;">What is <a href="http://carsonrails.com">cars on rails?</a></p>
-			<p style="font-size: 11px; text-align: center;"><a href="alternate">Click here for a non javascript version</a></p>
 		</div>
 	</body>
 </html>

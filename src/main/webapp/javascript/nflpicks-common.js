@@ -173,3 +173,45 @@ function normalizeStringWithReplacement(value, spaceReplacement){
 	
 	return normalizedValue;
 }
+
+function delimitedValueToArray(value, delimiter){
+	
+	if (!isDefined(delimiter)){
+		delimiter = ',';
+	}
+	
+	var values = [];
+	
+	var split = value.split(delimiter);
+	
+	for (var index = 0; index < split.length; index++){
+		var splitValue = value[index];
+		
+		splitValue = splitValue.trim();
+		
+		values.push(splitValue);
+	}
+	
+	return values;
+}
+
+function arrayToDelimitedValue(array, delimiter){
+	
+	if (!isDefined(delimiter)){
+		delimiter = ',';
+	}
+	
+	var delimitedValue = '';
+	
+	for (var index = 0; index < array.length; index++){
+		var value = array[index];
+		
+		if (index > 0){
+			delimitedValue = delimitedValue + delimiter;
+		}
+		
+		delimitedValue = delimitedValue + value;
+	}
+	
+	return delimitedValue;
+}
