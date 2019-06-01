@@ -27,86 +27,33 @@
 			</div>
 			<!-- Turn these into links... -->
 			<div id="typeContainer" class="selector-container">
-				<!-- <div>What</div> -->
 				<a id="typesLink" href="javascript:" class="selector-link" onClick="onClickTypeSelector(event);">What</a>
 				<div id="typesContainer">
 				</div>
-				<select id="type" onChange="updateView();" class="criteria-selector"style="display: none;">
-					<option value="picks">Picks</option>
-					<option value="standings" selected>Standings</option>
-					<option value="stats">Stats</option>
-				</select>
 			</div>
 			<div id="playerContainer" class="selector-container">
-				<!-- <div>Who</div>-->
 				<a id="playersLink" href="javascript:" class="selector-link" onClick="onClickPlayerSelector(event);">Who</a>
 				<div id="playersContainer" style="display: none;">
 				</div>
-				<select id="player" onChange="updateView();" class="criteria-selector criteria-selector-player" style="display: none;">
-				</select>
 			</div>
 			<div id="yearContainer" class="selector-container">
-				<!-- <div>Year</div> -->
 				<a id="yearsLink" href="javascript:" class="selector-link" onClick="onClickYearSelector(event);">Year</a>
 				<div id="yearsContainer" style="display: none;">
 				</div>
-				<select id="year" onChange="updateView();" class="criteria-selector criteria-selector-year" style="display: none;">
-				</select>
 			</div>
 			<div id="weekContainer" class="selector-container">
-				<!-- <div>Week</div>-->
 				<a id="weeksLink" href="javascript:" class="selector-link" onClick="onClickWeekSelector(event);">Week</a> 
 				<div id="weeksContainer">
 				</div>
-				<select id="week" onChange="updateView();" class="criteria-selector criteria-selector-week" style="display: none;">
-					<option value="all" selected>All</option>
-					<option value="regular-season">Regular season</option>
-					<option value="playoffs">Playoffs</option>
-					<option value="1">1</option>
-					<option value="2">2</option>
-					<option value="3">3</option>
-					<option value="4">4</option>
-					<option value="5">5</option>
-					<option value="6">6</option>
-					<option value="7">7</option>
-					<option value="8">8</option>
-					<option value="9">9</option>
-					<option value="10">10</option>
-					<option value="11">11</option>
-					<option value="12">12</option>
-					<option value="13">13</option>
-					<option value="14">14</option>
-					<option value="15">15</option>
-					<option value="16">16</option>
-					<option value="17">17</option>
-					<option value="18">Wild Card</option>
-					<option value="19">Divisional</option>
-					<option value="20">Conference Championship</option>
-					<option value="21">Super Bowl</option>
-				</select>
 			</div>
 			<div id="statNameContainer" class="selector-container">
-				<!-- <div>Stat</div>-->
-				<select id="statName" onChange="updateView();" class="criteria-selector" style="display: none;">
-					<option value="champions">Champions</option>
-					<option value="championshipStandings">Championship Standings</option>
-					<option value="weekStandings">Week Standings</option>
-					<option value="weeksWonStandings">Weeks Won Standings</option>
-					<option value="weeksWonByWeek">Weeks Won By Week</option>
-					<option value="weekRecordsByPlayer">Week Records By Player</option>
-					<option value="pickAccuracy">Pick Accuracy</option>
-					<option value="pickSplits">Pick Splits</option>
-				</select>
-				<div>
-					<a href="javascript:">Week Records By Player</a>
+				<a id="statNamesLink" href="javascript:" class="selector-link" onClick="onClickStatNameSelector(event);">Stat Name</a> 
+				<div id="statNamesContainer">
 				</div>
 			</div>
 			<div id="teamContainer" class="selector-container">
-				<div>Team</div>
-				<select id="team" onChange="updateView();" class="criteria-selector" style="display: none;">
-				</select>
-				<div>
-					<a href="javascript:">Buffalo Bills</a>
+				<a id="teamsLink" href="javascript:" class="selector-link" onClick="onClickTeamSelector(event);">Team</a>
+				<div id="teamsContainer" style="display: none;">
 				</div>
 			</div>
 			<div id="navigationFowardContainer" class="selector-container">

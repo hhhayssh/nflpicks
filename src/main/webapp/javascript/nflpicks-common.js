@@ -215,3 +215,48 @@ function arrayToDelimitedValue(array, delimiter){
 	
 	return delimitedValue;
 }
+
+function sortOptionsByLabel(options){
+	
+	options.sort(function (option1, option2){
+		if (option1.label < option2.label){
+			return -1;
+		}
+		else if (option1.label > option2.label){
+			return 1;
+		}
+		return 0;
+	});
+}
+
+function sortOptionsByValue(options){
+	
+	options.sort(function (option1, option2){
+		if (option1.value < option2.value){
+			return -1;
+		}
+		else if (option1.value > option2.value){
+			return 1;
+		}
+		return 0;
+	});
+}
+
+function sortOptionsByNumericValue(options){
+	
+	options.sort(function (option1, option2){
+		if (Number(option1.value) < Number(option2.value)){
+			return -1;
+		}
+		else if (Number(option1.value) > Number(option2.value)){
+			return 1;
+		}
+		return 0;
+	});
+}
+
+function getUniqueValuesFromArray(values){
+	var uniqueValues = Array.from(new Set(values));
+	
+	return uniqueValues;
+}
