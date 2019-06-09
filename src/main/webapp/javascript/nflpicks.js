@@ -3306,12 +3306,12 @@ function onClickClearYears(event){
 	
 	event.stopPropagation();
 	
-	var realYears = getRealYears();
+	var years = getAllYears();
 	
 	currentYearSelections = [];
 	
-	for (var index = 0; index < realYears.length; index++){
-		var year = realYears[index];
+	for (var index = 0; index < years.length; index++){
+		var year = years[index];
 		unselectYear(year.value);
 		removeYearFromCurrentSelection(year.value);
 	}
@@ -3778,12 +3778,12 @@ function onClickClearWeeks(event){
 	
 	event.stopPropagation();
 	
-	var realWeeks = getRealWeeks();
+	var weeks = getAllWeeks();
 	
 	currentWeekSelections = [];
 	
-	for (var index = 0; index < realWeeks.length; index++){
-		var week = realWeeks[index];
+	for (var index = 0; index < weeks.length; index++){
+		var week = weeks[index];
 		unselectWeek(week.value);
 		removeWeekFromCurrentSelection(week.value);
 	}
@@ -4043,7 +4043,7 @@ function createTypeSelectorHtml(types){
 	for (var index = 0; index < types.length; index++){
 		var type = types[index];
 		
-		var typeHtml = '<div class="selection-item-container">' +
+		var typeHtml = '<div class="selection-item-container" onClick="onClickType(event, \'' + type.value + '\');">' +
 					   		'<span><input type="radio" name="type" id="type-' + index + '" value="' + type.value + '" onClick="onClickType(event, \'' + type.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickType(event, \'' + type.value + '\');">' + type.label + '</a></span>' +
 					   '</div>';
@@ -4070,14 +4070,22 @@ function createPlayerSelectorHtml(players){
 	
 	var playerSelectorHtml = '<div id="playerSelectorContainer" class="selection-list-container">' + 
 						   		'<div class="selection-header-container">' +
-						   			'<div onClick="onClickMultiselectPlayerContainer(event);">' + 
-						   				'<input id="multiselectPlayer" type="checkbox" onClick="onClickMultiselectPlayer(event);" />' + 
-						   				'<span><a href="javascript:void(0);" onClick="onClickMultiselectPlayerContainer(event);">Select more than one</a></span>' + 
-						   			'</div>' +
-						   			'<div id="multiselectPlayerContainer" style="padding-top: 10px; ' + multiselectDisplay + '">' +
-						   				'<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearPlayers(event);">Clear</a></div>' +
-						   				'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllPlayers(event);">Select all</a></div>' +
-						   			'</div>' +
+						   			'<table class="selection-header-items-container">' + 
+						   				'<tr>' +
+						   					'<td class="selection-header-multiselect-button" onClick="onClickMultiselectPlayerContainer(event);" colspan="2">' +
+							   					'<input id="multiselectPlayer" type="checkbox" onClick="onClickMultiselectPlayer(event);" />' + 
+							   					'<span><a href="javascript:void(0);" onClick="onClickMultiselectPlayerContainer(event);">Select more than one</a></span>' + 
+						   					'</td>' +
+						   				'</tr>' +
+						   				'<tr id="multiselectPlayerContainer" style="' + multiselectDisplay + '">' +
+						   					'<td class="selection-header-clear-button" onClick="onClickClearPlayers(event);">' +
+						   						'<a href="javascript:void(0);" onClick="onClickClearPlayers(event);">Clear</a>' +
+						   					'</td>' +
+						   					'<td class="selection-header-select-all-button" onClick="onClickSelectAllPlayers(event);">' + 
+						   						'<a href="javascript:void(0);" onClick="onClickSelectAllPlayers(event);">Select all</a>' +
+						   					'</td>' +
+						   				'</tr>' +
+						   			'</table>' +
 						   		'</div>' + 
 						   		'<div class="selection-list-items-container">';
 
@@ -4098,12 +4106,16 @@ function createPlayerSelectorHtml(players){
 	playerSelectorHtml = playerSelectorHtml +
 							'</div>' +
 					   		'<div id="player-selector-footer-container" class="selection-footer-container" style="' + multiselectDisplay + '">' +
-					   			'<div style="width: 48%; text-align: left; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickPlayerSelectionCancel(event)">Cancel</a>' +
-					   			'</div>' +
-					   			'<div style="width: 48%; text-align: right; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickPlayerSelectionOk(event)">OK</a>' +
-					   			'</div>' +
+					   			'<table class="selector-footer-button-container">' +
+					   				'<tr>' + 
+					   					'<td class="selector-footer-cancel-button" onClick="onClickPlayerSelectionCancel(event)">' +
+					   						'<a href="javascript:" onClick="onClickPlayerSelectionCancel(event)">Cancel</a>' +
+					   					'</td>' +
+					   					'<td class="selector-footer-ok-button" onClick="onClickPlayerSelectionOk(event)">' +
+					   						'<a href="javascript:" onClick="onClickPlayerSelectionOk(event)">OK</a>' +
+					   					'</td>' +
+					   				'</tr>' +
+					   			'</table>' +
 					   		'</div>' +
 					  '</div>';
 	
@@ -4121,16 +4133,24 @@ function createYearSelectorHtml(years){
 	}
 	
 	var yearSelectorHtml = '<div id="yearSelectorContainer" class="selection-list-container">' + 
-						   		'<div class="selection-header-container">' +
-						   			'<div onClick="onClickMultiselectYearContainer(event);">' + 
-						   				'<input id="multiselectYear" type="checkbox" onClick="onClickMultiselectYear(event);" />' + 
-						   				'<span><a href="javascript:void(0);" onClick="onClickMultiselectYearContainer(event);">Select more than one</a></span>' + 
-						   			'</div>' +
-						   			'<div id="multiselectYearContainer" style="padding-top: 10px; ' + multiselectDisplay + '">' +
-						   				'<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearYears(event);">Clear</a></div>' +
-						   				'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllYears(event);">Select all</a></div>' +
-						   			'</div>' +
-						   		'</div>' + 
+								'<div class="selection-header-container">' +
+									'<table class="selection-header-items-container">' + 
+										'<tr>' +
+											'<td class="selection-header-multiselect-button" onClick="onClickMultiselectYearContainer(event);" colspan="2">' +
+												'<input id="multiselectYear" type="checkbox" onClick="onClickMultiselectYear(event);" />' + 
+												'<span><a href="javascript:void(0);" onClick="onClickMultiselectYearContainer(event);">Select more than one</a></span>' + 
+											'</td>' +
+										'</tr>' +
+										'<tr id="multiselectYearContainer" style="' + multiselectDisplay + '">' +
+											'<td class="selection-header-clear-button" onClick="onClickClearYears(event);">' +
+												'<a href="javascript:void(0);" onClick="onClickClearYears(event);">Clear</a>' +
+											'</td>' +
+											'<td class="selection-header-select-all-button" onClick="onClickSelectAllYears(event);">' + 
+												'<a href="javascript:void(0);" onClick="onClickSelectAllYears(event);">Select all</a>' +
+											'</td>' +
+										'</tr>' +
+									'</table>' +
+								'</div>' + 
 						   		'<div class="selection-list-items-container">';
 
 	for (var index = 0; index < years.length; index++){
@@ -4149,13 +4169,17 @@ function createYearSelectorHtml(years){
 
 	yearSelectorHtml = yearSelectorHtml +
 							'</div>' +
-					   		'<div id="year-selector-footer-container" class="selection-footer-container" style="' + multiselectDisplay + '">' +
-					   			'<div style="width: 48%; text-align: left; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickYearSelectionCancel(event)">Cancel</a>' +
-					   			'</div>' +
-					   			'<div style="width: 48%; text-align: right; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickYearSelectionOk(event)">OK</a>' +
-					   			'</div>' +
+							'<div id="year-selector-footer-container" class="selection-footer-container" style="' + multiselectDisplay + '">' +
+					   			'<table class="selector-footer-button-container">' +
+					   				'<tr>' + 
+					   					'<td class="selector-footer-cancel-button" onClick="onClickYearSelectionCancel(event)">' +
+					   						'<a href="javascript:" onClick="onClickYearSelectionCancel(event)">Cancel</a>' +
+					   					'</td>' +
+					   					'<td class="selector-footer-ok-button" onClick="onClickYearSelectionOk(event)">' +
+					   						'<a href="javascript:" onClick="onClickYearSelectionOk(event)">OK</a>' +
+					   					'</td>' +
+					   				'</tr>' +
+					   			'</table>' +
 					   		'</div>' +
 					  '</div>';
 	
@@ -4174,14 +4198,22 @@ function createWeekSelectorHtml(weeks){
 	
 	var weekSelectorHtml = '<div id="weekSelectorContainer" class="selection-list-container">' + 
 						   		'<div class="selection-header-container">' +
-						   			'<div onClick="onClickMultiselectWeekContainer(event);">' + 
-						   				'<input id="multiselectWeek" type="checkbox" onClick="onClickMultiselectWeek(event);" />' + 
-						   				'<span><a href="javascript:void(0);" onClick="onClickMultiselectWeekContainer(event);">Select more than one</a></span>' + 
-						   			'</div>' +
-						   			'<div id="multiselectWeekContainer" style="padding-top: 10px; ' + multiselectDisplay + '">' +
-						   				'<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearWeeks(event);">Clear</a></div>' +
-						   				'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllWeeks(event);">Select all</a></div>' +
-						   			'</div>' +
+								   	'<table class="selection-header-items-container">' + 
+						   				'<tr>' +
+						   					'<td class="selection-header-multiselect-button" onClick="onClickMultiselectWeekContainer(event);" colspan="2">' +
+							   					'<input id="multiselectWeek" type="checkbox" onClick="onClickMultiselectWeek(event);" />' + 
+							   					'<span><a href="javascript:void(0);" onClick="onClickMultiselectWeekContainer(event);">Select more than one</a></span>' + 
+						   					'</td>' +
+						   				'</tr>' +
+						   				'<tr id="multiselectWeekContainer" style="' + multiselectDisplay + '">' +
+						   					'<td class="selection-header-clear-button" onClick="onClickClearWeeks(event);">' +
+						   						'<a href="javascript:void(0);" onClick="onClickClearWeeks(event);">Clear</a>' +
+						   					'</td>' +
+						   					'<td class="selection-header-select-all-button" onClick="onClickSelectAllWeeks(event);">' + 
+						   						'<a href="javascript:void(0);" onClick="onClickSelectAllWeeks(event);">Select all</a>' +
+						   					'</td>' +
+						   				'</tr>' +
+						   			'</table>' +
 						   		'</div>' + 
 						   		'<div class="selection-list-items-container">';
 
@@ -4202,14 +4234,17 @@ function createWeekSelectorHtml(weeks){
 	weekSelectorHtml = weekSelectorHtml +
 							'</div>' +
 					   		'<div id="week-selector-footer-container" class="selection-footer-container" style="' + multiselectDisplay + '">' +
-					   			'<div style="width: 48%; text-align: left; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickWeekSelectionCancel(event)">Cancel</a>' +
-					   			'</div>' +
-					   			'<div style="width: 48%; text-align: right; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickWeekSelectionOk(event)">OK</a>' +
-					   			'</div>' +
-					   		'</div>' +
-					  '</div>';
+						   		'<table class="selector-footer-button-container">' +
+					   				'<tr>' + 
+					   					'<td class="selector-footer-cancel-button" onClick="onClickWeekSelectionCancel(event)">' +
+					   						'<a href="javascript:" onClick="onClickWeekSelectionCancel(event)">Cancel</a>' +
+					   					'</td>' +
+					   					'<td class="selector-footer-ok-button" onClick="onClickWeekSelectionOk(event)">' +
+					   						'<a href="javascript:" onClick="onClickWeekSelectionOk(event)">OK</a>' +
+					   					'</td>' +
+					   				'</tr>' +
+					   			'</table>' +
+					   		'</div>';
 	
 	return weekSelectorHtml;
 }
@@ -4222,14 +4257,22 @@ function createTeamSelectorHtml(teams){
 	
 	var teamSelectorHtml = '<div id="teamSelectorContainer" class="selection-list-container">' + 
 						   		'<div class="selection-header-container">' +
-						   			'<div onClick="onClickMultiselectTeamContainer(event);">' + 
-						   				'<input id="multiselectTeam" type="checkbox" onClick="onClickMultiselectTeam(event);" />' + 
-						   				'<span><a href="javascript:void(0);" onClick="onClickMultiselectTeamContainer(event);">Select more than one</a></span>' + 
-						   			'</div>' +
-						   			'<div id="multiselectTeamContainer" style="padding-top: 10px; ' + multiselectDisplay + '">' +
-						   				'<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearTeams(event);">Clear</a></div>' +
-						   				'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllTeams(event);">Select all</a></div>' +
-						   			'</div>' +
+							   		'<table class="selection-header-items-container">' + 
+						   				'<tr>' +
+						   					'<td class="selection-header-multiselect-button" onClick="onClickMultiselectTeamContainer(event);" colspan="2">' +
+							   					'<input id="multiselectTeam" type="checkbox" onClick="onClickMultiselectTeam(event);" />' + 
+							   					'<span><a href="javascript:void(0);" onClick="onClickMultiselectTeamContainer(event);">Select more than one</a></span>' + 
+						   					'</td>' +
+						   				'</tr>' +
+						   				'<tr id="multiselectTeamContainer" style="' + multiselectDisplay + '">' +
+						   					'<td class="selection-header-clear-button" onClick="onClickClearTeams(event);">' +
+						   						'<a href="javascript:void(0);" onClick="onClickClearTeams(event);">Clear</a>' +
+						   					'</td>' +
+						   					'<td class="selection-header-select-all-button" onClick="onClickSelectAllTeams(event);">' + 
+						   						'<a href="javascript:void(0);" onClick="onClickSelectAllTeams(event);">Select all</a>' +
+						   					'</td>' +
+						   				'</tr>' +
+						   			'</table>' +
 						   		'</div>' + 
 						   		'<div class="selection-list-items-container">';
 
@@ -4250,12 +4293,16 @@ function createTeamSelectorHtml(teams){
 	teamSelectorHtml = teamSelectorHtml +
 							'</div>' +
 					   		'<div id="team-selector-footer-container" class="selection-footer-container">' +
-					   			'<div style="width: 48%; text-align: left; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickTeamSelectionCancel(event)">Cancel</a>' +
-					   			'</div>' +
-					   			'<div style="width: 48%; text-align: right; display: inline-block;">' +
-					   				'<a href="javascript:" onClick="onClickTeamSelectionOk(event)">OK</a>' +
-					   			'</div>' +
+					   			'<table class="selector-footer-button-container">' +
+					   				'<tr>' + 
+					   					'<td class="selector-footer-cancel-button" onClick="onClickTeamSelectionCancel(event)">' +
+					   						'<a href="javascript:" onClick="onClickTeamSelectionCancel(event)">Cancel</a>' +
+					   					'</td>' +
+					   					'<td class="selector-footer-ok-button" onClick="onClickTeamSelectionOk(event)">' +
+					   						'<a href="javascript:" onClick="onClickTeamSelectionOk(event)">OK</a>' +
+					   					'</td>' +
+					   				'</tr>' +
+					   			'</table>' +
 					   		'</div>' +
 					  '</div>';
 	
@@ -4273,7 +4320,7 @@ function createStatNameSelectorHtml(statNames){
 	for (var index = 0; index < statNames.length; index++){
 		var statName = statNames[index];
 		
-		var statNameHtml = '<div class="selection-item-container">' +
+		var statNameHtml = '<div class="selection-item-container" onClick="onClickStatName(event, \'' + statName.value + '\');">' +
 					   		'<span><input type="radio" name="statName" id="statName-' + index + '" value="' + statName.value + '" onClick="onClickStatName(event, \'' + statName.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickStatName(event, \'' + statName.value + '\');">' + statName.label + '</a></span>' + 
 					   '</div>';

@@ -22,42 +22,42 @@
 			<a href="javascript:" onClick="updateMakePicks()">Make picks</a>
 		</div>
 		<div class="selectors-container">
-			<div id="navigationBackwardContainer" class="selector-container">
-				<a href="javascript:" onClick="navigateBackward();">Back</a>
+			<div id="navigationBackwardContainer" class="selector-container" style="display: none;">
+				<a href="javascript:" class="selector-link" onClick="navigateBackward();">Back</a>
 			</div>
 			<!-- Turn these into links... -->
 			<div id="typeContainer" class="selector-container">
-				<a id="typesLink" href="javascript:" class="selector-link" onClick="onClickTypeSelector(event);">What</a>
+				<a id="typesLink" href="javascript:" class="selector-link" onClick="onClickTypeSelector(event);"></a>
 				<div id="typesContainer">
 				</div>
 			</div>
 			<div id="playerContainer" class="selector-container">
-				<a id="playersLink" href="javascript:" class="selector-link" onClick="onClickPlayerSelector(event);">Who</a>
+				<a id="playersLink" href="javascript:" class="selector-link" onClick="onClickPlayerSelector(event);" style="display: none;"></a>
 				<div id="playersContainer" style="display: none;">
 				</div>
 			</div>
 			<div id="yearContainer" class="selector-container">
-				<a id="yearsLink" href="javascript:" class="selector-link" onClick="onClickYearSelector(event);">Year</a>
+				<a id="yearsLink" href="javascript:" class="selector-link" onClick="onClickYearSelector(event);" style="display: none;"></a>
 				<div id="yearsContainer" style="display: none;">
 				</div>
 			</div>
 			<div id="weekContainer" class="selector-container">
-				<a id="weeksLink" href="javascript:" class="selector-link" onClick="onClickWeekSelector(event);">Week</a> 
+				<a id="weeksLink" href="javascript:" class="selector-link" onClick="onClickWeekSelector(event);" style="display: none;"></a> 
 				<div id="weeksContainer">
 				</div>
 			</div>
 			<div id="statNameContainer" class="selector-container">
-				<a id="statNamesLink" href="javascript:" class="selector-link" onClick="onClickStatNameSelector(event);">Stat Name</a> 
+				<a id="statNamesLink" href="javascript:" class="selector-link" onClick="onClickStatNameSelector(event);" style="display: none;"></a> 
 				<div id="statNamesContainer">
 				</div>
 			</div>
 			<div id="teamContainer" class="selector-container">
-				<a id="teamsLink" href="javascript:" class="selector-link" onClick="onClickTeamSelector(event);">Team</a>
+				<a id="teamsLink" href="javascript:" class="selector-link" onClick="onClickTeamSelector(event);" style="display: none;"></a>
 				<div id="teamsContainer" style="display: none;">
 				</div>
 			</div>
-			<div id="navigationFowardContainer" class="selector-container">
-				<a href="javascript:" onClick="navigateForward();">Forward</a>
+			<div id="navigationFowardContainer" class="selector-container" style="display: none;">
+				<a href="javascript:" class="selector-link" onClick="navigateForward();">Forward</a>
 			</div>
 		</div>
 		<div id="selectorContainer" style="display:block; width: 100%; text-align: center;"></div>

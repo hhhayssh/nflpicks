@@ -298,17 +298,70 @@ html, body {
 }
 
 .selection-item-container {
-	padding: 5px;
+	padding: 10px;
+	border-bottom: thin solid black;
+	cursor: pointer;
 }
 
 .selection-header-container {
-	padding: 10px;
 	border-bottom: thin solid black;
 }
 
-.selection-footer-container {
+.selection-header-items-container {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.selection-header-multiselect-button {
+	padding-bottom: 10px;
+	padding-top: 10px;
+	cursor: pointer;
+}
+
+.selection-header-clear-button {
+	width: 50%;
 	padding: 10px;
+	text-align: center;
 	border-top: thin solid black;
+	border-right: thin solid black;
+	cursor: pointer;
+}
+
+.selection-header-select-all-button {
+	width: 50%;
+	padding: 10px;
+	text-align: center;
+	border-top: thin solid black;
+	cursor: pointer;
+}
+
+.selection-footer-container {
+	/* padding: 10px; */
+	border-top: thin solid black;
+}
+
+.selector-footer-button-container {
+	width: 100%; 
+	height: 60px;
+	padding: 0px;
+	border-collapse: collapse;
+}
+
+.selector-footer-cancel-button {
+	width: 50%; 
+	border-right: thin solid black; 
+	text-align: center;
+	cursor: pointer;
+}
+
+.selector-footer-ok-button {
+	width: 50%;
+	text-align: center;
+	cursor: pointer;
+}
+
+.selection-header-multiselect-button:hover, .selection-item-container:hover, .selection-header-clear-button:hover, .selection-header-select-all-button:hover, .selector-footer-ok-button:hover, .selector-footer-cancel-button:hover {
+	background-color: aquamarine;
 }
 
 .selector-link {
