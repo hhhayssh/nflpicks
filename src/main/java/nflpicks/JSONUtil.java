@@ -1341,6 +1341,7 @@ public class JSONUtil {
 		
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_YEAR, pickSplit.getYear());
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WEEK_NUMBER, pickSplit.getWeekNumber());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WEEK_LABEL, pickSplit.getWeekLabel());
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_HOME_TEAM_ABBREVIATION, pickSplit.getHomeTeamAbbreviation());
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_AWAY_TEAM_ABBREVIATION, pickSplit.getAwayTeamAbbreviation());
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WINNING_TEAM_ABBREVIATION, pickSplit.getWinningTeamAbbreviation());

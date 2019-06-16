@@ -174,6 +174,7 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_PICK_SPLIT_YEAR = "year";
 	public static final String JSON_PICK_SPLIT_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_PICK_SPLIT_WEEK_LABEL = "weekLabel";
 	public static final String JSON_PICK_SPLIT_HOME_TEAM_ABBREVIATION = "homeTeamAbbreviation";
 	public static final String JSON_PICK_SPLIT_AWAY_TEAM_ABBREVIATION = "awayTeamAbbreviation";
 	public static final String JSON_PICK_SPLIT_WINNING_TEAM_ABBREVIATION = "winningTeamAbbreviation";

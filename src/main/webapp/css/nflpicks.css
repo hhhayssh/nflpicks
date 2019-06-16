@@ -289,7 +289,6 @@ html, body {
 	margin-right: auto;
 	left: 0;
 	right: 0;
-	/*margin-left: -100px;*/
 }
 
 .selection-list-items-container {
@@ -300,6 +299,11 @@ html, body {
 .selection-item-container {
 	padding: 10px;
 	border-bottom: thin solid black;
+	cursor: pointer;
+}
+
+.selection-item-container-last {
+	padding: 10px;
 	cursor: pointer;
 }
 
@@ -336,7 +340,6 @@ html, body {
 }
 
 .selection-footer-container {
-	/* padding: 10px; */
 	border-top: thin solid black;
 }
 
@@ -360,7 +363,7 @@ html, body {
 	cursor: pointer;
 }
 
-.selection-header-multiselect-button:hover, .selection-item-container:hover, .selection-header-clear-button:hover, .selection-header-select-all-button:hover, .selector-footer-ok-button:hover, .selector-footer-cancel-button:hover {
+.selection-header-multiselect-button:hover, .selection-item-container:hover, .selection-item-container-last:hover, .selection-header-clear-button:hover, .selection-header-select-all-button:hover, .selector-footer-ok-button:hover, .selector-footer-cancel-button:hover {
 	background-color: aquamarine;
 }
 

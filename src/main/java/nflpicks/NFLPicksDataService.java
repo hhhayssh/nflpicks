@@ -739,7 +739,8 @@ public class NFLPicksDataService {
 	
 	/*
 	 select s.year,
-	 		w.week,
+	 		w.week_number as week_number,
+	 		w.label as week_label,
 	 		g.id as game_id,
 	 		g.winning_team_id as winning_team_id
 	 		home_team.abbreviation as home_team,
@@ -758,7 +759,8 @@ public class NFLPicksDataService {
 	 	  left outer join team pick_team on p.team_id = pick_team.id;
 	 */
 	protected static final String SELECT_PICK_SPLIT_BASE = "select s.year as year, " + 
-																  "w.week_number as week_number, " + 
+																  "w.week_number as week_number, " +
+																  "w.label as week_label, " + 
 																  "g.id as game_id, " +
 																  "g.winning_team_id as winning_team_id, " +
 																  "home_team.abbreviation as home_team, " + 
@@ -5888,6 +5890,7 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 			int winningTeamId = -1;
 			String year = null;
 			int weekNumber = -1;
+			String weekLabel = null;
 			String homeTeam = null;
 			String awayTeam = null;
 			String winningTeam = null;
@@ -5916,6 +5919,7 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 					winningTeamId = results.getInt("winning_team_id");
 					year = results.getString("year");
 					weekNumber = results.getInt("week_number");
+					weekLabel = results.getString("week_label");
 					homeTeam = results.getString("home_team");
 					awayTeam = results.getString("away_team");
 					winningTeam = results.getString("winning_team");
@@ -5923,6 +5927,7 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 					currentPickSplit = new PickSplit();
 					currentPickSplit.setYear(year);
 					currentPickSplit.setWeekNumber(weekNumber);
+					currentPickSplit.setWeekLabel(weekLabel);
 					currentPickSplit.setHomeTeamAbbreviation(homeTeam);
 					currentPickSplit.setAwayTeamAbbreviation(awayTeam);
 					if (winningTeamId == -1){

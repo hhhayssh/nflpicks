@@ -893,6 +893,12 @@ function updateStatsSelectors(type){
 		hideWeeksLink();
 		hideTeamsLink();
 	}
+	else if ('seasonStandings' == statName){
+		showPlayersLink();
+		showYearsLink();
+		hideWeeksLink();
+		hideTeamsLink();
+	}
 	else if ('weekStandings' == statName){
 		showPlayersLink();
 		showYearsLink();
@@ -1836,8 +1842,6 @@ function updateStats(){
 			statsHtml = createChampionshipStandingsHtml(championships);
 		}
 		else if ('seasonStandings' == statName){
-			console.log('data...');
-			console.log(data);
 			var seasonRecords = $.parseJSON(data);
 			statsHtml = createSeasonStandingsHtml(seasonRecords);
 		}
@@ -1970,6 +1974,7 @@ function hideSelectorContainers(){
 	hideYearSelector();
 	hideWeekSelector();
 	hideStatNameSelector();
+	hideTeamSelector();
 }
 
 
@@ -2634,7 +2639,7 @@ function onClickTeamSelectionOk(event){
 	event.stopPropagation();
 	//If it's multi select here, unselect the all option.
 	var multiselectTeam = getMultiselectTeam();
-	if (multiselectWeek){
+	if (multiselectTeam){
 		removeTeamFromCurrentSelection('all');
 	}
 	hideTeamSelector();
@@ -3963,7 +3968,12 @@ function createTypeSelectorHtml(types){
 	for (var index = 0; index < types.length; index++){
 		var type = types[index];
 		
-		var typeHtml = '<div class="selection-item-container" onClick="onClickType(event, \'' + type.value + '\');">' +
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == types.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
+		
+		var typeHtml = '<div class="' + divHtmlCssClass + '" onClick="onClickType(event, \'' + type.value + '\');">' +
 					   		'<span><input type="radio" name="type" id="type-' + index + '" value="' + type.value + '" onClick="onClickType(event, \'' + type.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickType(event, \'' + type.value + '\');">' + type.label + '</a></span>' +
 					   '</div>';
@@ -4008,13 +4018,18 @@ function createPlayerSelectorHtml(players){
 						   			'</table>' +
 						   		'</div>' + 
 						   		'<div class="selection-list-items-container">';
-
+	
 	for (var index = 0; index < players.length; index++){
 		var player = players[index];
 		
 		var normalizedValue = normalizePlayerValue(player.value);
 
-		var playerHtml = '<div id="player-selector-container-' + normalizedValue + '" class="selection-item-container" onClick="onClickPlayer(event, \'' + player.value + '\');">' +
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == players.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
+
+		var playerHtml = '<div id="player-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickPlayer(event, \'' + player.value + '\');">' +
 							'<span><input type="checkbox" id="player-checkbox-input-' + normalizedValue + '" value="' + player.value + '" style="' + multiselectDisplay + '" onClick="onClickPlayer(event, \'' + player.value + '\');"/></span>' +
 							'<span><input type="radio" name="player" id="player-radio-input-' + normalizedValue + '" value="' + player.value + '" style="' + singleSelectDisplay + '" onClick="onClickPlayer(event, \'' + player.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickPlayer(event, \'' + player.value + '\');">' + player.label + '</a></span>' +
@@ -4077,8 +4092,13 @@ function createYearSelectorHtml(years){
 		var year = years[index];
 		
 		var normalizedValue = normalizeYearValue(year.value);
+		
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == years.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
 
-		var yearHtml = '<div id="year-selector-container-' + normalizedValue + '" class="selection-item-container" onClick="onClickYear(event, \'' + year.value + '\');">' +
+		var yearHtml = '<div id="year-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickYear(event, \'' + year.value + '\');">' +
 							'<span><input type="checkbox" id="year-checkbox-input-' + normalizedValue + '" value="' + year.value + '" style="' + multiselectDisplay + '" onClick="onClickYear(event, \'' + year.value + '\');"/></span>' +
 							'<span><input type="radio" name="year" id="year-radio-input-' + normalizedValue + '" value="' + year.value + '" style="' + singleSelectDisplay + '" onClick="onClickYear(event, \'' + year.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickYear(event, \'' + year.value + '\');">' + year.label + '</a></span>' +
@@ -4141,8 +4161,13 @@ function createWeekSelectorHtml(weeks){
 		var week = weeks[index];
 		
 		var normalizedValue = normalizeWeekValue(week.value);
+		
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == weeks.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
 
-		var weekHtml = '<div id="week-selector-container-' + normalizedValue + '" class="selection-item-container" onClick="onClickWeek(event, \'' + week.value + '\');">' +
+		var weekHtml = '<div id="week-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickWeek(event, \'' + week.value + '\');">' +
 							'<span><input type="checkbox" id="week-checkbox-input-' + normalizedValue + '" value="' + week.value + '" style="' + multiselectDisplay + '" onClick="onClickWeek(event, \'' + week.value + '\');"/></span>' +
 							'<span><input type="radio" name="week" id="week-radio-input-' + normalizedValue + '" value="' + week.value + '" style="' + singleSelectDisplay + '" onClick="onClickWeek(event, \'' + week.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickWeek(event, \'' + week.value + '\');">' + week.label + '</a></span>' +
@@ -4200,8 +4225,13 @@ function createTeamSelectorHtml(teams){
 		var team = teams[index];
 		
 		var normalizedValue = normalizeTeamValue(team.value);
+		
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == teams.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
 
-		var teamHtml = '<div id="team-selector-container-' + normalizedValue + '" class="selection-item-container" onClick="onClickTeam(event, \'' + team.value + '\');">' +
+		var teamHtml = '<div id="team-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickTeam(event, \'' + team.value + '\');">' +
 							'<span><input type="checkbox" id="team-checkbox-input-' + normalizedValue + '" value="' + team.value + '" style="' + multiselectDisplay + '" onClick="onClickTeam(event, \'' + team.value + '\');"/></span>' +
 							'<span><input type="radio" name="team" id="team-radio-input-' + normalizedValue + '" value="' + team.value + '" style="' + singleSelectDisplay + '" onClick="onClickTeam(event, \'' + team.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickTeam(event, \'' + team.value + '\');">' + team.label + '</a></span>' +
@@ -4240,7 +4270,12 @@ function createStatNameSelectorHtml(statNames){
 	for (var index = 0; index < statNames.length; index++){
 		var statName = statNames[index];
 		
-		var statNameHtml = '<div class="selection-item-container" onClick="onClickStatName(event, \'' + statName.value + '\');">' +
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == statNames.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
+		
+		var statNameHtml = '<div class="' + divHtmlCssClass + '" onClick="onClickStatName(event, \'' + statName.value + '\');">' +
 					   		'<span><input type="radio" name="statName" id="statName-' + index + '" value="' + statName.value + '" onClick="onClickStatName(event, \'' + statName.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickStatName(event, \'' + statName.value + '\');">' + statName.label + '</a></span>' + 
 					   '</div>';
@@ -6675,8 +6710,13 @@ function createPickSplitsGridHtml(pickSplits){
 			else if (yearSelected && isBottomRow){
 				cssClassToUse = 'first-pick-cell-bottom';
 			}
+			
+			var labelToUse = pickSplit.weekNumber + '';
+			if (pickSplit.weekNumber > 17){
+				labelToUse = pickSplit.weekLabel;
+			}
 		
-			week = '<td class="' + cssClassToUse + '">' + pickSplit.weekNumber + '</td>';
+			week = '<td class="' + cssClassToUse + '">' + labelToUse + '</td>';
 		}
 
 		//And with the game too.  It needs different borders depending on whether it's
