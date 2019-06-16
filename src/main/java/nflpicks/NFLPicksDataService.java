@@ -10,8 +10,10 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import javax.sql.DataSource;
 
@@ -33,6 +35,7 @@ import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.CompactPickAccuracyContainer;
 import nflpicks.model.stats.PickAccuracySummary;
+import nflpicks.model.stats.SeasonRecordForPlayer;
 import nflpicks.model.stats.WeekRecord;
 import nflpicks.model.stats.WeekRecordForPlayer;
 import nflpicks.model.stats.WeekRecordForPlayers;
@@ -433,6 +436,89 @@ public class NFLPicksDataService {
 																      ") pick_totals " + 
 															    "group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
 															    "order by year asc, wins desc, player_id ";
+	
+	/*
+	 select season_totals.season_id,  
+		 season_totals.year,  
+		 season_totals.player_id,  
+		 season_totals.player_name,  
+		 season_totals.wins,  
+		 season_totals.losses,  
+		 season_totals.ties,  
+		 season_totals.year_rank as rank_in_season,  
+		 (case when season_totals.year_rank = 1 then 'Y'  
+		 	   else 'N'  
+		  end) as championship  
+	from (select pick_totals.season_id,  
+			   pick_totals.year,  
+			   pick_totals.player_id,  
+			   pick_totals.player_name,  
+			   sum(pick_totals.wins) as wins,  
+			   sum(pick_totals.losses) as losses,  
+			   sum(pick_totals.ties) as ties,  
+			   rank() over (partition by year order by sum(pick_totals.wins) desc) as year_rank  
+		from (select pl.id as player_id,  
+			   		 pl.name as player_name,  
+			   		 s.id as season_id,  
+			   		 s.year as year,  
+			   		 w.id as week_id,  
+			   		 w.week_number as week_number,  
+			   		 w.label as week_label,  
+			   		 (case when p.team_id = g.winning_team_id  
+			   		       then 1  
+			   		       else 0  
+			   		  end) as wins,  
+			   		  (case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)  
+			   		  		then 1  
+			   		  		else 0  
+			   		   end) as losses,  
+			   		   (case when g.winning_team_id = -1  
+			   		         then 1  
+			   		         else 0  
+			   		    end) as ties  
+			 from pick p join game g on p.game_id = g.id  
+			 	  join player pl on p.player_id = pl.id  
+			 	  join week w on g.week_id = w.id  
+			 	  join season s on w.season_id = s.id  
+			 ) pick_totals  
+		group by season_id, year, pick_totals.player_id, pick_totals.player_name  
+		order by wins desc, losses asc, player_name asc) season_totals 
+	 */
+	
+	protected static final String SELECT_SEASON_RECORDS = "select pick_totals.season_id, " + 
+														  		 "pick_totals.year, " + 
+														  		 "pick_totals.player_id, " + 
+														  		 "pick_totals.player_name, " + 
+														  		 "sum(pick_totals.wins) as wins, " + 
+														  		 "sum(pick_totals.losses) as losses, " + 
+														  		 "sum(pick_totals.ties) as ties " + 
+														  "from (select pl.id as player_id, " + 
+														  			   "pl.name as player_name, " + 
+														  			   "s.id as season_id, " + 
+														  			   "s.year as year, " + 
+														  			   "w.id as week_id, " + 
+														  			   "w.week_number as week_number, " + 
+														  			   "w.label as week_label, " + 
+														  			   "(case when p.team_id = g.winning_team_id " + 
+														  			         "then 1 " + 
+														  			         "else 0 " + 
+														  			    "end) as wins, " + 
+														  			   "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+														  			   		 "then 1 " + 
+														  			   		 "else 0 " + 
+														  			   	"end) as losses, " + 
+														  			   "(case when g.winning_team_id = -1 " + 
+														  			   		 "then 1 " + 
+														  			   		 "else 0 " + 
+														  			    "end) as ties " + 
+														  	    "from pick p join game g on p.game_id = g.id " + 
+														  			 "join player pl on p.player_id = pl.id " + 
+														  			 "join week w on g.week_id = w.id " + 
+														  			 "join season s on w.season_id = s.id " + 
+														  	    " %s " +
+														  	") pick_totals " + 
+														  	"group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
+														  	"order by wins desc, losses asc, player_name asc ";
 	
 	/**
 	 * 
@@ -5162,6 +5248,13 @@ order by s.year asc, w.week asc, g.id asc;
 		return completedYears;
 	}
 	
+	public List<Championship> getAllChampionships(){
+		
+		List<Championship> allChampionships = getChampionships(null, null);
+		
+		return allChampionships;
+	}
+	
 	public List<Championship> getChampionships(List<String> years, List<String> players){
 		
 		//have to get all the records?
@@ -5872,6 +5965,121 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 		}
 		
 		return pickSplits;
+	}
+	
+	public List<SeasonRecordForPlayer> getSeasonRecords(List<String> years, List<String> players){
+		
+		List<SeasonRecordForPlayer> seasonRecords = new ArrayList<SeasonRecordForPlayer>();
+		
+		List<Championship> championships = getAllChampionships();
+		
+		Set<String> championshipKeys = new HashSet<String>();
+		
+		for (int index = 0; index < championships.size(); index++){
+			Championship championship = championships.get(index);
+			String year = championship.getSeason().getYear();
+			String player = championship.getPlayer().getName();
+			String key = year + "-" + player;
+			championshipKeys.add(key);
+		}
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			connection = getConnection();
+			
+			boolean addedWhere = false;
+			
+			String whereClause = "";
+			
+			boolean hasYears = Util.hasSomething(years);
+			if (hasYears){
+				if (addedWhere){
+					whereClause = whereClause + " and ";
+				}
+				else {
+					whereClause = whereClause + " where ";
+					addedWhere = true;
+				}
+				
+				String inParameterString = DatabaseUtil.createInClauseParameterString(years.size());
+				whereClause = whereClause + " s.year in " + inParameterString;
+			}
+			
+			boolean hasPlayers = Util.hasSomething(players);
+			if (hasPlayers){
+				if (addedWhere){
+					whereClause = whereClause + " and ";
+				}
+				else {
+					whereClause = whereClause + " where ";
+					addedWhere = true;
+				}
+				String inParameterString = DatabaseUtil.createInClauseParameterString(players.size());
+				whereClause = whereClause + " pl.name in " + inParameterString;
+			}
+			
+			String query = String.format(SELECT_SEASON_RECORDS, whereClause);
+			
+			statement = connection.prepareStatement(query);
+			int parameterIndex = 1;
+			
+			if (hasYears){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			if (hasPlayers){
+				for (int index = 0; index < players.size(); index++){
+					String player = players.get(index);
+					statement.setString(parameterIndex, player);
+					parameterIndex++;
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				SeasonRecordForPlayer seasonRecord = mapSeasonRecordForPlayer(results, championshipKeys);
+				seasonRecords.add(seasonRecord);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting season records!  years = " + years, e);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return seasonRecords;
+	}
+	
+	protected SeasonRecordForPlayer mapSeasonRecordForPlayer(ResultSet results, Set<String> championshipKeys) throws SQLException {
+		
+		int seasonId = results.getInt("season_id");
+		String year = results.getString("year");
+		Season season = new Season(seasonId, year);
+
+		int playerId = results.getInt("player_id");
+		String playerName = results.getString("player_name");
+		Player player = new Player(playerId, playerName);
+		
+		int wins = results.getInt("wins");
+		int losses = results.getInt("losses");
+		int ties = results.getInt("ties");
+		Record record = new Record(player, wins, losses, ties);
+		
+		String championshipKey = year + "-" + playerName;
+		boolean championship = championshipKeys.contains(championshipKey);
+		
+		SeasonRecordForPlayer seasonRecordForPlayer = new SeasonRecordForPlayer(player, season, record, championship);
+		
+		return seasonRecordForPlayer;
 	}
 	
 	protected void close(PreparedStatement statement, Connection connection){

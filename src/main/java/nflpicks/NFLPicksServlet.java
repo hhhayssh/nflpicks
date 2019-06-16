@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -30,6 +29,7 @@ import nflpicks.model.Team;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
+import nflpicks.model.stats.SeasonRecordForPlayer;
 import nflpicks.model.stats.WeekRecordForPlayer;
 import nflpicks.model.stats.WeekRecordForPlayers;
 import nflpicks.model.stats.WeekRecordsForPlayer;
@@ -499,18 +499,16 @@ public class NFLPicksServlet extends HttpServlet {
 				if (!PARAMETER_VALUE_ALL.equals(playersString)){
 					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
-
-				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
-				List<String> weeks = null;
-				if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
-				}
 				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
 				List<String> years = null; 
 				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
+				
+				List<SeasonRecordForPlayer> seasonRecords = dataService.getSeasonRecords(years, players);
+				
+				json = JSONUtil.seasonRecordsForPlayersToJSONString(seasonRecords);
 			}
 			else if (STAT_NAME_CHAMPIONS.equals(statName)){
 				

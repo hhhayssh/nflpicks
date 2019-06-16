@@ -19,6 +19,7 @@ import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
+import nflpicks.model.stats.SeasonRecordForPlayer;
 import nflpicks.model.stats.WeekRecord;
 import nflpicks.model.stats.WeekRecordForPlayer;
 import nflpicks.model.stats.WeekRecordForPlayers;
@@ -1348,10 +1349,83 @@ public class JSONUtil {
 		
 		return jsonObject;
 	}
+
+	/**
+	 * 
+	 * Converts the given list of season records into a json string.
+	 * 
+	 * @param games
+	 * @return
+	 */
+	public static String seasonRecordsForPlayersToJSONString(List<SeasonRecordForPlayer> seasonRecords){
+		
+		JSONArray jsonArray = seasonRecordsForPlayersToJSONArray(seasonRecords);
+		String json = jsonArray.toString();
+		
+		return json;
+	}
 	
+	/**
+	 * 
+	 * Converts the given list of season records into a json array.
+	 * 
+	 * @param pickSplits
+	 * @return
+	 */
+	public static JSONArray seasonRecordsForPlayersToJSONArray(List<SeasonRecordForPlayer> seasonRecords){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < seasonRecords.size(); index++){
+			SeasonRecordForPlayer seasonRecord = seasonRecords.get(index);
+			JSONObject jsonObject = seasonRecordForPlayerToJSONObject(seasonRecord);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
 	
+	/**
+	 * 
+	 * Converts the given season record for player to a json formatted string.
+	 * 
+	 * @param pickSplit
+	 * @return
+	 */
+	public static String seasonRecordForPlayerToJSONString(SeasonRecordForPlayer seasonRecord){
+		
+		JSONObject jsonObject = seasonRecordForPlayerToJSONObject(seasonRecord);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
 	
-	
+	/**
+	 * 
+	 * Converts the given season record for player to a json object.  Not much to it.
+	 * 
+	 * @param pickSplit
+	 * @return
+	 */
+	public static JSONObject seasonRecordForPlayerToJSONObject(SeasonRecordForPlayer seasonRecord){
+		
+		//Steps to do:
+		//	1. Just go through and copy all the values and convert
+		//	   the ones that are objects into json objects first.
+		
+		JSONObject jsonObject = new JSONObject();
+
+		JSONObject playerJSONObject = playerToJSONObject(seasonRecord.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_SEASON_RECORD_FOR_PLAYER_PLAYER, playerJSONObject);
+		JSONObject seasonJSONObject = seasonToJSONObject(seasonRecord.getSeason());
+		jsonObject.put(NFLPicksConstants.JSON_SEASON_RECORD_FOR_PLAYER_SEASON, seasonJSONObject);
+		JSONObject recordJSONObject = recordToJSONObject(seasonRecord.getRecord());
+		jsonObject.put(NFLPicksConstants.JSON_SEASON_RECORD_FOR_PLAYER_RECORD, recordJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_SEASON_RECORD_FOR_PLAYER_CHAMPIONSHIP, seasonRecord.getChampionship());
+		
+		return jsonObject;
+	}
 	
 	/**
 	 * 

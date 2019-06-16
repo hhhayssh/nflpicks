@@ -362,7 +362,6 @@ function getSelectedParameters(){
 	parameters.multiselectWeek = getMultiselectWeek();
 	parameters.multiselectTeam = getMultiselectTeam();
 	
-	
 	return parameters;
 }
 
@@ -508,6 +507,7 @@ function getSelectionCriteriaAndInitialize(){
 		var statNameOptions = [
 		                       {label: 'Champions', value: 'champions'},
 		                       {label: 'Championship Standings', value: 'championshipStandings'},
+		                       {label: 'Season standings', value: 'seasonStandings'},
 		                       {label: 'Week Standings', value: 'weekStandings'},
 		                       {label: 'Weeks Won Standings', value: 'weeksWonStandings'},
 		                       {label: 'Weeks Won By Week', value: 'weeksWonByWeek'},
@@ -530,91 +530,6 @@ function getSelectionCriteriaAndInitialize(){
 		NFL_PICKS_GLOBAL.initialWeek = 'all';
 		NFL_PICKS_GLOBAL.initialPlayer = 'all';
 		NFL_PICKS_GLOBAL.initialTeam = 'all';
-		NFL_PICKS_GLOBAL.initialStatName = 'champions';
-		
-		initializeView();
-	})
-	.fail(function() {
-	})
-	.always(function() {
-	});
-}
-
-function getSelectionCriteriaAndInitialize2(){
-	
-	//Steps to do:
-	//	1. Send the request to the server to get the selection criteria.
-	//	2. When it comes back, pull out the years, players, and teams
-	//	   and set the options for them in each select.
-	//	3. Set the initial values in the NFL_PICKS_GLOBAL variable.
-	//	4. Now that we have all the criteria and initial values, we can initialize the view.
-	
-	$.ajax({url: 'nflpicks?target=selectionCriteria',
-			contentType: 'application/json; charset=UTF-8'}
-	)
-	.done(function(data) {
-		var selectionCriteriaContainer = $.parseJSON(data);
-		
-		//add types here ... 
-		//these should all go in NFL_PICKS_GLOBAL
-		
-		//really they don't need to.  Instead of adding to selects here, we could just add to hidden
-		//containers and then it would work like before.
-		
-		var years = selectionCriteriaContainer.years;
-		//We want the "all" year option to be first.
-		var yearOptions = [{label: 'All', value: 'all'},
-		                   {label: 'Jurassic Period (2010-2015)', value: 'old'},
-		                   {label: 'First year (2016)', value: 'half-modern'},
-		                   {label: 'Modern Era (2017 - now)', value: 'modern'}];
-		for (var index = 0; index < years.length; index++){
-			var year = years[index];
-			yearOptions.push({label: year, value: year});
-		}
-		setOptionsInSelect('year', yearOptions);
-		
-		var players = selectionCriteriaContainer.players;
-		//We want the "all" player option to be the first one.
-		var playerOptions = [{id: 'selected-players', label: '', value: ''},
-		                     {label: 'Everybody', value: 'all'}];
-		for (var index = 0; index < players.length; index++){
-			var player = players[index];
-			playerOptions.push({id: normalizePlayerValue('player-' + player), label: player, value: player});
-		}
-		setOptionsInSelect('player', playerOptions);
-		hideSelectedPlayersOption();
-		
-		var teams = selectionCriteriaContainer.teams;
-		//Sort the teams in alphabetical order to make sure we show them in a consistent order.
-		teams.sort(function (teamA, teamB){
-			
-			if (teamA.abbreviation < teamB.abbreviation){
-				return -1;
-			}
-			else if (teamA.abbreviation > teamB.abbreviation){
-				return 1;
-			}
-			
-			return 0;
-		});
-		//We also want the "all" option to be first.
-		var teamOptions = [{label: 'All', value: 'all'}];
-		for (var index = 0; index < teams.length; index++){
-			var team = teams[index];
-			teamOptions.push({label: team.abbreviation, value: team.abbreviation});
-		}
-		setOptionsInSelect('team', teamOptions);
-
-		//The current year and week come from the server.
-		NFL_PICKS_GLOBAL.currentYear = selectionCriteriaContainer.currentYear;
-		NFL_PICKS_GLOBAL.currentWeekNumber = selectionCriteriaContainer.currentWeekNumber;
-		//Initially, we want to see the standings for the current year for everybody, so set those
-		//as the initial types.
-		NFL_PICKS_GLOBAL.initialType = 'standings';
-		NFL_PICKS_GLOBAL.initialYear = NFL_PICKS_GLOBAL.currentYear;
-		NFL_PICKS_GLOBAL.initialWeek = '1';
-		NFL_PICKS_GLOBAL.initialPlayer = 'all';
-		NFL_PICKS_GLOBAL.initialTeam = 'BUF';
 		NFL_PICKS_GLOBAL.initialStatName = 'champions';
 		
 		initializeView();
@@ -840,7 +755,6 @@ function updateSelectors(type){
 	else if ('stats' == type){
 		updateStatsSelectors(type);
 	}
-	
 }
 
 /**
@@ -1920,6 +1834,12 @@ function updateStats(){
 		else if ('championshipStandings' == statName){
 			var championships = $.parseJSON(data);
 			statsHtml = createChampionshipStandingsHtml(championships);
+		}
+		else if ('seasonStandings' == statName){
+			console.log('data...');
+			console.log(data);
+			var seasonRecords = $.parseJSON(data);
+			statsHtml = createSeasonStandingsHtml(seasonRecords);
 		}
 		else if ('weeksWonStandings' == statName){
 			var weekRecords = $.parseJSON(data);
@@ -5721,6 +5641,12 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 	//	3. Make a row in the standings for each person and their titles.
 	//	4. That's it.
 	
+	var yearHeader = '<th class="standings-table-header">Year</th>';
+	var yearSelected = isSpecificYearSelected();
+	if (yearSelected){
+		yearHeader = '';
+	}
+	
 	var championshipsStandingsHeaderHtml = '<thead class="standings-table-head">' +
 										  	'<tr class="standings-table-row">' +
 										  		'<th class="standings-table-player-header"></th>' +
@@ -5826,6 +5752,191 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 	var championshipsStandingsHtml = '<table class="standings-table">' + championshipsStandingsHeaderHtml + championshipsStandingsBodyHtml + '</table';
 	
 	return championshipsStandingsHtml;
+}
+
+
+/**
+ * 
+ * This one will create the html for and ranking each seaons's records.  It doesn't
+ * expect the given array to be sorted.  Each entry in the array will be seasons each
+ * person has had and their record in those seasons.
+ * 
+ * @param playerChampionshipsList
+ * @returns
+ */
+function createSeasonStandingsHtml(seasonRecords){
+	
+	//Steps to do:
+	//	1. Make the header.
+	//	2. Make sure they're in the right order by who has the most titles.
+	//	3. Make a row in the standings for each person and their titles.
+	//	4. That's it.
+	
+	var standingsHtml = '';
+	
+	var isYearSelected = isSpecificYearSelected();
+	var yearHeader = '';
+	if (!isYearSelected){
+		yearHeader = '<th class="standings-table-header">Year</th>';
+	}
+	
+	var areThereAnyTies = false;
+	for (var index = 0; index < seasonRecords.length; index++){
+		var seasonRecord = seasonRecords[index];
+		
+		if (seasonRecord.record.ties > 0){
+			areThereAnyTies = true;
+			break;
+		}
+	}
+	
+	var tiesHeader = '';
+	if (areThereAnyTies){
+		tiesHeader = '<th class="standings-table-header-small">T</th>';
+	}
+	
+	var standingsHeaderHtml = '<thead class="standings-table-head">' +
+						 			'<th class="standings-table-player-header"></th>' +
+						 			yearHeader + 
+						 			'<th class="standings-table-header-small">W</th>' + 
+						 			'<th class="standings-table-header-small">L</th>' +
+						 			tiesHeader + 
+						 			'<th class="standings-table-header-small">%</th>' + 
+						 			'<th class="standings-table-header"></th>' + 
+						 	   '</thead>';
+	
+	if (seasonRecords.length == 0){
+		var noResultsTable = '<table class="standings-table">' + 
+								standingsHeaderHtml +
+								'<tbody class="standings-table-body">' +
+							 		'<tr class="standings-table-row">' + 
+							 			'<td colspan="8" style="text-align: center;">No results</td>' + 
+									'</tr>' + 
+								'</tbody>' + 
+							'</table>';
+		
+		return noResultsTable;
+	}
+
+	//The steps for calculating the rank:
+	//	1. Have three variables: rank, nextRank, and tieIndependentRank.
+	//	2. rank holds the rank of the current record we're on.  
+	//	3. nextRank holds what the rank should be the next time we go through
+	//	   the loop.
+	//	4. tieIndependentRank holds the rank independent of ties.  Basically what it would be if
+	//	   there were no ties (the position of the record in the array, starting at 1).
+	//	5. Start the nextRank at 1 because that's what the rank of the next record we see will be.
+	//	6. Start going through the records.
+	//	7. Assign the nextRank that we calculated to the rank so that we use it for this record.
+	//	8. Calculate the nextRank:
+	//		1. If there's a next record and it has the same number of wins and losses as this one, then
+	//		   the nextRank will be same as the current rank because there's a tie.
+	//		2. Otherwise, it'll be whatever "tieIndepdentedRank" we have.  That's because we'll
+	//		   want to basically pick up where we left off before the ties started.
+	
+	var rank = null;
+	var nextRank = 1;
+	var nextRecord = null;
+	var previousRank = null;
+	
+	var rowsHtml = '';
+	
+	for (var index = 0; index < seasonRecords.length; index++){
+		var seasonRecord = seasonRecords[index];
+		
+		//This is the position of the record independent of whether there are ties.  Just the "raw" position if we
+		//started counting at 1.  It will be the same as the rank if there aren't any ties.
+		var tieIndependentRank = index + 1;
+		//Set the rank to what we calculated it should be the previous time through the loop.
+		rank = nextRank;
+		
+		//Now, need to calculate what it will be the next time.
+		//If the next record has the same number of wins and losses, then it'll be the same as now because they're
+		//tied.
+		//Otherwise, if the next record doesn't, the next rank will be whatever this one's would have
+		//been without ties + 1.  If there weren't any ties, then this record's rank would be the "tieIndependentRank".
+		//So, that means the next rank would be that + 1.
+		nextRecord = null;
+		if (index + 1 < seasonRecords.length){
+			nextRecord = seasonRecords[index + 1];
+			
+			if (seasonRecord.record.wins == nextRecord.record.wins && seasonRecord.record.losses == nextRecord.record.losses){
+				//rank stays the same.
+			}
+			else {
+				//current rank would be index + 1.  We want to be one beyond that.
+				nextRank = tieIndependentRank + 1;
+			}
+		}
+		
+		//Now, we have the rank and next rank so we need to figure out if we need to put a little 't' to indicate
+		//there was a tie.
+		//There's a tie if:
+		//	1. It's the same as the next rank and we're not at the end.
+		//	2. The rank is the same as the previous rank.
+		//
+		//Number 1 should be pretty straight forward.  If this rank is the same as the next one, it's in a tie.
+		//Number 2 is there for the last tie in a series of ties.  The last tie will have a "nextRank" that's different from
+		//what it is, but we'll still want to show a tie for it.  So, in that case, we can just look to see if it's the same
+		//as the previous rank and, if it is, we know there's a tie.
+		var rankText = rank + '';
+		if ((nextRank == rank && index + 1 < seasonRecords.length) || (rank == previousRank)){
+			rankText = rankText + 't';
+		}
+		
+		//Add in the year and week if they weren't selected.
+		var yearCell = '';
+		if (!isYearSelected){
+			yearCell = '<td class="standings-table-cell">' + seasonRecord.season.year + '</td>';
+		}
+		
+		var tiesCell = '';
+		if (areThereAnyTies){
+			tiesCell = '<td class="standings-table-cell-small">' + seasonRecord.record.ties + '</td>';
+		}
+		
+		var percentageString = getWinningPercentage(seasonRecord.record.wins, seasonRecord.record.losses);
+		
+		/*
+		 var standingsHeaderHtml = '<thead class="standings-table-head">' +
+						 			'<th class="standings-table-player-header"></th>' +
+						 			yearHeader + 
+						 			'<th class="standings-table-header-small">W</th>' + 
+						 			'<th class="standings-table-header-small">L</th>' +
+						 			tiesHeader + 
+						 			'<th class="standings-table-header-small">%</th>' + 
+						 			'<th class="standings-table-header">Rank In Season</th>' +
+						 			'<th class="standings-table-header">Championship</th>' + 
+						 	   '</thead>';
+		 */
+		
+		var championship = '<td></td>';
+		if (seasonRecord.championship){
+			championship = '<td><img src="files/wwf-belt-icon.png" width="32" height="15" title="Won Championship"/></td>';
+		}
+		
+		rowsHtml = rowsHtml + 
+					   '<tr class="standings-table-row">' +
+						'<td class="standings-table-player-cell">' + rankText + '. ' + seasonRecord.player.name + '</td>' +
+						yearCell +
+						'<td class="standings-table-cell-small">' + seasonRecord.record.wins + '</td>' +
+						'<td class="standings-table-cell-small">' + seasonRecord.record.losses + '</td>' +
+						tiesCell + 
+						'<td class="standings-table-cell-small">' + percentageString + '</td>' + 
+						'<td class="standings-table-cell-small">' + championship + '</td>';
+		
+		rowsHtml = rowsHtml + '</tr>';
+		
+		//Keep the current rank as the previous for the next time through.
+		previousRank = rank;
+		
+	}
+	
+	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
+	
+	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
+	
+	return standingsHtml;
 }
 
 /**

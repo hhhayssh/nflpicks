@@ -107,6 +107,8 @@ public class DatabaseUtil {
 	 * This function will create a string like "(?, ?, ?, ?, ...)"
 	 * that can be used as part of an "in" clause in an sql query.
 	 * 
+	 * It will include the opening and closing parentheses.
+	 * 
 	 * @param numberOfValues
 	 * @return
 	 */

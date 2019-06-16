@@ -180,6 +180,12 @@ public interface NFLPicksConstants {
 	public static final String JSON_PICK_SPLIT_HOME_TEAM_PLAYERS = "homeTeamPlayers";
 	public static final String JSON_PICK_SPLIT_AWAY_TEAM_PLAYERS = "awayTeamPlayers";
 	
+	
+	public static final String JSON_SEASON_RECORD_FOR_PLAYER_PLAYER = "player";
+	public static final String JSON_SEASON_RECORD_FOR_PLAYER_SEASON = "season";
+	public static final String JSON_SEASON_RECORD_FOR_PLAYER_RECORD = "record";
+	public static final String JSON_SEASON_RECORD_FOR_PLAYER_CHAMPIONSHIP = "championship";
+	
 	/**
 	 * 
 	 * Says we're doing an import of picks with the data manager.
