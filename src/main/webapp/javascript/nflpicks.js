@@ -908,7 +908,7 @@ function updateStatsSelectors(type){
 	else if ('weeksWonStandings' == statName){
 		showPlayersLink();
 		showYearsLink();
-		hideWeeksLink();
+		showWeeksLink();
 		hideTeamsLink();
 	}
 	else if ('weeksWonByWeek' == statName){
@@ -4912,7 +4912,7 @@ function createWeeksWonHtml(weekRecords){
 		//so we'll want to show the year alongside the week.
 		var selectedYear = getSelectedYear();
 		var showYear = false;
-		if ('all' == selectedYear){
+		if (!isSpecificYearSelected()){
 			showYear = true;
 		}
 		

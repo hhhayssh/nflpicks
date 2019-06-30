@@ -2587,6 +2587,9 @@ public class NFLPicksDataService {
 			if (results.next()){
 				currentWeek = mapWeek(results);
 			}
+			else {
+				currentWeek = getWeek(currentYear, 1);
+			}
 		}
 		catch (Exception e){
 			log.error("Error getting week! currentYear = " + currentYear, e);
@@ -2795,6 +2798,11 @@ where g.week_id in (select w.id
 			while (results.next()){
 				Game game = mapGame(results);
 				games.add(game);
+			}
+			
+			if (games.size() == 0){
+				String currentYear = getCurrentYear();
+				games = getGames(currentYear, 1);
 			}
 		}
 		catch (Exception e){
@@ -3792,7 +3800,7 @@ where g.week_id in (select w.id
 						   								  					"from week " + 
 						   								  					"where season_id in (select id " + 
 						   								  										"from season " + 
-						   								  										"where year in (" + DatabaseUtil.createInClauseParameterString(years.size()) + ")))))";
+						   								  										"where year in " + DatabaseUtil.createInClauseParameterString(years.size()) + "))))";
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
 			
@@ -5208,7 +5216,14 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 	}
 	
-	public List<String> getCompletedYears(){
+	public List<String> getAllCompletedYears(){
+		
+		List<String> completedYears = getCompletedYears(null);
+		
+		return completedYears;
+	}
+	
+	public List<String> getCompletedYears(List<String> years){
 		
 		List<String> completedYears = new ArrayList<String>();
 		
@@ -5228,7 +5243,23 @@ order by s.year asc, w.week asc, g.id asc;
 						   				  	    			 "from game g " + 
 						   				  	    			 "where g.winning_team_id is not null)) ";
 			
+			boolean addedYears = false;
+			
+			if (years != null && years.size() > 0){
+				String yearInParameterString = DatabaseUtil.createInClauseParameterString(years.size());
+				query = query + " and s.year in " + yearInParameterString;
+				addedYears = true;
+			}
+			
 			statement = connection.prepareStatement(query);
+			
+			if (addedYears){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					int parameterIndex = index + 1;
+					statement.setString(parameterIndex, year);
+				}
+			}
 			
 			results = statement.executeQuery();
 			
@@ -5276,12 +5307,23 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			String recordsForYearCriteria = "";
 			
-			if (years == null || years.size() == 0){
-				years = getCompletedYears();
+			List<String> allCompletedYears = getAllCompletedYears();
+			
+			List<String> yearsToUse = new ArrayList<String>();
+			
+			for (int index = 0; index < years.size(); index++){
+				String year = years.get(index);
+				if (allCompletedYears.contains(year)){
+					yearsToUse.add(year);
+				}
 			}
 			
-			if (years != null && years.size() > 0){
-				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(years.size());
+			if (years != null && years.size() > 0 && yearsToUse.size() == 0){
+				return championships;
+			}
+			
+			if (yearsToUse != null && yearsToUse.size() > 0){
+				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(yearsToUse.size());
 			}
 			
 			if (players != null && players.size() > 0){
@@ -5304,9 +5346,9 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			int parameterIndex = 1;
 			
-			if (years != null && years.size() > 0){
-				for (int index = 0; index < years.size(); index++){
-					String year = years.get(index);
+			if (yearsToUse != null && yearsToUse.size() > 0){
+				for (int index = 0; index < yearsToUse.size(); index++){
+					String year = yearsToUse.get(index);
 					statement.setString(parameterIndex, year);
 					parameterIndex++;
 				}
