@@ -5311,14 +5311,19 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			List<String> yearsToUse = new ArrayList<String>();
 			
-			for (int index = 0; index < years.size(); index++){
-				String year = years.get(index);
-				if (allCompletedYears.contains(year)){
-					yearsToUse.add(year);
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					if (allCompletedYears.contains(year)){
+						yearsToUse.add(year);
+					}
 				}
 			}
+			else {
+				yearsToUse = allCompletedYears;
+			}
 			
-			if (years != null && years.size() > 0 && yearsToUse.size() == 0){
+			if (yearsToUse.size() == 0){
 				return championships;
 			}
 			
