@@ -440,7 +440,7 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayers> weekRecordForPlayersList = dataService.getWeekRecordForPlayers(years, weeks, players, true);
+				List<WeekRecordForPlayers> weekRecordForPlayersList = dataService.getWeeksWonByWeek(years, weeks, players, true);
 				
 				json = JSONUtil.weekRecordForPlayersListToJSONString(weekRecordForPlayersList);
 			}
@@ -488,7 +488,7 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> bestWeeks = dataService.getWeekRecordForPlayer(years, weeks, players);
+				List<WeekRecordForPlayer> bestWeeks = dataService.getWeekStandings(years, weeks, players);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(bestWeeks);
 			}
@@ -524,7 +524,6 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				//this should bring back an empty list when the players don't have championships....
 				List<Championship> championships = dataService.getChampionships(years, players);
 				
 				json = JSONUtil.championshipsToJSONString(championships);

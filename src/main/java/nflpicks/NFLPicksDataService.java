@@ -136,7 +136,6 @@ public class NFLPicksDataService {
 												  "where id = ? ";
 	
 	//Statements for dealing with the week table.
-	//TODO: change week to week_number
 	protected static final String SELECT_WEEK = "select id, " +
 												"season_id, " +
 												"week_number, " + 
@@ -183,7 +182,7 @@ public class NFLPicksDataService {
 												"team_id = ? " +
 												"where id = ? ";
 	
-	//Statments for dealing with the people... still don't quite like that people have ids.
+	//Statements for dealing with the people... still don't quite like that people have ids.
 	protected static final String SELECT_PLAYER = "select id, name from player ";
 	
 	protected static final String INSERT_PLAYER = "insert into player (name) values (?) ";
@@ -437,54 +436,12 @@ public class NFLPicksDataService {
 															    "group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
 															    "order by year asc, wins desc, player_id ";
 	
-	/*
-	 select season_totals.season_id,  
-		 season_totals.year,  
-		 season_totals.player_id,  
-		 season_totals.player_name,  
-		 season_totals.wins,  
-		 season_totals.losses,  
-		 season_totals.ties,  
-		 season_totals.year_rank as rank_in_season,  
-		 (case when season_totals.year_rank = 1 then 'Y'  
-		 	   else 'N'  
-		  end) as championship  
-	from (select pick_totals.season_id,  
-			   pick_totals.year,  
-			   pick_totals.player_id,  
-			   pick_totals.player_name,  
-			   sum(pick_totals.wins) as wins,  
-			   sum(pick_totals.losses) as losses,  
-			   sum(pick_totals.ties) as ties,  
-			   rank() over (partition by year order by sum(pick_totals.wins) desc) as year_rank  
-		from (select pl.id as player_id,  
-			   		 pl.name as player_name,  
-			   		 s.id as season_id,  
-			   		 s.year as year,  
-			   		 w.id as week_id,  
-			   		 w.week_number as week_number,  
-			   		 w.label as week_label,  
-			   		 (case when p.team_id = g.winning_team_id  
-			   		       then 1  
-			   		       else 0  
-			   		  end) as wins,  
-			   		  (case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)  
-			   		  		then 1  
-			   		  		else 0  
-			   		   end) as losses,  
-			   		   (case when g.winning_team_id = -1  
-			   		         then 1  
-			   		         else 0  
-			   		    end) as ties  
-			 from pick p join game g on p.game_id = g.id  
-			 	  join player pl on p.player_id = pl.id  
-			 	  join week w on g.week_id = w.id  
-			 	  join season s on w.season_id = s.id  
-			 ) pick_totals  
-		group by season_id, year, pick_totals.player_id, pick_totals.player_name  
-		order by wins desc, losses asc, player_name asc) season_totals 
+	/**
+	 * 
+	 * This query will get the records for an entire season's worth of picks.  It'll order them by the total number of wins
+	 * and by player name if there's a tie in the wins and losses.
+	 * 
 	 */
-	
 	protected static final String SELECT_SEASON_RECORDS = "select pick_totals.season_id, " + 
 														  		 "pick_totals.year, " + 
 														  		 "pick_totals.player_id, " + 
@@ -737,26 +694,14 @@ public class NFLPicksDataService {
 															     //for a player's picks for a particular team.
 															     "group by player_id, player_name, team_id, team_city, team_nickname, team_abbreviation, division_id ";
 	
-	/*
-	 select s.year,
-	 		w.week_number as week_number,
-	 		w.label as week_label,
-	 		g.id as game_id,
-	 		g.winning_team_id as winning_team_id
-	 		home_team.abbreviation as home_team,
-	 		away_team.abbreviation as away_team,
-	 		winning_team.abbreviation as winning_team,
-	 		pl.id as player_id,
-	 		pl.name as player,
-	 		pick_team.abbreviation as pick_team
-	 from pick p join game g on p.game_id = g.id
-	 	  join week w on g.week_id = w.id
-	 	  join season s on w.season_id = s.id
-	 	  join player pl on p.player_id = pl.id
-	 	  join team home_team on g.home_team_id = home_team.id
-	 	  join team away_team on g.away_team_id = away_team.id
-	 	  left outer join team winning_team on g.winning_team_id = winning_team.id
-	 	  left outer join team pick_team on p.team_id = pick_team.id;
+	/**
+	 * 
+	 * This query will get the "pick splits" so that we can see which people picked which teams 
+	 * and then show the splits.  The grouping will be done by the function that runs the query because I
+	 * didn't want to do some "listagg" thing that might link it to some specific function in the database
+	 * that might not work in another type of database, so that's why the grouping is done in java instead
+	 * of in the query.
+	 * 
 	 */
 	protected static final String SELECT_PICK_SPLIT_BASE = "select s.year as year, " + 
 																  "w.week_number as week_number, " +
@@ -779,23 +724,18 @@ public class NFLPicksDataService {
 														  	   "left outer join team pick_team on p.team_id = pick_team.id ";
 	
 	/**
-	 //year, week, home team abbreviation, away team abbreviation, winning team abbreviation, player name, pick
-	 select s.year,
-	 		w.week,
-	 		home_t.abbreviation,
-	 		away_t.abbreviation,
-	 		winning_t.abbreviation,
-	 		pl.name,
-	 		pick_t.abbreviation
-	 from pick p join game g on p.game_id = g.id
-	 	  join week w on g.week_id = w.id
-	 	  join season s on w.season_id = s.id
-	 	  join player pl on p.player_id = pl.id
-	 	  join team home_t on g.home_team_id = home_t.id
-	 	  join team away_t on g.away_team_id = away_t.id
-	 	  left outer join team winning_t on g.winning_team_id = winning_t.id;
-	 
+	 * 
+	 * The "base" select (without the "from") for getting "compact" picks out.
+	 * 
 	 */
+	protected static final String SELECT_COMPACT_PICK_BASE = "select s.year as year, " + 
+																	"w.week_number as week_number, " +
+																	"w.label as week_label, " +
+																	"home_team.abbreviation as home_team_abbreviation, " + 
+																	"away_team.abbreviation as away_team_abbreviation, " +
+																	"(case when g.winning_team_id = -1 then 'TIE' " +
+																		  "else winning_team.abbreviation " +
+																    "end) as winning_team_abbreviation ";
 	
 	/**
 	 * 
@@ -986,7 +926,26 @@ public class NFLPicksDataService {
 		return conference;
 	}
 	
+	/**
+	 * 
+	 * This function will save the given conference to the database.  If it has an id,
+	 * it'll do an update.  If it doesn't, it'll do an insert.
+	 * 
+	 * The conference's name is expected to be unique, so it'll use that to get the conference
+	 * out after it's saved and return the conference it finds.
+	 * 
+	 * It will return a "shallow" version of the conference.
+	 * 
+	 * @param conference
+	 * @return
+	 */
 	public Conference saveConference(Conference conference){
+		
+		//Steps to do:
+		//	1. Pull out the id.
+		//	2. If it's not a real id, to an insert.
+		//	3. Otherwise, do an update.
+		//	4. After it's saved, get the conference out by its name.
 		
 		int id = conference.getId();
 		
@@ -1008,6 +967,14 @@ public class NFLPicksDataService {
 		return savedConference;
 	}
 	
+	/**
+	 * 
+	 * Does a "shallow" insert of the given conference.  Not much to it.
+	 * Doesn't insert the divisions or teams in the conference.
+	 * 
+	 * @param conference
+	 * @return
+	 */
 	protected int insertConference(Conference conference){
 		
 		int numberOfAffectedRows = 0;
@@ -1040,6 +1007,14 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * Updates the conference record for the given conference using its id.
+	 * Not much to it.
+	 * 
+	 * @param conference
+	 * @return
+	 */
 	protected int updateConference(Conference conference){
 		
 		int numberOfAffectedRows = 0;
@@ -1359,6 +1334,14 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * Updates the record in the division table for the division with the given division's
+	 * id. ... division.
+	 * 
+	 * @param division
+	 * @return
+	 */
 	protected int updateDivision(Division division){
 		
 		int numberOfAffectedRows = 0;
@@ -1762,6 +1745,13 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * Updates the given team in the team table using its id.  Not much to it.
+	 * 
+	 * @param team
+	 * @return
+	 */
 	protected int updateTeam(Team team){
 		
 		int numberOfAffectedRows = 0;
@@ -2043,13 +2033,32 @@ public class NFLPicksDataService {
 		return currentYear;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the weeks for all the seasons and all the
+	 * games in those weeks.
+	 * 
+	 * @return
+	 */
 	public List<Week> getWeeks(){
+		
+		//Steps to do:
+		//	1. Call the function that does the work with the arguments that will
+		//	   make it get everything.
 		
 		List<Week> weeks = getWeeks(null, null, false);
 		
 		return weeks;
 	}
 	
+	/**
+	 * 
+	 * This function gets all the weeks for the given year.  Not much to it.
+	 * It does a full retrieval of those weeks and gets the games too.
+	 * 
+	 * @param year
+	 * @return
+	 */
 	public List<Week> getWeeks(String year){
 		
 		List<String> years = new ArrayList<String>();
@@ -2060,6 +2069,15 @@ public class NFLPicksDataService {
 		return weeks;
 	}
 	
+	/**
+	 * 
+	 * This function will get the weeks in the given years with the given numbers.  It does
+	 * a "full" retrieval of the weeks it finds, getting their games too.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @return
+	 */
 	public List<Week> getWeeks(List<String> years, List<String> weekNumbers){
 	
 		List<Week> weeks = getWeeks(years, weekNumbers, false);
@@ -2067,7 +2085,25 @@ public class NFLPicksDataService {
 		return weeks;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the weeks for the given years and weeks.  If shallow is true, it'll
+	 * just get the actual week records.  If it's false, it'll get the games in the weeks too.
+	 * 
+	 * If either years or weeks is null, it'll just ignore that and get them all.  So, like if years are
+	 * given, but weeks is null, it'll get all of the weeks for the given years.  If weeks are given but
+	 * years are null, it'll get those specific weeks for all years.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param shallow
+	 * @return
+	 */
 	public List<Week> getWeeks(List<String> years, List<String> weekNumbers, boolean shallow){
+		
+		//Steps to do:
+		//	1. Just take the query and add in the years and weeks stuff if we were given
+		//	   years and weeks.
 		
 		List<Week> weeks = new ArrayList<Week>();
 		
@@ -2082,6 +2118,7 @@ public class NFLPicksDataService {
 			
 			boolean addedWhere = false;
 			
+			//Add in years if we have them.
 			if (years != null && years.size() > 0){
 				if (!addedWhere){
 					 stringBuilder.append(" where ");
@@ -2100,6 +2137,7 @@ public class NFLPicksDataService {
 							 .append(")");
 			}
 			
+			//And add in weeks too.
 			if (weekNumberIntegers != null && weekNumberIntegers.size() > 0){
 				if (!addedWhere){
 					 stringBuilder.append(" where ");
@@ -2157,7 +2195,19 @@ public class NFLPicksDataService {
 		return weeks;
 	}
 	
+	/**
+	 * 
+	 * This function will get the weeks in the season with the given id.  It will
+	 * do a "full" retrieve of those weeks and include the games too.
+	 * 
+	 * @param seasonId
+	 * @return
+	 */
 	public List<Week> getWeeks(int seasonId){
+		
+		//Steps to do:
+		//	1. Run the query.
+		//	2. Send back the results.
 		
 		List<Week> weeks = new ArrayList<Week>();
 		
@@ -2189,7 +2239,19 @@ public class NFLPicksDataService {
 		return weeks;
 	}
 	
+	/**
+	 * 
+	 * This function will get the week with the given id.  It will do a full retrieval
+	 * of the week and include the games in it too.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public Week getWeek(int id){
+		
+		//Steps to do:
+		//	1. Run the query.
+		//	2. Return the results.
 		
 		Week week = null;
 		
@@ -2220,7 +2282,26 @@ public class NFLPicksDataService {
 		return week;
 	}
 	
+	/**
+	 * 
+	 * This function will save the given season to the database.  It will do a "shallow"
+	 * save and just save the season record.  It won't save the weeks in the season.
+	 * 
+	 * It expects the year for a season to be unique so, after it saves the season, it will
+	 * get out what was saved using the season's year and return that result.
+	 * 
+	 * If the season has an id, it'll do an update.  If it doesn't, it'll do an insert.
+	 * 
+	 * @param season
+	 * @return
+	 */
 	public Season saveSeason(Season season){
+		
+		//Steps to do:
+		//	1. If the season doesn't have a real id, do an insert.
+		//	2. Otherwise, do an update.
+		//	3. Pull out the season that was saved by its year.
+		
 		
 		int id = season.getId();
 		
@@ -2242,6 +2323,13 @@ public class NFLPicksDataService {
 		return savedSeason;
 	}
 	
+	/**
+	 * 
+	 * This function will insert the season into the season table.  Not much to it.
+	 * 
+	 * @param season
+	 * @return
+	 */
 	protected int insertSeason(Season season){
 		int numberOfAffectedRows = 0;
 		
@@ -2269,6 +2357,13 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will update the given season in the season table.  .ti ot hcum toN
+	 * 
+	 * @param season
+	 * @return
+	 */
 	protected int updateSeason(Season season){
 		
 		int numberOfAffectedRows = 0;
@@ -2298,7 +2393,24 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will save the given player in the database.  If they have an id,
+	 * it'll update them.  If they don't, it'll do an insert.
+	 * 
+	 * It expects the player's name to be unique, so it will get them out by their name
+	 * after it's saved them.
+	 * 
+	 * @param player
+	 * @return
+	 */
 	public Player savePlayer(Player player){
+		
+		//Steps to do:
+		//	1. Pull out their id.
+		//	2. If they don't have one, insert them.
+		//	3. Otherwise, update them.
+		//	4. Pull out what was saved using their name.
 		
 		int id = player.getId();
 		
@@ -2320,6 +2432,14 @@ public class NFLPicksDataService {
 		return savedPlayer;
 	}
 	
+	/**
+	 * 
+	 * This function will insert the given player in the database.
+	 * Not much to it.
+	 * 
+	 * @param player
+	 * @return
+	 */
 	protected int insertPlayer(Player player){
 		int numberOfAffectedRows = 0;
 		
@@ -2347,6 +2467,13 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will update the given player in the database.  Not much to it.
+	 * 
+	 * @param player
+	 * @return
+	 */
 	protected int updatePlayer(Player player){
 		
 		int numberOfAffectedRows = 0;
@@ -2376,7 +2503,22 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will save the given week in the database.  If the week
+	 * doesn't have an id, it'll do an insert.  If it does, it'll do an update.
+	 * 
+	 * It'll pull what it saved out of the database using the given week's season id
+	 * and week number (that combination should be unique).
+	 * 
+	 * @param week
+	 * @return
+	 */
 	public Week saveWeek(Week week){
+		
+		//Steps to do:
+		//	1. If it doesn't have an id, do an insert.
+		//	2. If it does, do an update.
 		
 		int id = week.getId();
 		
@@ -2398,6 +2540,13 @@ public class NFLPicksDataService {
 		return savedWeek;
 	}
 	
+	/**
+	 * 
+	 * This function will insert the given week into the database.  Not much to it.
+	 * 
+	 * @param week
+	 * @return
+	 */
 	protected int insertWeek(Week week){
 		int numberOfAffectedRows = 0;
 		
@@ -2427,6 +2576,13 @@ public class NFLPicksDataService {
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will update the given week in the database.
+	 * 
+	 * @param week
+	 * @return
+	 */
 	protected int updateWeek(Week week){
 		
 		int numberOfAffectedRows = 0;
@@ -2459,6 +2615,17 @@ public class NFLPicksDataService {
 		
 	}
 	
+	/**
+	 * 
+	 * This function will get the week in the given season with the given week number.
+	 * That combination should be unique.
+	 * 
+	 * It'll do a full retrieval of the week, so it'll include the games too.
+	 * 
+	 * @param seasonId
+	 * @param weekNumber
+	 * @return
+	 */
 	public Week getWeek(int seasonId, int weekNumber){
 		
 		Week retrievedWeek = null;
@@ -2492,6 +2659,15 @@ public class NFLPicksDataService {
 		return retrievedWeek;
 	}
 	
+	/**
+	 * 
+	 * This function will get the week in the given year with the given week number.
+	 * It'll do a full retrieval of the week and include the games in it.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	public Week getWeek(String year, String weekNumber){
 		
 		int weekNumberInt = Integer.parseInt(weekNumber);
@@ -2501,7 +2677,20 @@ public class NFLPicksDataService {
 		return weekObject;
 	}
 	
+	/**
+	 * 
+	 * This function will get the week in the given year with the given number.
+	 * It will do a full retrieval of the week, so it'll include the games too.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	public Week getWeek(String year, int weekNumber){
+		
+		//Steps to do:
+		//	1. Make the query.
+		//	2. Return the results.
 		
 		Week retrievedWeek = null;
 		
@@ -2536,6 +2725,14 @@ public class NFLPicksDataService {
 		return retrievedWeek;
 	}
 	
+	/**
+	 * 
+	 * This function will get the current week number that we're on based on the picks
+	 * that have been filled in.  The current week number is basically defined as
+	 * the biggest week number with results for the current season.
+	 * 
+	 * @return
+	 */
 	public int getCurrentWeekNumber(){
 		
 		Week currentWeek = getCurrentWeek();
@@ -2545,6 +2742,14 @@ public class NFLPicksDataService {
 		return currentWeekNumber;
 	}
 	
+	/**
+	 * 
+	 * This function will get the "next" week number.  This is basically defined as:
+	 * the current week number plus 1.  If that's greater than week 21 (the superbowl),
+	 * then it stays as week 21.
+	 * 
+	 * @return
+	 */
 	public int getNextWeekNumber(){
 		
 		int currentWeekNumber = getCurrentWeekNumber();
@@ -2557,7 +2762,27 @@ public class NFLPicksDataService {
 		return nextWeekNumber;
 	}
 	
+	/**
+	 * 
+	 * This function will get the current week.  The current week is defined as:
+	 * 
+	 * 		The largest week in the current season which has results.
+	 * 
+	 * If there are no results for the current season, that means the current week is
+	 * number 1.
+	 * 
+	 * It will do a full retrieval for the week and include all the games in it.
+	 * 
+	 * @return
+	 */
 	public Week getCurrentWeek() {
+		
+		//Steps to do:
+		//	1. Get the current year.
+		//	2. Run the query to get the largest week with results in 
+		//	   the current year.
+		//	3. If we find something, that's the current week.
+		//	4. If we don't, that means it should be week 1 for the current year.
 		
 		String currentYear = getCurrentYear();
 		
@@ -2571,12 +2796,15 @@ public class NFLPicksDataService {
 			connection = getConnection();
 			
 			String query = SELECT_WEEK + 
+						   //The season should be in the current year.
 						   "where season_id in (select id " +
 						   					   "from season " +
 						   					   "where year = ? ) " +
+						   		 //There should be results for the week.
 						   		 "and id in (select g.week_id " + 
 				   		 			  		"from game g " + 
 				   		 			  		"where g.winning_team_id is not null) " +
+				   		   //And we want the largest week that fits the bill.
 						   "order by week_number desc " +
 				   		   "offset 0 limit 1 ";
 
@@ -2587,6 +2815,7 @@ public class NFLPicksDataService {
 			if (results.next()){
 				currentWeek = mapWeek(results);
 			}
+			//If we don't find a week that has results, that means we're on week number 1.
 			else {
 				currentWeek = getWeek(currentYear, 1);
 			}
@@ -2602,6 +2831,16 @@ public class NFLPicksDataService {
 		return currentWeek;
 	}
 	
+	/**
+	 * 
+	 * This function will map the result that should be from the "week" table into an
+	 * object.  It'll do a "full" mapping, which means it will get the games in the week
+	 * too.
+	 * 
+	 * @param result
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Week mapWeek(ResultSet result) throws SQLException {
 		
 		Week week = mapWeek(result, false);
@@ -2609,6 +2848,17 @@ public class NFLPicksDataService {
 		return week;
 	}
 	
+	/**
+	 * 
+	 * This function will map the week for the given result (it should match up with the columns
+	 * from the week table).  If shallow is true, that's all it'll do.  If it's false, it'll get and map
+	 * the games in the week too.
+	 * 
+	 * @param result
+	 * @param shallow
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Week mapWeek(ResultSet result, boolean shallow) throws SQLException {
 		
 		Week week = new Week();
@@ -2627,6 +2877,14 @@ public class NFLPicksDataService {
 		return week;
 	}
 	
+	/**
+	 * 
+	 * This function will get the games for the week with the given id.  It will do a "full" retrieval
+	 * of the games, so it'll include the teams too.
+	 * 
+	 * @param weekId
+	 * @return
+	 */
 	public List<Game> getGames(int weekId){
 		
 		List<Game> games = new ArrayList<Game>();
@@ -2659,6 +2917,13 @@ public class NFLPicksDataService {
 		return games;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the games that we have for all seasons and weeks.
+	 * It will do a "full" retrieval on the games.
+	 * 
+	 * @return
+	 */
 	public List<Game> getGames(){
 		
 		List<Game> games = new ArrayList<Game>();
@@ -2688,6 +2953,16 @@ public class NFLPicksDataService {
 		return games;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the games in the given year and week.  It'll
+	 * do a full retrieval on the games and order them by their id (so that the earliest
+	 * ones should come first).
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	public List<Game> getGames(String year, int weekNumber){
 		
 		List<Game> games = new ArrayList<Game>();
@@ -2727,32 +3002,31 @@ public class NFLPicksDataService {
 		return games;
 	}
 	
-	/*
-	 
-	 select *
-from game g
-where g.week_id in (select w.id
-		    from week w
-		    where w.season_id in (select s.id
-					  from season s
-					  where s.year = '2018')
-			  and w.week in (select w2.week + 1
-					 from week w2
-					 where w2.id in (select g2.week_id
-							      from game g2
-							      where g2.winning_team_id is not null 
-								    and g2.week_id in (select w3.id
-										   from week w3
-										   where w3.season_id in (select s3.id
-													  from season s3
-					 								  where s3.year = '2018')))
-					 order by w2.week desc
-					 limit 1
-					)
-		   )
-	 
+	/**
+	 * 
+	 * This function will get the games for the next week.  It tries to be fancy and do
+	 * all the work in one massive query.
+	 * 
+	 * The games for the next week are defined as the games for the week after the current
+	 * week, with the current week being the largest week for which we have results for the
+	 * current year.
+	 * 
+	 * Basically, it flows like this:
+	 * 
+	 * 		1. Current year = largest year in the season table.
+	 * 		2. Current week = largest week in the current year which has results for a game.
+	 * 		3. Next week = current week + 1
+	 * 
+	 * If it couldn't find any games for the next week, it'll get the games for week 1 for the current
+	 * year.
+	 * 
+	 * @return
 	 */
 	public List<Game> getGamesForNextWeek(){
+
+		//Steps to do:
+		//	1. Run the query.
+		//	2. Return the results.
 		
 		List<Game> games = new ArrayList<Game>();
 		
@@ -2760,30 +3034,32 @@ where g.week_id in (select w.id
 		PreparedStatement statement = null;
 		ResultSet results = null;
 
-		//Get the current year (most recent)
-		//Get the week number that has the most recent results and add one to it
-		
 		try {
 			String query = SELECT_GAME + 
 						   "where week_id in (select w.id " + 
 						   					 "from week w " + 
+						   					 //This part gets the current season.
 						   					 "where w.season_id in (select s.id " + 
 						   					   					   "from season s " + 
 						   					   					   "order by s.year desc " +
 						   					   					   "limit 1) " + 
+						   					   		 //And this part gets the current week + 1 (which gives us the next week).
 						   					   		 "and w.week_number in (select w2.week_number + 1 " + 
 	   					   						 	   			    	   "from week w2 " + 
 	   					   						 	   			    	   "where w2.id in (select g2.week_id " + 
 	   					   						 	   				  			    	   "from game g2 " + 
+	   					   						 	   				  			    	   //winning_team_id is not null = there are resuls for the week.
 	   					   						 	   				  			    	   "where g2.winning_team_id is not null  " + 
 	   					   						 	   				  			    	   		 "and g2.week_id in (select w3.id " + 
 	   					   						 	   				  			            				 	    "from week w3 " + 
+	   					   						 	   				  			            				 	    //Have to make sure it's in the current season again.
 	   					   						 	   				  			            				 	    "where w3.season_id in (select s3.id " + 
 	   					   						 	   				  			            				   							   "from season s3 " +
 	   					   						 	   				  			            				   							   "order by s3.year desc " + 
 	   					   						 	   				  			            				   							   "limit 1) " +
 	   					   						 	   				  			            				   		") " + 
 	   					   						 	   				  			          ") " + 
+	   					   						 	   				  	   //We want the largest one.
 	   					   						 	   				  	   "order by w2.week_number desc " + 
 	   					   						 	   				  	   "limit 1 " + 
 	   					   						 	   				  	   ") " + 
@@ -2817,7 +3093,24 @@ where g.week_id in (select w.id
 		
 	}
 	
+	/**
+	 * 
+	 * This function will get the games for the given years, weeks, and teams.  If either of those are null,
+	 * it'll just not include them in the query.
+	 * 
+	 * It'll do a full retrieval of the games and so it'll include the teams too.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param teams
+	 * @return
+	 */
 	public List<Game> getGames(List<String> years, List<String> weekNumbers, List<String> teams){
+		
+		//Steps to do:
+		//	1. Add in each of the clauses for the years, weeks, and teams if we have them.
+		//	2. Make the query.
+		//	3. Return the results.
 		
 		List<Game> games = new ArrayList<Game>();
 		
@@ -2867,7 +3160,8 @@ where g.week_id in (select w.id
 					query = query + " where ";
 					addedWhere = true;
 				}
-				
+		
+				//The team could be the home or away team for the game.
 				query = query + " (home_team_id in (select id " + 
 												   "from team " + 
 												   "where abbreviation in (" + teamsParameterString + ")) " +
@@ -2923,7 +3217,24 @@ where g.week_id in (select w.id
 		return games;
 	}
 	
+	/**
+	 * 
+	 * This function will get the game for the given year, in the given week, with the given away and home teams.
+	 * 
+	 * It expects all the arguments to be given.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @param awayTeamAbbreviation
+	 * @param homeTeamAbbreviation
+	 * @return
+	 */
 	public Game getGame(String year, String weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation){
+		
+		//Steps to do:
+		//	1. Build the query.
+		//	2. Run it.
+		//	3. Return the results.
 		
 		Game game = null;
 		
@@ -2936,15 +3247,15 @@ where g.week_id in (select w.id
 						   "where week_id in (select w.id " +
 						   					 "from week w " + 
 						   					 "where w.week_number = ? " + 
-						   					 "and w.season_id in (select s.id " + 
-						   					 					 "from season s " + 
-						   					 					 "where s.year = ?)) " +
-						   		  "and (home_team_id in (select t.id " +
-						   					 		    "from team t " + 
-						   					 		    "where t.abbreviation = ?) " +
-						   			   "and away_team_id in (select t.id " + 
-						   					 		       "from team t " + 
-						   					 		       "where t.abbreviation = ?)) ";
+						   					 	   "and w.season_id in (select s.id " + 
+						   					 					 	   "from season s " + 
+						   					 					 	   "where s.year = ?)) " +
+						   					 	   "and (home_team_id in (select t.id " +
+						   					 		    				 "from team t " + 
+						   					 		    				 "where t.abbreviation = ?) " +
+						   					 		    "and away_team_id in (select t.id " + 
+						   					 		       					 "from team t " + 
+						   					 		       					 "where t.abbreviation = ?)) ";
 			
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
@@ -2971,7 +3282,26 @@ where g.week_id in (select w.id
 		return game;
 	}
 	
+	/**
+	 * 
+	 * This function will get the game in the given year and week with the given team.
+	 * The team could be the home or away team for the game.  
+	 * 
+	 * It expects all the arguments to be given.
+	 * 
+	 * It'll do a full retrieval on the game it finds.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @param teamAbbreviation
+	 * @return
+	 */
 	public Game getGame(String year, int weekNumber, String teamAbbreviation){
+		
+		//Steps to do:
+		//	1. Build the query.
+		//	2. Run it.
+		//	3. Send back the result.
 		
 		Game game = null;
 		
@@ -3017,7 +3347,23 @@ where g.week_id in (select w.id
 		return game;
 	}
 	
+	/**
+	 * 
+	 * This function will get the game in the given week with the given home
+	 * and away teams.  It expects all arguments to be given and it'll do a full
+	 * retrieval on the game too.
+	 * 
+	 * @param weekId
+	 * @param homeTeamId
+	 * @param awayTeamId
+	 * @return
+	 */
 	public Game getGame(int weekId, int homeTeamId, int awayTeamId){
+		
+		//Steps to do:
+		//	1. Build the query.
+		//	2. Run it.
+		//	3. Send back the results.
 		
 		Game game = null;
 		
@@ -3053,6 +3399,13 @@ where g.week_id in (select w.id
 		
 	}
 	
+	/**
+	 * 
+	 * This function will get the game with the given id.  Not much to it.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public Game getGame(int id){
 		
 		Game game = null;
@@ -3084,7 +3437,23 @@ where g.week_id in (select w.id
 		return game;
 	}
 	
+	/**
+	 * 
+	 * This function will save the given game to the database.  If it doesn't
+	 * have an id, it'll do an insert.  Otherwise, it'll do an update.  It expects
+	 * the combination of week id, home team, and away team to be unique, so it'll
+	 * use those variables to get the game after it's done saving and return what it
+	 * found.
+	 * 
+	 * @param game
+	 * @return
+	 */
 	public Game saveGame(Game game){
+		
+		//Steps to do:
+		//	1. If it doesn't have an id, insert it.
+		//	2. Otherwise, if it does, update it.
+		//	3. Pull out the game that was saved by its week and teams.
 		
 		int id = game.getId();
 		
@@ -3109,6 +3478,13 @@ where g.week_id in (select w.id
 		return savedGame;
 	}
 	
+	/**
+	 * 
+	 * This function will insert the game into the game table.  Not much to it.
+	 * 
+	 * @param game
+	 * @return
+	 */
 	protected int insertGame(Game game){
 		
 		int numberOfAffectedRows = 0;
@@ -3153,6 +3529,20 @@ where g.week_id in (select w.id
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will update the game.  Not much to it.
+	 * 
+	 * The only interesting thing is that, if there's a winning team, it'll
+	 * set the winning team id to that team.  If there isn't and there's a tie,
+	 * it'll set the winning team to -1.  If there's no winning team and there
+	 * isn't a tie, it'll null out the winning team id.
+	 * 
+	 * In this way, it can be used to "reset" a game so that there's no winner.
+	 * 
+	 * @param game
+	 * @return
+	 */
 	protected int updateGame(Game game){
 		int numberOfAffectedRows = 0;
 		
@@ -3166,14 +3556,18 @@ where g.week_id in (select w.id
 			statement.setInt(2, game.getHomeTeam().getId());
 			statement.setInt(3, game.getAwayTeam().getId());
 			
+			//If there's a winning team, set that team.
 			Team winningTeam = game.getWinningTeam();
 			if (winningTeam != null){
 				statement.setInt(4, winningTeam.getId());
 			}
+			//Otherwise, check whether there's a tie.  If there is, the winning
+			//team is -1.  If there isn't a tie, that means there is no winner,
+			//so the winning team should be null.
 			else {
 				boolean tie = game.getTie();
 				if (tie){
-					statement.setInt(4, -1);
+					statement.setInt(4, NFLPicksConstants.TIE_WINNING_TEAM_ID);
 				}
 				else {
 					statement.setNull(4, Types.INTEGER);
@@ -3198,6 +3592,15 @@ where g.week_id in (select w.id
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will map the given results into a game object.  It'll include
+	 * the teams too.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Game mapGame(ResultSet results) throws SQLException {
 		Game game = new Game();
 		
@@ -3213,7 +3616,7 @@ where g.week_id in (select w.id
 		game.setAwayTeam(awayTeam);
 		
 		int winningTeamId = results.getInt("winning_team_id");
-		if (winningTeamId == -1){
+		if (winningTeamId == NFLPicksConstants.TIE_WINNING_TEAM_ID){
 			game.setTie(true);
 		}
 		else if (winningTeamId > 0) {
@@ -3224,7 +3627,24 @@ where g.week_id in (select w.id
 		return game;
 	}
 	
+	/**
+	 * 
+	 * This function will get the pick that the given player made for the given year, in the given week, in the game with
+	 * the given teams.  It expects all arguments to be given.
+	 * 
+	 * @param playerName
+	 * @param year
+	 * @param weekNumber
+	 * @param homeTeamAbbreviation
+	 * @param awayTeamAbbreviation
+	 * @return
+	 */
 	public Pick getPick(String playerName, String year, int weekNumber, String homeTeamAbbreviation, String awayTeamAbbreviation){
+		
+		//Steps to do:
+		//	1. Make the query.
+		//	2. Run it.
+		//	3. Send back what was found.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -3234,6 +3654,7 @@ where g.week_id in (select w.id
 		
 		try {
 			connection = getConnection();
+			
 			String query = SELECT_PICK +
 						   "where player_id in (select id " +
 						   					   "from player " +
@@ -3253,6 +3674,7 @@ where g.week_id in (select w.id
 							   					 				   		  	 "from team " + 
 							   					 				   		  	 "where abbreviation = ?) " +
 							   					  ")";
+			
 			statement = connection.prepareStatement(query);
 			statement.setString(1, playerName);
 			statement.setString(2, year);
@@ -3277,7 +3699,22 @@ where g.week_id in (select w.id
 		return pick;
 	}
 	
+	/**
+	 * 
+	 * This function will get the picks made by the given player, in the given year, and in
+	 * the given week.  It expects all the arguments to be given.
+	 * 
+	 * @param playerId
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	public List<Pick> getPicks(int playerId, String year, int weekNumber){
+		
+		//Steps to do:
+		//	1. Build the query.
+		//	2. Run it.
+		//	3. Send back the results.
 		
 		List<Pick> picks = new ArrayList<Pick>();
 		
@@ -3319,7 +3756,20 @@ where g.week_id in (select w.id
 		return picks;
 	}
 	
+	/**
+	 * 
+	 * This function will get the picks in the given year for the given week.  It expects
+	 * both arguments to be given.
+	 * 
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	public List<Pick> getPicks(String year, int weekNumber){
+		
+		//Steps to do:
+		//	1. Convert the arguments to what the real function expects (lists).
+		//	2. Call it to do the work.
 		
 		List<String> years = Arrays.asList(year);
 		List<String> weekNumbers = Arrays.asList(String.valueOf(weekNumber));
@@ -3328,8 +3778,22 @@ where g.week_id in (select w.id
 		
 		return picks;
 	}
-	
+
+	/**
+	 * 
+	 * This function will get the picks that the given player made in the given year and week.
+	 * It expects all the arguments to be given.
+	 * 
+	 * @param player
+	 * @param year
+	 * @param weekNumber
+	 * @return
+	 */
 	public List<Pick> getPicks(String player, String year, int weekNumber){
+		
+		//Steps to do:
+		//	1. Convert the arguments to what the real function expects (lists).
+		//	2. Call it to do the work.
 		
 		List<String> players = Arrays.asList(player);
 		List<String> years = Arrays.asList(year);
@@ -3339,10 +3803,24 @@ where g.week_id in (select w.id
 		
 		return picks;
 	}
-	
-	
-	
+
+	/**
+	 * 
+	 * This function will get the picks for the given arguments.  They're all optional, so it will only include them
+	 * if they're given.  The given teams could be the home or away teams for the games that the picks are for.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param playerNames
+	 * @param teamNames
+	 * @return
+	 */
 	public List<Pick> getPicks(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teamNames){
+		
+		//Steps to do:
+		//	1. Add the arguments that we have to build the query.
+		//	2. Run it.
+		//	3. Return what it found.
 		
 		List<Pick> picks = new ArrayList<Pick>();
 		
@@ -3491,7 +3969,12 @@ where g.week_id in (select w.id
 		return picks;
 	}
 	
-	
+	/**
+	 * 
+	 * This function will get all the picks for all the players, seasons, and weeks.  Not much to it.
+	 * 
+	 * @return
+	 */
 	public List<Pick> getPicks(){
 		
 		List<Pick> picks = new ArrayList<Pick>();
@@ -3521,7 +4004,22 @@ where g.week_id in (select w.id
 		return picks;
 	}
 	
+	/**
+	 * 
+	 * This function will save the given pick to the database.  If it has an id, it'll
+	 * do an update.  If it doesn't, it'll do an insert.  It expects the pick to
+	 * have both the game and player objects in it and it will use the game and player id
+	 * to get the saved pick (since that combination should be unique).
+	 * 
+	 * @param pick
+	 * @return
+	 */
 	public Pick savePick(Pick pick){
+		
+		//Steps to do:
+		//	1. If the pick doesn't have an id, insert it.
+		//	2. If it does, update it.
+		//	3. Pull out what was saved by using the game and the player.
 		
 		int id = pick.getId();
 		
@@ -3537,12 +4035,21 @@ where g.week_id in (select w.id
 		Pick savedPick = null;
 		
 		if (numberOfAffectedRows == 1){
-			savedPick = getPick(pick.getGame().getId(), pick.getPlayer().getId());
+			Game game = pick.getGame();
+			Player player = pick.getPlayer();
+			savedPick = getPick(game.getId(), player.getId());
 		}
 		
 		return savedPick;
 	}
 	
+	/**
+	 * 
+	 * This function will insert the given pick into the database.  Not much to it.
+	 * 
+	 * @param pick
+	 * @return
+	 */
 	protected int insertPick(Pick pick){
 		
 		int numberOfAffectedRows = 0;
@@ -3579,7 +4086,14 @@ where g.week_id in (select w.id
 		
 		return numberOfAffectedRows;
 	}
-	
+
+	/**
+	 * 
+	 * This function will update the given pick in the database.  Not much to it.
+	 * 
+	 * @param pick
+	 * @return
+	 */
 	protected int updatePick(Pick pick){
 		
 		int numberOfAffectedRows = 0;
@@ -3619,6 +4133,15 @@ where g.week_id in (select w.id
 		return numberOfAffectedRows;
 	}
 	
+	/**
+	 * 
+	 * This function will get the pick for the given game and player.  That combination
+	 * should be unique because a player should only have one pick per game.  Not much to it.
+	 * 
+	 * @param gameId
+	 * @param playerId
+	 * @return
+	 */
 	public Pick getPick(int gameId, int playerId){
 		
 		Pick pick = null;
@@ -3652,6 +4175,13 @@ where g.week_id in (select w.id
 		return pick;
 	}
 	
+	/**
+	 * 
+	 * This function will get the pick with the given id.  Not much to it.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public Pick getPick(int id){
 		
 		Pick pick = null;
@@ -3683,6 +4213,15 @@ where g.week_id in (select w.id
 		return pick;
 	}
 	
+	/**
+	 * 
+	 * This function will map the results from the pick table into a Pick object.
+	 * It'll map the teams and the game for the pick too.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Pick mapPick(ResultSet results) throws SQLException {
 		Pick pick = new Pick();
 		
@@ -3704,16 +4243,16 @@ where g.week_id in (select w.id
 			boolean tie = game.getTie();
 			
 			if (tie){
-				pick.setResult("T");
+				pick.setResult(NFLPicksConstants.RESULT_TIE);
 			}
 			else if (winningTeam != null){
 				int winningTeamId = winningTeam.getId();
 				
 				if (winningTeamId == pickedTeamId){
-					pick.setResult("W");
+					pick.setResult(NFLPicksConstants.RESULT_WIN);
 				}
 				else {
-					pick.setResult("L");
+					pick.setResult(NFLPicksConstants.RESULT_LOSS);
 				}
 			}
 		}
@@ -3725,7 +4264,22 @@ where g.week_id in (select w.id
 	//variable names.......
 	//call it "global"
 	
+	/**
+	 * 
+	 * This function will get the players with the given names.  Not much to it.
+	 * If there are no given players, it'll get them all.
+	 * 
+	 * The player objects will be returned in the same order that the given names are in.
+	 * 
+	 * @param playerNames
+	 * @return
+	 */
 	public List<Player> getPlayers(List<String> playerNames){
+		
+		//Steps to do:
+		//	1. Build the query.
+		//	2. Run it.
+		//	3. Send back the results.
 		
 		List<Player> players = new ArrayList<Player>();
 		
@@ -3761,9 +4315,11 @@ where g.week_id in (select w.id
 			
 			while (results.next()){
 				Player playerInfo = mapPlayer(results);
+				//Make sure to put the player in the list at the same position its name was.
 				int indexOfPlayerName = playerNames.indexOf(playerInfo.getName());
 				playersArray[indexOfPlayerName] = playerInfo;
 			}
+			
 			players = Arrays.asList(playersArray);
 		}
 		catch (Exception e){
@@ -3777,7 +4333,23 @@ where g.week_id in (select w.id
 		return players;
 	}
 	
+	/**
+	 * 
+	 * This function will get the players who made at least one pick in any of the given years.  They don't
+	 * have to have made a pick in every year, just one is good enough.
+	 * 
+	 * If the years aren't given, it'll get all the players.
+	 * 
+	 * @param years
+	 * @return
+	 */
 	public List<Player> getPlayersForYears(List<String> years){
+		
+		//Steps to do:
+		//	1. If there aren't any years, get all the players.
+		//	2. Otherwise, get the players who have at least one pick
+		//	   in any of the given yers.
+		//	3. That's it.
 		
 		List<Player> players = new ArrayList<Player>();
 		
@@ -3828,7 +4400,19 @@ where g.week_id in (select w.id
 		return players;
 	}
 	
+	/**
+	 * 
+	 * This function will get the players who made picks in the given year.
+	 * If the year is null, it'll get all the players.
+	 * 
+	 * @param year
+	 * @return
+	 */
 	public List<Player> getPlayersForYear(String year){
+		
+		//Steps to do:
+		//	1. If no year was given, then get all the players.
+		//	2. Otherwise, call the function that does the work.
 		
 		List<Player> playersForYear = null;
 		
@@ -3844,6 +4428,13 @@ where g.week_id in (select w.id
 		return playersForYear;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the players.
+	 * Not much to it.
+	 * 
+	 * @return
+	 */
 	public List<Player> getPlayers(){
 		
 		List<Player> players = new ArrayList<Player>();
@@ -3873,8 +4464,13 @@ where g.week_id in (select w.id
 		return players;
 	}
 	
-	
-	
+	/**
+	 * 
+	 * This function will get the player with the given id.  Not much to it.
+	 * 
+	 * @param id
+	 * @return
+	 */
 	public Player getPlayer(int id){
 		
 		Player player = null;
@@ -3906,6 +4502,15 @@ where g.week_id in (select w.id
 		return player;
 	}
 	
+	/**
+	 * 
+	 * This function will get the players who made picks in any of the given years.  It expects
+	 * the years argument to be given.  Each player doesn't have to have made a pick in each year, just
+	 * having made a pick in a single year is good enough.
+	 * 
+	 * @param years
+	 * @return
+	 */
 	public List<Player> getActivePlayers(List<String> years){
 		
 		List<Player> players = new ArrayList<Player>();
@@ -3953,7 +4558,22 @@ where g.week_id in (select w.id
 		return players;
 	}
 	
+	/**
+	 * 
+	 * This function will check to make see if the given player made at least one
+	 * pick in the given year.  If they did, it'll return true.  If they didn't, it'll
+	 * return false.  It expects both arguments to be given.
+	 * 
+	 * @param player
+	 * @param year
+	 * @return
+	 */
 	public boolean wasPlayerActiveInYear(String player, String year){
+		
+		//Steps to do:
+		//	1. Run the query that will check to see if they made a pick
+		//	   in the given year.
+		//	2. Return true if they did and false if they didn't.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -3963,17 +4583,17 @@ where g.week_id in (select w.id
 		
 		try {
 			String query = "select count(*) " +
-					 "from pick " +
-					 "where player_id in (select id  " +
-					 					 "from player " +
-					 					 "where name = ?) " +
-					 	   "and game_id in (select id  " +
-										   "from game  " +
-										   "where week_id in (select id " + 
-										   					 "from week " +
-										   					 "where season_id in (select id " +
-										   										 "from season " + 
-										   					 				   	 "where year = ?)))";
+					 	   "from pick " +
+					 	   "where player_id in (select id  " +
+					 					 	   "from player " +
+					 					 	   "where name = ?) " +
+					 			  "and game_id in (select id  " +
+										   		  "from game  " +
+										   		  "where week_id in (select id " + 
+										   					 	    "from week " +
+										   					 	    "where season_id in (select id " +
+										   										 	    "from season " + 
+										   										 	    "where year = ?)))";
 			
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
@@ -4001,6 +4621,13 @@ where g.week_id in (select w.id
 		return false;
 	}
 	
+	/**
+	 * 
+	 * This function will get the player with the given name.  Not much to it.
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public Player getPlayer(String name){
 		
 		Player player = null;
@@ -4032,6 +4659,14 @@ where g.week_id in (select w.id
 		return player;
 	}
 	
+	/**
+	 * 
+	 * This function will map the result of a query to the player table to an object.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Player mapPlayer(ResultSet results) throws SQLException {
 		Player player = new Player();
 		player.setId(results.getInt("id"));
@@ -4039,7 +4674,22 @@ where g.week_id in (select w.id
 		return player;
 	}
 	
+	/**
+	 * 
+	 * This function will get the records for the given players in the given years and weeks.  All the arguments
+	 * are optional and will only be included if they're given.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param players
+	 * @return
+	 */
 	public List<Record> getRecords(List<String> years, List<String> weekNumbers, List<String> players){
+		
+		//Steps to do:
+		//	1. Add in the arguments we were given to the query if they're there.
+		//	2. Run the query.
+		//	3. Send back what it found.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -4103,6 +4753,15 @@ where g.week_id in (select w.id
 		return records;
 	}
 	
+	/**
+	 * 
+	 * This function will map the given result to a record object.  It expects
+	 * the result to have the player, wins, losses, and ties in it.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Record mapRecord(ResultSet results) throws SQLException {
 		
 		Record record = new Record();
@@ -4118,7 +4777,23 @@ where g.week_id in (select w.id
 		return record;
 	}
 	
+	/**
+	 * 
+	 * This function will create the "criteria" part for the records query (basically, the "where" part).
+	 * It's here because we need to do this in a few places and I figured it would be a good idea to just
+	 * do it once and reuse it.  It will add in each argument that it's given and will skip
+	 * the arguments that aren't given.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param players
+	 * @return
+	 */
 	protected String createRecordsCriteria(List<String> years, List<String> weekNumbers, List<String> players){
+		
+		//Steps to do:
+		//	1. Add in the where clauses for the arguments that were given.
+		//	2. That's it.
 		
 		StringBuilder whereClause = new StringBuilder();
 
@@ -4187,25 +4862,12 @@ where g.week_id in (select w.id
 		return whereClause.toString();
 	}
 	
-	/*
-	select s.year as year,
-       w.week as week,
-       home_team.abbreviation as home_team_abbreviation,
-       away_team.abbreviation as away_team_abbreviation,
-       winning_team.abbreviation as winning_team_abbreviation,
-       
-       (select picked_team.abbreviation
-        from pick p join team picked_team on p.team_id = picked_team.id
-        where p.game_id = g.id
-              and p.player_id = 1) as x_pick
-              
-              
-from season s join week w on s.id = w.season_id
-     join game g on w.id = g.week_id
-     join team home_team on g.home_team_id = home_team.id
-     join team away_team on g.away_team_id = away_team.id
-     left outer join team winning_team on g.winning_team_id = winning_team.id
-order by s.year asc, w.week asc, g.id asc;
+	/**
+	 * 
+	 * This function will get all the "compact" picks.  These are the picks that basically
+	 * have only the bare minimum of info we need.
+	 * 
+	 * @return
 	 */
 	public List<CompactPick> getCompactPicks(){
 		
@@ -4214,7 +4876,28 @@ order by s.year asc, w.week asc, g.id asc;
 		return compactPicks;
 		
 	}
+	
+	/**
+	 * 
+	 * This function will get the "compact" picks for the given years, weeks, players, and teams.  It will only include each argument
+	 * if it's given and will skip the ones that aren't.
+	 * 
+	 * The "compact" picks are objects that have the bare minimum of info that we need to show a pick (the player, game, and team picked).
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param playerNames
+	 * @param teams
+	 * @return
+	 */
 	public List<CompactPick> getCompactPicks(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teams) {
+		
+		//Steps to do:
+		//	1. Make the query.
+		//	2. Handle adding the players names as columns for their picks.
+		//	3. Add in each argument that we're given.
+		//	4. Run it.
+		//	5. Return what was found.
 		
 		List<CompactPick> compactPicks = new ArrayList<CompactPick>();
 		
@@ -4224,29 +4907,29 @@ order by s.year asc, w.week asc, g.id asc;
 		
 		try {
 			connection = dataSource.getConnection();
-			
-			String selectBase = "select s.year as year, " + 
-								"w.week_number as week_number, " +
-								"w.label as week_label, " +
-								"home_team.abbreviation as home_team_abbreviation, " + 
-								"away_team.abbreviation as away_team_abbreviation, " +
-								"(case when g.winning_team_id = -1 then 'TIE' " +
-									  "else winning_team.abbreviation " +
-							    "end) as winning_team_abbreviation "; 
+
+			//This gives us the first part of the bare minimum of info that we need for the compact picks query.
+			String selectBase = SELECT_COMPACT_PICK_BASE; 
 			
 			List<Player> players = null;
-			
+
+			//If we weren't given specific players, we'll want them al.
 			if (playerNames == null){
 				players = getPlayers();
 				playerNames = ModelUtil.getPlayerNames(players);
 				//Yeah, I could do it like this...
 				//playerNames = players.stream().map(p -> p.getName()).collect(Collectors.toList());
 			}
+			//Otherwise, only get the ones we were given and make sure we get them in the order that they
+			//were given.
 			else {
 				players = getPlayers(playerNames);
 			}
 			
-			
+			//If we're given player names, we have to convert them into names that will be ok to select
+			//as columns, so we need to get rid of the spaces.
+			//Later, when we're pulling out the result for each player, we'll use the converted player names
+			//to get them.
 			List<String> playerNamesToUse = new ArrayList<String>();
 			List<Integer> playerIdsToUse = new ArrayList<Integer>();
 			
@@ -4255,6 +4938,7 @@ order by s.year asc, w.week asc, g.id asc;
 				String playerName = player.getName();
 				Integer playerId = player.getId();
 				
+				//For a player name to be a column in the select statement, it has to be lowercase and with no spaces.
 				String playerNameToUse = playerName.toLowerCase().replaceAll("\\s+", "_") + "_pick";
 				playerNamesToUse.add(playerNameToUse);
 				playerIdsToUse.add(playerId);
@@ -4267,12 +4951,15 @@ order by s.year asc, w.week asc, g.id asc;
 				selectBase = selectBase + ", " + playerPickSelect;
 			}
 			
+			//Now that we have the players names as columns, we can add in the "from" that says
+			//where we'll get the data.
 			String fromBase = "from season s join week w on s.id = w.season_id " + 
 							  "join game g on w.id = g.week_id " + 
 							  "join team home_team on g.home_team_id = home_team.id " + 
 							  "join team away_team on g.away_team_id = away_team.id " + 
 							  "left outer join team winning_team on g.winning_team_id = winning_team.id ";
 			
+			//Now, we just have to do the usual thing of adding in the arguments if we have them.
 			String whereBase = "";
 			
 			boolean addedWhere = false;
@@ -4376,23 +5063,33 @@ order by s.year asc, w.week asc, g.id asc;
 		
 		return compactPicks;
 	}
-	
+
+	/**
+	 * 
+	 * This function will map the "compact" pick from the given result.  It expects every "player name to use" to be a column in the
+	 * given result that has the team that the player picked.  It also expects the playerNamesToUse to be in the same "order" as
+	 * the given "playerNames" so that it can use the player's actual name in the pick object will using the "name to use" to get
+	 * their pick out.
+	 * 
+	 * The "player names to use" are there because some players have spaces in their names and we can't have spaces in column
+	 * names that we select (well, we probably can, but it's a little awkward).
+	 * 
+	 * @param results
+	 * @param playerNamesToUse
+	 * @param playerNames
+	 * @return
+	 * @throws SQLException
+	 */
 	protected CompactPick mapCompactPick(ResultSet results, List<String> playerNamesToUse, List<String> playerNames) throws SQLException {
 		
-		CompactPick compactPick = new CompactPick();
+		//Steps to do:
+		//	1. Pull out the normal columns.
+		//	2. Go through each player name that should be a column and pull out
+		//	   its result.
+		//	3. That's it.  Should have the week's info and the picks for all the players and that's
+		//	   all we need.
 		
-		/*
-		 select s.year as year,
-       w.week as week,
-       home_team.abbreviation as home_team_abbreviation,
-       away_team.abbreviation as away_team_abbreviation,
-       winning_team.abbreviation as winning_team_abbreviation,
-       
-       (select picked_team.abbreviation
-        from pick p join team picked_team on p.team_id = picked_team.id
-        where p.game_id = g.id
-              and p.player_id = 1) as x_pick
-		 */
+		CompactPick compactPick = new CompactPick();
 		
 		String year = results.getString("year");
 		int weekNumber = results.getInt("week_number");
@@ -4423,10 +5120,29 @@ order by s.year asc, w.week asc, g.id asc;
 		return compactPick;
 	}
 	
+	/**
+	 * 
+	 * This class can be used to sort "week records" for players so that they're in ascending
+	 * order by season and week and then in descending order by the record (number of wins, then
+	 * ascending number of losses, and then ascending by player name if the number of wins and
+	 * losses are the same).
+	 * 
+	 * @author albundy
+	 *
+	 */
 	protected class WeekRecordComparator implements Comparator<WeekRecordForPlayer> {
 
 		public int compare(WeekRecordForPlayer weekRecord1, WeekRecordForPlayer weekRecord2) {
 			
+			//Steps to do:
+			//	1. They should be in ascending order by season.
+			//	2. They should be in ascending order by week.
+			//	3. They should be in descending order by number of wins.
+			//	4. They should be in ascending order by number of losses.
+			//	5. And, finally, ascending order by player name if they have the same season,
+			//	   week, wins, and losses.
+			
+			//If they're not in the same season, that should control the order.
 			Season season1 = weekRecord1.getSeason();
 			String year1 = season1.getYear();
 			Season season2 = weekRecord2.getSeason();
@@ -4438,12 +5154,14 @@ order by s.year asc, w.week asc, g.id asc;
 				return seasonResult;
 			}
 			
+			//If they're in the same season, then try the week.
 			Week week1 = weekRecord1.getWeek();
 			Week week2 = weekRecord2.getWeek();
 			
 			int weekNumber1 = week1.getWeekNumber();
 			int weekNumber2 = week2.getWeekNumber();
 			
+			//We want it ascending by week.
 			if (weekNumber1 < weekNumber2){
 				return -1;
 			}
@@ -4451,6 +5169,7 @@ order by s.year asc, w.week asc, g.id asc;
 				return 1;
 			}
 			
+			//If they're in the same season and week, we want the one with the most wins first.
 			Record record1 = weekRecord1.getRecord();
 			Record record2 = weekRecord2.getRecord();
 			int wins1 = record1.getWins();
@@ -4463,6 +5182,8 @@ order by s.year asc, w.week asc, g.id asc;
 				return 1;
 			}
 			
+			//If they have the same season, week, and wins, we want the one with the fewest losses
+			//first.
 			int losses1 = record1.getLosses();
 			int losses2 = record2.getLosses();
 			
@@ -4473,14 +5194,56 @@ order by s.year asc, w.week asc, g.id asc;
 				return 1;
 			}
 			
-			return 0;
+			//If we get here, they have the same everything, so just sort on their name.
+			String playerName1 = weekRecord1.getPlayer().getName();
+			String playerName2 = weekRecord2.getPlayer().getName();
+			
+			int result = playerName1.compareTo(playerName2);
+			
+			return result;
 		}
 	}
 	
-	public List<WeekRecordForPlayers> getWeekRecordForPlayers(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
+	/**
+	 * 
+	 * This function will get the "weeks won by week".  This is basically a list of weeks, the players who won them, and
+	 * their records in the weeks that they won.
+	 * 
+	 * It will get all the records for the given years, weeks, and players, and then filter them out so that it only keeps
+	 * the best records in each week.  Since there can be ties, each week can have multiple winners.
+	 * 
+	 * Each "WeekRecordForPlayers" will contain the year and week that the record was for, the record itself, and a list of players
+	 * who had that record.  
+	 * 
+	 * This is different from the "getWeeksWon" function because this gets them more by week ("who won weeks 1, 2, and 3 in 2017?") and that
+	 * function gets them more by player ("how many weeks did Doodle win in 2017?").  They're <i>pretty</i> similar, but different enough
+	 * that I decided to put them in different functions.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param players
+	 * @param onlyFinishedGames
+	 * @return
+	 */
+	public List<WeekRecordForPlayers> getWeeksWonByWeek(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
 		
+		//Steps to do:
+		//	1. Get the weekly records for the years and weeks we were given.
+		//	2. Go through and get out the "winner" for each week and their record.
+		//	3. Make sure we only keep records for players that were given (see below for a longer
+		//	   explanation).
+		
+		//This orders the records by year, week, and record, so that the winner for each week should
+		//be the first record within its "block".
 		String query = SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD;
 		
+		//Get the player records for the years and weeks and include all players.
+		//We need to include all players because we want the winning records for each week and we need to have all the records
+		//for a week to figure out who won it.  We can't do that if we only get records for certain players because it's possible
+		//that those players <i>weren't</i> the winners for a particular week.  In order to know who won a particular week, we
+		//need all the records for that week.
+		//Then, later, we'll go through all the winning records and make sure we only include ones for players that we were given.
+		//That way we will wind up with the weeks won for the given players.
 		List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(query, years, weekNumbers, null, onlyFinishedGames);
 
 		List<WeekRecordForPlayers> weeksWonByWeek = new ArrayList<WeekRecordForPlayers>();
@@ -4490,12 +5253,18 @@ order by s.year asc, w.week asc, g.id asc;
 		String currentYear = null;
 		int currentWeekNumber = -1;
 		
+		//Now go through each weekly record and keep only the winning ones for each week.
+		
 		for (int index = 0; index < playerWeekRecords.size(); index++){
 			WeekRecordForPlayer playerWeekRecord = playerWeekRecords.get(index);
 
 			String recordYear = playerWeekRecord.getSeason().getYear();
 			int recordWeekNumber = playerWeekRecord.getWeek().getWeekNumber();
 			
+			//If we're at the start or we switched to a new year or week, make a new object and keep
+			//the first record as the winner.  The first record for a year or a week will be the
+			//one with the most wins because that's how we sorted the records in the query.  So, we know
+			//we'll want to keep it.
 			if (currentYear == null || 
 					(!recordYear.equals(currentYear)) || recordWeekNumber != currentWeekNumber){
 				
@@ -4503,15 +5272,17 @@ order by s.year asc, w.week asc, g.id asc;
 				currentWeekRecord.setRecord(playerWeekRecord.getRecord());
 				currentWeekRecord.setSeason(playerWeekRecord.getSeason());
 				currentWeekRecord.setWeek(playerWeekRecord.getWeek());
-				List<Player> playerss = new ArrayList<Player>();
-				playerss.add(playerWeekRecord.getPlayer());
-				currentWeekRecord.setPlayers(playerss);
+				List<Player> playersForRecord = new ArrayList<Player>();
+				playersForRecord.add(playerWeekRecord.getPlayer());
+				currentWeekRecord.setPlayers(playersForRecord);
 				
 				weeksWonByWeek.add(currentWeekRecord);
 				
 				currentYear = recordYear;
 				currentWeekNumber = recordWeekNumber;
 			}
+			//Otherwise, get the wins for the record.  If it's the same as the number of wins for the
+			//current "winning record", then we want to keep it.
 			else {
 				boolean addPlayer = false;
 				int currentWins = currentWeekRecord.getRecord().getWins();
@@ -4527,16 +5298,24 @@ order by s.year asc, w.week asc, g.id asc;
 			}
 		}
 		
+		//Now that we have all the winning records for every week, it's time to go through and keep only the records for the players
+		//that this function was given.  That way, we end up with only the winning records for certain players.  And, if a week
+		//had a winner that wasn't in the given list of players, we just lose that week.
 		if (players != null && players.size() > 0){
 			List<WeekRecordForPlayers> filteredWeeksWonByWeek = new ArrayList<WeekRecordForPlayers>();
 			
+			//Go through the record for each week.
 			for (int index = 0; index < weeksWonByWeek.size(); index++){
 				WeekRecordForPlayers weekRecord = weeksWonByWeek.get(index);
 				
+				//Pull out the players with that record.
 				List<Player> winningPlayers = weekRecord.getPlayers();
 				
 				boolean keepRecord = false;
 				
+				//If the record included a player that this function was given, then we'll want to keep it.
+				//If it didn't, then we won't want to keep it because it was won by a player who wasn't in 
+				//the list we were given.
 				for (int playerIndex = 0; playerIndex < winningPlayers.size(); playerIndex++){
 					Player player = winningPlayers.get(playerIndex);
 					if (players.contains(player.getName())){
@@ -4550,6 +5329,8 @@ order by s.year asc, w.week asc, g.id asc;
 				}
 			}
 			
+			//And now we have our finished result:  The weekly records of winning weeks for the players,
+			//years, and weeks we were given.
 			weeksWonByWeek = filteredWeeksWonByWeek;
 		}
 		
@@ -4557,8 +5338,29 @@ order by s.year asc, w.week asc, g.id asc;
 	}
 	
 	//this should only return the week records for each player for the weeks that they won.
+	/**
+	 * 
+	 * This function will get the weeks won for the given players in the given years and weeks.  It's a little different
+	 * from the "getWeeksWonByWeek" function.  That one is more "week" focused ("get me the winners for week 9, 2018") and this
+	 * one is more "player" focused ("get me the weeks won by these players").
+	 * 
+	 * In other words, that one will get a map where it's like "week" -> players.  This one will get a map where it's like
+	 * "player" -> weeks they won.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param players
+	 * @param onlyFinishedGames
+	 * @return
+	 */
 	public List<WeekRecordsForPlayer> getWeeksWon(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
 
+		//Steps to do:
+		//	1. Get the records for the years and weeks we're interested in.
+		//	2. Go through and get the best weeks for those years.
+		//	3. Group them by player and filter out players we weren't given.
+		//	4. We'll wind up with the weeks won by the given players, grouped by those players.
+		
 		//We need all the players who played in the years we're interested in.
 		//That's because we need to compare the players we want with all the players to see
 		//how many weeks the players we care about actually won.  
@@ -4572,22 +5374,25 @@ order by s.year asc, w.week asc, g.id asc;
 			playerNamesForYears.add(player.getName());
 		}
 		
-		//List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(years, weeks, players);
 		List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(years, weekNumbers, playerNamesForYears, onlyFinishedGames);
 		
-		//a map of season and week to the records
+		//This map will hold the "year and week" to best record for that year and week.  Basically, it'll group
+		//the records by the best ones for each year and week, with the key being the year and week combination and
+		//the value being the best records for that combination.
 		Map<String, List<WeekRecordForPlayer>> bestRecordsMap = new HashMap<String, List<WeekRecordForPlayer>>();
-		
+
+		//Go through all the records and group them by year and week, keeping only the best ones from each week.
 		for (int index = 0; index < playerWeekRecords.size(); index++){
 			WeekRecordForPlayer playerWeekRecord = playerWeekRecords.get(index);
 			Record record = playerWeekRecord.getRecord();
-			
-			//query to only bring back records with a win because that query is used by other
-			//functions and we don't want to mess those up.
+
+			//The query we use can bring back records with 0 wins, so we need to filter those out.
+			//I don't want to change the query because it's used by other functions.
 			if (record.getWins() == 0){
 				continue;
 			}
 			
+			//Get the year and week for the record.
 			Season season = playerWeekRecord.getSeason();
 			String recordYear = season.getYear();
 			
@@ -4596,35 +5401,41 @@ order by s.year asc, w.week asc, g.id asc;
 			
 			String key = recordYear + "-" + weekNumber;
 			
+			//Get the current records we have for the year and week.
 			List<WeekRecordForPlayer> currentBestRecords = bestRecordsMap.get(key);
 			
 			boolean addRecord = false;
 			
+			//If we don't have any, then we can assume this is the best one.
 			if (currentBestRecords == null){
 				currentBestRecords = new ArrayList<WeekRecordForPlayer>();
 				addRecord = true;
 			}
+			//If we do have some, then we just have to compare the record to the current
+			//best one we have and keep it if it's better.
 			else {
 				WeekRecordForPlayer currentBestWeekRecord = currentBestRecords.get(0);
 				Record currentBestRecord = currentBestWeekRecord.getRecord();
 				int currentBestWins = currentBestRecord.getWins();
 				int currentBestLosses = currentBestRecord.getLosses();
 				
+				//Keep the record if it's better than the current one.
 				int wins = record.getWins();
 				int losses = record.getLosses();
 				
 				if (wins > currentBestWins){
 					addRecord = true;
+					//If it's better than the current one, empty out the current ones.
 					currentBestRecords = new ArrayList<WeekRecordForPlayer>();
 				}
 				else if (wins == currentBestWins){
-					
-					//same W's, fewer L's
+					//Or, if it has fewer losses, it's better.
 					if (losses < currentBestLosses){
 						addRecord = true;
 						currentBestRecords = new ArrayList<WeekRecordForPlayer>();
 					}
-					//tie
+					//If it has the same number of wins and losses, it's the same, so keep what's
+					//already there and add it in.
 					else  if (losses == currentBestLosses){
 						addRecord = true;
 					}
@@ -4637,16 +5448,19 @@ order by s.year asc, w.week asc, g.id asc;
 			}
 		}
 		
-		//best records map has a map of all the best records for each week ... have to group them by player now
+		//Now we have the best records grouped by year and week.  We just have to go through and group
+		//them by player now.
+		//This map will hold playerId -> weeks they won, which will group everything by player.
 		Map<Integer, WeekRecordsForPlayer> playerWeeksWonMap = new HashMap<Integer, WeekRecordsForPlayer>();
 		
 		List<String> bestRecordKeys = new ArrayList<String>();
 		bestRecordKeys.addAll(bestRecordsMap.keySet());
-		
-		//groups them by player
+
+		//Go through each year and week combination.
 		for (int index = 0; index < bestRecordKeys.size(); index++){
 			String bestRecordKey = bestRecordKeys.get(index);
 			
+			//Get the records it has.
 			List<WeekRecordForPlayer> records = bestRecordsMap.get(bestRecordKey);
 			
 			for (int recordIndex = 0; recordIndex < records.size(); recordIndex++){
@@ -4654,234 +5468,47 @@ order by s.year asc, w.week asc, g.id asc;
 				
 				Player player = record.getPlayer();
 
-				//If we care about specific players and this player isn't one of them, skip
+				//If the record is for a player we don't care about, then we don't care about it.
 				if (players != null && !players.contains(player.getName())){
 					continue;
 				}
 				
+				//Otherwise, we do, so get the weeks that we have for the player.
 				int playerId = player.getId();
 				WeekRecordsForPlayer weeksWonForPlayer = playerWeeksWonMap.get(Integer.valueOf(playerId));
 				
+				//If we don't have any weeks for them, make some new ones.
 				if (weeksWonForPlayer == null){
 					weeksWonForPlayer = new WeekRecordsForPlayer(player, new ArrayList<WeekRecord>());
 				}
 				
+				//Add in the record we're on.
 				WeekRecord weekRecord = new WeekRecord(record.getSeason(), record.getWeek(), record.getRecord());
 				weeksWonForPlayer.getWeekRecords().add(weekRecord);
 				
+				//Make sure it's grouped by id.
 				playerWeeksWonMap.put(Integer.valueOf(playerId), weeksWonForPlayer);
 			}
 		}
 
+		//Now that everything's grouped by player, we just have to add the groups to what we're returning.
+		//The ui will take care of organizing it.
 		List<WeekRecordsForPlayer> playerWeeksWonList = new ArrayList<WeekRecordsForPlayer>();
 		playerWeeksWonList.addAll(playerWeeksWonMap.values());
 		
 		return playerWeeksWonList;
 	}
 	
-	public List<WeekRecordsForPlayer> getWeeksWon(String year){
-		
-		List<WeekRecordForPlayer> weekRecords = getWeekRecordsForPlayer(year, null, null, true);
-		
-		Collections.sort(weekRecords, new WeekRecordComparator());
-		//sort by year and week before going through them!
-		
-		List<WeekRecordsForPlayer> weeksWon = new ArrayList<WeekRecordsForPlayer>();
-		
-		List<Player> playersForYear = getPlayersForYear(year);
-		//go through and group them...
-		//sort by year, and week
-		//for each week record, get the year and week
-		//compare
-		//map of player name to their week
-		//or
-		//it could be like this
-		//	year	week	winners
-		//also want the other way
-		//	player	weeks won
-		//
-		//group them in java or in javascript?
-		//java is better i think
-		//how should they be grouped?
-		
-		int currentSeasonId = -1;
-		int currentWeekId = -1;
-		boolean isNewWeek = false;
-		
-		//season	week	player		wins	losses
-		//2017		8		tim			12		4
-		
-		List<Record> currentWinnersForTheWeek = new ArrayList<Record>();
-		
-		Map<Integer, WeekRecordsForPlayer> playerToWeeksWonMap = new HashMap<Integer, WeekRecordsForPlayer>();
-
-		Season currentSeason = null;
-		Week currentWeek = null;
-		
-		for (int index = 0; index < weekRecords.size(); index++){
-			WeekRecordForPlayer weekRecord = weekRecords.get(index);
-			
-			Season season = weekRecord.getSeason();
-			int seasonId = season.getId();
-			
-			Week week = weekRecord.getWeek();
-			int weekId = week.getId();
-			
-			if (index == 0){
-				currentSeasonId = seasonId;
-				currentSeason = season;
-				currentWeekId = weekId;
-				currentWeek = week;
-			}
-			
-			isNewWeek = false;
-			
-			if (seasonId != currentSeasonId || weekId != currentWeekId){
-				//it's a new week and season
-				//handle the current first
-				
-				for (int recordIndex = 0; recordIndex < currentWinnersForTheWeek.size(); recordIndex++){
-					Record winningRecord = currentWinnersForTheWeek.get(recordIndex);
-					Player winningPlayer = winningRecord.getPlayer();
-					WeekRecordsForPlayer currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
-
-					WeekRecord winningWeekRecord = new WeekRecord(currentSeason, currentWeek, winningRecord);
-					
-					List<WeekRecord> winningWeekRecordsForPlayer = null;
-					
-					if (currentWeeksWon == null){
-						currentWeeksWon = new WeekRecordsForPlayer(winningPlayer);
-						winningWeekRecordsForPlayer = new ArrayList<WeekRecord>();
-					}
-					else {
-						winningWeekRecordsForPlayer = currentWeeksWon.getWeekRecords();
-					}
-					
-					winningWeekRecordsForPlayer.add(winningWeekRecord);
-					currentWeeksWon.setWeekRecords(winningWeekRecordsForPlayer);
-					
-					playerToWeeksWonMap.put(winningPlayer.getId(), currentWeeksWon);
-				}
-				
-				currentSeasonId = seasonId;
-				currentSeason = season;
-				currentWeekId = weekId;
-				currentWeek = week;
-				isNewWeek = true;
-				currentWinnersForTheWeek = new ArrayList<Record>();
-			}
-			
-			Record record = weekRecord.getRecord();
-			
-			int wins = record.getWins();
-			int losses = record.getLosses();
-			
-			boolean isBetterThanCurrentWinners = false;
-			boolean isTieWithCurrentWinners = false;
-			
-			for (int recordIndex = 0; recordIndex < currentWinnersForTheWeek.size(); recordIndex++){
-				Record winningRecord = currentWinnersForTheWeek.get(recordIndex);
-				
-				int winningRecordWins = winningRecord.getWins();
-				int winningRecordLosses = winningRecord.getLosses();
-				
-				if (wins > winningRecordWins){
-					isBetterThanCurrentWinners = true;
-				}
-				else if (wins == winningRecordWins){
-					if (losses < winningRecordLosses){
-						isBetterThanCurrentWinners = true;
-					}
-					else if (losses == winningRecordLosses){
-						isTieWithCurrentWinners = true;
-					}
-				}
-				
-				if (isBetterThanCurrentWinners || isTieWithCurrentWinners){
-					break;
-				}
-			}
-			
-			if (index == 0 || isNewWeek){
-				isBetterThanCurrentWinners = true;
-			}
-			
-			if (isBetterThanCurrentWinners){
-				currentWinnersForTheWeek = new ArrayList<Record>();
-				currentWinnersForTheWeek.add(record);
-			}
-			else if (isTieWithCurrentWinners){
-				currentWinnersForTheWeek.add(record);
-			}
-		}
-		
-		for (int recordIndex = 0; recordIndex < currentWinnersForTheWeek.size(); recordIndex++){
-			Record winningRecord = currentWinnersForTheWeek.get(recordIndex);
-			Player winningPlayer = winningRecord.getPlayer();
-			WeekRecordsForPlayer currentWeeksWon = playerToWeeksWonMap.get(winningPlayer.getId());
-
-			WeekRecord winningWeekRecord = new WeekRecord(currentSeason, currentWeek, winningRecord);
-
-			List<WeekRecord> winningWeekRecordsForPlayer = null;
-
-			if (currentWeeksWon == null){
-				currentWeeksWon = new WeekRecordsForPlayer(winningPlayer);
-				winningWeekRecordsForPlayer = new ArrayList<WeekRecord>();
-			}
-			else {
-				winningWeekRecordsForPlayer = currentWeeksWon.getWeekRecords();
-			}
-
-			winningWeekRecordsForPlayer.add(winningWeekRecord);
-			currentWeeksWon.setWeekRecords(winningWeekRecordsForPlayer);
-
-			playerToWeeksWonMap.put(winningPlayer.getId(), currentWeeksWon);
-		}
-		
-		for (int index = 0; index < playersForYear.size(); index++){
-			Player player = playersForYear.get(index);
-			
-			WeekRecordsForPlayer weeksWonForPlayer = playerToWeeksWonMap.get(player.getId());
-			
-			if (weeksWonForPlayer == null){
-				weeksWonForPlayer = new WeekRecordsForPlayer(player, new ArrayList<WeekRecord>());
-			}
-			
-			weeksWon.add(weeksWonForPlayer);
-		}
-		
-		return weeksWon;
-		
-	}
-	
-	public List<WeekRecordForPlayer> getWeekRecordsForPlayer(String year, String weekNumber, String player, boolean onlyFinishedGames){
-		//List<String> years, List<String> weeks, List<String> players
-		//the record does the calculating of wins and losses in sql
-		//will need to get the record for each player and each week of each year
-		//could get this as a result set:
-		//	year, week, record, player_name
-		//
-		//would have to get it once
-		List<String> years = null;
-		if (year != null){
-			years = Arrays.asList(year);
-		}
-		
-		List<String> players = null;
-		if (player != null){
-			players = Arrays.asList(player);
-		}
-		
-		List<String> weekNumbers = null;
-		if (weekNumber != null){
-			weekNumbers = Arrays.asList(weekNumber);
-		}
-		
-		List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(years, weekNumbers, players, onlyFinishedGames);
-		
-		return playerWeekRecords;
-	}
-	
+	/**
+	 * 
+	 * This function will get the weekly records for the given years, weeks, and players.  There's not much to it.
+	 * 
+	 * @param years
+	 * @param weeks
+	 * @param players
+	 * @param onlyFinishedGames
+	 * @return
+	 */
 	public List<WeekRecordForPlayer> getPlayerWeekRecords(List<String> years, List<String> weeks, List<String> players, boolean onlyFinishedGames){
 		
 		String query = SELECT_WEEK_RECORDS;
@@ -4891,7 +5518,33 @@ order by s.year asc, w.week asc, g.id asc;
 		return playerWeekRecords;
 	}
 	
+	/**
+	 * 
+	 * This function will get the weekly records for the given years, weeks, and players.  It's here so that the caller can
+	 * kind of "customize" what it brings back.  It will do the work of adding the "where" clause for the years, weeks, and players
+	 * while the caller can say what it wants back from the tables.  It assumes the pick, game, week, season, and player tables
+	 * are part of the query with their usual "aliases".
+	 * 
+	 * It's mainly here because I was doing this in two separate places and I figured it would be better to just do it in one instead.
+	 * 
+	 * The onlyFinishedGames switch is there to say if we only want records for games that have results.  I kind of forget why I added it
+	 * though.
+	 * 
+	 * @param query
+	 * @param years
+	 * @param weekNumbers
+	 * @param players
+	 * @param onlyFinishedGames
+	 * @return
+	 */
 	protected List<WeekRecordForPlayer> getPlayerWeekRecords(String query, List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
+		
+		//Steps to do:
+		//	1. Get the "criteria" (the where clause) we should use for the given years, weeks, and players.
+		//	2. Add that to the query we were given.
+		//	3. Add the arguments for what we were given.
+		//	4. Run the query.
+		//	5. Map the results.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -4955,47 +5608,32 @@ order by s.year asc, w.week asc, g.id asc;
 		return playerWeekRecords;
 	}
 	
+	/**
+	 * 
+	 * This function will make the "criteria" for getting the weekly records.  It's here because I was doing this in multiple
+	 * places and I figured it was best to just do it once.  It will assume that the table aliases used for each table are:
+	 * 
+	 * 		years - table = season, alias = s
+	 * 		weekNumbers - table = week, alias = w
+	 * 		players - table = player, alias = pl
+	 * 
+	 * If "onlyFinishedGames" is true, it'll add a "criteria" that says the game's winning team id can't be null (using the alias "g"
+	 * for the game table).
+	 * 
+	 * Each criteria is optional and will only be added if it's given.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param players
+	 * @param onlyFinishedGames
+	 * @return
+	 */
 	protected String createWeekRecordsCriteria(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
 		
-		/*
-		 protected static final String SELECT_WEEKS_WON = "select pick_totals.season_id, " + 
-													 		"pick_totals.year, " + 
-													 		"pick_totals.player_id, " + 
-													 		"pick_totals.player_name, " + 
-													 		"pick_totals.week_id, " + 
-													 		"pick_totals.week, " + 
-													 		"pick_totals.week_label, " + 
-													 		"sum(pick_totals.wins) as wins, " + 
-													 		"sum(pick_totals.losses) as losses, " + 
-													 		"sum(pick_totals.ties) as ties " + 
-													 "from (select pl.id as player_id, " + 
-													 		 	  "pl.name as player_name, " + 
-													 		 	  "s.id as season_id, " + 
-													 		 	  "s.year as year, " + 
-													 		 	  "w.id as week_id, " + 
-													 		 	  "w.week as week, " + 
-													 		 	  "w.label as week_label, " + 
-													 		 	  "(case when p.team_id = g.winning_team_id " + 
-													 		 	  	    "then 1 " + 
-													 		 	  	    "else 0 " + 
-													 		 	  "end) as wins, " + 
-													 		 	  "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
-													 		 	  	    "then 1 " + 
-													 		 	  	    "else 0 " + 
-													 		 	  "end) as losses, " + 
-													 		 	  "(case when g.winning_team_id = -1 " + 
-													 		 	  	    "then 1 " + 
-													 		 	  	    "else 0 " + 
-													 		 	  "end) as ties " + 
-													 	   "from pick p join game g on p.game_id = g.id " + 
-													 	        "join player pl on p.player_id = pl.id " + 
-													 	        "join week w on g.week_id = w.id " + 
-													 	        "join season s on w.season_id = s.id " + 
-													 	        " %s " + 
-													 	   ") pick_totals " + 
-													"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week, week_label " + 
-													"order by year, week, player_name ";
-		 */
+		//Steps to do:
+		//	1. Go through each thing we were given and add it if it's got something in it.
+		//	2. That's it.
+		
 		StringBuilder whereClause = new StringBuilder();
 
 		boolean addedWhere = false;
@@ -5072,7 +5710,21 @@ order by s.year asc, w.week asc, g.id asc;
 		return whereClause.toString();
 	}
 	
+	/**
+	 * 
+	 * This function will map a result from a "player week record" query.  It expects the result
+	 * to have these columns: season_id, year, week_id, week_number, week_label, player_id,
+	 * player_name, wins, losses, ties
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
 	protected WeekRecordForPlayer mapPlayerWeekRecord(ResultSet results) throws SQLException {
+
+		//Steps to do:
+		//	1. Pull out the variables from the result.
+		//	2. Add them into objects and put the objects in the "week record" container.
 		
 		int seasonId = results.getInt("season_id");
 		String year = results.getString("year");
@@ -5081,7 +5733,6 @@ order by s.year asc, w.week asc, g.id asc;
 		int weekId = results.getInt("week_id");
 		int weekNumber = results.getInt("week_number");
 		String weekLabel = results.getString("week_label");
-		//public Week(int id, int seasonId, int weekNumber, String label, List<Game> games)
 		Week week = new Week(weekId, seasonId, weekNumber, weekLabel);
 		
 		int playerId = results.getInt("player_id");
@@ -5098,7 +5749,23 @@ order by s.year asc, w.week asc, g.id asc;
 		return weekRecord;
 	}
 	
-	public List<WeekRecordForPlayer> getWeekRecordForPlayer(List<String> years, List<String> weekNumbers, List<String> players){
+	/**
+	 * 
+	 * This function will get the "week standings" for the given years, weeks, and players.  It basically just
+	 * gets the weekly records for them and makes sure they're sorted so that the best weeks (in terms of number
+	 * of wins) come first.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param players
+	 * @return
+	 */
+	public List<WeekRecordForPlayer> getWeekStandings(List<String> years, List<String> weekNumbers, List<String> players){
+		
+		//Steps to do:
+		//	1. Make the "where" clause out of what we were given.
+		//	2. Add that to the query for the "best weeks".
+		//	3. Run it and map the results.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -5162,7 +5829,25 @@ order by s.year asc, w.week asc, g.id asc;
 		return playerWeekRecords;
 	}
 	
+	/**
+	 * 
+	 * This function will get the championships that the given players have won in the given years.
+	 * It will group them by player and have each player associated with the championships they've
+	 * won in the returned list.  If a player didn't win a championship in any of the given years, they
+	 * won't be returned in the given list.
+	 * 
+	 * It will sort them so that the player who has the most championships comes first.
+	 * 
+	 * @param years
+	 * @param players
+	 * @return
+	 */
 	public List<ChampionshipsForPlayer> getPlayerChampionships(List<String> years, List<String> players){
+		
+		//Steps to do:
+		//	1. Get the championships for the given years and players.
+		//	2. Group them by player.
+		//	3. Sort them so that the player with the most championships comes first.
 		
 		List<Championship> championships = getChampionships(years, players);
 		
@@ -5195,6 +5880,14 @@ order by s.year asc, w.week asc, g.id asc;
 		return playerChampionshipsList;
 	}
 	
+	/**
+	 * 
+	 * A dumb class that will sort a list of "championships for players" so that the one with the most
+	 * championships come first.
+	 * 
+	 * @author albundy
+	 *
+	 */
 	protected class PlayerChampionshipsComparator implements Comparator<ChampionshipsForPlayer> {
 
 		public int compare(ChampionshipsForPlayer playerChampionships1, ChampionshipsForPlayer playerChampionships2) {
@@ -5216,6 +5909,13 @@ order by s.year asc, w.week asc, g.id asc;
 		}
 	}
 	
+	/**
+	 * 
+	 * This function will get all the years that have been completed.  It's here so we can know
+	 * what years there are championships for (so we don't include the current year in that).
+	 * 
+	 * @return
+	 */
 	public List<String> getAllCompletedYears(){
 		
 		List<String> completedYears = getCompletedYears(null);
@@ -5223,7 +5923,24 @@ order by s.year asc, w.week asc, g.id asc;
 		return completedYears;
 	}
 	
+	/**
+	 * 
+	 * This function will go through the given years and check whether they're completed.
+	 * If they are, it'll return them in the list it returns.  It will basically filter out
+	 * non-completed years from the given list.
+	 * 
+	 * A "completed year" is a year where there's a winning team in the game
+	 * for week 21 (the superbowl).
+	 * 
+	 * @param years
+	 * @return
+	 */
 	public List<String> getCompletedYears(List<String> years){
+		
+		//Steps to do:
+		//	1. Run the query.
+		//	2. Go through the results and add them all to the list
+		//	   we're sending back.
 		
 		List<String> completedYears = new ArrayList<String>();
 		
@@ -5281,6 +5998,12 @@ order by s.year asc, w.week asc, g.id asc;
 		return completedYears;
 	}
 	
+	/**
+	 * 
+	 * This function will get all the championships for all years and players.  Not much to it.
+	 * 
+	 * @return
+	 */
 	public List<Championship> getAllChampionships(){
 		
 		List<Championship> allChampionships = getChampionships(null, null);
@@ -5288,13 +6011,24 @@ order by s.year asc, w.week asc, g.id asc;
 		return allChampionships;
 	}
 	
+	/**
+	 * 
+	 * This function will get the championships for the given years and players.  In order for there
+	 * to be a championship, the year has to have been completed (there has to be a result in the superbowl).
+	 * 
+	 * @param years
+	 * @param players
+	 * @return
+	 */
 	public List<Championship> getChampionships(List<String> years, List<String> players){
-		
-		//have to get all the records?
-		//is there a faster way?
-		//need to handle there being ties in a season...
-		
-		//SELECT_RECORDS_FOR_YEAR
+
+		//Steps to do:
+		//	1. Get all the completed years.
+		//	2. Use those years to filter out years that we were given that haven't been
+		//	   completed.
+		//	3. Run the query that will get the ordered records for the season.
+		//	4. Go through those results and keep the best records from each year.  Those
+		//	   are the records of the champions.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -5331,20 +6065,6 @@ order by s.year asc, w.week asc, g.id asc;
 				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(yearsToUse.size());
 			}
 			
-			if (players != null && players.size() > 0){
-				if ("".equals(recordsForYearCriteria)){
-					recordsForYearCriteria = " where ";
-				}
-				else {
-					recordsForYearCriteria = recordsForYearCriteria + " and ";
-				}
-				
-				recordsForYearCriteria = recordsForYearCriteria + " pl.name in " + DatabaseUtil.createInClauseParameterString(players.size()); 
-			}
-			
-			//is this the best way to do it?
-			//add it up every time?
-			//i think so, otherwise we have to save it to a separate table
 			String query = String.format(SELECT_ORDERED_BEST_RECORDS, recordsForYearCriteria);
 			
 			statement = connection.prepareStatement(query);
@@ -5358,17 +6078,11 @@ order by s.year asc, w.week asc, g.id asc;
 					parameterIndex++;
 				}
 			}
-			
-			if (players != null && players.size() > 0){
-				for (int index = 0; index < players.size(); index++){
-					String player = players.get(index);
-					statement.setString(parameterIndex, player);
-					parameterIndex++;
-				}
-			}
-			
+						
 			results = statement.executeQuery();
-			
+
+			//Now that we have the records for each season and they're ordered by wins, we just have
+			//to go through and pick out the best ones for each season.
 			String currentYear = null;
 			int currentChampionWins = -1;
 			int currentChampionLosses = -1;
@@ -5380,6 +6094,8 @@ order by s.year asc, w.week asc, g.id asc;
 			while (results.next()){
 				String year = results.getString("year");
 				
+				//If we haven't picked anything out yet, this is the best record for the most current year, so 
+				//it's the record of a championship.
 				if (currentYear == null){
 					championship = mapChampionship(results);
 					championships.add(championship);
@@ -5390,23 +6106,33 @@ order by s.year asc, w.week asc, g.id asc;
 					continue;
 				}
 				
+				//Otherwise, if it's the same year that we're on, the only way it could be a championship
+				//is if there's the exact same number of wins and losses.
 				if (currentYear.equals(year)){
 
+					//If we've already got the best record for the year, this switch will be flipped and that tells
+					//us to just keep going to the next year.
 					if (skipToNextYear){
 						continue;
 					}
 				
+					//Otherwise, get the wins and losses of the record we're on.
 					int currentWins = results.getInt("wins");
 					int currentLosses = results.getInt("losses");
 					
+					//If it's the same as the current wins and losses of the current championship, there was a tie, so they're
+					//both champions.
 					if (currentWins == currentChampionWins && currentLosses == currentChampionLosses){
 						championship = mapChampionship(results);
 						championships.add(championship);
 					}
+					//Otherwise, it wasn't a championship year for that guy, so just flip the switch that will make it so we just
+					//skip to the record where the year changes.
 					else {
 						skipToNextYear = true;
 					}
 				}
+				//If we're on a new year, then the best record should be at the top, so it should be a championship.
 				else {
 					championship = mapChampionship(results);
 					championships.add(championship);
@@ -5416,6 +6142,8 @@ order by s.year asc, w.week asc, g.id asc;
 				}
 			}
 			
+			//Now that we have all the championships, we want to go through and filter them so that we only
+			//include championships that were won by a player that was given in the function call.
 			if (players != null && players.size() > 0){
 				List<Championship> filteredChampionships = new ArrayList<Championship>();
 				
@@ -5445,6 +6173,16 @@ order by s.year asc, w.week asc, g.id asc;
 		return championships;
 	}
 	
+	/**
+	 * 
+	 * This function will map a championship from the given result.  It expects the result
+	 * to have these columns: season_id, year, player_id, player_name, wins, losses, ties.
+	 * It just plops those in a record object and plops that in a championship object.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
 	protected Championship mapChampionship(ResultSet results) throws SQLException {
 		
 		int seasonId = results.getInt("season_id");
@@ -5464,178 +6202,24 @@ order by s.year asc, w.week asc, g.id asc;
 		
 		return championship;
 	}
-	
-	/*
-	 
-	 this is like the "collective accuracy" of our picks...
-	 
-	 select 
-    
-    pick_accuracy_summary.team_id as team_id, 
-    pick_accuracy_summary.division_id as division_id, 
-    pick_accuracy_summary.team_name as team_name, 
-    pick_accuracy_summary.team_nickname as team_nickname, 
-    pick_accuracy_summary.team_abbreviation as team_abbreviation, 
-    sum(pick_accuracy_summary.actual_wins) as actual_wins,  
-    sum(pick_accuracy_summary.actual_losses) as actual_losses, 
-    sum(pick_accuracy_summary.actual_ties) as actual_ties,  
-    sum(pick_accuracy_summary.predicted_wins) as predicted_wins,  
-    sum(pick_accuracy_summary.predicted_losses) as predicted_losses,  
-    sum(pick_accuracy_summary.times_right) as times_right,  
-    sum(pick_accuracy_summary.times_wrong) as times_wrong,  
-    sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right,  
-    sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong,  
-    sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right,  
-    sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong  
-from (select   
-		  
-		  t.id as team_id,  
-		  t.division_id as division_id, 
-		  t.name as team_name,  
-		  t.nickname as team_nickname, 
-		  t.abbreviation as team_abbreviation,  
-		  (select count(*)  
-		   from game g  
-		   where (g.home_team_id = t.id or  
-		    	  g.away_team_id = t.id)  
-		    	  and g.winning_team_id = t.id  
-		    	  and g.week_id in (select w.id  
-		    	  		    from week w  
-		    	  		    where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		  ) as actual_wins,  
-		  (select count(*)  
-		   from game g  
-		   where (g.home_team_id = t.id or  
-		   	 	  g.away_team_id = t.id)  
-		   	 	  and (g.winning_team_id != t.id and g.winning_team_id != -1)  
-		   	 	  and g.week_id in (select w.id  
-		   	 	  					from week w  
-		   	 	  					where w.season_id in (select s.id from season s where year = '2016') and w.week = 2
-									      )  
-		  ) as actual_losses,  
-		  (select count(*)  
-		   from game g  
-		   where (g.home_team_id = t.id or  
-		   	      g.away_team_id = t.id)  
-		   	      and g.winning_team_id = -1  
-		   	      and g.week_id in (select w.id  
-		   	      				    from week w  
-		   	      				    where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		  ) as actual_ties,  
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
-		   		 and p.team_id = t.id  
-		   		 and g.week_id in (select w.id  
-		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		  ) as predicted_wins,  
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
-		   		 and p.team_id != t.id  
-		   		 and (g.home_team_id = t.id or g.away_team_id = t.id)  
-		   		 and g.week_id in (select w.id  
-		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		  ) as predicted_losses, 
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
-		   		 and (g.home_team_id = t.id or g.away_team_id = t.id)  
-		   		 and g.winning_team_id = p.team_id  
-		   		 and g.week_id in (select w.id  
-		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		  ) as times_right,  
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
-		   		 and (g.home_team_id = t.id or g.away_team_id = t.id)  
-		   		 and g.winning_team_id != p.team_id 
-		   		 and g.winning_team_id != -1  
-		   		 and g.week_id in (select w.id  
-		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		  ) as times_wrong,  
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
-		   		 and p.team_id = t.id  
-		   		 and g.week_id in (select w.id  
-		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		   		 and g.winning_team_id = p.team_id  
-		  ) as times_picked_to_win_right,  
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
-		   	     and p.team_id = t.id  
-		   	     and g.week_id in (select w.id  
-		   	     				   from week w  
-		   	     				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		   	     and g.winning_team_id != p.team_id  
-		   	     and g.winning_team_id != -1 
-		  ) as times_picked_to_win_wrong, 
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
-		     	 and p.team_id != t.id  
-		     	 and (g.home_team_id = t.id or g.away_team_id = t.id)  
-		     	 and g.week_id in (select w.id  
-		     	 				   from week w  
-		     	 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		     	 and g.winning_team_id != t.id 
-		     	 and g.winning_team_id != -1 
-		  ) as times_picked_to_lose_right,  
-		  (select count(*)   
-		   from pick p join game g on p.game_id = g.id  
-		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy'))  
-		   	 	 and p.team_id != t.id  
-		   	 	 and (g.home_team_id = t.id or g.away_team_id = t.id)  
-		   	 	 and g.week_id in (select w.id  
-		   	 	 				   from week w  
-		   	 	 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
-		   	 	 and g.winning_team_id = t.id  
-		   ) as times_picked_to_lose_wrong  
-    from team t  
-    where t.abbreviation = 'TB'
-	) pick_accuracy_summary  
-group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 
-	need to put in sections for:
-		players
-		years
-		weeks
-		
-	then just do replacements ... if they don't exist, replace them with empty strings
-	 
+	/**
+	 * 
+	 * This function will get the "pick accuracy" summaries for the given years, weeks, players, and teams.  All of the arguments are optional
+	 * and will only be included if they're given.
+	 * 
+	 * @param years
+	 * @param weeks
+	 * @param players
+	 * @param teamAbbreviations
+	 * @return
 	 */
-	public List<CompactPickAccuracyContainer> getCompactPickAccuracies(List<String> years, List<String> weeks, List<String> players, List<String> teams){
-		return null;
-	}
-	
 	public List<PickAccuracySummary> getPickAccuracySummaries(List<String> years, List<String> weeks, List<String> players, List<String> teamAbbreviations){
 
-		/*
-		 protected static final String SELECT_PICK_ACCURACY_SUMMARY = "select pick_accuracy_summary.player_id as player_id, " + 
-																 	    "pick_accuracy_summary.player_name as player_name, " + 
-																 	    "pick_accuracy_summary.team_id as team_id, " +
-																 	    "pick_accuracy_summary.division_id as division_id, " +
-																 	    "pick_accuracy_summary.team_name as team_name, " +
-																 	    "pick_accuracy_summary.team_nickname as team_nickname, " +
-																 	    "pick_accuracy_summary.team_abbreviation as team_abbreviation, " +
-																 	    "sum(pick_accuracy_summary.actual_wins) as actual_wins, " + 
-																 	    "sum(pick_accuracy_summary.actual_losses) as actual_losses, " + 
-																 	    "sum(pick_accuracy_summary.predicted_wins) as predicted_wins, " + 
-																 	    "sum(pick_accuracy_summary.predicted_losses) as predicted_losses, " + 
-																 	    "sum(pick_accuracy_summary.times_right) as times_right, " + 
-																 	    "sum(pick_accuracy_summary.times_wrong) as times_wrong, " + 
-																 	    "sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right, " + 
-																 	    "sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong, " + 
-																 	    "sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right, " + 
-																 	    "sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong " + 
-		 */
+		//Steps to do:
+		//	1. Add in each "criteria" that we have to the query.
+		//	2. Run the query.
+		//	3. Map the results.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -5684,8 +6268,6 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 				}
 
 				whereClauseStringBuilder.append(" s.year in ").append(yearInClauseString);
-				
-				//and t.end_year is null or t.end_year > s.year
 			}
 			
 			if (numberOfTeams > 0){
@@ -5771,7 +6353,16 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 		
 		return pickAccuracySummaries;
 	}
-	
+
+	/**
+	 * 
+	 * This function will map the result of the pick accuracy summary query.  It goes hand in hand with the
+	 * SELECT_PICK_ACCURACY_SUMMARY query so the columns it picks will match that query.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
 	protected PickAccuracySummary mapPickAccuracySummary(ResultSet results) throws SQLException {
 		
 		int playerId = results.getInt("player_id");
@@ -5805,7 +6396,23 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 		return pickAccuracySummary;
 	}
 	
+	/**
+	 * 
+	 * This function will get the "pick splits" for the given years, weeks, players, and teams.  This basically breaks down the picks
+	 * into "home" and "away" picks and puts the players in the groups that they chose.
+	 * 
+	 * @param years
+	 * @param weekNumbers
+	 * @param playerNames
+	 * @param teams
+	 * @return
+	 */
 	public List<PickSplit> getPickSplits(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teams){
+		
+		//Steps to do:
+		//	1. Make the query and add in the where clause criteria.
+		//	2. Run the query.
+		//	3. Map the results.
 		
 		List<PickSplit> pickSplits = new ArrayList<PickSplit>();
 		
@@ -5955,6 +6562,7 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 				
 				if (gameId != currentGameId){
 					
+					//Sort the players by name so that they show up in a consistent order.
 					if (currentPickSplit != null){
 						Collections.sort(currentPickSplit.getHomeTeamPlayers());
 						Collections.sort(currentPickSplit.getAwayTeamPlayers());
@@ -5977,7 +6585,7 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 					currentPickSplit.setWeekLabel(weekLabel);
 					currentPickSplit.setHomeTeamAbbreviation(homeTeam);
 					currentPickSplit.setAwayTeamAbbreviation(awayTeam);
-					if (winningTeamId == -1){
+					if (winningTeamId == NFLPicksConstants.TIE_WINNING_TEAM_ID){
 						currentPickSplit.setWinningTeamAbbreviation(NFLPicksConstants.TIE_TEAM_ABBREVIATION);
 					}
 					else {
@@ -6019,12 +6627,29 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 		return pickSplits;
 	}
 	
+	/**
+	 * 
+	 * This function will get the season long records for the given years and players.  Not much to it.
+	 * 
+	 * @param years
+	 * @param players
+	 * @return
+	 */
 	public List<SeasonRecordForPlayer> getSeasonRecords(List<String> years, List<String> players){
+		
+		//Steps to do:
+		//	1. Get all the championships since we want to mark them if somebody won
+		//	   one in a season.
+		//	2. Go through and get the records for the years and players we were given.
+		//	3. Map each one and that's it.
 		
 		List<SeasonRecordForPlayer> seasonRecords = new ArrayList<SeasonRecordForPlayer>();
 		
 		List<Championship> championships = getAllChampionships();
 		
+		//Here so we can easily get a championship for a year and player without having to 
+		//go through the list every single time.
+		//It will be used during the mapping of the results.
 		Set<String> championshipKeys = new HashSet<String>();
 		
 		for (int index = 0; index < championships.size(); index++){
@@ -6097,6 +6722,8 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 			results = statement.executeQuery();
 			
 			while (results.next()){
+				//Pass in the championship "keys" so we can tell whether this season was a championship one
+				//for the player.
 				SeasonRecordForPlayer seasonRecord = mapSeasonRecordForPlayer(results, championshipKeys);
 				seasonRecords.add(seasonRecord);
 			}
@@ -6111,6 +6738,16 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 		return seasonRecords;
 	}
 	
+	/**
+	 * 
+	 * This function will map the result of a season record query and include whether that season was a championship one
+	 * for the player with the record.  Not much to it.
+	 * 
+	 * @param results
+	 * @param championshipKeys
+	 * @return
+	 * @throws SQLException
+	 */
 	protected SeasonRecordForPlayer mapSeasonRecordForPlayer(ResultSet results, Set<String> championshipKeys) throws SQLException {
 		
 		int seasonId = results.getInt("season_id");
@@ -6134,18 +6771,46 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 		return seasonRecordForPlayer;
 	}
 	
+	/**
+	 * 
+	 * A convenience function for closing a statement and connection.
+	 * 
+	 * @param statement
+	 * @param connection
+	 */
 	protected void close(PreparedStatement statement, Connection connection){
 		DatabaseUtil.close(null, statement, connection);
 	}
 	
+	/**
+	 * 
+	 * A convenience function for closing all the stuff for a database query.
+	 * 
+	 * @param results
+	 * @param statement
+	 * @param connection
+	 */
 	protected void close(ResultSet results, PreparedStatement statement, Connection connection){
 		DatabaseUtil.close(results, statement, connection);
 	}
 	
+	/**
+	 * 
+	 * A convenience function for rolling back whatever we were doing with a connection when
+	 * there was an error.
+	 * 
+	 * @param connection
+	 */
 	protected void rollback(Connection connection){
 		DatabaseUtil.rollback(connection);
 	}
 	
+	/**
+	 * 
+	 * Gets a connection from the data source.
+	 * 
+	 * @return
+	 */
 	protected Connection getConnection(){
 		
 		Connection connection = null;
@@ -6167,4 +6832,156 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 	public void setDataSource(DataSource dataSource){
 		this.dataSource = dataSource;
 	}
+	
+	
+	/*
+	 
+	 this is like the "collective accuracy" of our picks...
+	 
+	 select 
+   
+   pick_accuracy_summary.team_id as team_id, 
+   pick_accuracy_summary.division_id as division_id, 
+   pick_accuracy_summary.team_name as team_name, 
+   pick_accuracy_summary.team_nickname as team_nickname, 
+   pick_accuracy_summary.team_abbreviation as team_abbreviation, 
+   sum(pick_accuracy_summary.actual_wins) as actual_wins,  
+   sum(pick_accuracy_summary.actual_losses) as actual_losses, 
+   sum(pick_accuracy_summary.actual_ties) as actual_ties,  
+   sum(pick_accuracy_summary.predicted_wins) as predicted_wins,  
+   sum(pick_accuracy_summary.predicted_losses) as predicted_losses,  
+   sum(pick_accuracy_summary.times_right) as times_right,  
+   sum(pick_accuracy_summary.times_wrong) as times_wrong,  
+   sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right,  
+   sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong,  
+   sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right,  
+   sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong  
+from (select   
+		  
+		  t.id as team_id,  
+		  t.division_id as division_id, 
+		  t.name as team_name,  
+		  t.nickname as team_nickname, 
+		  t.abbreviation as team_abbreviation,  
+		  (select count(*)  
+		   from game g  
+		   where (g.home_team_id = t.id or  
+		    	  g.away_team_id = t.id)  
+		    	  and g.winning_team_id = t.id  
+		    	  and g.week_id in (select w.id  
+		    	  		    from week w  
+		    	  		    where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		  ) as actual_wins,  
+		  (select count(*)  
+		   from game g  
+		   where (g.home_team_id = t.id or  
+		   	 	  g.away_team_id = t.id)  
+		   	 	  and (g.winning_team_id != t.id and g.winning_team_id != -1)  
+		   	 	  and g.week_id in (select w.id  
+		   	 	  					from week w  
+		   	 	  					where w.season_id in (select s.id from season s where year = '2016') and w.week = 2
+									      )  
+		  ) as actual_losses,  
+		  (select count(*)  
+		   from game g  
+		   where (g.home_team_id = t.id or  
+		   	      g.away_team_id = t.id)  
+		   	      and g.winning_team_id = -1  
+		   	      and g.week_id in (select w.id  
+		   	      				    from week w  
+		   	      				    where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		  ) as actual_ties,  
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
+		   		 and p.team_id = t.id  
+		   		 and g.week_id in (select w.id  
+		   		 				   from week w  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		  ) as predicted_wins,  
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
+		   		 and p.team_id != t.id  
+		   		 and (g.home_team_id = t.id or g.away_team_id = t.id)  
+		   		 and g.week_id in (select w.id  
+		   		 				   from week w  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		  ) as predicted_losses, 
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
+		   		 and (g.home_team_id = t.id or g.away_team_id = t.id)  
+		   		 and g.winning_team_id = p.team_id  
+		   		 and g.week_id in (select w.id  
+		   		 				   from week w  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		  ) as times_right,  
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
+		   		 and (g.home_team_id = t.id or g.away_team_id = t.id)  
+		   		 and g.winning_team_id != p.team_id 
+		   		 and g.winning_team_id != -1  
+		   		 and g.week_id in (select w.id  
+		   		 				   from week w  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		  ) as times_wrong,  
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
+		   		 and p.team_id = t.id  
+		   		 and g.week_id in (select w.id  
+		   		 				   from week w  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   		 and g.winning_team_id = p.team_id  
+		  ) as times_picked_to_win_right,  
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
+		   	     and p.team_id = t.id  
+		   	     and g.week_id in (select w.id  
+		   	     				   from week w  
+		   	     				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   	     and g.winning_team_id != p.team_id  
+		   	     and g.winning_team_id != -1 
+		  ) as times_picked_to_win_wrong, 
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy')) 
+		     	 and p.team_id != t.id  
+		     	 and (g.home_team_id = t.id or g.away_team_id = t.id)  
+		     	 and g.week_id in (select w.id  
+		     	 				   from week w  
+		     	 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		     	 and g.winning_team_id != t.id 
+		     	 and g.winning_team_id != -1 
+		  ) as times_picked_to_lose_right,  
+		  (select count(*)   
+		   from pick p join game g on p.game_id = g.id  
+		   where p.player_id in (select id from player where name in ('Jonathan', 'Benny boy'))  
+		   	 	 and p.team_id != t.id  
+		   	 	 and (g.home_team_id = t.id or g.away_team_id = t.id)  
+		   	 	 and g.week_id in (select w.id  
+		   	 	 				   from week w  
+		   	 	 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   	 	 and g.winning_team_id = t.id  
+		   ) as times_picked_to_lose_wrong  
+   from team t  
+   where t.abbreviation = 'TB'
+	) pick_accuracy_summary  
+group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
+
+	need to put in sections for:
+		players
+		years
+		weeks
+		
+	then just do replacements ... if they don't exist, replace them with empty strings
+	 
+	 */
+	public List<CompactPickAccuracyContainer> getCompactPickAccuracies(List<String> years, List<String> weeks, List<String> players, List<String> teams){
+		return null;
+	}
+
 }
