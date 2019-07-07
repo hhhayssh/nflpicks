@@ -221,7 +221,6 @@ function initializeSelections(){
 	}
 	setSelectedTeams(team);
 	
-	
 	resetPlayerSelections();
 	resetYearSelections();
 	resetWeekSelections();
@@ -428,8 +427,7 @@ function getSelectionCriteriaAndInitialize(){
 		$('#yearsContainer').empty();
 		$('#selectorContainer').append(yearSelectorHtml);
 		
-		var weekOptions = [
-		                   {label: 'All', value: 'all'},
+		var weekOptions = [{label: 'All', value: 'all'},
 		                   {label: 'Regular season', value: 'regular-season'},
 		                   {label: 'Playoffs', value: 'playoffs'},
 		                   {label: 'Week 1', value: '1'}, {label: 'Week 2', value: '2'},
@@ -458,7 +456,6 @@ function getSelectionCriteriaAndInitialize(){
 		NFL_PICKS_GLOBAL.weeks = weekOptions;
 		NFL_PICKS_GLOBAL.realWeeks = realWeeks;
 		var weekSelectorHtml = createWeekSelectorHtml(weekOptions);
-		$('#weeksContainer').empty();
 		$('#selectorContainer').append(weekSelectorHtml);
 		
 		var players = selectionCriteriaContainer.players;
@@ -472,11 +469,10 @@ function getSelectionCriteriaAndInitialize(){
 			realPlayers.push(playerObject);
 		}
 		setOptionsInSelect('player', playerOptions);
-		hideSelectedPlayersOption();
+//		hideSelectedPlayersOption();
 		NFL_PICKS_GLOBAL.players = playerOptions;
 		NFL_PICKS_GLOBAL.realPlayers = realPlayers;
 		var playerSelectorHtml = createPlayerSelectorHtml(playerOptions);
-		//$('#playersContainer').empty();
 		$('#selectorContainer').append(playerSelectorHtml);
 		
 		var teams = selectionCriteriaContainer.teams;
@@ -493,9 +489,7 @@ function getSelectionCriteriaAndInitialize(){
 			return 0;
 		});
 		//We also want the "all" option to be first.
-		var teamOptions = [
-		                   {label: 'All', value: 'all'}
-		                  ];
+		var teamOptions = [{label: 'All', value: 'all'}];
 		for (var index = 0; index < teams.length; index++){
 			var team = teams[index];
 			teamOptions.push({label: team.abbreviation, value: team.abbreviation});
@@ -504,8 +498,7 @@ function getSelectionCriteriaAndInitialize(){
 		$('#selectorContainer').append(teamSelectorHtml);
 		NFL_PICKS_GLOBAL.teams = teamOptions;
 		
-		var statNameOptions = [
-		                       {label: 'Champions', value: 'champions'},
+		var statNameOptions = [{label: 'Champions', value: 'champions'},
 		                       {label: 'Championship Standings', value: 'championshipStandings'},
 		                       {label: 'Season standings', value: 'seasonStandings'},
 		                       {label: 'Week Standings', value: 'weekStandings'},
@@ -513,8 +506,7 @@ function getSelectionCriteriaAndInitialize(){
 		                       {label: 'Weeks Won By Week', value: 'weeksWonByWeek'},
 		                       {label: 'Week Records By Player', value: 'weekRecordsByPlayer'},
 		                       {label: 'Pick Accuracy', value: 'pickAccuracy'},
-		                       {label: 'Pick Splits', value: 'pickSplits'}
-		                      ];
+		                       {label: 'Pick Splits', value: 'pickSplits'}];
 		var statNameSelectorHtml = createStatNameSelectorHtml(statNameOptions);
 		$('#selectorContainer').append(statNameSelectorHtml);
 		NFL_PICKS_GLOBAL.statNames = statNameOptions;
@@ -960,9 +952,6 @@ function getSelectedType(){
 function setSelectedType(type){
 	$('input[name=type]').val([type]);
 	NFL_PICKS_GLOBAL.selections.type = type;
-//	if (doesSelectHaveOptionWithValue('type', type)){
-//		$('#type').val(type);
-//	}
 }
 
 /**
@@ -988,130 +977,130 @@ function setPreviousType(newPreviousType){
 	NFL_PICKS_GLOBAL.previousType = newPreviousType;
 }
 
-function showSelectMultiplePlayersOption(){
-	$('#select-multiple-players').show();
-}
+//function showSelectMultiplePlayersOption(){
+//	$('#select-multiple-players').show();
+//}
+//
+//function hideSelectMultiplePlayersOption(){
+//	$('#select-multiple-players').hide();
+//}
+//
+//function showSelectSinglePlayersOption(){
+//	$('#select-single-player').show();
+//}
+//
+//function hideSelectSinglePlayersOption(){
+//	$('#select-single-player').hide();
+//}
+//
+//function updateSelectedPlayersOption(selectedPlayers){
+//	$('#selected-players').val(selectedPlayers);
+//	$('#selected-players').text(selectedPlayers);
+//}
+//
+//function showSelectedPlayersOption(){
+//	$('#selected-players').show();
+//}
+//
+//function hideSelectedPlayersOption(){
+//	$('#selected-players').hide();
+//}
+//
+//function hidePlayerOptions(players){
+//	
+//	var playersArray = players.split(',');
+//	
+//	for (var index = 0; index < playersArray.length; index++){
+//		var player = playersArray[index].trim();
+//		hidePlayerOption(player);
+//	}
+//}
+//
+//function hidePlayerOption(player){
+//	$('#' + normalizePlayerValue('player-' + player)).hide();
+//}
 
-function hideSelectMultiplePlayersOption(){
-	$('#select-multiple-players').hide();
-}
+//function showAllPlayerOptions(){
+//	var allOptions = $('#player option');
+//	
+//	for (var index = 0; index < allOptions.length; index++){
+//		var option = allOptions[index];
+//		
+//		if (isDefined(option.id) && option.id.startsWith('player-')){
+//			$('#' + option.id).show();
+//		}
+//	}
+//}
 
-function showSelectSinglePlayersOption(){
-	$('#select-single-player').show();
-}
+///**
+// * 
+// * Gets the player that's selected.
+// * 
+// * @returns
+// */
+//function getSelectedPlayer(){
+//	return $('#player option:selected').val();
+//}
 
-function hideSelectSinglePlayersOption(){
-	$('#select-single-player').hide();
-}
-
-function updateSelectedPlayersOption(selectedPlayers){
-	$('#selected-players').val(selectedPlayers);
-	$('#selected-players').text(selectedPlayers);
-}
-
-function showSelectedPlayersOption(){
-	$('#selected-players').show();
-}
-
-function hideSelectedPlayersOption(){
-	$('#selected-players').hide();
-}
-
-function hidePlayerOptions(players){
-	
-	var playersArray = players.split(',');
-	
-	for (var index = 0; index < playersArray.length; index++){
-		var player = playersArray[index].trim();
-		hidePlayerOption(player);
-	}
-}
-
-function hidePlayerOption(player){
-	$('#' + normalizePlayerValue('player-' + player)).hide();
-}
-
-function showAllPlayerOptions(){
-	var allOptions = $('#player option');
-	
-	for (var index = 0; index < allOptions.length; index++){
-		var option = allOptions[index];
-		
-		if (isDefined(option.id) && option.id.startsWith('player-')){
-			$('#' + option.id).show();
-		}
-	}
-}
-
-/**
- * 
- * Gets the player that's selected.
- * 
- * @returns
- */
-function getSelectedPlayer(){
-	return $('#player option:selected').val();
-}
-
-/**
- * 
- * Sets the selected player to the given one if that player is
- * one of the player input's options.
- * 
- * If the given player has multiple players in it, it will enable
- * multi select for players (if it's not enabled already).
- * 
- * It will also update the multi select player container option with the
- * given player and, finally, set the given player as the actual selected value.
- * 
- * If the given player is null or not defined, it won't do anything.
- * 
- * @param player
- * @returns
- */
-function setSelectedPlayer(player){
-	
-	//Steps to do:
-	//	1. If the given player is null, there's nothing to do.
-	//	2. Check whether it has multiple values.
-	//	3. If it does, then flip the switch that says selecting multiple players
-	//	   is enabled.
-	//	4. If it doesn't, that doesn't mean it's disabled, just that the given player isn't
-	//	   multiple players.
-	//	5. Because multi select players might be enabled (or might not be), get whether it's
-	//	   enabled or not.
-	//	6. If it's not enabled, then we just have to set the actual value of the select
-	//	   input to what we were given and that's it.
-	//	7. Otherwise, if it is enabled, then we want what we were given to become
-	//	   both the "selected players" container option and the value for the select.
-	
-	if (!isDefined(player)){
-		return;
-	}
-	
-	//if the player has a comma in it, we need to enable multi select for the player
-	//the forward and backward navigation need this...
-	if (doesValueHaveMultipleValues(player)){
-		setMultiSelectPlayer(true);
-	}
-	
-	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
-	
-	if (!multiSelectPlayerEnabled){
-		//I think this should go away ... there should be a function that updates
-		//the visibility of the options
-		//??????? put this back in?
-		//this is all too complicated to keep straight...
-		updateSelectedPlayersOption('');
-		setSelectedPlayerValue(player);
-		return;
-	}
-
-	//Set the "container" option to what we were given.
-	updateSelectedPlayersOption(player);
-	//Make sure to select that option.
-	setSelectedPlayerValue(player);
-}
+///**
+// * 
+// * Sets the selected player to the given one if that player is
+// * one of the player input's options.
+// * 
+// * If the given player has multiple players in it, it will enable
+// * multi select for players (if it's not enabled already).
+// * 
+// * It will also update the multi select player container option with the
+// * given player and, finally, set the given player as the actual selected value.
+// * 
+// * If the given player is null or not defined, it won't do anything.
+// * 
+// * @param player
+// * @returns
+// */
+//function setSelectedPlayer(player){
+//	
+//	//Steps to do:
+//	//	1. If the given player is null, there's nothing to do.
+//	//	2. Check whether it has multiple values.
+//	//	3. If it does, then flip the switch that says selecting multiple players
+//	//	   is enabled.
+//	//	4. If it doesn't, that doesn't mean it's disabled, just that the given player isn't
+//	//	   multiple players.
+//	//	5. Because multi select players might be enabled (or might not be), get whether it's
+//	//	   enabled or not.
+//	//	6. If it's not enabled, then we just have to set the actual value of the select
+//	//	   input to what we were given and that's it.
+//	//	7. Otherwise, if it is enabled, then we want what we were given to become
+//	//	   both the "selected players" container option and the value for the select.
+//	
+//	if (!isDefined(player)){
+//		return;
+//	}
+//	
+//	//if the player has a comma in it, we need to enable multi select for the player
+//	//the forward and backward navigation need this...
+//	if (doesValueHaveMultipleValues(player)){
+//		setMultiSelectPlayer(true);
+//	}
+//	
+//	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+//	
+//	if (!multiSelectPlayerEnabled){
+//		//I think this should go away ... there should be a function that updates
+//		//the visibility of the options
+//		//??????? put this back in?
+//		//this is all too complicated to keep straight...
+//		updateSelectedPlayersOption('');
+//		setSelectedPlayerValue(player);
+//		return;
+//	}
+//
+//	//Set the "container" option to what we were given.
+//	updateSelectedPlayersOption(player);
+//	//Make sure to select that option.
+//	setSelectedPlayerValue(player);
+//}
 
 //could be a single value
 //an array with commas
@@ -1151,81 +1140,81 @@ function setSelectedPlayers(players){
 	NFL_PICKS_GLOBAL.selections.players = playersArray;
 }
 
-/**
- * 
- * Sets the value on the player input to the given value.  Doesn't do any
- * funny business of trying to figure out whether it's mutliple select or not.
- * 
- * @param value
- * @returns
- */
-function setSelectedPlayerValue(value){
-	$('#player').val(value);
-}
+///**
+// * 
+// * Sets the value on the player input to the given value.  Doesn't do any
+// * funny business of trying to figure out whether it's mutliple select or not.
+// * 
+// * @param value
+// * @returns
+// */
+//function setSelectedPlayerValue(value){
+//	$('#player').val(value);
+//}
 
-/**
- * 
- * Gets the selected year.
- * 
- * @returns
- */
-function getSelectedYear(){
-	return $('#year option:selected').val();
-}
+///**
+// * 
+// * Gets the selected year.
+// * 
+// * @returns
+// */
+//function getSelectedYear(){
+//	return $('#year option:selected').val();
+//}
 
-/**
- * 
- * Gets the years to use when sending a request to the server.  We use aliases
- * for the "jurassic" period (2010-2015) and the "modern" era (2016-?) in the
- * select dropdown and we don't want the server to have to figure out what
- * the aliases are or how to handle them.  We want to keep it dumb.
- * 
- * It'll get the same value as getSelectedYear unless the selected year is...
- * 
- * 		old - It'll get 2010,2011,2012,2013,2014,2015
- * 		half-modern - 2016
- * 		modern - It'll get 2017,2018
- * 
- * @returns
- */
-function getSelectedYearToUse(){
-	
-	//Steps to do:
-	//	1. Get the normal year.
-	//	2. If it's one of the special ones, translate it to the real
-	//	   values.
-	
-	var yearToUse = getSelectedYear();
-	
-	if ('old' == yearToUse){
-		yearToUse = '2010,2011,2012,2013,2014,2015';
-	}
-	else if ('half-modern' == yearToUse){
-		yearToUse = '2016';
-	}
-	else if ('modern' == yearToUse){
-		yearToUse = '2017,2018';
-	}
-	else {
-		yearToUse = 'all';
-	}
-	
-	return yearToUse;
-}
-
-/**
- * 
- * Sets the selected year if the year input has the given
- * year as an option.
- * 
- * @param year
- * @returns
- */
-function setSelectedYear(year){
-//	if (doesSelectHaveOptionWithValue('year', year)){
-//		$('#year').val(year);
+///**
+// * 
+// * Gets the years to use when sending a request to the server.  We use aliases
+// * for the "jurassic" period (2010-2015) and the "modern" era (2016-?) in the
+// * select dropdown and we don't want the server to have to figure out what
+// * the aliases are or how to handle them.  We want to keep it dumb.
+// * 
+// * It'll get the same value as getSelectedYear unless the selected year is...
+// * 
+// * 		old - It'll get 2010,2011,2012,2013,2014,2015
+// * 		half-modern - 2016
+// * 		modern - It'll get 2017,2018
+// * 
+// * @returns
+// */
+//function getSelectedYearToUse(){
+//	
+//	//Steps to do:
+//	//	1. Get the normal year.
+//	//	2. If it's one of the special ones, translate it to the real
+//	//	   values.
+//	
+//	var yearToUse = getSelectedYear();
+//	
+//	if ('old' == yearToUse){
+//		yearToUse = '2010,2011,2012,2013,2014,2015';
 //	}
-}
+//	else if ('half-modern' == yearToUse){
+//		yearToUse = '2016';
+//	}
+//	else if ('modern' == yearToUse){
+//		yearToUse = '2017,2018';
+//	}
+//	else {
+//		yearToUse = 'all';
+//	}
+//	
+//	return yearToUse;
+//}
+
+///**
+// * 
+// * Sets the selected year if the year input has the given
+// * year as an option.
+// * 
+// * @param year
+// * @returns
+// */
+//function setSelectedYear(year){
+////	if (doesSelectHaveOptionWithValue('year', year)){
+////		$('#year').val(year);
+////	}
+//}
 
 function setSelectedYears(years){
 	
@@ -1262,57 +1251,57 @@ function setSelectedYears(years){
 	
 }
 
-/**
- * 
- * Gets the selected week.
- * 
- * @returns
- */
-function getSelectedWeek(){
-	return $('#week option:selected').val();
-}
+///**
+// * 
+// * Gets the selected week.
+// * 
+// * @returns
+// */
+//function getSelectedWeek(){
+//	return $('#week option:selected').val();
+//}
 
-/**
- * 
- * Gets the selected week we should use when sending a request to the server.
- * We use aliases in the display that the server doesn't understand, and this
- * makes it so we do the translation here instead of expecting the server to
- * understand weird stuff.
- * 
- * It'll return the value of getSelectedWeek unless the week is:
- * 
- * 		regular-season - It'll return all the weeks (1,2,3,4,...)
- * 		playoffs - It'll return everything after week 17 (18,19,20,21)
- * 
- * @returns
- */
-function getSelectedWeekToUse(){
-	
-	var weekToUse = getSelectedWeek();
-	
-	if ('regular-season' == weekToUse){
-		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
-	}
-	else if ('playoffs' == weekToUse){
-		weekToUse = '18,19,20,21';
-	}
-	
-	return weekToUse;
-}
+///**
+// * 
+// * Gets the selected week we should use when sending a request to the server.
+// * We use aliases in the display that the server doesn't understand, and this
+// * makes it so we do the translation here instead of expecting the server to
+// * understand weird stuff.
+// * 
+// * It'll return the value of getSelectedWeek unless the week is:
+// * 
+// * 		regular-season - It'll return all the weeks (1,2,3,4,...)
+// * 		playoffs - It'll return everything after week 17 (18,19,20,21)
+// * 
+// * @returns
+// */
+//function getSelectedWeekToUse(){
+//	
+//	var weekToUse = getSelectedWeek();
+//	
+//	if ('regular-season' == weekToUse){
+//		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
+//	}
+//	else if ('playoffs' == weekToUse){
+//		weekToUse = '18,19,20,21';
+//	}
+//	
+//	return weekToUse;
+//}
 
-/**
- * 
- * Sets the selected week to the given week if it's one of
- * the week input's options.
- * 
- * @param week
- * @returns
- */
-function setSelectedWeek(week){
-	if (doesSelectHaveOptionWithValue('week', week)){
-		$('#week').val(week);
-	}
-}
+///**
+// * 
+// * Sets the selected week to the given week if it's one of
+// * the week input's options.
+// * 
+// * @param week
+// * @returns
+// */
+//function setSelectedWeek(week){
+//	if (doesSelectHaveOptionWithValue('week', week)){
+//		$('#week').val(week);
+//	}
+//}
 
 function setSelectedWeeks(weeks){
 	
@@ -1372,15 +1361,15 @@ function setSelectedStatName(statName){
 	NFL_PICKS_GLOBAL.selections.statName = statName;
 }
 
-/**
- * 
- * Gets the selected team.
- * 
- * @returns
- */
-function getSelectedTeam(){
-	return $('#team option:selected').val();
-}
+///**
+// * 
+// * Gets the selected team.
+// * 
+// * @returns
+// */
+//function getSelectedTeam(){
+//	return $('#team option:selected').val();
+//}
 
 function setSelectedTeams(teams){
 	
@@ -1419,78 +1408,78 @@ function setSelectedTeams(teams){
 
 
 
-/**
- * 
- * This function will make sure everything that should be shown for picking more
- * than one player is shown.  It was made so this can be done in one place.
- * 
- * It will decide what to do based on whether multi select for players is enabled 
- * or not.
- * 
- * If it is, it will...
- * 
- * 		1. Make sure the "multi select players" option in the select is shown.
- * 		2. Make sure that all the players in the multi select player option are hidden
- * 		   as regular options.
- *		3. Make sure the "all" player option isn't shown.
- * 
- * If it's not, it will...
- * 
- * 		1. Hide the "multi select players" container option in the select.
- * 		2. Show all of the individual player options.
- * 		3. Show the "all" player option.
- * 
- * @returns
- */
-function updateMultiSelectVisibilityPlayer(){
-	
-	//Steps to do:
-	//	1. Get whether multi select is enabled or not.
-	//	2. If it is, then get whether any players are selected.
-	//	3. If they are, then make sure we show that option.
-	//	4. Make sure we are only showing the individual player options
-	//	   that should be shown.
-	//	5. Hide the "all" option.
-	//	6. If it's not, hide the "multi select player" container option.
-	//	7. Make sure all the individual player options are shown.
-	//	8. Make sure the "all" option is shown.
-	
-	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
-	
-	if (multiSelectPlayerEnabled){
-		
-		//If there's any selected players, make sure the option for it is shown.
-		var selectedPlayers = getSelectedPlayers();
-		if (selectedPlayers != null && selectedPlayers != ''){
-			showSelectedPlayersOption();
-		}
+///**
+// * 
+// * This function will make sure everything that should be shown for picking more
+// * than one player is shown.  It was made so this can be done in one place.
+// * 
+// * It will decide what to do based on whether multi select for players is enabled 
+// * or not.
+// * 
+// * If it is, it will...
+// * 
+// * 		1. Make sure the "multi select players" option in the select is shown.
+// * 		2. Make sure that all the players in the multi select player option are hidden
+// * 		   as regular options.
+// *		3. Make sure the "all" player option isn't shown.
+// * 
+// * If it's not, it will...
+// * 
+// * 		1. Hide the "multi select players" container option in the select.
+// * 		2. Show all of the individual player options.
+// * 		3. Show the "all" player option.
+// * 
+// * @returns
+// */
+//function updateMultiSelectVisibilityPlayer(){
+//	
+//	//Steps to do:
+//	//	1. Get whether multi select is enabled or not.
+//	//	2. If it is, then get whether any players are selected.
+//	//	3. If they are, then make sure we show that option.
+//	//	4. Make sure we are only showing the individual player options
+//	//	   that should be shown.
+//	//	5. Hide the "all" option.
+//	//	6. If it's not, hide the "multi select player" container option.
+//	//	7. Make sure all the individual player options are shown.
+//	//	8. Make sure the "all" option is shown.
+//	
+//	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+//	
+//	if (multiSelectPlayerEnabled){
+//		
+//		//If there's any selected players, make sure the option for it is shown.
+//		var selectedPlayers = getSelectedPlayers();
+//		if (selectedPlayers != null && selectedPlayers != ''){
+//			showSelectedPlayersOption();
+//		}
+//
+//		//And, make sure we're only showing the individual player options that
+//		//aren't in the multi select.
+//		//First, show all the individual players.
+//		showAllPlayerOptions();
+//		//Then, hide all the options for the players that are picked.
+//		var currentSelectedPlayer = getSelectedPlayer();
+//		hidePlayerOptions(currentSelectedPlayer);
+//		//And, hide the "all" option.
+//		hideAllPlayerOption();
+//	}
+//	else {
+//		//Otherwise, just hide the multi select container option, show
+//		//all the individual players, and show the "all" option.
+//		hideSelectedPlayersOption();
+//		showAllPlayerOption();
+//		showAllPlayerOptions();
+//	}
+//}
 
-		//And, make sure we're only showing the individual player options that
-		//aren't in the multi select.
-		//First, show all the individual players.
-		showAllPlayerOptions();
-		//Then, hide all the options for the players that are picked.
-		var currentSelectedPlayer = getSelectedPlayer();
-		hidePlayerOptions(currentSelectedPlayer);
-		//And, hide the "all" option.
-		hideAllPlayerOption();
-	}
-	else {
-		//Otherwise, just hide the multi select container option, show
-		//all the individual players, and show the "all" option.
-		hideSelectedPlayersOption();
-		showAllPlayerOption();
-		showAllPlayerOptions();
-	}
-}
-
-function setMultiSelectPlayer(value){
-	return $('#multiSelectPlayer').prop('checked', value);
-}
-
-function isMultiSelectPlayerEnabled(){
-	return $('#multiSelectPlayer').prop('checked');
-}
+//function setMultiSelectPlayer(value){
+//	return $('#multiSelectPlayer').prop('checked', value);
+//}
+//
+//function isMultiSelectPlayerEnabled(){
+//	return $('#multiSelectPlayer').prop('checked');
+//}
 
 /**
  * 
@@ -1573,30 +1562,30 @@ function updateStandings(){
 	});
 }
 
-function hideAllPlayerOption(){
-	$('#player option[value=all]').hide();
-}
-
-function showAllPlayerOption(){
-	$('#player option[value=all]').show();
-}
-
-function hideAllWeekOption(){
-	$('#week option[value=all]').hide();
-}
-
-function showAllWeekOption(){
-	$('#week option[value=all]').show();
-}
-
-function hideAllYearOption(){
-	$('#year option[value=all]').hide();
-}
-
-function showAllYearOption(){
-	$('#year option[value=all]').show();
-}
-
+//function hideAllPlayerOption(){
+//	$('#player option[value=all]').hide();
+//}
+//
+//function showAllPlayerOption(){
+//	$('#player option[value=all]').show();
+//}
+//
+//function hideAllWeekOption(){
+//	$('#week option[value=all]').hide();
+//}
+//
+//function showAllWeekOption(){
+//	$('#week option[value=all]').show();
+//}
+//
+//function hideAllYearOption(){
+//	$('#year option[value=all]').hide();
+//}
+//
+//function showAllYearOption(){
+//	$('#year option[value=all]').show();
+//}
+//
 function showYearContainer(){
 	$('#yearContainer').show();
 }
@@ -1637,34 +1626,34 @@ function hideStatNameContainer(){
 	$('#statNameContainer').hide();
 }
 
-function areOptionsShown(){
-	
-	if ($('#options').is(':visible')){
-		return true;
-	}
-	
-	return false;
-}
-
-function showOptions(){
-	$('#optionsLink').text('Hide options');
-	$('#options').show();
-}
-
-function hideOptions(){
-	$('#optionsLink').text('Options');
-	$('#options').hide();
-}
-
-function toggleOptions(){
-	
-	if (areOptionsShown()){
-		hideOptions();
-	}
-	else {
-		showOptions();
-	}
-}
+//function areOptionsShown(){
+//	
+//	if ($('#options').is(':visible')){
+//		return true;
+//	}
+//	
+//	return false;
+//}
+//
+//function showOptions(){
+//	$('#optionsLink').text('Hide options');
+//	$('#options').show();
+//}
+//
+//function hideOptions(){
+//	$('#optionsLink').text('Options');
+//	$('#options').hide();
+//}
+//
+//function toggleOptions(){
+//	
+//	if (areOptionsShown()){
+//		hideOptions();
+//	}
+//	else {
+//		showOptions();
+//	}
+//}
 
 /**
  * 
@@ -1957,9 +1946,6 @@ function recordWinComparisonFunction(record1, record2){
 	return 0;
 }
 
-function createSelectorContainerHtml(parameters){
-}
-
 function onClickBody(){
 	hideTypeSelector();
 	resetAndHidePlayerSelections();
@@ -1975,2775 +1961,6 @@ function hideSelectorContainers(){
 	hideWeekSelector();
 	hideStatNameSelector();
 	hideTeamSelector();
-}
-
-
-
-
-function onClickTypeSelector(event){
-	event.stopPropagation();
-	var wasSelectorVisible = isVisible('typeSelectorContainer'); 
-	hideSelectorContainers();
-	if (!wasSelectorVisible){
-		showTypeSelector();
-	}
-}
-
-function showTypeSelector(){
-	$('#typeSelectorContainer').show();
-}
-
-function hideTypeSelector(){
-	$('#typeSelectorContainer').hide();
-}
-
-function onClickType(event, value){
-	event.stopPropagation();
-	setSelectedType(value);
-	hideTypeSelector();
-	NFL_PICKS_GLOBAL.selections.type = getSelectedType();
-	updateTypeLink();
-	updateView();
-}
-
-function getType(value){
-	for (var index = 0; index < NFL_PICKS_GLOBAL.types.length; index++){
-		var type = NFL_PICKS_GLOBAL.types[index];
-		if (type.value == value){
-			return type;
-		}
-	}
-	return null;
-}
-
-function updateTypeLink(){
-	var selectedType = getSelectedType();
-	var type = getType(selectedType);
-	if (type != null){
-		$('#typesLink').text(type.label);
-	}
-}
-
-function showTypeLink(){
-	$('#typesLink').show();
-}
-
-function hideTypeLink(){
-	$('#typesLink').hide();
-}
-
-
-
-
-
-function onClickPlayerSelector(event){
-	event.stopPropagation();
-	
-	var wasSelectorVisible = isVisible('playerSelectorContainer'); 
-	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetPlayerSelections();
-		showPlayerSelector();
-	}
-}
-
-function onClickMultiselectPlayerContainer(event){
-	event.stopPropagation();
-	
-	var multiselectPlayer = getMultiselectPlayer();
-	
-	if (multiselectPlayer){
-		setMultiselectPlayerValue(false);
-	}
-	else {
-		setMultiselectPlayerValue(true);
-	}
-	
-	onClickMultiselectPlayer(event);
-}
-
-function onClickMultiselectPlayer(event){
-	event.stopPropagation();
-	
-	var multiselectPlayerChecked = $('#multiselectPlayer').prop('checked');
-	
-	setMultiselectPlayer(multiselectPlayerChecked);
-	
-	if (multiselectPlayerChecked){
-		showMultiselectPlayerContainer();
-		showPlayerCheckboxes();
-		hideAllPlayerSelectorContainer();
-		hidePlayerRadioButtons();
-		showPlayerSelectorFooterContainer();
-	}
-	else {
-		hideMultiselectPlayerContainer();
-		showAllPlayerSelectorContainer();
-		showPlayerRadioButtons();
-		hidePlayerCheckboxes();
-		hidePlayerSelectorFooterContainer();
-	}
-}
-
-function setMultiselectPlayerValue(value){
-	if (value){
-		$('#multiselectPlayer').prop('checked', true);
-	}
-	else {
-		$('#multiselectPlayer').prop('checked', false);
-	}
-}
-
-function showAllPlayerSelectorContainer(){
-	$('#player-selector-container-all').show();
-}
-
-function hideAllPlayerSelectorContainer(){
-	$('#player-selector-container-all').hide();
-}
-
-function showMultiselectPlayerContainer(){
-	$('#multiselectPlayerContainer').show();
-}
-
-function hideMultiselectPlayerContainer(){
-	$('#multiselectPlayerContainer').hide();
-}
-
-function showPlayerSelectorFooterContainer(){
-	$('#player-selector-footer-container').show();
-}
-
-function hidePlayerSelectorFooterContainer(){
-	$('#player-selector-footer-container').hide();
-}
-
-//player-checkbox-input-
-function showPlayerCheckboxes(){
-	var playerValues = getAllPlayerValues();
-	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		showPlayerCheckbox(playerValue);
-	}
-}
-
-function showPlayerCheckbox(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-checkbox-input-' + normalizedValue).show();
-}
-
-function hidePlayerCheckboxes(){
-	
-	var playerValues = getAllPlayerValues();
-	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		hidePlayerCheckbox(playerValue);
-	}
-}
-
-function hidePlayerCheckbox(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-checkbox-input-' + normalizedValue).hide();
-}
-
-//player-radio-input-
-function showPlayerRadioButtons(){
-	var playerValues = getAllPlayerValues();
-	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		showPlayerRadioButton(playerValue);
-	}
-}
-
-function showPlayerRadioButton(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-radio-input-' + normalizedValue).show();
-}
-
-function hidePlayerRadioButtons(){
-	
-	var playerValues = getAllPlayerValues();
-	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		hidePlayerRadioButton(playerValue);
-	}
-}
-
-function hidePlayerRadioButton(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectPlayer(value){
-	NFL_PICKS_GLOBAL.multiselectPlayer = value;
-}
-
-function getMultiselectPlayer(){
-	return NFL_PICKS_GLOBAL.multiselectPlayer;
-}
-
-function onClickPlayerSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectPlayer = getMultiselectPlayer();
-	if (multiselectPlayer){
-		removePlayerFromCurrentSelection('all');
-	}
-	hidePlayerSelector();
-	setSelectedPlayers(currentPlayerSelections);
-	updatePlayersLink();
-	updateView();
-}
-
-function onClickPlayerSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHidePlayerSelections();
-}
-
-function resetPlayerSelections(){
-	unselectAllPlayersByValue();
-	currentPlayerSelections = getSelectedPlayerValues();
-	selectPlayersByValue(currentPlayerSelections);
-}
-
-function resetAndHidePlayerSelections(){
-	resetPlayerSelections();
-	hidePlayerSelector();
-}
-
-function showPlayerSelector(){
-	$('#playerSelectorContainer').show();
-}
-
-function hidePlayerSelector(){
-	$('#playerSelectorContainer').hide();
-}
-
-var currentPlayerSelections = [];
-
-
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearPlayers(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllPlayers(event);>Select all</a></div>' +
- */
-
-function onClickSelectAllPlayers(event){
-	
-	event.stopPropagation();
-	
-	var players = getAllPlayers();
-	
-	currentPlayerSelections = [];
-	
-	for (var index = 0; index < players.length; index++){
-		var player = players[index];
-		selectPlayer(player.value)
-		addPlayerToCurrentSelection(player.value);
-	}
-}
-
-function onClickClearPlayers(event){
-	
-	event.stopPropagation();
-	
-	var realPlayers = getRealPlayers();
-	
-	currentPlayerSelections = [];
-	
-	for (var index = 0; index < realPlayers.length; index++){
-		var player = realPlayers[index];
-		unselectPlayer(player.value);
-		removePlayerFromCurrentSelection(player.value);
-	}
-}
-
-function onClickPlayer(event, value){
-	event.stopPropagation();
-	
-	var multiselectPlayer = getMultiselectPlayer();
-	
-	if (multiselectPlayer){
-		var indexOfValue = currentPlayerSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectPlayer(value);
-			removePlayerFromCurrentSelection(value);
-		}
-		else {
-			selectPlayer(value);
-			addPlayerToCurrentSelection(value);
-		}
-	}
-	else {
-		currentPlayerSelections = [];
-		selectPlayer(value);
-		addPlayerToCurrentSelection(value);
-		onClickPlayerSelectionOk(event);
-	}
-}
-
-function updatePlayersLink(){
-	
-	var selectedPlayers = getSelectedPlayers();
-	
-	//If there aren't any selected players, it should be "none"
-	if (isEmpty(selectedPlayers)){
-		$('#playersLink').text('Nobody');
-		return;
-	}
-	
-	sortOptionsByLabel(selectedPlayers);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedPlayers.length; index++){
-		var player = selectedPlayers[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + player.label;
-	}
-	
-	$('#playersLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#playersLink').text(linkText);
-}
-
-function showPlayersLink(){
-	$('#playersLink').show();
-}
-
-function hidePlayersLink(){
-	$('#playersLink').hide();
-}
-
-function selectAllPlayersByValue(){
-	var playerValues = getAllPlayerValues();
-	selectPlayersByValue(playerValues);
-}
-
-function unselectAllPlayersByValue(){
-	var playerValues = getAllPlayerValues();
-	unselectPlayersByValue(playerValues);
-}
-
-function selectPlayersByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectPlayer(value);
-	}
-}
-
-function normalizePlayerValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectPlayer(value){
-	var normalizedValue = normalizePlayerValue(value);
-	$('#player-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#player-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addPlayerToCurrentSelection(value){
-	currentPlayerSelections.push(value);
-}
-
-function unselectPlayersByValue(players){
-	for (var index = 0; index < players.length; index++){
-		var player = players[index];
-		unselectPlayer(player);
-	}
-}
-
-function unselectPlayer(player){
-	var normalizedValue = normalizePlayerValue(player);
-	$('#player-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#player-radio-input-' + normalizedValue).prop('checked', false);
-}
-
-function removePlayerFromCurrentSelection(value){
-	var indexOfValue = currentPlayerSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentPlayerSelections.splice(indexOfValue, 1);
-	}
-}
-
-function getAllPlayers(){
-	return NFL_PICKS_GLOBAL.players;
-}
-
-function getRealPlayers(){
-	return NFL_PICKS_GLOBAL.realPlayers;
-}
-
-function getAllPlayerValues(){
-	var playerValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.players.length; index++){
-		var player = NFL_PICKS_GLOBAL.players[index];
-		playerValues.push(player.value);
-	}
-	
-	return playerValues;
-}
-
-function getPlayers(values){
-	
-	var players = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var player = getPlayer(value);
-		if (player != null){
-			players.push(player);
-		}
-	}
-	
-	return players;
-}
-
-function getPlayer(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.players.length; index++){
-		var player = NFL_PICKS_GLOBAL.players[index];
-		if (value == player.value){
-			return player;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedPlayerValues(){
-	
-	var playerValues = [];
-	
-	var selectedPlayers = getSelectedPlayers();
-	
-	for (var index = 0; index < selectedPlayers.length; index++){
-		var selectedPlayer = selectedPlayers[index];
-		playerValues.push(selectedPlayer.value);
-	}
-	
-	return playerValues;
-}
-
-function getPlayerValuesForRequest(){
-	
-	var selectedValues = getSelectedPlayerValues();
-	
-	var valuesToSend = [];
-	
-	var realPlayers = getRealPlayers();
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realPlayers.length; index2++){
-				var realPlayer = realPlayers[index2];
-				valuesToSend.push(realPlayer.value);
-			}
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var playerValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return playerValuesForRequest;
-}
-
-function getSelectedPlayers(){
-	return NFL_PICKS_GLOBAL.selections.players;
-}
-
-
-
-
-
-
-
-
-
-
-
-function onClickTeamSelector(event){
-	event.stopPropagation();
-	
-	var wasSelectorVisible = isVisible('teamSelectorContainer'); 
-	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetTeamSelections();
-		showTeamSelector();
-	}
-}
-
-function onClickMultiselectTeamContainer(event){
-	event.stopPropagation();
-	
-	var multiselectTeam = getMultiselectTeam();
-	
-	if (multiselectTeam){
-		setMultiselectTeamValue(false);
-	}
-	else {
-		setMultiselectTeamValue(true);
-	}
-	
-	onClickMultiselectTeam(event);
-}
-
-function onClickMultiselectTeam(event){
-	event.stopPropagation();
-	
-	var multiselectTeamChecked = $('#multiselectTeam').prop('checked');
-	
-	setMultiselectTeam(multiselectTeamChecked);
-	
-	if (multiselectTeamChecked){
-		showMultiselectTeamContainer();
-		showTeamCheckboxes();
-		hideAllTeamSelectorContainer();
-		hideTeamRadioButtons();
-	}
-	else {
-		hideMultiselectTeamContainer();
-		showAllTeamSelectorContainer();
-		showTeamRadioButtons();
-		hideTeamCheckboxes();
-	}
-}
-
-function setMultiselectTeamValue(value){
-	if (value){
-		$('#multiselectTeam').prop('checked', true);
-	}
-	else {
-		$('#multiselectTeam').prop('checked', false);
-	}
-}
-
-function showAllTeamSelectorContainer(){
-	$('#team-selector-container-all').show();
-}
-
-function hideAllTeamSelectorContainer(){
-	$('#team-selector-container-all').hide();
-}
-
-function showMultiselectTeamContainer(){
-	$('#multiselectTeamContainer').show();
-}
-
-function hideMultiselectTeamContainer(){
-	$('#multiselectTeamContainer').hide();
-}
-
-function showTeamSelectorFooterContainer(){
-	$('#team-selector-footer-container').show();
-}
-
-function hideTeamSelectorFooterContainer(){
-	$('#team-selector-footer-container').hide();
-}
-
-//team-checkbox-input-
-function showTeamCheckboxes(){
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		showTeamCheckbox(teamValue);
-	}
-}
-
-function showTeamCheckbox(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-checkbox-input-' + normalizedValue).show();
-}
-
-function hideTeamCheckboxes(){
-	
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		hideTeamCheckbox(teamValue);
-	}
-}
-
-function hideTeamCheckbox(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-checkbox-input-' + normalizedValue).hide();
-}
-
-//team-radio-input-
-function showTeamRadioButtons(){
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		showTeamRadioButton(teamValue);
-	}
-}
-
-function showTeamRadioButton(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-radio-input-' + normalizedValue).show();
-}
-
-function hideTeamRadioButtons(){
-	
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		hideTeamRadioButton(teamValue);
-	}
-}
-
-function hideTeamRadioButton(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectTeam(value){
-	NFL_PICKS_GLOBAL.multiselectTeam = value;
-}
-
-function getMultiselectTeam(){
-	return NFL_PICKS_GLOBAL.multiselectTeam;
-}
-
-function onClickTeamSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectTeam = getMultiselectTeam();
-	if (multiselectTeam){
-		removeTeamFromCurrentSelection('all');
-	}
-	hideTeamSelector();
-	setSelectedTeams(currentTeamSelections);
-	updateTeamsLink();
-	updateView();
-}
-
-function onClickTeamSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHideTeamSelections();
-}
-
-function resetTeamSelections(){
-	unselectAllTeamsByValue();
-	currentTeamSelections = getSelectedTeamValues();
-	selectTeamsByValue(currentTeamSelections);
-}
-
-function resetAndHideTeamSelections(){
-	resetTeamSelections();
-	hideTeamSelector();
-}
-
-function showTeamSelector(){
-	$('#teamSelectorContainer').show();
-}
-
-function hideTeamSelector(){
-	$('#teamSelectorContainer').hide();
-}
-
-var currentTeamSelections = [];
-
-
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearTeams(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllTeams(event);>Select all</a></div>' +
- */
-
-function onClickSelectAllTeams(event){
-	
-	event.stopPropagation();
-	
-	var teams = getAllTeams();
-	
-	currentTeamSelections = [];
-	
-	for (var index = 0; index < teams.length; index++){
-		var team = teams[index];
-		selectTeam(team.value);
-		addTeamToCurrentSelection(team.value);
-	}
-}
-
-function onClickClearTeams(event){
-	
-	event.stopPropagation();
-	
-	var realTeams = getRealTeams();
-	
-	currentTeamSelections = [];
-	
-	for (var index = 0; index < realTeams.length; index++){
-		var team = realTeams[index];
-		unselectTeam(team.value);
-		removeTeamFromCurrentSelection(team.value);
-	}
-}
-
-function onClickTeam(event, value){
-	event.stopPropagation();
-	
-	var multiselectTeam = getMultiselectTeam();
-	
-	if (multiselectTeam){
-		var indexOfValue = currentTeamSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectTeam(value);
-			removeTeamFromCurrentSelection(value);
-		}
-		else {
-			selectTeam(value);
-			addTeamToCurrentSelection(value);
-		}
-	}
-	else {
-		currentTeamSelections = [];
-		selectTeam(value);
-		addTeamToCurrentSelection(value);
-		onClickTeamSelectionOk(event);
-	}
-}
-
-function updateTeamsLink(){
-	
-	var selectedTeams = getSelectedTeams();
-	
-	//If there aren't any selected teams, it should be "none"
-	if (isEmpty(selectedTeams)){
-		$('#teamsLink').text('No teams');
-		return;
-	}
-	
-	if (selectedTeams.length == 1 && 'all' == selectedTeams[0].value){
-		$('#teamsLink').text('All teams');
-		return;
-	}
-	
-	sortOptionsByLabel(selectedTeams);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedTeams.length; index++){
-		var team = selectedTeams[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + team.label;
-	}
-	
-	$('#teamsLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#teamsLink').text(linkText);
-}
-
-function showTeamsLink(){
-	$('#teamsLink').show();
-}
-
-function hideTeamsLink(){
-	$('#teamsLink').hide();
-}
-
-function selectAllTeamsByValue(){
-	var teamValues = getAllTeamValues();
-	selectTeamsByValue(teamValues);
-}
-
-function unselectAllTeamsByValue(){
-	var teamValues = getAllTeamValues();
-	unselectTeamsByValue(teamValues);
-}
-
-function selectTeamsByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectTeam(value);
-	}
-}
-
-
-function normalizeTeamValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectTeam(value){
-	var normalizedValue = normalizeTeamValue(value);
-	$('#team-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#team-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addTeamToCurrentSelection(value){
-	currentTeamSelections.push(value);
-}
-
-function unselectTeamsByValue(teams){
-	for (var index = 0; index < teams.length; index++){
-		var team = teams[index];
-		unselectTeam(team);
-	}
-}
-
-function unselectTeam(team){
-	var normalizedValue = normalizeTeamValue(team);
-	$('#team-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#team-radio-input-' + normalizedValue).prop('checked', false);
-}
-
-function removeTeamFromCurrentSelection(value){
-	var indexOfValue = currentTeamSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentTeamSelections.splice(indexOfValue, 1);
-	}
-}
-
-function getAllTeams(){
-	return NFL_PICKS_GLOBAL.teams;
-}
-
-function getRealTeams(){
-	return NFL_PICKS_GLOBAL.teams;
-}
-
-function getAllTeamValues(){
-	var teamValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.teams.length; index++){
-		var team = NFL_PICKS_GLOBAL.teams[index];
-		teamValues.push(team.value);
-	}
-	
-	return teamValues;
-}
-
-function getTeams(values){
-	
-	var teams = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var team = getTeam(value);
-		if (team != null){
-			teams.push(team);
-		}
-	}
-	
-	return teams;
-}
-
-function getTeam(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.teams.length; index++){
-		var team = NFL_PICKS_GLOBAL.teams[index];
-		if (value == team.value){
-			return team;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedTeamValues(){
-	
-	var teamValues = [];
-	
-	var selectedTeams = getSelectedTeams();
-	
-	for (var index = 0; index < selectedTeams.length; index++){
-		var selectedTeam = selectedTeams[index];
-		teamValues.push(selectedTeam.value);
-	}
-	
-	return teamValues;
-}
-
-function getTeamValuesForRequest(){
-	
-	var selectedValues = getSelectedTeamValues();
-	
-	var valuesToSend = [];
-	
-	var realTeams = getRealTeams();
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realTeams.length; index2++){
-				var realTeam = realTeams[index2];
-				valuesToSend.push(realTeam.value);
-			}
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var teamValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return teamValuesForRequest;
-}
-
-function getSelectedTeams(){
-	return NFL_PICKS_GLOBAL.selections.teams;
-}
-
-
-
-
-
-
-
-
-
-function onClickStatNameSelector(event){
-	event.stopPropagation();
-	var wasSelectorVisible = isVisible('statNameSelectorContainer'); 
-	hideSelectorContainers();
-	if (!wasSelectorVisible){
-		showStatNameSelector();
-	}
-}
-
-function showStatNameSelector(){
-	$('#statNameSelectorContainer').show();
-}
-
-function hideStatNameSelector(){
-	$('#statNameSelectorContainer').hide();
-}
-
-function onClickStatName(event, value){
-	event.stopPropagation();
-	setSelectedStatName(value);
-	hideStatNameSelector();
-	NFL_PICKS_GLOBAL.selections.statName = getSelectedStatName();
-	updateStatNameLink();
-	updateView();
-}
-
-function getStatName(value){
-	for (var index = 0; index < NFL_PICKS_GLOBAL.statNames.length; index++){
-		var statName = NFL_PICKS_GLOBAL.statNames[index];
-		if (statName.value == value){
-			return statName;
-		}
-	}
-	return null;
-}
-
-function updateStatNameLink(){
-	var selectedStatName = getSelectedStatName();
-	var statName = getStatName(selectedStatName);
-	if (statName != null){
-		$('#statNamesLink').text(statName.label);
-	}
-}
-
-function showStatNameLink(){
-	$('#statNamesLink').show();
-}
-
-function hideStatNameLink(){
-	$('#statNamesLink').hide();
-}
-
-
-
-
-
-
-
-
-
-function setMultiselectWeek(value){
-	NFL_PICKS_GLOBAL.multiselectWeek = value;
-}
-
-function getMultiselectWeek(){
-	return NFL_PICKS_GLOBAL.multiselectWeek;
-}
-
-function setMultiselectYear(value){
-	NFL_PICKS_GLOBAL.multiselectYear = value;
-}
-
-function getMultiselectYear(){
-	return NFL_PICKS_GLOBAL.multiselectYear;
-}
-
-
-
-
-
-function onClickYearSelector(event){
-	event.stopPropagation();
-	
-	var wasSelectorVisible = isVisible('yearSelectorContainer'); 
-	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetYearSelections();
-		showYearSelector();
-	}
-}
-
-function onClickMultiselectYearContainer(event){
-	event.stopPropagation();
-	
-	var multiselectYear = getMultiselectYear();
-	
-	if (multiselectYear){
-		setMultiselectYearValue(false);
-	}
-	else {
-		setMultiselectYearValue(true);
-	}
-	
-	onClickMultiselectYear(event);
-}
-
-function onClickMultiselectYear(event){
-	event.stopPropagation();
-	
-	var multiselectYearChecked = $('#multiselectYear').prop('checked');
-	
-	setMultiselectYear(multiselectYearChecked);
-	
-	if (multiselectYearChecked){
-		showMultiselectYearContainer();
-		showYearCheckboxes();
-		hideAllYearSelectorContainer();
-		hideYearRadioButtons();
-		showYearSelectorFooterContainer();
-	}
-	else {
-		hideMultiselectYearContainer();
-		showAllYearSelectorContainer();
-		showYearRadioButtons();
-		hideYearCheckboxes();
-		hideYearSelectorFooterContainer();
-	}
-}
-
-function setMultiselectYearValue(value){
-	if (value){
-		$('#multiselectYear').prop('checked', true);
-	}
-	else {
-		$('#multiselectYear').prop('checked', false);
-	}
-}
-
-function showAllYearSelectorContainer(){
-	$('#year-selector-container-all').show();
-}
-
-function hideAllYearSelectorContainer(){
-	$('#year-selector-container-all').hide();
-}
-
-function showMultiselectYearContainer(){
-	$('#multiselectYearContainer').show();
-}
-
-function hideMultiselectYearContainer(){
-	$('#multiselectYearContainer').hide();
-}
-
-function showYearSelectorFooterContainer(){
-	$('#year-selector-footer-container').show();
-}
-
-function hideYearSelectorFooterContainer(){
-	$('#year-selector-footer-container').hide();
-}
-
-//year-checkbox-input-
-function showYearCheckboxes(){
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		showYearCheckbox(yearValue);
-	}
-}
-
-function showYearCheckbox(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-checkbox-input-' + normalizedValue).show();
-}
-
-function hideYearCheckboxes(){
-	
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		hideYearCheckbox(yearValue);
-	}
-}
-
-function hideYearCheckbox(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-checkbox-input-' + normalizedValue).hide();
-}
-
-//year-radio-input-
-function showYearRadioButtons(){
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		showYearRadioButton(yearValue);
-	}
-}
-
-function showYearRadioButton(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-radio-input-' + normalizedValue).show();
-}
-
-function hideYearRadioButtons(){
-	
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		hideYearRadioButton(yearValue);
-	}
-}
-
-function hideYearRadioButton(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectYear(value){
-	NFL_PICKS_GLOBAL.multiselectYear = value;
-}
-
-function getMultiselectYear(){
-	return NFL_PICKS_GLOBAL.multiselectYear;
-}
-
-function onClickYearSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectYear = getMultiselectYear();
-	if (multiselectYear){
-		removeYearFromCurrentSelection('all');
-	}
-	hideYearSelector();
-	setSelectedYears(currentYearSelections);
-	updateYearsLink();
-	updateView();
-}
-
-function onClickYearSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHideYearSelections();
-}
-
-function resetYearSelections(){
-	unselectAllYearsByValue();
-	currentYearSelections = getSelectedYearValues();
-	selectYearsByValue(currentYearSelections);
-}
-
-function resetAndHideYearSelections(){
-	resetYearSelections();
-	hideYearSelector();
-}
-
-function showYearSelector(){
-	$('#yearSelectorContainer').show();
-}
-
-function hideYearSelector(){
-	$('#yearSelectorContainer').hide();
-}
-
-var currentYearSelections = [];
-
-
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearYears(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllYears(event);>Select all</a></div>' +
- */
-
-function onClickSelectAllYears(event){
-	
-	event.stopPropagation();
-	
-	var years = getAllYears();
-	
-	currentYearSelections = [];
-	
-	for (var index = 0; index < years.length; index++){
-		var year = years[index];
-		selectYear(year.value);
-		addYearToCurrentSelection(year.value);
-	}
-}
-
-function onClickClearYears(event){
-	
-	event.stopPropagation();
-	
-	var years = getAllYears();
-	
-	currentYearSelections = [];
-	
-	for (var index = 0; index < years.length; index++){
-		var year = years[index];
-		unselectYear(year.value);
-		removeYearFromCurrentSelection(year.value);
-	}
-}
-
-function onClickYear(event, value){
-	event.stopPropagation();
-	
-	var multiselectYear = getMultiselectYear();
-	
-	if (multiselectYear){
-		var indexOfValue = currentYearSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectYear(value);
-			removeYearFromCurrentSelection(value);
-		}
-		else {
-			selectYear(value);
-			addYearToCurrentSelection(value);
-		}
-	}
-	else {
-		currentYearSelections = [];
-		selectYear(value);
-		addYearToCurrentSelection(value);
-		onClickYearSelectionOk(event);
-	}
-}
-
-function updateYearsLink(){
-	
-	var selectedYears = getSelectedYears();
-	
-	//If there aren't any selected years, it should be "none"
-	if (isEmpty(selectedYears)){
-		$('#yearsLink').text('No years');
-		return;
-	}
-	
-	if (selectedYears.length == 1 && 'all' == selectedYears[0].value){
-		$('#yearsLink').text('All years');
-		return;
-	}
-	
-	sortOptionsByNumericValue(selectedYears);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedYears.length; index++){
-		var year = selectedYears[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + year.label;
-	}
-	
-	$('#yearsLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#yearsLink').text(linkText);
-}
-
-function showYearsLink(){
-	$('#yearsLink').show();
-}
-
-function hideYearsLink(){
-	$('#yearsLink').hide();
-}
-
-function selectAllYearsByValue(){
-	var yearValues = getAllYearValues();
-	selectYearsByValue(yearValues);
-}
-
-function unselectAllYearsByValue(){
-	var yearValues = getAllYearValues();
-	unselectYearsByValue(yearValues);
-}
-
-function selectYearsByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectYear(value);
-	}
-}
-
-function normalizeYearValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectYear(value){
-	var normalizedValue = normalizeYearValue(value);
-	$('#year-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#year-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addYearToCurrentSelection(value){
-	currentYearSelections.push(value);
-}
-
-function unselectYearsByValue(years){
-	for (var index = 0; index < years.length; index++){
-		var year = years[index];
-		unselectYear(year);
-	}
-}
-
-function unselectYear(year){
-	var normalizedValue = normalizeYearValue(year);
-	$('#year-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#year-radio-input-' + normalizedValue).prop('checked', false);
-}
-
-function removeYearFromCurrentSelection(value){
-	var indexOfValue = currentYearSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentYearSelections.splice(indexOfValue, 1);
-	}
-}
-
-function getAllYears(){
-	return NFL_PICKS_GLOBAL.years;
-}
-
-function getRealYears(){
-	return NFL_PICKS_GLOBAL.realYears;
-}
-
-function getAllYearValues(){
-	var yearValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.years.length; index++){
-		var year = NFL_PICKS_GLOBAL.years[index];
-		yearValues.push(year.value);
-	}
-	
-	return yearValues;
-}
-
-function getYears(values){
-	
-	var years = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var year = getYear(value);
-		if (year != null){
-			years.push(year);
-		}
-	}
-	
-	return years;
-}
-
-function getYear(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.years.length; index++){
-		var year = NFL_PICKS_GLOBAL.years[index];
-		if (value == year.value){
-			return year;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedYearValues(){
-	
-	var yearValues = [];
-	
-	var selectedYears = getSelectedYears();
-	
-	for (var index = 0; index < selectedYears.length; index++){
-		var selectedYear = selectedYears[index];
-		yearValues.push(selectedYear.value);
-	}
-	
-	return yearValues;
-}
-
-function getYearValuesForRequest(){
-	
-	var selectedValues = getSelectedYearValues();
-	
-	var valuesToSend = [];
-	
-	var realYears = getRealYears();
-	
-	/*
-	 var yearOptions = [{label: 'All', value: 'all'},
-		                   {label: 'Jurassic Period (2010-2015)', value: 'old'},
-		                   {label: 'First year (2016)', value: 'half-modern'},
-		                   {label: 'Modern Era (2017 - now)', value: 'modern'}];
-	 */
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realYears.length; index2++){
-				var realYear = realYears[index2];
-				valuesToSend.push(realYear.value);
-			}
-		}
-		else if ('old' == selectedValue){
-			valuesToSend = valuesToSend.concat(['2010', '2011', '2012', '2013', '2014', '2015']);
-		}
-		else if ('half-modern' == selectedValue){
-			valuesToSend.push('2016');
-		}
-		else if ('modern' == selectedValue){
-			for (var index2 = 0; index2 < realYears.length; index2++){
-				var realYear = realYears[index2];
-				
-				var realYearValue = parseInt(realYear.value);
-				
-				if (realYearValue >= 2017){
-					valuesToSend.push(realYear.value);
-				}
-			}
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var yearValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return yearValuesForRequest;
-}
-
-function getSelectedYears(){
-	return NFL_PICKS_GLOBAL.selections.years;
-}
-
-
-
-
-
-
-function onClickWeekSelector(event){
-	event.stopPropagation();
-	
-	var wasSelectorVisible = isVisible('weekSelectorContainer'); 
-	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetWeekSelections();
-		showWeekSelector();
-	}
-}
-
-function onClickMultiselectWeekContainer(event){
-	event.stopPropagation();
-	
-	var multiselectWeek = getMultiselectWeek();
-	
-	if (multiselectWeek){
-		setMultiselectWeekValue(false);
-	}
-	else {
-		setMultiselectWeekValue(true);
-	}
-	
-	onClickMultiselectWeek(event);
-}
-
-function onClickMultiselectWeek(event){
-	event.stopPropagation();
-	
-	var multiselectWeekChecked = $('#multiselectWeek').prop('checked');
-	
-	setMultiselectWeek(multiselectWeekChecked);
-	
-	if (multiselectWeekChecked){
-		showMultiselectWeekContainer();
-		showWeekCheckboxes();
-		hideAllWeekSelectorContainer();
-		hideWeekRadioButtons();
-		showWeekSelectorFooterContainer();
-	}
-	else {
-		hideMultiselectWeekContainer();
-		showAllWeekSelectorContainer();
-		showWeekRadioButtons();
-		hideWeekCheckboxes();
-		hideWeekSelectorFooterContainer();
-	}
-}
-
-function setMultiselectWeekValue(value){
-	if (value){
-		$('#multiselectWeek').prop('checked', true);
-	}
-	else {
-		$('#multiselectWeek').prop('checked', false);
-	}
-}
-
-function showAllWeekSelectorContainer(){
-	$('#week-selector-container-all').show();
-}
-
-function hideAllWeekSelectorContainer(){
-	$('#week-selector-container-all').hide();
-}
-
-function showMultiselectWeekContainer(){
-	$('#multiselectWeekContainer').show();
-}
-
-function hideMultiselectWeekContainer(){
-	$('#multiselectWeekContainer').hide();
-}
-
-function showWeekSelectorFooterContainer(){
-	$('#week-selector-footer-container').show();
-}
-
-function hideWeekSelectorFooterContainer(){
-	$('#week-selector-footer-container').hide();
-}
-
-//week-checkbox-input-
-function showWeekCheckboxes(){
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		showWeekCheckbox(weekValue);
-	}
-}
-
-function showWeekCheckbox(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-checkbox-input-' + normalizedValue).show();
-}
-
-function hideWeekCheckboxes(){
-	
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		hideWeekCheckbox(weekValue);
-	}
-}
-
-function hideWeekCheckbox(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-checkbox-input-' + normalizedValue).hide();
-}
-
-//week-radio-input-
-function showWeekRadioButtons(){
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		showWeekRadioButton(weekValue);
-	}
-}
-
-function showWeekRadioButton(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-radio-input-' + normalizedValue).show();
-}
-
-function hideWeekRadioButtons(){
-	
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		hideWeekRadioButton(weekValue);
-	}
-}
-
-function hideWeekRadioButton(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectWeek(value){
-	NFL_PICKS_GLOBAL.multiselectWeek = value;
-}
-
-function getMultiselectWeek(){
-	return NFL_PICKS_GLOBAL.multiselectWeek;
-}
-
-function onClickWeekSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectWeek = getMultiselectWeek();
-	if (multiselectWeek){
-		removeWeekFromCurrentSelection('all');
-	}
-	hideWeekSelector();
-	setSelectedWeeks(currentWeekSelections);
-	updateWeeksLink();
-	updateView();
-}
-
-function onClickWeekSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHideWeekSelections();
-}
-
-function resetWeekSelections(){
-	unselectAllWeeksByValue();
-	currentWeekSelections = getSelectedWeekValues();
-	selectWeeksByValue(currentWeekSelections);
-}
-
-function resetAndHideWeekSelections(){
-	resetWeekSelections();
-	hideWeekSelector();
-}
-
-function showWeekSelector(){
-	$('#weekSelectorContainer').show();
-}
-
-function hideWeekSelector(){
-	$('#weekSelectorContainer').hide();
-}
-
-var currentWeekSelections = [];
-
-
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearWeeks(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllWeeks(event);>Select all</a></div>' +
- */
-
-function onClickSelectAllWeeks(event){
-	
-	event.stopPropagation();
-	
-	var weeks = getAllWeeks();
-	
-	currentWeekSelections = [];
-	
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		selectWeek(week.value);
-		addWeekToCurrentSelection(week.value);
-	}
-}
-
-function onClickClearWeeks(event){
-	
-	event.stopPropagation();
-	
-	var weeks = getAllWeeks();
-	
-	currentWeekSelections = [];
-	
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		unselectWeek(week.value);
-		removeWeekFromCurrentSelection(week.value);
-	}
-}
-
-function onClickWeek(event, value){
-	event.stopPropagation();
-	
-	var multiselectWeek = getMultiselectWeek();
-	
-	if (multiselectWeek){
-		var indexOfValue = currentWeekSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectWeek(value);
-			removeWeekFromCurrentSelection(value);
-		}
-		else {
-			selectWeek(value);
-			addWeekToCurrentSelection(value);
-		}
-	}
-	else {
-		currentWeekSelections = [];
-		selectWeek(value);
-		addWeekToCurrentSelection(value);
-		onClickWeekSelectionOk(event);
-	}
-}
-
-function updateWeeksLink(){
-	
-	var selectedWeeks = getSelectedWeeks();
-	
-	//If there aren't any selected weeks, it should be "none"
-	if (isEmpty(selectedWeeks)){
-		$('#weeksLink').text('No weeks');
-		return;
-	}
-	
-	if (selectedWeeks.length == 1 && 'all' == selectedWeeks[0].value){
-		$('#weeksLink').text('All weeks');
-		return;
-	}
-	
-	sortOptionsByNumericValue(selectedWeeks);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedWeeks.length; index++){
-		var week = selectedWeeks[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + week.label;
-	}
-	
-	$('#weeksLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#weeksLink').text(linkText);
-}
-
-function showWeeksLink(){
-	$('#weeksLink').show();
-}
-
-function hideWeeksLink(){
-	$('#weeksLink').hide();
-}
-
-function selectAllWeeksByValue(){
-	var weekValues = getAllWeekValues();
-	selectWeeksByValue(weekValues);
-}
-
-function unselectAllWeeksByValue(){
-	var weekValues = getAllWeekValues();
-	unselectWeeksByValue(weekValues);
-}
-
-function selectWeeksByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectWeek(value);
-	}
-}
-
-function normalizeWeekValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectWeek(value){
-	var normalizedValue = normalizeWeekValue(value);
-	$('#week-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#week-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addWeekToCurrentSelection(value){
-	currentWeekSelections.push(value);
-}
-
-function unselectWeeksByValue(weeks){
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		unselectWeek(week);
-	}
-}
-
-function unselectWeek(week){
-	var normalizedValue = normalizeWeekValue(week);
-	$('#week-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#week-radio-input-' + normalizedValue).prop('checked', false);
-}
-
-function removeWeekFromCurrentSelection(value){
-	var indexOfValue = currentWeekSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentWeekSelections.splice(indexOfValue, 1);
-	}
-}
-
-function getAllWeeks(){
-	return NFL_PICKS_GLOBAL.weeks;
-}
-
-function getRealWeeks(){
-	return NFL_PICKS_GLOBAL.realWeeks;
-}
-
-function getAllWeekValues(){
-	var weekValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.weeks.length; index++){
-		var week = NFL_PICKS_GLOBAL.weeks[index];
-		weekValues.push(week.value);
-	}
-	
-	return weekValues;
-}
-
-function getWeeks(values){
-	
-	var weeks = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var week = getWeek(value);
-		if (week != null){
-			weeks.push(week);
-		}
-	}
-	
-	return weeks;
-}
-
-function getWeek(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.weeks.length; index++){
-		var week = NFL_PICKS_GLOBAL.weeks[index];
-		if (value == week.value){
-			return week;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedWeekValues(){
-	
-	var weekValues = [];
-	
-	var selectedWeeks = getSelectedWeeks();
-	
-	for (var index = 0; index < selectedWeeks.length; index++){
-		var selectedWeek = selectedWeeks[index];
-		weekValues.push(selectedWeek.value);
-	}
-	
-	return weekValues;
-}
-
-function getWeekValuesForRequest(){
-	
-	var selectedValues = getSelectedWeekValues();
-	
-	var valuesToSend = [];
-	
-	var realWeeks = getRealWeeks();
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realWeeks.length; index2++){
-				var realWeek = realWeeks[index2];
-				valuesToSend.push(realWeek.value);
-			}
-		}
-		else if ('regular-season' == selectedValue){
-			valuesToSend = valuesToSend.concat(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
-		}
-		else if ('playoffs' == selectedValue){
-			valuesToSend = valuesToSend.concat(['18', '19', '20', '21']);
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var weekValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return weekValuesForRequest;
-	
-}
-
-function getSelectedWeeks(){
-	return NFL_PICKS_GLOBAL.selections.weeks;
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-function createTypeSelectorHtml(types){
-	
-	var typeSelectorHtml = //'<a id="typesLink" href="javascript:" class="selector-link" onClick="onClickTypeSelector(event);">Standings</a>' + 
-						   		'<div id="typeSelectorContainer" class="selection-list-container">' + 
-						   			'<div>';
-	
-	for (var index = 0; index < types.length; index++){
-		var type = types[index];
-		
-		var divHtmlCssClass = 'selection-item-container';
-		if (index + 1 == types.length){
-			divHtmlCssClass = 'selection-item-container-last';
-		}
-		
-		var typeHtml = '<div class="' + divHtmlCssClass + '" onClick="onClickType(event, \'' + type.value + '\');">' +
-					   		'<span><input type="radio" name="type" id="type-' + index + '" value="' + type.value + '" onClick="onClickType(event, \'' + type.value + '\');"/></span>' +
-					   		'<span><a href="javascript:void(0);" onClick="onClickType(event, \'' + type.value + '\');">' + type.label + '</a></span>' +
-					   '</div>';
-		
-		typeSelectorHtml = typeSelectorHtml + typeHtml;
-	}
-	
-	typeSelectorHtml = typeSelectorHtml +
-					   		'</div>' + 
-					   '</div>';
-	
-	return typeSelectorHtml;
-}
-
-function createPlayerSelectorHtml(players){
-
-	var multiselect = getMultiselectPlayer();
-	var multiselectDisplay = 'display: none;';
-	var singleSelectDisplay = '';
-	if (multiselect){
-		multiselectDisplay = '';
-		singleSelectDisplay = 'display: none;';
-	}
-	
-	var playerSelectorHtml = '<div id="playerSelectorContainer" class="selection-list-container">' + 
-						   		'<div class="selection-header-container">' +
-						   			'<table class="selection-header-items-container">' + 
-						   				'<tr>' +
-						   					'<td class="selection-header-multiselect-button" onClick="onClickMultiselectPlayerContainer(event);" colspan="2">' +
-							   					'<input id="multiselectPlayer" type="checkbox" onClick="onClickMultiselectPlayer(event);" />' + 
-							   					'<span><a href="javascript:void(0);" onClick="onClickMultiselectPlayerContainer(event);">Select more than one</a></span>' + 
-						   					'</td>' +
-						   				'</tr>' +
-						   				'<tr id="multiselectPlayerContainer" style="' + multiselectDisplay + '">' +
-						   					'<td class="selection-header-clear-button" onClick="onClickClearPlayers(event);">' +
-						   						'<a href="javascript:void(0);" onClick="onClickClearPlayers(event);">Clear</a>' +
-						   					'</td>' +
-						   					'<td class="selection-header-select-all-button" onClick="onClickSelectAllPlayers(event);">' + 
-						   						'<a href="javascript:void(0);" onClick="onClickSelectAllPlayers(event);">Select all</a>' +
-						   					'</td>' +
-						   				'</tr>' +
-						   			'</table>' +
-						   		'</div>' + 
-						   		'<div class="selection-list-items-container">';
-	
-	for (var index = 0; index < players.length; index++){
-		var player = players[index];
-		
-		var normalizedValue = normalizePlayerValue(player.value);
-
-		var divHtmlCssClass = 'selection-item-container';
-		if (index + 1 == players.length){
-			divHtmlCssClass = 'selection-item-container-last';
-		}
-
-		var playerHtml = '<div id="player-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickPlayer(event, \'' + player.value + '\');">' +
-							'<span><input type="checkbox" id="player-checkbox-input-' + normalizedValue + '" value="' + player.value + '" style="' + multiselectDisplay + '" onClick="onClickPlayer(event, \'' + player.value + '\');"/></span>' +
-							'<span><input type="radio" name="player" id="player-radio-input-' + normalizedValue + '" value="' + player.value + '" style="' + singleSelectDisplay + '" onClick="onClickPlayer(event, \'' + player.value + '\');"/></span>' +
-					   		'<span><a href="javascript:void(0);" onClick="onClickPlayer(event, \'' + player.value + '\');">' + player.label + '</a></span>' +
-					     '</div>';
-
-		playerSelectorHtml = playerSelectorHtml + playerHtml;
-	}
-
-	playerSelectorHtml = playerSelectorHtml +
-							'</div>' +
-					   		'<div id="player-selector-footer-container" class="selection-footer-container" style="' + multiselectDisplay + '">' +
-					   			'<table class="selector-footer-button-container">' +
-					   				'<tr>' + 
-					   					'<td class="selector-footer-cancel-button" onClick="onClickPlayerSelectionCancel(event)">' +
-					   						'<a href="javascript:" onClick="onClickPlayerSelectionCancel(event)">Cancel</a>' +
-					   					'</td>' +
-					   					'<td class="selector-footer-ok-button" onClick="onClickPlayerSelectionOk(event)">' +
-					   						'<a href="javascript:" onClick="onClickPlayerSelectionOk(event)">OK</a>' +
-					   					'</td>' +
-					   				'</tr>' +
-					   			'</table>' +
-					   		'</div>' +
-					  '</div>';
-	
-	return playerSelectorHtml;
-}
-
-function createYearSelectorHtml(years){
-
-	var multiselect = getMultiselectYear();
-	var multiselectDisplay = 'display: none;';
-	var singleSelectDisplay = '';
-	if (multiselect){
-		multiselectDisplay = '';
-		singleSelectDisplay = 'display: none;';
-	}
-	
-	var yearSelectorHtml = '<div id="yearSelectorContainer" class="selection-list-container">' + 
-								'<div class="selection-header-container">' +
-									'<table class="selection-header-items-container">' + 
-										'<tr>' +
-											'<td class="selection-header-multiselect-button" onClick="onClickMultiselectYearContainer(event);" colspan="2">' +
-												'<input id="multiselectYear" type="checkbox" onClick="onClickMultiselectYear(event);" />' + 
-												'<span><a href="javascript:void(0);" onClick="onClickMultiselectYearContainer(event);">Select more than one</a></span>' + 
-											'</td>' +
-										'</tr>' +
-										'<tr id="multiselectYearContainer" style="' + multiselectDisplay + '">' +
-											'<td class="selection-header-clear-button" onClick="onClickClearYears(event);">' +
-												'<a href="javascript:void(0);" onClick="onClickClearYears(event);">Clear</a>' +
-											'</td>' +
-											'<td class="selection-header-select-all-button" onClick="onClickSelectAllYears(event);">' + 
-												'<a href="javascript:void(0);" onClick="onClickSelectAllYears(event);">Select all</a>' +
-											'</td>' +
-										'</tr>' +
-									'</table>' +
-								'</div>' + 
-						   		'<div class="selection-list-items-container">';
-
-	for (var index = 0; index < years.length; index++){
-		var year = years[index];
-		
-		var normalizedValue = normalizeYearValue(year.value);
-		
-		var divHtmlCssClass = 'selection-item-container';
-		if (index + 1 == years.length){
-			divHtmlCssClass = 'selection-item-container-last';
-		}
-
-		var yearHtml = '<div id="year-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickYear(event, \'' + year.value + '\');">' +
-							'<span><input type="checkbox" id="year-checkbox-input-' + normalizedValue + '" value="' + year.value + '" style="' + multiselectDisplay + '" onClick="onClickYear(event, \'' + year.value + '\');"/></span>' +
-							'<span><input type="radio" name="year" id="year-radio-input-' + normalizedValue + '" value="' + year.value + '" style="' + singleSelectDisplay + '" onClick="onClickYear(event, \'' + year.value + '\');"/></span>' +
-					   		'<span><a href="javascript:void(0);" onClick="onClickYear(event, \'' + year.value + '\');">' + year.label + '</a></span>' +
-					     '</div>';
-
-		yearSelectorHtml = yearSelectorHtml + yearHtml;
-	}
-
-	yearSelectorHtml = yearSelectorHtml +
-							'</div>' +
-							'<div id="year-selector-footer-container" class="selection-footer-container" style="' + multiselectDisplay + '">' +
-					   			'<table class="selector-footer-button-container">' +
-					   				'<tr>' + 
-					   					'<td class="selector-footer-cancel-button" onClick="onClickYearSelectionCancel(event)">' +
-					   						'<a href="javascript:" onClick="onClickYearSelectionCancel(event)">Cancel</a>' +
-					   					'</td>' +
-					   					'<td class="selector-footer-ok-button" onClick="onClickYearSelectionOk(event)">' +
-					   						'<a href="javascript:" onClick="onClickYearSelectionOk(event)">OK</a>' +
-					   					'</td>' +
-					   				'</tr>' +
-					   			'</table>' +
-					   		'</div>' +
-					  '</div>';
-	
-	return yearSelectorHtml;
-}
-
-function createWeekSelectorHtml(weeks){
-
-	var multiselect = getMultiselectWeek();
-	var multiselectDisplay = 'display: none;';
-	var singleSelectDisplay = '';
-	if (multiselect){
-		multiselectDisplay = '';
-		singleSelectDisplay = 'display: none;';
-	}
-	
-	var weekSelectorHtml = '<div id="weekSelectorContainer" class="selection-list-container">' + 
-						   		'<div class="selection-header-container">' +
-								   	'<table class="selection-header-items-container">' + 
-						   				'<tr>' +
-						   					'<td class="selection-header-multiselect-button" onClick="onClickMultiselectWeekContainer(event);" colspan="2">' +
-							   					'<input id="multiselectWeek" type="checkbox" onClick="onClickMultiselectWeek(event);" />' + 
-							   					'<span><a href="javascript:void(0);" onClick="onClickMultiselectWeekContainer(event);">Select more than one</a></span>' + 
-						   					'</td>' +
-						   				'</tr>' +
-						   				'<tr id="multiselectWeekContainer" style="' + multiselectDisplay + '">' +
-						   					'<td class="selection-header-clear-button" onClick="onClickClearWeeks(event);">' +
-						   						'<a href="javascript:void(0);" onClick="onClickClearWeeks(event);">Clear</a>' +
-						   					'</td>' +
-						   					'<td class="selection-header-select-all-button" onClick="onClickSelectAllWeeks(event);">' + 
-						   						'<a href="javascript:void(0);" onClick="onClickSelectAllWeeks(event);">Select all</a>' +
-						   					'</td>' +
-						   				'</tr>' +
-						   			'</table>' +
-						   		'</div>' + 
-						   		'<div class="selection-list-items-container">';
-
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		
-		var normalizedValue = normalizeWeekValue(week.value);
-		
-		var divHtmlCssClass = 'selection-item-container';
-		if (index + 1 == weeks.length){
-			divHtmlCssClass = 'selection-item-container-last';
-		}
-
-		var weekHtml = '<div id="week-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickWeek(event, \'' + week.value + '\');">' +
-							'<span><input type="checkbox" id="week-checkbox-input-' + normalizedValue + '" value="' + week.value + '" style="' + multiselectDisplay + '" onClick="onClickWeek(event, \'' + week.value + '\');"/></span>' +
-							'<span><input type="radio" name="week" id="week-radio-input-' + normalizedValue + '" value="' + week.value + '" style="' + singleSelectDisplay + '" onClick="onClickWeek(event, \'' + week.value + '\');"/></span>' +
-					   		'<span><a href="javascript:void(0);" onClick="onClickWeek(event, \'' + week.value + '\');">' + week.label + '</a></span>' +
-					     '</div>';
-
-		weekSelectorHtml = weekSelectorHtml + weekHtml;
-	}
-
-	weekSelectorHtml = weekSelectorHtml +
-							'</div>' +
-					   		'<div id="week-selector-footer-container" class="selection-footer-container" style="' + multiselectDisplay + '">' +
-						   		'<table class="selector-footer-button-container">' +
-					   				'<tr>' + 
-					   					'<td class="selector-footer-cancel-button" onClick="onClickWeekSelectionCancel(event)">' +
-					   						'<a href="javascript:" onClick="onClickWeekSelectionCancel(event)">Cancel</a>' +
-					   					'</td>' +
-					   					'<td class="selector-footer-ok-button" onClick="onClickWeekSelectionOk(event)">' +
-					   						'<a href="javascript:" onClick="onClickWeekSelectionOk(event)">OK</a>' +
-					   					'</td>' +
-					   				'</tr>' +
-					   			'</table>' +
-					   		'</div>';
-	
-	return weekSelectorHtml;
-}
-
-
-function createTeamSelectorHtml(teams){
-
-	var multiselectDisplay = 'display: none;';
-	var singleSelectDisplay = '';
-	
-	var teamSelectorHtml = '<div id="teamSelectorContainer" class="selection-list-container">' + 
-						   		'<div class="selection-header-container">' +
-							   		'<table class="selection-header-items-container">' + 
-						   				'<tr>' +
-						   					'<td class="selection-header-multiselect-button" onClick="onClickMultiselectTeamContainer(event);" colspan="2">' +
-							   					'<input id="multiselectTeam" type="checkbox" onClick="onClickMultiselectTeam(event);" />' + 
-							   					'<span><a href="javascript:void(0);" onClick="onClickMultiselectTeamContainer(event);">Select more than one</a></span>' + 
-						   					'</td>' +
-						   				'</tr>' +
-						   				'<tr id="multiselectTeamContainer" style="' + multiselectDisplay + '">' +
-						   					'<td class="selection-header-clear-button" onClick="onClickClearTeams(event);">' +
-						   						'<a href="javascript:void(0);" onClick="onClickClearTeams(event);">Clear</a>' +
-						   					'</td>' +
-						   					'<td class="selection-header-select-all-button" onClick="onClickSelectAllTeams(event);">' + 
-						   						'<a href="javascript:void(0);" onClick="onClickSelectAllTeams(event);">Select all</a>' +
-						   					'</td>' +
-						   				'</tr>' +
-						   			'</table>' +
-						   		'</div>' + 
-						   		'<div class="selection-list-items-container">';
-
-	for (var index = 0; index < teams.length; index++){
-		var team = teams[index];
-		
-		var normalizedValue = normalizeTeamValue(team.value);
-		
-		var divHtmlCssClass = 'selection-item-container';
-		if (index + 1 == teams.length){
-			divHtmlCssClass = 'selection-item-container-last';
-		}
-
-		var teamHtml = '<div id="team-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickTeam(event, \'' + team.value + '\');">' +
-							'<span><input type="checkbox" id="team-checkbox-input-' + normalizedValue + '" value="' + team.value + '" style="' + multiselectDisplay + '" onClick="onClickTeam(event, \'' + team.value + '\');"/></span>' +
-							'<span><input type="radio" name="team" id="team-radio-input-' + normalizedValue + '" value="' + team.value + '" style="' + singleSelectDisplay + '" onClick="onClickTeam(event, \'' + team.value + '\');"/></span>' +
-					   		'<span><a href="javascript:void(0);" onClick="onClickTeam(event, \'' + team.value + '\');">' + team.label + '</a></span>' +
-					     '</div>';
-
-		teamSelectorHtml = teamSelectorHtml + teamHtml;
-	}
-
-	teamSelectorHtml = teamSelectorHtml +
-							'</div>' +
-					   		'<div id="team-selector-footer-container" class="selection-footer-container">' +
-					   			'<table class="selector-footer-button-container">' +
-					   				'<tr>' + 
-					   					'<td class="selector-footer-cancel-button" onClick="onClickTeamSelectionCancel(event)">' +
-					   						'<a href="javascript:" onClick="onClickTeamSelectionCancel(event)">Cancel</a>' +
-					   					'</td>' +
-					   					'<td class="selector-footer-ok-button" onClick="onClickTeamSelectionOk(event)">' +
-					   						'<a href="javascript:" onClick="onClickTeamSelectionOk(event)">OK</a>' +
-					   					'</td>' +
-					   				'</tr>' +
-					   			'</table>' +
-					   		'</div>' +
-					  '</div>';
-	
-	return teamSelectorHtml;
-}
-
-
-
-function createStatNameSelectorHtml(statNames){
-	
-	var statNameSelectorHtml = //'<a id="statNamesLink" href="javascript:" class="selector-link" onClick="onClickStatNameSelector(event);">Standings</a>' + 
-						   		'<div id="statNameSelectorContainer" class="selection-list-container">' + 
-						   			'<div>';
-	
-	for (var index = 0; index < statNames.length; index++){
-		var statName = statNames[index];
-		
-		var divHtmlCssClass = 'selection-item-container';
-		if (index + 1 == statNames.length){
-			divHtmlCssClass = 'selection-item-container-last';
-		}
-		
-		var statNameHtml = '<div class="' + divHtmlCssClass + '" onClick="onClickStatName(event, \'' + statName.value + '\');">' +
-					   		'<span><input type="radio" name="statName" id="statName-' + index + '" value="' + statName.value + '" onClick="onClickStatName(event, \'' + statName.value + '\');"/></span>' +
-					   		'<span><a href="javascript:void(0);" onClick="onClickStatName(event, \'' + statName.value + '\');">' + statName.label + '</a></span>' + 
-					   '</div>';
-		
-		statNameSelectorHtml = statNameSelectorHtml + statNameHtml;
-	}
-	
-	statNameSelectorHtml = statNameSelectorHtml +
-					   		'</div>' + 
-					   '</div>';
-	
-	return statNameSelectorHtml;
-}
-
-/**
- * 
- * This function will create the html for showing the standings for the given records.
- * It expects them to be sorted in the order they should be shown already, so it won't do any
- * sorting of them (it's up to the caller to do that).
- * 
- * @param records
- * @returns
- */
-function createStandingsHtml(records){
-	
-	//Steps to do:
-	//	1. Create the header for the standings.
-	//	2. Figure out what the most wins and losses are for the records (so
-	//	   we can get the games back when making them).
-	//	3. Go through each record, get its rank, and add it to the table.
-	//	4. Put all the parts of the table together.	
-	
-	var standingsHtml = '';
-	
-	//We only want to include the ties header if there's a record in there
-	//with a tie.
-	var areThereAnyTies = hasTies(records);
-	var tiesHeader = '';
-	if (areThereAnyTies){
-		tiesHeader = '<th class="standings-table-header">T</th>';
-	}
-	
-	var standingsHeaderHtml = '<thead class="standings-table-head">' +
-						 	  	'<th class="standings-table-player-header"></th>' +
-						 	  	'<th class="standings-table-header">W</th>' + 
-						 	  	'<th class="standings-table-header">L</th>' +
-						 	  	tiesHeader + 
-						 	  	'<th class="standings-table-header">%</th>' + 
-						 	  	'<th class="standings-table-header">GB</th>' + 
-						 	  '</thead>';
-
-	//For holding the table rows.
-	var rowsHtml = '';
-	
-	//Here so we can figure out how many games back a record is from the top.
-	var topWins = 0;
-	var topLosses = 0;
-	
-	if (!isEmpty(records)){
-		topWins = records[0].wins;
-		topLosses = records[0].losses;
-	}
-	//If there aren't any records, then we should just show that there aren't any results.
-	else {
-		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
-	}
-
-	for (var index = 0; index < records.length; index++){
-		var record = records[index];
-
-		//Get the rank of this record within all the other records.  The "rank" function
-		//takes care of doing that.  We just have to tell it how to compare two records and
-		//when records are exactly the same.
-		//The "recordWinComparisonFunction" compares records based on their wins and losses,
-		//and the inline function says a record is exactly the same when it's for the same player.
-		var recordRank = rank(record, records, recordWinComparisonFunction, function (record1, record2){
-			
-			if (record1.player.id == record2.player.id){
-				return true;
-			}
-			
-			return false;
-		});
-		
-		//We want to show the percentage too.
-		var percentage = record.wins / (record.wins + record.losses);
-		var percentageString = '';
-		//And we want it to 3 decimal places.
-		if (!isNaN(percentage)){
-			percentageString = percentage.toPrecision(3);
-		}
-		
-		var gamesBack = '';
-		if (record.losses == topLosses && record.wins == topWins){
-			gamesBack = '-';
-		}
-		else {
-			var calculatedGamesBack = topWins - record.wins;
-			gamesBack = calculatedGamesBack + '';
-		}
-		
-		var tiesCell = '';
-		if (areThereAnyTies){
-			tiesCell = '<td class="standings-table-cell">' + record.ties + '</td>';
-		}
-		
-		var rankText = recordRank.rank + '';
-		if (recordRank.tie){
-			rankText = rankText + 't';
-		}
-		
-		//Now we have everything we need for the row.
-		rowsHtml = rowsHtml + 
-				  '<tr class="standings-table-row">' +
-				  	'<td class="standings-table-player-cell">' + rankText + '. ' + record.player.name + '</td>' +
-				  	'<td class="standings-table-cell">' + record.wins + '</td>' +
-				  	'<td class="standings-table-cell">' + record.losses + '</td>' +
-				  	tiesCell + 
-				  	'<td class="standings-table-cell">' + percentageString + '</td>' +
-				  	'<td class="standings-table-cell">' + gamesBack + '</td>' + 
-				  '</tr>';
-	}
-
-	//And now we just have to put them together.
-	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
-	
-	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
-	
-	return standingsHtml;
-}
-
-/**
- * 
- * This function will make the grid that holds the given picks in it.  It gets a little
- * hard to follow explaining how the css works, so hopefully I do an ok job explaining that.
- * 
- * @param picksGrid
- * @returns
- */
-function createPicksGridHtml(picksGrid){
-
-	//Steps to do:
-	//	1. This would get too long, so I'll do it old school like how I did in college.
-	
-	//If they selected a year, we don't want to show it as a column.  But, if the year
-	//is "all", then we're going to be showing multiple years, so we want a column for it.
-	var yearHeader = '';
-	var yearSelected = isSpecificYearSelected();
-	if (!yearSelected){
-		yearHeader = '<th align="left" class="table-header">Year</th>';
-	}
-	
-	//Same deal with the week.  If they don't have a specific week selected, we want to show the week.  If they
-	//do, then we don't.
-	var weekHeader = '';
-	var selectedWeek = getSelectedWeek();
-	var weekSelected = isSpecificWeekSelected();
-	if (!weekSelected){
-		weekHeader = '<th align="left" class="table-header">Week</th>';
-	}
-	
-	//The grid will have:
-	//	1. The year (if we have it)
-	//	2. The week (if we have it)
-	//	3. The game
-	//	4. Each player's pick.
-	var gridHeaderHtml = '<thead>' +
-							yearHeader + 
-							weekHeader + 
-						 	'<th align="left" class="table-header">Game</th>';
-	
-	for (var index = 0; index < picksGrid.players.length; index++){
-		var player = picksGrid.players[index];
-		
-		//Each player's pick will have two columns: the pick and the result, so we want the player name
-		//to span both of them.
-		gridHeaderHtml = gridHeaderHtml + '<th align="left" colspan="2" class="table-header">' + player + '</th>';
-	}
-	
-	gridHeaderHtml = gridHeaderHtml + '</thead>';
-
-	//We want to show the records for the picks right below the player names.  This just initializes
-	//them all to 0.  We'll fill them in as we're going through the picks and then add them at the end.
-	var playerRecords = [];
-	for (var index = 0; index < picksGrid.players.length; index++){
-		var player = picksGrid.players[index];
-		var playerRecord = {player: player,
-							wins: 0,
-							losses: 0,
-							ties: 0};
-		playerRecords[index] = playerRecord;
-	}
-	
-	//Ok, now it's game time...
-	var pickRowsHtml = '';
-	
-	for (var index = 0; index < picksGrid.picks.length; index++){
-		var pick = picksGrid.picks[index];
-		
-		//We want the rows to have different backgrounds for even and odd so it's easy to see.
-		var rowClassName = 'even-row';
-		if (index % 2 == 1){
-			rowClassName = 'odd-row';
-		}
-		
-		//And we want to use different css to indicate winners and losers.
-		var homeTeamClass = '';
-		var awayTeamClass = '';
-		if (isDefined(pick.winningTeamAbbreviation)){
-			if (pick.winningTeamAbbreviation == pick.awayTeamAbbreviation){
-				awayTeamClass = 'winner';
-			}
-			else if (pick.winningTeamAbbreviation == pick.homeTeamAbbreviation){
-				homeTeamClass = 'winner';
-			}
-			else {
-				awayTeamClass = 'tie';
-				homeTeamClass = 'tie';
-			}
-		}
-		
-		//We need to do some different things when we're on the bottom row, so we should check
-		//that switch.
-		var isBottomRow = false;
-		if (index + 1 == picksGrid.picks.length){
-			isBottomRow = true;
-		}
-
-		//If they didn't pick a year, we'll want to add the cell for the year first.
-		var yearCell = '';
-		if (!yearSelected){
-			//And, we know that the year should be the first column, so it should use that css.
-			var cssClassToUse = 'first-pick-cell';
-			//And the first column, bottom row css if it's the bottom row (so the border is right).
-			if (isBottomRow){
-				cssClassToUse = 'first-pick-cell-bottom';
-			}
-			
-			yearCell = '<td class="' + cssClassToUse + '">' + pick.year + '</td>';
-		}
-		
-		//Same deal with the week.  If they didn't pick one, add in a column for it.
-		var weekCell = '';
-		if (!weekSelected){
-			
-			var cssClassToUse = null;
-			
-			//A little more complicated than the year because it might or might not be the first column.
-			
-			//If the year isn't selected, and it's not the bottom, then we're showing the year, so the week
-			//is just a middle column.
-			if (!yearSelected && !isBottomRow){
-				cssClassToUse = 'pick-cell';
-			}
-			//If it's a middle column, but it's on the bottom, we want the one with the bottom border.
-			else if (!yearSelected && isBottomRow){
-				cssClassToUse = 'pick-cell-bottom';
-			}
-			//If the year was picked, then this is going to be the first column.
-			else if (yearSelected && !isBottomRow){
-				cssClassToUse = 'first-pick-cell';
-			}
-			//And this is for if it's the first column and on the bottom (so it gets the bottom border).
-			else if (yearSelected && isBottomRow){
-				cssClassToUse = 'first-pick-cell-bottom';
-			}
-			
-			var labelToUse = pick.weekNumber + '';
-			if (pick.weekNumber > 17){
-				labelToUse = pick.weekLabel;
-			}
-		
-			weekCell = '<td class="' + cssClassToUse + '">' + labelToUse + '</td>';
-		}
-
-		//Now, we have to do the same thing with the game that we did with the week.
-		//It'll be the first column in the table if the week and year are selected (because
-		//that means they won't be shown as columns).
-		var isGameFirstColumn = weekSelected && yearSelected;
-
-		var gameCssClassToUse = null;
-		if (!isGameFirstColumn && !isBottomRow){
-			gameCssClassToUse = 'pick-cell';
-		}
-		else if (!isGameFirstColumn && isBottomRow){
-			gameCssClassToUse = 'pick-cell-bottom';
-		}
-		else if (isGameFirstColumn && !isBottomRow){
-			gameCssClassToUse = 'first-pick-cell';
-		}
-		else if (isGameFirstColumn && isBottomRow){
-			gameCssClassToUse = 'first-pick-cell-bottom';
-		}
-
-		//Now we can put the first part of the pick row together.
-		//It's the year and week (if they're there), followed by the game.
-		var gameRow = '<tr class="' + rowClassName + '">' + 
-						yearCell +
-						weekCell +
-						'<td class="' + gameCssClassToUse + '">' + 
-							'<span class="' + awayTeamClass + '">' + pick.awayTeamAbbreviation + '</span>' + 
-							' @ ' + 
-							'<span class="' + homeTeamClass + '">' + pick.homeTeamAbbreviation + '</span>' +  
-						'</td>';
-		
-		//And now we have to add in the player picks.
-		//There'll be two parts: the team they picked, and the result. 
-		var pickTeamClass = '';
-		var pickResultClass = 'pick-cell';
-		
-		//If we're on the bottom row, we want them to have a bottom border.
-		if (isBottomRow){
-			pickTeamClass = 'pick-game-bottom';
-			pickResultClass = 'pick-cell-bottom';
-		}
-	
-		//Go through each player and add a column for each one.
-		for (var playerIndex = 0; playerIndex < picksGrid.players.length; playerIndex++){
-			var playerName = picksGrid.players[playerIndex];
-
-			//We have to get the team they picked from the "playerPicks" for the game.  It has a list
-			//of playerPick structs, and we just have to get the one for the player we're on to get their pick.
-			var pickedTeamForPlayer = null;
-			for (var pickIndex = 0; pickIndex < pick.playerPicks.length; pickIndex++){
-				var playerPick = pick.playerPicks[pickIndex];
-				
-				if (playerPick.player == playerName){
-					pickedTeamForPlayer = playerPick.pick;
-					break;
-				}
-			}
-			
-			
-			//If the game doesn't have a result, we just want that part to be blank.
-			var doesGameHaveResult = false;
-			if (isDefined(pick.winningTeamAbbreviation)){
-				doesGameHaveResult = true;
-			}
-			
-			//Assume both the team and result are blank to start off with.
-			var team = '&nbsp;';
-			var result = '&nbsp;';
-			var winnerOrLoserClass = '';
-			
-			//And use the actual pick for the team if they picked somebody.
-			if (isDefined(pickedTeamForPlayer)){
-				team = pickedTeamForPlayer;
-			}
-
-			//If the game has a result, figure out what that result should be.
-			if (doesGameHaveResult){
-				//If they picked a team, then use that to decide what the result is.
-				//If they didn't pick a team, it's like we're going to ignore it.
-				if (isDefined(pickedTeamForPlayer)){
-					//If they picked the winnig team, that's a W.
-					if (pick.winningTeamAbbreviation == pickedTeamForPlayer){
-						result = 'W';
-					}
-					//If nobody won, that's a tie.
-					else if (pick.winningTeamAbbreviation == 'TIE'){
-						result = 'T';
-					}
-					//If we're here, they picked a team, it wasn't the winner, and the game wasn't
-					//a tie ... So, in conclusion: L.
-					else {
-						result = 'L';
-					}
-				}
-				
-				//And, since there was a result, we can add that to the player's record.
-				//
-				//If they didn't make a pick, that doesn't qualify as a loss.  We don't count it as 
-				//anything, so there's nothing for it here.  
-				//When retrieving the records for the standings, we don't count missing picks as
-				//losses anymore so we shouldn't do it here.
-				
-				if (result == 'W'){
-					winnerOrLoserClass = 'winner';
-					playerRecords[playerIndex].wins++;
-				}
-				else if (result == 'L'){
-					winnerOrLoserClass = 'loser';
-					playerRecords[playerIndex].losses++;
-				}
-				else if (result == 'T'){
-					winnerOrLoserClass = 'tie';
-					playerRecords[playerIndex].ties++;
-				}
-			}
-			
-			//And now, we can the player's pick to the row.
-			gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
-									'<span class="' + winnerOrLoserClass + '">' + team + '</span>' + 
-								'</td>' 
-									+ 
-								'<td class="' + pickResultClass + '">' +
-									'<span class="' + winnerOrLoserClass + '">' + result + '</span>' + 
-								'</td>';
-		}
-		
-		gameRow = gameRow + '</tr>';
-		
-		pickRowsHtml = pickRowsHtml + gameRow;
-	}
-
-	//Now that we're basically done with the table and the picks in it, we know that we have
-	//all the player records filled in, so we can make the row for them.
-	var weekRecordHtml = '';
-	
-	//Just go through them all (they should be in the same order that the players were in),
-	//and add a column for each.
-	for (var index = 0; index < playerRecords.length; index++){
-		var playerRecord = playerRecords[index];
-		var pickRecordRowCss = 'pick-record';
-		
-		//The last one needs a border on the right.
-		if (index + 1 >= playerRecords.length){
-			pickRecordRowCss = 'last-pick-record';
-		}
-		
-		var tiesString = '';
-		if (isDefined(playerRecord.ties) && playerRecord.ties > 0){
-			tiesString = ' - ' + playerRecord.ties;
-		}
-		
-		//We want it to span 2 columns because the picks have two columns (one for the pick, one for the result).
-		var playerRecordHtml = '<td colspan="2" class="' + pickRecordRowCss + '">' + playerRecord.wins + ' - ' + playerRecord.losses + tiesString + '</td>';
-		weekRecordHtml = weekRecordHtml + playerRecordHtml;
-	}
-	
-	//If year and week weren't selected, we're going to need blank cells for them 
-	//on the records row.
-	var blankCells = '';
-	if (!yearSelected){
-		//It will always be the first cell and we'll always want it to have
-		//a bottom.
-		blankCells = blankCells + '<td class="first-pick-cell-bottom"></td>';
-	}
-	
-	//Same thing with the week.
-	if (!weekSelected){
-		//It might or might not be the first cell, though.
-		var cssClassToUse = 'pick-cell-bottom';
-		if (yearSelected){
-			cssClassToUse = 'first-pick-cell-bottom';
-		}
-		
-		blankCells = blankCells + '<td class="' + cssClassToUse + '"></td>';
-	}
-	
-	//The css for the game cell might change depending on whether it's the first column
-	//or not (will be if both year and week are selected).
-	var blankGameCssClassToUse = 'pick-cell-bottom';
-	if (yearSelected && weekSelected){
-		blankGameCssClassToUse = 'first-pick-cell-bottom';
-	}
-	blankCells = blankCells + '<td class="' + blankGameCssClassToUse + '"></td>';
-	
-	//We want the blank cells in there before the current record cells.
-	weekRecordHtml = '<tr>' + blankCells + weekRecordHtml + '</tr>';
-	
-	//And we want the week record to be the first row, so add it in before the other rows.
-	var gridBodyHtml = '<tbody>' + weekRecordHtml + pickRowsHtml + '</tbody>';
-	
-	//Finally, complete the grid.
-	var picksGridHtml = '<table class="picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>';
-	
-	return picksGridHtml;
 }
 
 /**
@@ -4808,155 +2025,6 @@ function toggleShowWeeks(index){
 	}
 }
 
-/**
- * 
- * Creates the html for showing who's won the most weeks.  It expects the records to be
- * in the order that you want to show them.
- * 
- * The html it makes will be a standings like table that shows how many weeks a person won
- * and then a link that shows the specific weeks. 
- * 
- * @param weekRecords
- * @returns
- */
-function createWeeksWonHtml(weekRecords){
-
-	//Steps to do:
-	//	1. Make the header.
-	//	2. Go through every "week record" and get its rank within all the records.
-	//	3. Add an entry in the table for it.
-	//	4. Add the link that'll show the weeks they won too.
-	
-	if (weekRecords.length == 0){
-		var noResultsHtml = '<table class="standings-table">' + 
-								'<thead class="standings-table-head">' + 
-									'<tr class="standings-table-row">' + 
-										'<th class="standings-table-player-header"></th>' +
-										'<th class="standings-table-header">Weeks won</th>' +
-									'</tr>' + 
-								'</thead>' + 
-								'<tbody>' +
-									'<tr class="standings-table-row">' +
-										'<td colspan="2" style="text-align: center;">No results</td>' +
-									'</tr>' +
-								'</tbody>';
-		
-		return noResultsHtml;
-	}
-	
-	var weeksWonHtml = '<table class="standings-table">' + 
-							'<thead class="standings-table-head">' + 
-								'<tr class="standings-table-row">' + 
-									'<th class="standings-table-player-header"></th>' +
-									'<th class="standings-table-header">Weeks won</th>' +
-								'</tr>' + 
-							'</thead>';
-	
-	var weeksWonTableBody = '';
-	
-	for (var index = 0; index < weekRecords.length; index++){
-		var weekRecord = weekRecords[index];
-		
-		//The records are already in the right order, we just need to find out what the 
-		//"rank" for this particular one is within the whole list.
-		//A little slower than if we did it in a non-generic way, but I think it's worth
-		//it to have it more "clear" and (hopefully) easier to understand.
-		//
-		//The first function is used to figure out where the record ranks among all the records.
-		//The second is used as part of that too, but says when a record is exactly the same
-		//as another (so when we see the record we're on in the list, we don't say it's a tie).
-		var recordRank = rank(weekRecord, weekRecords, function(record1, record2){
-			
-			if (record1.weekRecords.length > record2.weekRecords.length){
-				return -1;
-			}
-			else if (record1.weekRecords.length < record2.weekRecords.length){
-				return 1;
-			}
-			return 0;
-		}, 
-		function (record1, record2){
-			
-			if (record1.player.name == record2.player.name){
-				return true;
-			}
-			
-			return false;
-		});
-
-		//The number we want to show is the "rank" and we want to add a "t" if it's a tie.
-		var rankText = recordRank.rank;
-		if (recordRank.tie){
-			rankText = rankText + 't';
-		}
-		
-		weeksWonTableBody = weeksWonTableBody + 
-							'<tr class="standings-table-row">' + 
-								'<td class="standings-table-player-cell">' + rankText + '. ' + weekRecord.player.name + '</td>';
-
-		var numberOfWeeksWon = weekRecord.weekRecords.length;
-		//Add some padding if so everything lines up if some records have two digits.
-		if (weekRecord.weekRecords.length < 10){
-			numberOfWeeksWon = numberOfWeeksWon + '&nbsp;';
-		}
-		
-		//This is for the link that'll let them see exactly what weeks the person won.
-		var detailId = 'week-records-' + index;
-		var weekRecordsHtml = '<div>' + numberOfWeeksWon + 
-								' <a id="show-weeks-link-' + index + '" href="javascript:" onClick="toggleShowWeeks(' + index + ')" style="margin-left: 20px; float:right;">show weeks</a>' + 
-							  '</div>' + 
-							  //This is the container for list of weeks they won.  We want it hidden initially and they can click the link to show it.
-							  '<div id="' + detailId + '" style="display: none;"><ul class="standings-table-cell-list">';
-
-		//If they don't select a year, there might be weeks from multiple years in the list,
-		//so we'll want to show the year alongside the week.
-		var selectedYear = getSelectedYear();
-		var showYear = false;
-		if (!isSpecificYearSelected()){
-			showYear = true;
-		}
-		
-		//We want to make sure the weeks are in ascending order by year and week (oldest week at the top, newest
-		//at the bottom.
-		sortWeekRecordsBySeasonAndWeek(weekRecord.weekRecords);
-		
-		for (var recordIndex = 0; recordIndex < weekRecord.weekRecords.length; recordIndex++){
-			var record = weekRecord.weekRecords[recordIndex];
-
-			//Show that there were ties if there were.
-			var ties = '';
-			if (record.record.ties > 0){
-				ties = ' - ' + record.record.ties;
-			}
-			
-			//And add in the year at the beginning if the year wasn't selected.
-			var year = '';
-			if (showYear){
-				year = record.season.year + ', ';
-			}
-			
-			//The line should be like: 2016, Week 5 (10 - 5 - 1)
-			var recordText = year + record.week.label + ' (' + record.record.wins + ' - ' + record.record.losses +
-							 ties + ')';
-			
-			//And we want the link that'll show the actual picks for the person, year, and week, so they can jump directly to
-			//what they picked.
-			var picksLink = createPicksLink(record.week.label, record.season.year, record.week.weekNumber, null, weekRecord.player.name);
-			
-			weekRecordsHtml = weekRecordsHtml + '<li>' + year + picksLink + ' (' + record.record.wins + ' - ' + record.record.losses +
-			 ties + ')' + '</li>';
-		}
-		
-		weekRecordsHtml = weekRecordsHtml + '</ul></div>';
-		
-		weeksWonTableBody = weeksWonTableBody + '<td class="standings-table-cell">' + weekRecordsHtml + '</td></tr>';
-		
-	}
-	
-	weeksWonHtml = weeksWonHtml + '<tbody class="standings-table-body">' + weeksWonTableBody + '</tbody></table>';
-	
-	return weeksWonHtml;
-}
 
 /**
  * 
@@ -5265,111 +2333,6 @@ function isSpecificPlayerSelected(){
 	return true;
 }
 
-/**
- * 
- * This function will create the html that shows the weekly records
- * for a player.  It expects the given records to be sorted in the order
- * they should be shown in, and it assumes they're all for the same player.
- * 
- * @param weekRecords
- * @returns
- */
-function createWeekRecordsByPlayerHtml(weekRecords){
-	
-	//Steps to do:
-	//	1. Make the header (add in one for ties and a year if they haven't picked one).
-	//	2. Go through and output each record and that's pretty much it.
-	
-	var tiesHeader = '';
-	
-	var areThereAnyTies = false;
-	for (var index = 0; index < weekRecords.length; index++){
-		var weekRecord = weekRecords[index];
-		
-		if (weekRecord.record.ties > 0){
-			areThereAnyTies = true;
-			break;
-		}
-	}
-	
-	if (areThereAnyTies){
-		tiesHeader = '<th class="standings-table-header">T</th>';
-	}
-	
-	var aPlayerIsSelected = isSpecificPlayerSelected();
-	
-	var playerHeader = '';
-	if (!aPlayerIsSelected){
-		playerHeader = '<th class="standings-table-player-header">Player</th>';
-	}
-	
-	var yearHeader = '';
-	var weekClass = 'standings-table-player-header';
-	var aYearIsSelected = isSpecificYearSelected();
-	if (!aYearIsSelected){
-		yearHeader = '<th class="standings-table-player-header">Year</th>';
-		weekClass = 'standings-table-header';
-	}
-	
-	var tableHead = '<thead class="standings-table-head">' + 
-						'<tr class="standings-table-row">' + 
-							playerHeader +
-							yearHeader +
-							'<th class="' + weekClass + '">Week</th>' + 
-							'<th class="standings-table-header">W</th>' + 
-							'<th class="standings-table-header">L</th>' +
-							tiesHeader +
-							'<th class="standings-table-header">%</th>' +
-						'</tr>' +
-					'</thead>';
-	
-	var tableBody = '<tbody class="standings-table-body">';
-	
-	for (var index = 0; index < weekRecords.length; index++){
-		var weekRecord = weekRecords[index];
-		
-		var playerCell = '';
-		if (!aPlayerIsSelected){
-			playerCell = '<td class="standings-table-player-cell">' + weekRecord.player.name + '</td>';
-		}
-		
-		var yearCell = '';
-		if (!aYearIsSelected){
-			yearCell = '<td class="standings-table-player-cell">' + weekRecord.season.year + '</td>';
-		}
-		
-		var weekLabel = shortenWeekLabel(weekRecord.week.label);
-		
-		var playerPicksLink = createPicksLink(weekLabel, weekRecord.season.year, weekRecord.week.weekNumber, null, weekRecord.player.name);
-
-		var tiesCell = '';
-		//Add a cell for ties if there are any.
-		if (areThereAnyTies){
-			tiesCell = '<td class="standings-table-cell">' + weekRecord.record.ties + '</td>';
-		}
-		
-		//And we want to show the winning percentage too.
-		var percentageString = getWinningPercentage(weekRecord.record.wins, weekRecord.record.losses);
-		
-		var row = '<tr class="standings-table-row">' +
-					playerCell +
-					yearCell +
-					'<td class="' + weekClass + '">' + playerPicksLink + '</td>' +
-					'<td class="standings-table-cell">' + weekRecord.record.wins + '</td>' +
-					'<td class="standings-table-cell">' + weekRecord.record.losses + '</td>' +
-					tiesCell +
-					'<td class="standings-table-cell">' + percentageString + '</td>'
-				  '</tr>';
-		
-		tableBody = tableBody + row;
-	}
-	
-	tableBody = tableBody + '</tbody>';
-
-	var weekRecordsByPlayerHtml = '<table class="standings-table">' + tableHead + tableBody + '</table>';
-	
-	return weekRecordsByPlayerHtml;
-}
 
 /**
  * 
@@ -5394,664 +2357,6 @@ function getWinningPercentage(wins, losses){
 	}
 	
 	return percentageString;
-}
-
-/**
- * 
- * Shows the best weekly records in a table.  Here so we can see the best
- * records over a year, or like over all time.  The given records should
- * be sorted in the order we want them shown in. 
- * 
- * @param playerWeekRecords
- * @returns
- */
-function createWeekStandingsHtml(playerWeekRecords){
-
-	//Steps to do:
-	//	1. Make the header (add in the year and week if they aren't selected and
-	//	   a header for ties if they are).
-	//	2. Go through and add a row for each record with a link to the picks
-	//	   for the week.
-	//	3. That's pretty much it.
-	
-	var standingsHtml = '';
-	
-	var isYearSelected = isSpecificYearSelected();
-	var yearHeader = '';
-	if (!isYearSelected){
-		yearHeader = '<th class="standings-table-header">Year</th>';
-	}
-	
-	var isWeekSelected = isSpecificWeekSelected();
-	var weekHeader = '';
-	if (!isWeekSelected){
-		isWeekSelected = false;
-		weekHeader = '<th class="standings-table-header">Week</th>';
-	}
-	
-	var areThereAnyTies = false;
-	for (var index = 0; index < playerWeekRecords.length; index++){
-		var playerWeekRecord = playerWeekRecords[index];
-		
-		if (playerWeekRecord.record.ties > 0){
-			areThereAnyTies = true;
-		}
-	}
-	
-	var tiesHeader = '';
-	if (areThereAnyTies){
-		tiesHeader = '<th class="standings-table-header-small">T</th>';
-	}
-	
-	var standingsHeaderHtml = '<thead class="standings-table-head">' +
-						 	'<th class="standings-table-player-header"></th>' +
-						 	yearHeader + 
-						 	weekHeader +
-						 	'<th class="standings-table-header-small">W</th>' + 
-						 	'<th class="standings-table-header-small">L</th>' +
-						 	tiesHeader + 
-						 	'<th class="standings-table-header-small">%</th>';
-	
-	
-	standingsHeaderHtml = standingsHeaderHtml + '</thead>';
-	
-	var rowsHtml = '';
-	
-	if (isEmpty(playerWeekRecords)){
-		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
-	}
-	
-	//Going to keep this "old school" since doing it "new school" would mean O(n^) for 
-	//getting a record's rank ... and we could have hundreds of records (since there might be a
-	//lot of players, with 17 * number of years worth of weeks for each player.
-
-	//The steps for calculating the rank:
-	//	1. Have three variables: rank, nextRank, and tieIndependentRank.
-	//	2. rank holds the rank of the current record we're on.  
-	//	3. nextRank holds what the rank should be the next time we go through
-	//	   the loop.
-	//	4. tieIndependentRank holds the rank independent of ties.  Basically what it would be if
-	//	   there were no ties (the position of the record in the array, starting at 1).
-	//	5. Start the nextRank at 1 because that's what the rank of the next record we see will be.
-	//	6. Start going through the records.
-	//	7. Assign the nextRank that we calculated to the rank so that we use it for this record.
-	//	8. Calculate the nextRank:
-	//		1. If there's a next record and it has the same number of wins and losses as this one, then
-	//		   the nextRank will be same as the current rank because there's a tie.
-	//		2. Otherwise, it'll be whatever "tieIndepdentedRank" we have.  That's because we'll
-	//		   want to basically pick up where we left off before the ties started.
-	
-	var rank = null;
-	var nextRank = 1;
-	var nextRecord = null;
-	var previousRank = null;
-	
-	for (var index = 0; index < playerWeekRecords.length; index++){
-		var playerWeekRecord = playerWeekRecords[index];
-		
-		//This is the position of the record independent of whether there are ties.  Just the "raw" position if we
-		//started counting at 1.  It will be the same as the rank if there aren't any ties.
-		var tieIndependentRank = index + 1;
-		//Set the rank to what we calculated it should be the previous time through the loop.
-		rank = nextRank;
-		
-		//Now, need to calculate what it will be the next time.
-		//If the next record has the same number of wins and losses, then it'll be the same as now because they're
-		//tied.
-		//Otherwise, if the next record doesn't, the next rank will be whatever this one's would have
-		//been without ties + 1.  If there weren't any ties, then this record's rank would be the "tieIndependentRank".
-		//So, that means the next rank would be that + 1.
-		nextRecord = null;
-		if (index + 1 < playerWeekRecords.length){
-			nextRecord = playerWeekRecords[index + 1];
-			
-			if (playerWeekRecord.record.wins == nextRecord.record.wins && playerWeekRecord.record.losses == nextRecord.record.losses){
-				//rank stays the same.
-			}
-			else {
-				//current rank would be index + 1.  We want to be one beyond that.
-				nextRank = tieIndependentRank + 1;
-			}
-		}
-		
-		//Now, we have the rank and next rank so we need to figure out if we need to put a little 't' to indicate
-		//there was a tie.
-		//There's a tie if:
-		//	1. It's the same as the next rank and we're not at the end.
-		//	2. The rank is the same as the previous rank.
-		//
-		//Number 1 should be pretty straight forward.  If this rank is the same as the next one, it's in a tie.
-		//Number 2 is there for the last tie in a series of ties.  The last tie will have a "nextRank" that's different from
-		//what it is, but we'll still want to show a tie for it.  So, in that case, we can just look to see if it's the same
-		//as the previous rank and, if it is, we know there's a tie.
-		var rankText = rank + '';
-		if ((nextRank == rank && index + 1 < playerWeekRecords.length) || (rank == previousRank)){
-			rankText = rankText + 't';
-		}
-		
-		//Add in the year and week if they weren't selected.
-		var yearCell = '';
-		if (!isYearSelected){
-			yearCell = '<td class="standings-table-cell">' + playerWeekRecord.season.year + '</td>';
-		}
-		
-		var weekCell = '';
-		if (!isWeekSelected){
-			var labelToUse = shortenWeekLabel(playerWeekRecord.week.label);
-			//function createPicksLink(linkText, year, week, team, player){
-			var picksLink = createPicksLink(labelToUse, playerWeekRecord.season.year, playerWeekRecord.week.weekNumber, null, playerWeekRecord.player.name);
-			weekCell = '<td class="standings-table-cell">' + picksLink + '</td>';
-		}
-		
-		var tiesCell = '';
-		if (areThereAnyTies){
-			tiesCell = '<td class="standings-table-cell-small">' + playerWeekRecord.record.ties + '</td>';
-		}
-		
-		var percentageString = getWinningPercentage(playerWeekRecord.record.wins, playerWeekRecord.record.losses);
-		
-		rowsHtml = rowsHtml + 
-					   '<tr class="standings-table-row">' +
-						'<td class="standings-table-player-cell">' + rankText + '. ' + playerWeekRecord.player.name + '</td>' +
-						yearCell +
-						weekCell +
-						'<td class="standings-table-cell-small">' + playerWeekRecord.record.wins + '</td>' +
-						'<td class="standings-table-cell-small">' + playerWeekRecord.record.losses + '</td>' +
-						tiesCell + 
-						'<td class="standings-table-cell-small">' + percentageString + '</td>';
-		
-		rowsHtml = rowsHtml + '</tr>';
-		
-		//Keep the current rank as the previous for the next time through.
-		previousRank = rank;
-		
-	}
-	
-	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
-	
-	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
-	
-	return standingsHtml;
-}
-
-/**
- * 
- * This one will create the html for showing all the champions and when they won them.
- * The given array should be sorted in the order that we want it shown in.
- * 
- * @param championships
- * @returns
- */
-function createChampionsHtml(championships){
-	
-	//Steps to do:
-	//	1. Make the header and add ties if there are any.
-	//	2. Go through and add a row for each championship.
-	//	3. That's it.
-	
-	var areThereAnyTies = false;
-	for (var index = 0; index < championships.length; index++){
-		
-		var championship = championships[index];
-		
-		if (championship.record.ties > 0){
-			areThereAnyTies = true;
-			break;
-		}
-	}
-	
-	var tiesHeader = '';
-	if (areThereAnyTies){
-		tiesHeader = '<th class="standings-table-header">T</th>';
-	}
-	
-	var championshipsHeaderHtml = '<thead class="standings-table-head">' +
-								  	'<th class="standings-table-player-header"></th>' + 
-								  	'<th class="standings-table-header">Year</th>' + 
-								  	'<th class="standings-table-header">W</th>' +
-								  	'<th class="standings-table-header">L</th>' +
-								  	tiesHeader + 
-								  	'<th class="standings-table-header">%</th>'
-								  '</thead>';
-	
-	var championshipsBodyHtml = '<tbody>';
-	
-	if (championships.length == 0){
-		var noResultsTable = '<table class="standings-table">' + 
-								championshipsHeaderHtml + 
-								'<tbody>' + 
-							 		'<tr class="standings-table-row">' + 
-							 			'<td colspan="6" style="text-align: center;">No results</td>' + 
-							 		'</tr>' + 
-							 	'</tbody>' + 
-							 '</table>';
-		
-		return noResultsTable;
-	}
-
-	for (var index = 0; index < championships.length; index++){
-		var championship = championships[index];
-
-		var tiesCell = '';
-		if (areThereAnyTies){
-			tiesCell = '<td class="standings-table-cell">' + championship.record.ties + '</td>';
-		}
-
-		var percentageString = getWinningPercentage(championship.record.wins, championship.record.losses);
-
-		var championshipRowHtml = '<tr class="standings-table-row">' + 
-		'<td class="standings-table-player-cell">' + championship.player.name + '</td>' +
-		'<td class="standings-table-cell">' + championship.season.year + '</td>' +
-		'<td class="standings-table-cell">' + championship.record.wins + '</td>' +
-		'<td class="standings-table-cell">' + championship.record.losses + '</td>' + 
-		tiesCell +
-		'<td class="standings-table-cell">' + percentageString + '</td>' +
-		'</tr>';
-
-		championshipsBodyHtml = championshipsBodyHtml + championshipRowHtml;
-	}
-	
-	championshipsBodyHtml = championshipsBodyHtml + '</tbody>';
-	
-	var championshipsHtml = '<table class="standings-table">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>';
-	
-	return championshipsHtml;
-}
-
-/**
- * 
- * This one will create the html for showing who has the most championships.  It doesn't
- * expect the given array to be sorted.  Each entry in the array will be the player with
- * all the championships they have (not just the count).  We want the whole thing
- * because we want to show the years and records.
- * 
- * @param playerChampionshipsList
- * @returns
- */
-function createChampionshipStandingsHtml(playerChampionshipsList){
-	
-	//Steps to do:
-	//	1. Make the header.
-	//	2. Make sure they're in the right order by who has the most titles.
-	//	3. Make a row in the standings for each person and their titles.
-	//	4. That's it.
-	
-	var yearHeader = '<th class="standings-table-header">Year</th>';
-	var yearSelected = isSpecificYearSelected();
-	if (yearSelected){
-		yearHeader = '';
-	}
-	
-	var championshipsStandingsHeaderHtml = '<thead class="standings-table-head">' +
-										  	'<tr class="standings-table-row">' +
-										  		'<th class="standings-table-player-header"></th>' +
-										  		'<th class="standings-table-header">Championships</th>' +
-										  		'<th class="standings-table-header">Years</th>' +
-										  	'</tr>' +
-										  '</thead>';
-										  		
-	
-	var championshipsStandingsBodyHtml = '<tbody class="standings-table-body">';
-	
-	if (playerChampionshipsList.length == 0){
-		var noResultsTable = '<table class="standings-table">' + 
-							 	championshipsStandingsHeaderHtml +
-								'<tbody class="standings-table-body">' +
-							 		'<tr class="standings-table-row">' + 
-							 			'<td colspan="3" style="text-align: center;">No results</td>' + 
-									'</tr>' + 
-								'</tbody>' + 
-							'</table>';
-		
-		return noResultsTable;
-	}
-	
-	//Each item in the list is the player and all another list that has their championships in it.
-	//We want the list sorted so that the person with the most championships comes first.
-	playerChampionshipsList.sort(function (playerChampionships1, playerChampionships2){
-		
-		//More championships should come first.
-		if (playerChampionships1.championships.length > playerChampionships2.championships.length){
-			return -1;
-		}
-		//Fewer should come last.
-		else if (playerChampionships1.championships.length < playerChampionships2.championships.length){
-			return 1;
-		}
-		
-		return 0;
-	});
-	
-	//Now that they're sorted, we just have to make a row for each one.
-	for (var index = 0; index < playerChampionshipsList.length; index++){
-		var playerChampionships = playerChampionshipsList[index];
-		
-		//And we want each one's rank before we make the row.
-		//The rank is based on how many championships a person has, so that's why the first function compares
-		//on that.
-		var championshipsRank = rank(playerChampionships, playerChampionshipsList, function(playerChampionships1, playerChampionships2){
-			
-			if (playerChampionships1.championships.length > playerChampionships2.championships.length){
-				return -1;
-			}
-			else if (playerChampionships1.championships.length < playerChampionships2.championships.length){
-				return 1;
-			}
-			
-			return 0;
-		}, 
-		
-		function (playerChampionships1, playerChampionships2){
-			
-			if (playerChampionships1.player.name == playerChampionships2.player.name){
-				return true;
-			}
-			
-			return false;
-		});
-
-		var rankText = championshipsRank.rank;
-		if (championshipsRank.tie){
-			rankText = rankText + 't';
-		}
-		
-		var playerChampionshipsRowHtml = '<tr class="standings-table-row">' + 
-											'<td class="standings-table-player-cell">' + rankText + '. ' + playerChampionships.player.name + '</td>' +
-											'<td class="standings-table-cell">' + playerChampionships.championships.length + '</td>';
-		
-		//We want to show all the years they won too, so add them as a list.
-		var championshipYearsHtml = '<ul class="standings-table-cell-list">';
-
-		for (var championshipIndex = 0; championshipIndex < playerChampionships.championships.length; championshipIndex++){
-			var championship = playerChampionships.championships[championshipIndex];
-			
-			var tiesString = '';
-			if (championship.record.ties > 0){
-				tiesString = ' - ' + championship.record.ties;
-			}
-			
-			var championshipHtml = '<li>' + championship.season.year + ' (' + championship.record.wins + ' - ' + championship.record.losses + tiesString + ')';
-			
-			championshipYearsHtml = championshipYearsHtml + championshipHtml;
-		}
-		
-		championshipYearsHtml = championshipYearsHtml + '</ul>';
-		
-		playerChampionshipsRowHtml = playerChampionshipsRowHtml + '<td class="standings-table-cell">' + championshipYearsHtml + '</td></tr>';
-		
-		championshipsStandingsBodyHtml = championshipsStandingsBodyHtml + playerChampionshipsRowHtml;
-	}
-	
-	championshipsStandingsBodyHtml = championshipsStandingsBodyHtml + '</tbody>';
-	
-	var championshipsStandingsHtml = '<table class="standings-table">' + championshipsStandingsHeaderHtml + championshipsStandingsBodyHtml + '</table';
-	
-	return championshipsStandingsHtml;
-}
-
-
-/**
- * 
- * This one will create the html for and ranking each seaons's records.  It doesn't
- * expect the given array to be sorted.  Each entry in the array will be seasons each
- * person has had and their record in those seasons.
- * 
- * @param playerChampionshipsList
- * @returns
- */
-function createSeasonStandingsHtml(seasonRecords){
-	
-	//Steps to do:
-	//	1. Make the header.
-	//	2. Make sure they're in the right order by who has the most titles.
-	//	3. Make a row in the standings for each person and their titles.
-	//	4. That's it.
-	
-	var standingsHtml = '';
-	
-	var isYearSelected = isSpecificYearSelected();
-	var yearHeader = '';
-	if (!isYearSelected){
-		yearHeader = '<th class="standings-table-header">Year</th>';
-	}
-	
-	var areThereAnyTies = false;
-	for (var index = 0; index < seasonRecords.length; index++){
-		var seasonRecord = seasonRecords[index];
-		
-		if (seasonRecord.record.ties > 0){
-			areThereAnyTies = true;
-			break;
-		}
-	}
-	
-	var tiesHeader = '';
-	if (areThereAnyTies){
-		tiesHeader = '<th class="standings-table-header-small">T</th>';
-	}
-	
-	var standingsHeaderHtml = '<thead class="standings-table-head">' +
-						 			'<th class="standings-table-player-header"></th>' +
-						 			yearHeader + 
-						 			'<th class="standings-table-header-small">W</th>' + 
-						 			'<th class="standings-table-header-small">L</th>' +
-						 			tiesHeader + 
-						 			'<th class="standings-table-header-small">%</th>' + 
-						 			'<th class="standings-table-header"></th>' + 
-						 	   '</thead>';
-	
-	if (seasonRecords.length == 0){
-		var noResultsTable = '<table class="standings-table">' + 
-								standingsHeaderHtml +
-								'<tbody class="standings-table-body">' +
-							 		'<tr class="standings-table-row">' + 
-							 			'<td colspan="8" style="text-align: center;">No results</td>' + 
-									'</tr>' + 
-								'</tbody>' + 
-							'</table>';
-		
-		return noResultsTable;
-	}
-
-	//The steps for calculating the rank:
-	//	1. Have three variables: rank, nextRank, and tieIndependentRank.
-	//	2. rank holds the rank of the current record we're on.  
-	//	3. nextRank holds what the rank should be the next time we go through
-	//	   the loop.
-	//	4. tieIndependentRank holds the rank independent of ties.  Basically what it would be if
-	//	   there were no ties (the position of the record in the array, starting at 1).
-	//	5. Start the nextRank at 1 because that's what the rank of the next record we see will be.
-	//	6. Start going through the records.
-	//	7. Assign the nextRank that we calculated to the rank so that we use it for this record.
-	//	8. Calculate the nextRank:
-	//		1. If there's a next record and it has the same number of wins and losses as this one, then
-	//		   the nextRank will be same as the current rank because there's a tie.
-	//		2. Otherwise, it'll be whatever "tieIndepdentedRank" we have.  That's because we'll
-	//		   want to basically pick up where we left off before the ties started.
-	
-	var rank = null;
-	var nextRank = 1;
-	var nextRecord = null;
-	var previousRank = null;
-	
-	var rowsHtml = '';
-	
-	for (var index = 0; index < seasonRecords.length; index++){
-		var seasonRecord = seasonRecords[index];
-		
-		//This is the position of the record independent of whether there are ties.  Just the "raw" position if we
-		//started counting at 1.  It will be the same as the rank if there aren't any ties.
-		var tieIndependentRank = index + 1;
-		//Set the rank to what we calculated it should be the previous time through the loop.
-		rank = nextRank;
-		
-		//Now, need to calculate what it will be the next time.
-		//If the next record has the same number of wins and losses, then it'll be the same as now because they're
-		//tied.
-		//Otherwise, if the next record doesn't, the next rank will be whatever this one's would have
-		//been without ties + 1.  If there weren't any ties, then this record's rank would be the "tieIndependentRank".
-		//So, that means the next rank would be that + 1.
-		nextRecord = null;
-		if (index + 1 < seasonRecords.length){
-			nextRecord = seasonRecords[index + 1];
-			
-			if (seasonRecord.record.wins == nextRecord.record.wins && seasonRecord.record.losses == nextRecord.record.losses){
-				//rank stays the same.
-			}
-			else {
-				//current rank would be index + 1.  We want to be one beyond that.
-				nextRank = tieIndependentRank + 1;
-			}
-		}
-		
-		//Now, we have the rank and next rank so we need to figure out if we need to put a little 't' to indicate
-		//there was a tie.
-		//There's a tie if:
-		//	1. It's the same as the next rank and we're not at the end.
-		//	2. The rank is the same as the previous rank.
-		//
-		//Number 1 should be pretty straight forward.  If this rank is the same as the next one, it's in a tie.
-		//Number 2 is there for the last tie in a series of ties.  The last tie will have a "nextRank" that's different from
-		//what it is, but we'll still want to show a tie for it.  So, in that case, we can just look to see if it's the same
-		//as the previous rank and, if it is, we know there's a tie.
-		var rankText = rank + '';
-		if ((nextRank == rank && index + 1 < seasonRecords.length) || (rank == previousRank)){
-			rankText = rankText + 't';
-		}
-		
-		//Add in the year and week if they weren't selected.
-		var yearCell = '';
-		if (!isYearSelected){
-			yearCell = '<td class="standings-table-cell">' + seasonRecord.season.year + '</td>';
-		}
-		
-		var tiesCell = '';
-		if (areThereAnyTies){
-			tiesCell = '<td class="standings-table-cell-small">' + seasonRecord.record.ties + '</td>';
-		}
-		
-		var percentageString = getWinningPercentage(seasonRecord.record.wins, seasonRecord.record.losses);
-		
-		/*
-		 var standingsHeaderHtml = '<thead class="standings-table-head">' +
-						 			'<th class="standings-table-player-header"></th>' +
-						 			yearHeader + 
-						 			'<th class="standings-table-header-small">W</th>' + 
-						 			'<th class="standings-table-header-small">L</th>' +
-						 			tiesHeader + 
-						 			'<th class="standings-table-header-small">%</th>' + 
-						 			'<th class="standings-table-header">Rank In Season</th>' +
-						 			'<th class="standings-table-header">Championship</th>' + 
-						 	   '</thead>';
-		 */
-		
-		var championship = '<td></td>';
-		if (seasonRecord.championship){
-			championship = '<td><img src="files/wwf-belt-icon.png" width="32" height="15" title="Won Championship"/></td>';
-		}
-		
-		rowsHtml = rowsHtml + 
-					   '<tr class="standings-table-row">' +
-						'<td class="standings-table-player-cell">' + rankText + '. ' + seasonRecord.player.name + '</td>' +
-						yearCell +
-						'<td class="standings-table-cell-small">' + seasonRecord.record.wins + '</td>' +
-						'<td class="standings-table-cell-small">' + seasonRecord.record.losses + '</td>' +
-						tiesCell + 
-						'<td class="standings-table-cell-small">' + percentageString + '</td>' + 
-						'<td class="standings-table-cell-small">' + championship + '</td>';
-		
-		rowsHtml = rowsHtml + '</tr>';
-		
-		//Keep the current rank as the previous for the next time through.
-		previousRank = rank;
-		
-	}
-	
-	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
-	
-	standingsHtml = '<table class="standings-table">' + standingsHeaderHtml + standingsBodyHtml + '</table>';
-	
-	return standingsHtml;
-}
-
-/**
- * 
- * This function will create a table that shows who won each week in sequential order.
- * If there's a tie, it'll show all the people who tied as having won the week.
- * 
- * @param weeksWonByWeek
- * @returns
- */
-function createWeeksWonByWeek(weeksWonByWeek){
-
-	//Steps to do:
-	//	1. Make the header (and add the year in if we have it).
-	//	2. Add in a row for each week and a list for each player who won
-	//	   that week.
-	//	3. That's it.
-	
-	var yearSelected = isSpecificYearSelected();
-	
-	var yearHeader = '';
-	if (!yearSelected){
-		yearHeader = '<th class="standings-table-header">Year</th>';
-	}
-	
-	var weeksWonByWeekHeaderHtml = '<thead class="standings-table-head">' +
-								   		'<tr>' + 
-								   			yearHeader + 
-								   			'<th class="standings-table-header">Week</th>' +
-								   			'<th class="standings-table-header">Record</th>' +
-								   			'<th class="standings-table-header">Winner</th>' +
-								   		'</tr>' +
-								   	'</thead>';
-	
-	var weeksWonByWeekBodyHtml = '<tbody class="standings-table-body">';
-	
-	for (var index = 0; index < weeksWonByWeek.length; index++){
-		var weekRecord = weeksWonByWeek[index];
-	
-		var yearCell = '';
-		if (!yearSelected){
-			yearCell = '<td class="standings-table-cell">' + weekRecord.season.year + '</td>';
-		}
-		
-		var recordHtml = weekRecord.record.wins + ' - ' + weekRecord.record.losses;
-		
-		if (weekRecord.record.ties > 0){
-			recordHtml = recordHtml + ' - ' + weekRecord.record.ties;
-		}
-		
-		//We want to show the players in a consistent order, so sort them by name.
-		sortPlayersByName(weekRecord.players);
-		
-		var playerHtml = '<ul class="standings-table-cell-list">';
-		for (var playerIndex = 0; playerIndex < weekRecord.players.length; playerIndex++){
-			var player = weekRecord.players[playerIndex];
-			
-			var playerPicksLink = createPicksLink(player.name, weekRecord.season.year, weekRecord.week.weekNumber, null, player.name);
-			
-			var plHtml = '<li>' + playerPicksLink + '</li>';
-			playerHtml = playerHtml + plHtml;
-		}
-		
-		playerHtml = playerHtml + '</ul>';
-
-		var weeksWonByWeekRow = '<tr class="standings-table-row">' +
-									yearCell +
-									'<td class="standings-table-cell">' + shortenWeekLabel(weekRecord.week.label) + '</td>' +
-								    '<td class="standings-table-cell">' + recordHtml + '</td>' +
-								    '<td class="standings-table-cell">' + playerHtml + '</td>' +
-								'</tr>';
-		
-		weeksWonByWeekBodyHtml = weeksWonByWeekBodyHtml + weeksWonByWeekRow;
-	}
-	
-	weeksWonByWeekBodyHtml = weeksWonByWeekBodyHtml + '</tbody>';
-	
-	var weeksWonByWeekHtml = '<table class="standings-table">' + weeksWonByWeekHeaderHtml + weeksWonByWeekBodyHtml + '</table>';
-	
-	return weeksWonByWeekHtml;
 }
 
 /**
@@ -6101,119 +2406,6 @@ function sortAlphabetically(values){
 	});
 }
 
-/**
- * 
- * This function will create the html table that shows how accurate people's picks are.
- * Here so people can see if they suck with certain teams.  It doesn't expect the given
- * summaries to be sorted, so it'll do the sorting.
- * 
- * @param pickAccuracySummaries
- * @returns
- */
-function createPickAccuracySummariesHtml(pickAccuracySummaries){
-
-	//Steps to do:
-	//	1. Make the header.
-	//	2. Make sure they're sorted in the right order (by how many times somebody was right).
-	//	3. Go through and add a row for each team and its accuracy.
-	//	4. Add a detail link that shows more details (how many times picked to win, lose, ...).
-	
-	var singlePlayerSelected = isSpecificPlayerSelected();
-	var playerHeader = '';
-	if (!singlePlayerSelected){
-		playerHeader = '<th class="standings-table-header">Player</th>';
-	}
-	
-	var specificTeamSelected = isSpecificTeamSelected();
-	var teamHeader = '';
-	if (!specificTeamSelected){
-		teamHeader = '<th class="standings-table-header">Team</th>';
-	}
-	
-	var pickAccuracySummariesHeadHtml = '<thead class="standings-table-head">' +
-											'<tr class="standings-table-row">' +
-												playerHeader + 
-												teamHeader +
-												'<th class="standings-table-header">Right</th>' +
-												'<th class="standings-table-header">Wrong</th>' + 
-												'<th class="standings-table-header">%</th>' +
-												'<th class="standings-table-header"></th>' +
-											'</tr>' +
-										'</thead>';
-	
-	var pickAccuracySummariesBodyHtml = '<tbody class="standings-table-body">';
-	
-	sortPickAccuracySummariesByTimesRight(pickAccuracySummaries);
-	
-	for (var index = 0; index < pickAccuracySummaries.length; index++){
-		var pickAccuracySummary = pickAccuracySummaries[index];
-		
-		//Add in the team if they didn't pick a specific one.
-		var teamCell = '';
-		if (!specificTeamSelected){
-			teamCell = '<td class="standings-table-cell">' + pickAccuracySummary.team.abbreviation + '</td>';
-		}
-		
-		var playerCell = '';
-		if (!singlePlayerSelected){
-			playerCell = '<td class="standings-table-cell">' + pickAccuracySummary.player.name + '</td>';
-		}
-		
-		var percentage = getWinningPercentage(pickAccuracySummary.timesRight, pickAccuracySummary.timesWrong);
-
-		var detailId = 'pick-accuracy-details-' + index;
-
-		var tiesHtml = '';
-		
-		var timesPickedToWin = pickAccuracySummary.timesPickedToWinRight + pickAccuracySummary.timesPickedToWinWrong;
-		var timesPickedToLose = pickAccuracySummary.timesPickedToLoseRight + pickAccuracySummary.timesPickedToLoseWrong;
-
-		var hasTies = false;
-		var tiesRecord = '';
-		if (pickAccuracySummary.actualTies > 0){
-			hasTies = true;
-			tiesRecord = ' - ' + pickAccuracySummary.actualTies;
-		}
-
-		var year = getSelectedYear();
-		//Add in a link so they can see the exact picks they made with the team.
-		var recordPicksLink = createPicksLink('Picks', year, null, pickAccuracySummary.team.abbreviation, pickAccuracySummary.player.name);
-		
-		//And add the detail that says how many times they picked them to win and lose, and how many times they were right
-		//with each.
-		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
-						    '<td class="standings-table-cell" colspan="5">' + 
-							    '<table style="width: 100%;">' +
-							 		'<tr><td>Actual record</td><td style="text-align: right;">' + pickAccuracySummary.actualWins + ' - ' + pickAccuracySummary.actualLosses + tiesRecord + '</td></tr>' +
-							 		'<tr><td>Predicted record</td><td style="text-align: right;">' + pickAccuracySummary.predictedWins + ' - ' + pickAccuracySummary.predictedLosses + '</td></tr>' +
-							 		'<tr><td>Times picked to win (record)</td><td style="text-align: right;">' + timesPickedToWin + ' (' + pickAccuracySummary.timesPickedToWinRight + ' - ' + pickAccuracySummary.timesPickedToWinWrong + ')</td></tr>' +
-							 		'<tr><td>Times picked to lose (record)</td><td style="text-align: right;">' + timesPickedToLose + ' (' + pickAccuracySummary.timesPickedToLoseRight + ' - ' + pickAccuracySummary.timesPickedToLoseWrong + ')</td></tr>' +
-							 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + recordPicksLink + '</tr></td>' +
-							 	'</table>' + 
-						 	'</td>' + 
-						 '</tr>';
-		
-		var pickAccuracySummaryRowHtml = '<tr>' +
-											playerCell +
-											teamCell +
-											'<td class="standings-table-cell">' + pickAccuracySummary.timesRight + '</td>' +
-											'<td class="standings-table-cell">' + pickAccuracySummary.timesWrong + '</td>' +
-											'<td class="standings-table-cell">' + percentage + '</td>' +
-											'<td class="standings-table-cell">' + 
-												'<a id="pick-accuracy-details-link-' + index + '" href="javascript:" onClick="toggleShowPickAccuracyDetails(' + index + ')" style="margin-left: 20px; float:right;">show details</a>' + 
-											'</td>' +
-										 '</tr>' + 
-										 detailHtml;
-		
-		pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + pickAccuracySummaryRowHtml;
-	}
-	
-	pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + '</tbody>';
-	
-	var pickAccuracySummariesHtml = '<table class="standings-table">' + pickAccuracySummariesHeadHtml + pickAccuracySummariesBodyHtml + '</table>';
-	
-	return pickAccuracySummariesHtml;
-}
 
 /**
  * 
@@ -6294,28 +2486,44 @@ function createPicksLink(linkText, year, week, team, player){
 	var picksLink = '<a href="javascript:" onClick="showPickView(';
 	
 	if (isDefined(year)){
-		picksLink = picksLink + '\'' + year + '\', ';
+		var yearValue = year;
+		if (Array.isArray(year)){
+			yearValue = arrayToDelimitedValue(year, ',');
+		}
+		picksLink = picksLink + '\'' + yearValue + '\', ';
 	}
 	else {
 		picksLink = picksLink + 'null, ';
 	}
 	
 	if (isDefined(week)){
-		picksLink = picksLink + '\'' + week + '\', ';
+		var weekValue = week;
+		if (Array.isArray(week)){
+			weekValue = arrayToDelimitedValue(week, ',');
+		}
+		picksLink = picksLink + '\'' + weekValue + '\', ';
 	}
 	else {
 		picksLink = picksLink + 'null, ';
 	}
 	
 	if (isDefined(team)){
-		picksLink = picksLink + '\'' + team + '\', ';
+		var teamValue = team;
+		if (Array.isArray(team)){
+			teamValue = arrayToDelimitedValue(team, ',');
+		}
+		picksLink = picksLink + '\'' + teamValue + '\', ';
 	}
 	else {
 		picksLink = picksLink + 'null, ';
 	}
 	
 	if (isDefined(player)){
-		picksLink = picksLink + '\'' + player + '\'';
+		var playerValue = player;
+		if (Array.isArray(player)){
+			playerValue = arrayToDelimitedValue(player, ',');
+		}
+		picksLink = picksLink + '\'' + playerValue + '\'';
 	}
 	else {
 		picksLink = picksLink + 'null';
@@ -6359,19 +2567,19 @@ function showPickView(year, week, team, player){
 	setSelectedType('picks');
 	
 	if (isDefined(year)){
-		setSelectedYear(year);
+		setSelectedYears(year);
 	}
 	
 	if (isDefined(week)){
-		setSelectedWeek(week);
+		setSelectedWeeks(week);
 	}
 	
 	if (isDefined(player)){
-		setSelectedPlayer(player);
+		setSelectedPlayers(player);
 	}
 	
 	if (isDefined(team)){
-		setSelectedTeam(team);
+		setSelectedTeams(team);
 	}
 	
 	updateView();
@@ -6403,408 +2611,7 @@ function shortenWeekLabel(label){
  */
 //var currentMakePicksGames = null;
 
-/**
- * 
- * This function will get the picks for the current week so that people
- * can "make" their own picks easier.
- * 
- * @returns
- */
-function updateMakePicks(){
-	
-	//Steps to do:
-	//	1. Send the request to the server.
-	//	2. Keep the current games around in case we want to use them later.
-	//	3. Make the html table.
-	//	4. Show it as the content.
-	
-	$.ajax({url: 'nflpicks?target=makePicks',
-			contentType: 'application/json; charset=UTF-8'}
-	)
-	.done(function(data) {
-		var gamesForNextWeek = $.parseJSON(data);
 
-		NFL_PICKS_GLOBAL.gamesForCurrentWeek = gamesForNextWeek;
-		
-		var picksGridHtml = createMakePicksGrid(gamesForNextWeek);
-		
-		$('#contentContainer').empty();
-		$('#contentContainer').append(picksGridHtml);
-	})
-	.fail(function() {
-	})
-	.always(function() {
-	});
-	
-}
-
-/**
- * 
- * This function will make a grid that makes it so they can make picks for all
- * the given games.  The actual picks will just go in a text area, but that's better
- * than nothing!
- * 
- * When they make a pick, it'll call the "updatePickedPicks" function and that'll update
- * a text area with the picks down below.
- * 
- * @param games
- * @returns
- */
-function createMakePicksGrid(games){
-	
-	//Steps to do:
-	//	1. Make the header.
-	//	2. Add a row for each game.
-	//	3. That's it.
-	
-	var picksGridHtml = '';
-	
-	var gridHeaderHtml = '<thead>' +
-						 	'<th align="left" class="table-header">Game</th>' + 
-						 	'<th class="table-header">Pick</th>' + 
-						 '</thead>';
-	
-	var pickRowsHtml = '';
-	
-	for (var index = 0; index < games.length; index++){
-		var game = games[index];
-		
-		var rowClassName = 'even-row';
-		
-		if (index % 2 == 1){
-			rowClassName = 'odd-row';
-		}
-
-		//Here so the borders are right.
-		var pickGameClass = 'edit-pick-game';
-		var pickTeamClass = 'edit-pick-team';
-		
-		if (index + 1 >= games.length){
-			pickGameClass = 'edit-pick-last-game';
-			pickTeamClass = 'edit-pick-last-team';
-		}
-		
-		var gameRow = '<tr class="' + rowClassName + '">' + 
-						'<td class="' + pickGameClass + '">' + 
-							'<span>' + game.awayTeam.abbreviation + '</span>' + 
-							' @ ' + 
-							'<span>' + game.homeTeam.abbreviation + '</span>' +  
-						'</td>';
-	
-		var gameId = game.id;
-		var options = [{label: '', value: '0'},
-		               {label: game.homeTeam.abbreviation, value: game.homeTeam.id},
-		               {label: game.awayTeam.abbreviation, value: game.awayTeam.id}];
-		var selectPickId = 'pick-' + game.id;
-
-		//When they change a pick, call the "updatePickedPicks" function to update how we show what they picked.
-		var selectPickHtml = createSelectHtml(selectPickId, options, null, 'edit-pick-select', null, 'updatePickedPicks()');
-					
-		gameRow = gameRow + '<td class="' + pickTeamClass + '">' + 
-								selectPickHtml + 
-							'</td>' +
-				  '</tr>';
-		
-		pickRowsHtml = pickRowsHtml + gameRow;
-	}
-
-	var gridBodyHtml = '<tbody>' + pickRowsHtml + '</tbody>';
-	
-	picksGridHtml = '<table class="edit-picks-table" align="center">' + gridHeaderHtml + gridBodyHtml + '</table>' +
-						'<div id="missing-picks-container" style="text-align:center; padding-top: 15px;"></div>' + 
-						'<div style="margin-top: 20px; margin-bottom: 40px; text-align: center;">' +
-							'<textarea id="picked-picks" style="width: 300px; height: 100px;">&nbsp;</textarea>' + 
-						'</div>';
-	
-	picksGridHtml = '<div style="text-align: center;"><p>The teams you pick will go in a box at the bottom.  Copy and paste it into a text to pick the games.</p><p style="font-weight:bold;">Just picking them without sending them to me doesn\'t do jack squat.</p><p>Happy now, Jerry and Benny boy?</p></div>' + picksGridHtml;
-	
-	return picksGridHtml;
-}
-
-/**
- * 
- * This function will update the picks that they made by adding them to the
- * text area so they can be easily copied and pasted.  It'll go through
- * the current games in the NFL_PICKS_GLOBAL.gamesForCurrentWeek array
- * and get the pick for each one, and then add that to the text area.
- * 
- * @returns
- */
-function updatePickedPicks(){
-	
-	//Steps to do:
-	//	1. Go through each game in the week and get the picked they picked for it.
-	//	2. If they didn't pick a team, that's a missing pick, so keep track of that.
-	//	3. Get which team they picked and show the abbreviation for that team in the
-	//	   output.
-	//	4. Update the text area with what they picked and what picks are missing.
-	
-	var pickedPicksUpdate = '';
-	var missingPicksString = '';
-	var numberOfMissingPicks = 0;
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.gamesForCurrentWeek.length; index++){
-		var game = NFL_PICKS_GLOBAL.gamesForCurrentWeek[index];
-		
-		var selectedPick = getSelectedPick(game.id);
-		
-		var abbreviation = '';
-		if (game.homeTeam.id == selectedPick){
-			abbreviation = game.homeTeam.abbreviation;
-		}
-		else if (game.awayTeam.id == selectedPick){
-			abbreviation = game.awayTeam.abbreviation;
-		}
-		//If we're here, they didn't pick anything for that game, so add it to the list.
-		else {
-			numberOfMissingPicks++;
-			if (missingPicksString != ''){
-				missingPicksString = missingPicksString + ', ';
-			}
-			
-			missingPicksString = missingPicksString + game.awayTeam.abbreviation + ' @ ' + game.homeTeam.abbreviation;
-		}
-		
-		if (abbreviation != ''){
-			
-			if ('' != pickedPicksUpdate){
-				pickedPicksUpdate = pickedPicksUpdate + ', ';
-			}
-
-			pickedPicksUpdate = pickedPicksUpdate + abbreviation; 
-		}
-	}
-	
-	$('#missing-picks-container').empty();
-	if (numberOfMissingPicks > 0){
-		if (numberOfMissingPicks == 1){
-			$('#missing-picks-container').append('There is ' + numberOfMissingPicks + ' missing pick: ' + missingPicksString);
-		}
-		else {
-			$('#missing-picks-container').append('There are ' + numberOfMissingPicks + ' missing picks: ' + missingPicksString);
-		}
-	}
-	
-	$('#picked-picks').val(pickedPicksUpdate);
-}
-
-/**
- * 
- * Gets the pick they made for the given game when making their picks.
- * 
- * @param gameId
- * @returns
- */
-function getSelectedPick(gameId){
-	return $('#pick-' + gameId).val();
-}
-
-/**
- * 
- * Creates the "pick splits" grid that shows who picked who in terms of home
- * and away, so we can see when one person was the only person to pick a team,
- * for example.
- * 
- * @param pickSplits
- * @returns
- */
-function createPickSplitsGridHtml(pickSplits){
-	
-	//Steps to do:
-	//	1. Make the header and figure out if we need to add the year and week.
-	//	2. Go through each game and make a row for it.
-	//	3. Put the people who picked home in the home column and the away people
-	//	   in the away column.
-	//	4. That's it.  Most of the rest of the stuff is css stuff.
-	
-	var yearSelected = isSpecificYearSelected();
-	var weekSelected = isSpecificWeekSelected();
-	
-	var yearHeader = '';
-	if (!yearSelected){
-		yearHeader = '<th class="table-header">Year</th>';
-	}
-	
-	var weekHeader = '';
-	if (!weekSelected){
-		weekHeader = '<th class="table-header">Week</th>';
-	}
-	
-	var pickSplitsHeaderHtml = '<thead>' +
-								 yearHeader + 
-								 weekHeader + 
-							 	 '<th class="table-header">Game</th>' + 
-							 	 '<th class="table-header">Picked Home</th>' + 
-							 	 '<th class="table-header">Picked Away</th>' +
-							 '</thead>';
-	
-	var rowsHtml = '';
-	
-	for (var index = 0; index < pickSplits.length; index++){
-		var pickSplit = pickSplits[index];
-		
-		var isBottomRow = false;
-		if (index + 1 == pickSplits.length){
-			isBottomRow = true;
-		}
-	
-		var rowClassName = 'even-row';
-		if (index % 2 == 1){
-			rowClassName = 'odd-row';
-		}
-
-		//We want to show the winners in green, losers in red, and ties in yellow.
-		var homePlayersClass = '';
-		var awayPlayersClass = '';
-		var homeTeamClass = '';
-		var awayTeamClass = '';
-
-		if (isDefined(pickSplit.winningTeamAbbreviation)){
-			if (pickSplit.winningTeamAbbreviation == pickSplit.awayTeamAbbreviation){
-				awayTeamClass = 'winner';
-				homePlayersClass = 'loser';
-				awayPlayersClass = 'winner';
-			}
-			else if (pickSplit.winningTeamAbbreviation == pickSplit.homeTeamAbbreviation){
-				homeTeamClass = 'winner';
-				homePlayersClass = 'winner';
-				awayPlayersClass = 'loser';
-			}
-			else {
-				awayTeamClass = 'tie';
-				homeTeamClass = 'tie';
-				homePlayersClass = 'tie';
-				awayPlayersClass = 'tie';
-			}
-		}
-
-		//Add in the year and week if they didn't pick a specific one.
-		var year = '';
-		var week = '';
-		
-		if (!yearSelected){
-			//And we have to handle whether we're on the bottom or not with the cell.
-			var cssClassToUse = 'first-pick-cell';
-			if (isBottomRow){
-				cssClassToUse = 'first-pick-cell-bottom';
-			}
-			
-			year = '<td class="' + cssClassToUse + '">' + pickSplit.year + '</td>';
-		}
-		
-		if (!weekSelected){
-			
-			//Same deal with the week but we have to handle whether it's the leftmost column
-			//or if the year is first.
-			var cssClassToUse = null;
-			
-			if (!yearSelected && !isBottomRow){
-				cssClassToUse = 'pick-cell';
-			}
-			else if (!yearSelected && isBottomRow){
-				cssClassToUse = 'pick-cell-bottom';
-			}
-			else if (yearSelected && !isBottomRow){
-				cssClassToUse = 'first-pick-cell';
-			}
-			else if (yearSelected && isBottomRow){
-				cssClassToUse = 'first-pick-cell-bottom';
-			}
-			
-			var labelToUse = pickSplit.weekNumber + '';
-			if (pickSplit.weekNumber > 17){
-				labelToUse = pickSplit.weekLabel;
-			}
-		
-			week = '<td class="' + cssClassToUse + '">' + labelToUse + '</td>';
-		}
-
-		//And with the game too.  It needs different borders depending on whether it's
-		//the first column, last row, etc...
-		var isGameFirstCell = weekSelected && yearSelected;
-		
-		var gameCssClassToUse = null;
-		
-		if (!isGameFirstCell && !isBottomRow){
-			gameCssClassToUse = 'pick-cell';
-		}
-		else if (!isGameFirstCell && isBottomRow){
-			gameCssClassToUse = 'pick-cell-bottom';
-		}
-		else if (isGameFirstCell && !isBottomRow){
-			gameCssClassToUse = 'first-pick-cell';
-		}
-		else if (isGameFirstCell && isBottomRow){
-			gameCssClassToUse = 'first-pick-cell-bottom';
-		}
-		
-		var gameRow = '<tr class="' + rowClassName + '">' + 
-						year +
-						week +
-						'<td class="' + gameCssClassToUse + '">' + 
-							'<span class="' + awayTeamClass + '">' + pickSplit.awayTeamAbbreviation + '</span>' + 
-							' @ ' + 
-							'<span class="' + homeTeamClass + '">' + pickSplit.homeTeamAbbreviation + '</span>' +  
-						'</td>';
-		
-		//Now we just have to add the players who picked the home team to a string.
-		var numberOfHomePlayers = 0;
-		var homePlayersString = '';
-		if (isDefined(pickSplit.homeTeamPlayers) && pickSplit.homeTeamPlayers.length > 0){
-			//And we want to sort them so the names are shown in a consistent order.
-			//sortAlphabetically(pickSplit.homeTeamPlayers);
-			numberOfHomePlayers = pickSplit.homeTeamPlayers.length;
-			for (var playerIndex = 0; playerIndex < pickSplit.homeTeamPlayers.length; playerIndex++){
-				var player = pickSplit.homeTeamPlayers[playerIndex];
-				
-				if (playerIndex > 0){
-					homePlayersString = homePlayersString + ', ';
-				}
-				
-				homePlayersString = homePlayersString + player;
-			}
-		}
-		
-		//And the same thing for the away players.
-		var numberOfAwayPlayers = 0;
-		var awayPlayersString = '';
-		if (isDefined(pickSplit.awayTeamPlayers) && pickSplit.awayTeamPlayers.length > 0){
-			//sortAlphabetically(pickSplit.awayTeamPlayers);
-			numberOfAwayPlayers = pickSplit.awayTeamPlayers.length;
-			for (var playerIndex = 0; playerIndex < pickSplit.awayTeamPlayers.length; playerIndex++){
-				var player = pickSplit.awayTeamPlayers[playerIndex];
-				
-				if (playerIndex > 0){
-					awayPlayersString = awayPlayersString + ', ';
-				}
-				
-				awayPlayersString = awayPlayersString + player;
-			}
-		}
-		
-		var pickGameClass = '';
-		var pickResultClass = 'pick-cell';
-		
-		if (isBottomRow){
-			pickGameClass = 'pick-game-bottom';
-			pickResultClass = 'pick-cell-bottom';
-		}
-		
-		//And just add the columns in for the picks and that's it.
-		gameRow = gameRow + 
-				  '<td class="' + pickResultClass + '"><span class="' + homePlayersClass + '">' + pickSplit.homeTeamAbbreviation + ' (' + numberOfHomePlayers + ')<br/> ' + homePlayersString + '</span></td>' + 
-				  '<td class="' + pickResultClass + '"><span class="' + awayPlayersClass + '">' + pickSplit.awayTeamAbbreviation + ' (' + numberOfAwayPlayers + ')<br/> ' + awayPlayersString + '</span></td>' + 
-				  '</tr>';
-		
-		rowsHtml = rowsHtml + gameRow;
-	}
-		
-	var pickSplitsBodyHtml = '<tbody>' + rowsHtml + '</tbody>';
-	
-	var pickSplitsHtml = '<table class="picks-table" align="center">' + pickSplitsHeaderHtml + pickSplitsBodyHtml + '</table>';;
-	
-	return pickSplitsHtml;
-}
 
 /////////////////
 

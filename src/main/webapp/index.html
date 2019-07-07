@@ -3,6 +3,9 @@
 		<base href="nflpicks"/>
 		<script src="javascript/jquery-3.4.0.min.js"></script>
 		<script src="javascript/nflpicks-common.js?20181009"></script>
+		<script src="javascript/nflpicks-selector.js?20181009"></script>
+		<script src="javascript/nflpicks-make-picks.js?20181009"></script>
+		<script src="javascript/nflpicks-html.js?20181009"></script>
 		<script src="javascript/nflpicks.js?20181009"></script>
 		<link rel="stylesheet" type="text/css" href="css/nflpicks.css?20181009">
 		<meta name="viewport" content="initial-scale=1.0, minimum-scale=0.25, maximum-scale=5.0, user-scalable=yes">
@@ -28,33 +31,21 @@
 			<!-- Turn these into links... -->
 			<div id="typeContainer" class="selector-container">
 				<a id="typesLink" href="javascript:" class="selector-link" onClick="onClickTypeSelector(event);"></a>
-				<div id="typesContainer">
-				</div>
 			</div>
 			<div id="playerContainer" class="selector-container">
 				<a id="playersLink" href="javascript:" class="selector-link" onClick="onClickPlayerSelector(event);" style="display: none;"></a>
-				<div id="playersContainer" style="display: none;">
-				</div>
 			</div>
 			<div id="yearContainer" class="selector-container">
 				<a id="yearsLink" href="javascript:" class="selector-link" onClick="onClickYearSelector(event);" style="display: none;"></a>
-				<div id="yearsContainer" style="display: none;">
-				</div>
 			</div>
 			<div id="weekContainer" class="selector-container">
 				<a id="weeksLink" href="javascript:" class="selector-link" onClick="onClickWeekSelector(event);" style="display: none;"></a> 
-				<div id="weeksContainer">
-				</div>
 			</div>
 			<div id="statNameContainer" class="selector-container">
 				<a id="statNamesLink" href="javascript:" class="selector-link" onClick="onClickStatNameSelector(event);" style="display: none;"></a> 
-				<div id="statNamesContainer">
-				</div>
 			</div>
 			<div id="teamContainer" class="selector-container">
 				<a id="teamsLink" href="javascript:" class="selector-link" onClick="onClickTeamSelector(event);" style="display: none;"></a>
-				<div id="teamsContainer" style="display: none;">
-				</div>
 			</div>
 			<div id="navigationFowardContainer" class="selector-container" style="display: none;">
 				<a href="javascript:" class="selector-link" onClick="navigateForward();">Forward</a>
