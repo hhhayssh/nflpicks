@@ -412,9 +412,9 @@ function getSelectionCriteriaAndInitialize(){
 		var years = selectionCriteriaContainer.years;
 		//We want the "all" year option to be first.
 		var yearOptions = [{label: 'All', value: 'all'},
-		                   {label: 'Jurassic Period (2010-2015)', value: 'old'},
-		                   {label: 'First year (2016)', value: 'half-modern'},
-		                   {label: 'Modern Era (2017 - now)', value: 'modern'}];
+		                   {label: 'Jurassic Period (2010-2015)', value: 'jurassic-period'},
+		                   {label: 'First year (2016)', value: 'first-year'},
+		                   {label: 'Modern Era (2017 - now)', value: 'modern-era'}];
 		var realYears = [];
 		for (var index = 0; index < years.length; index++){
 			var year = years[index];
@@ -1186,13 +1186,13 @@ function setSelectedPlayers(players){
 //	
 //	var yearToUse = getSelectedYear();
 //	
-//	if ('old' == yearToUse){
+//	if ('jurassic-period' == yearToUse){
 //		yearToUse = '2010,2011,2012,2013,2014,2015';
 //	}
-//	else if ('half-modern' == yearToUse){
+//	else if ('first-year' == yearToUse){
 //		yearToUse = '2016';
 //	}
-//	else if ('modern' == yearToUse){
+//	else if ('modern-era' == yearToUse){
 //		yearToUse = '2017,2018';
 //	}
 //	else {
@@ -2250,7 +2250,7 @@ function isSpecificYearSelected(){
 	
 	var selectedYear = selectedYears[0].value;
 	
-	if ('all' == selectedYear || 'old' == selectedYear || 'half-modern' == selectedYear || 'modern' == selectedYear){
+	if ('all' == selectedYear || 'jurassic-period' == selectedYear || 'first-year' == selectedYear || 'modern-era' == selectedYear){
 		return false;
 	}
 	

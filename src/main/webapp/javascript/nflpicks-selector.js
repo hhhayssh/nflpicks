@@ -1452,9 +1452,9 @@ function getYearValuesForRequest(){
 	
 	/*
 	 var yearOptions = [{label: 'All', value: 'all'},
-		                   {label: 'Jurassic Period (2010-2015)', value: 'old'},
-		                   {label: 'First year (2016)', value: 'half-modern'},
-		                   {label: 'Modern Era (2017 - now)', value: 'modern'}];
+		                   {label: 'Jurassic Period (2010-2015)', value: 'jurassic-period'},
+		                   {label: 'First year (2016)', value: 'first-year'},
+		                   {label: 'Modern Era (2017 - now)', value: 'modern-era'}];
 	 */
 	
 	for (var index = 0; index < selectedValues.length; index++){
@@ -1466,13 +1466,13 @@ function getYearValuesForRequest(){
 				valuesToSend.push(realYear.value);
 			}
 		}
-		else if ('old' == selectedValue){
+		else if ('jurassic-period' == selectedValue){
 			valuesToSend = valuesToSend.concat(['2010', '2011', '2012', '2013', '2014', '2015']);
 		}
-		else if ('half-modern' == selectedValue){
+		else if ('first-year' == selectedValue){
 			valuesToSend.push('2016');
 		}
-		else if ('modern' == selectedValue){
+		else if ('modern-era' == selectedValue){
 			for (var index2 = 0; index2 < realYears.length; index2++){
 				var realYear = realYears[index2];
 				
