@@ -1521,6 +1521,8 @@ function updateStandings(){
 	//var yearsToSend = arrayToDelimitedValue(selectedYearValues, ',');
 	//var weeksToSend = arrayToDelimitedValue(selectedWeekValues, ',');
 	
+	setContent('<div style="text-align: center;">Loading...</div>');
+	
 	$.ajax({url: 'nflpicks?target=standings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest,
 		contentType: 'application/json; charset=UTF-8'}
 	)
@@ -1557,6 +1559,7 @@ function updateStandings(){
 		setContent(standingsHtml);
 	})
 	.fail(function() {
+		setContent('<div style="text-align: center;">Error</div>');
 	})
 	.always(function() {
 	});
@@ -1726,6 +1729,8 @@ function updatePicks(){
 	var weekValuesForRequest = getWeekValuesForRequest();
 	var teamValuesForRequest = getTeamValuesForRequest();
 
+	setContent('<div style="text-align: center;">Loading...</div>');
+	
 	//Go to the server and get the grid.
 	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
 		contentType: 'application/json; charset=UTF-8'}
@@ -1737,6 +1742,7 @@ function updatePicks(){
 		setContent(picksGridHtml);
 	})
 	.fail(function() {
+		setContent('<div style="text-align: center;">Error</div>');
 	})
 	.always(function() {
 	});
@@ -1812,6 +1818,8 @@ function updateStats(){
 	var weekValuesForRequest = getWeekValuesForRequest();
 	var teamValuesForRequest = getTeamValuesForRequest();
 
+	setContent('<div style="text-align: center;">Loading...</div>');
+	
 	//Send the request to the server.
 	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + 
 				 '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
@@ -1866,6 +1874,7 @@ function updateStats(){
 		setContent(statsHtml);
 	})
 	.fail(function() {
+		setContent('<div style="text-align: center;">Error</div>');
 	})
 	.always(function() {
 	});

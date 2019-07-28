@@ -995,6 +995,10 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 	
 	var tableBody = '<tbody class="standings-table-body">';
 	
+	if (isEmpty(weekRecords)){
+		tableBody = tableBody + '<tr><td colspan="7" style="text-align: center;">No results</td></tr>';
+	}
+	
 	for (var index = 0; index < weekRecords.length; index++){
 		var weekRecord = weekRecords[index];
 		
@@ -1653,6 +1657,10 @@ function createWeeksWonByWeek(weeksWonByWeek){
 	
 	var weeksWonByWeekBodyHtml = '<tbody class="standings-table-body">';
 	
+	if (isEmpty(weeksWonByWeek)){
+		weeksWonByWeekBodyHtml = weeksWonByWeekBodyHtml + '<tr><td colspan="4" style="text-align: center;">No results</td></tr>';
+	}
+	
 	for (var index = 0; index < weeksWonByWeek.length; index++){
 		var weekRecord = weeksWonByWeek[index];
 	
@@ -1742,6 +1750,10 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 	var pickAccuracySummariesBodyHtml = '<tbody class="standings-table-body">';
 	
 	sortPickAccuracySummariesByTimesRight(pickAccuracySummaries);
+	
+	if (isEmpty(pickAccuracySummaries)){
+		pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + '<tr><td colspan="6" style="text-align: center;">No results</td></tr>';
+	}
 	
 	for (var index = 0; index < pickAccuracySummaries.length; index++){
 		var pickAccuracySummary = pickAccuracySummaries[index];
@@ -1937,6 +1949,10 @@ function createPickSplitsGridHtml(pickSplits){
 							 '</thead>';
 	
 	var rowsHtml = '';
+	
+	if (isEmpty(pickSplits)){
+		rowsHtml = rowsHtml + '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
+	}
 	
 	for (var index = 0; index < pickSplits.length; index++){
 		var pickSplit = pickSplits[index];
