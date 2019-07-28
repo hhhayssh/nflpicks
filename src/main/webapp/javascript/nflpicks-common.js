@@ -185,7 +185,7 @@ function delimitedValueToArray(value, delimiter){
 	var split = value.split(delimiter);
 	
 	for (var index = 0; index < split.length; index++){
-		var splitValue = value[index];
+		var splitValue = split[index];
 		
 		splitValue = splitValue.trim();
 		
