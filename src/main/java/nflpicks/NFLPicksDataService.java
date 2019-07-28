@@ -6228,6 +6228,30 @@ public class NFLPicksDataService {
 		List<PickAccuracySummary> pickAccuracySummaries = new ArrayList<PickAccuracySummary>();
 		
 		try {
+			
+			//Make sure we only get players who have a pick in a year.
+			//If they don't have a pick, we don't care about their accuracy.
+			if (years != null && years.size() > 0) {
+				List<Player> playersForYears = getPlayersForYears(years);
+				
+				//We can't just use all the players for the years because we might have been given
+				//a subset of that.  So, instead, we just have to go through each player that made picks
+				//and check if they're in the list.  If they are, then we should keep them.  If they aren't,
+				//we don't care about them.
+				//At the end of this filtering, we'll have the players who were given in the original list who
+				//also made at least one pick in one of the years we were given.
+				List<String> playersToUse = new ArrayList<String>();
+				for (int index = 0; index < playersForYears.size(); index++) {
+					Player player = playersForYears.get(index);
+					String name = player.getName();
+					if (players.contains(name)) {
+						playersToUse.add(name);
+					}
+				}
+				
+				players = playersToUse;
+			}
+			
 			StringBuilder whereClauseStringBuilder = new StringBuilder();
 			boolean addedWhereClause = true;
 			int numberOfPlayers = 0;
