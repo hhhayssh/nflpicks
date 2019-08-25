@@ -316,7 +316,7 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			JSONObject selectionCriteriaJSONObject = new JSONObject();
 			
-			List<String> years = dataService.getYears();
+			List<String> years = dataService.getYearsForCriteria();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_YEARS, years);
 			
 			List<Player> players = dataService.getPlayers();

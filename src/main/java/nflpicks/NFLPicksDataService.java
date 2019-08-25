@@ -1956,6 +1956,44 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
+	 * Gets the years in the order they should be for the criteria (descending).
+	 * 
+	 * @return
+	 */
+	public List<String> getYearsForCriteria(){
+		
+		//Steps to do:
+		//	1. Just run the query and pull out the years.
+
+		List<String> years = new ArrayList<String>();
+
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement("select year from season order by year desc");
+			results = statement.executeQuery();
+
+			while (results.next()){
+				String year = results.getString(1);
+				years.add(year);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting years!", e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+
+		return years;
+	}
+	
+	/**
+	 * 
 	 * This function gets all the years that we have for all the seasons.  Here so 
 	 * the caller doesn't have to deal with Season objects if all they want are
 	 * all the years.
