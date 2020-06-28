@@ -918,10 +918,11 @@ function createWeeksWonHtml(weekRecords){
 			
 			//And we want the link that'll show the actual picks for the person, year, and week, so they can jump directly to
 			//what they picked.
-			var picksLink = createPicksLink(record.week.label, record.season.year, record.week.weekNumber, null, weekRecord.player.name);
+			var labelToUse = shortenWeekLabel(record.week.label);
+			var picksLink = createPicksLink(labelToUse, record.season.year, record.week.weekNumber, null, weekRecord.player.name);
 			
 			weekRecordsHtml = weekRecordsHtml + '<li>' + year + picksLink + ' (' + record.record.wins + ' - ' + record.record.losses +
-			 ties + ')' + '</li>';
+			 				  ties + ')' + '</li>';
 		}
 		
 		weekRecordsHtml = weekRecordsHtml + '</ul></div>';

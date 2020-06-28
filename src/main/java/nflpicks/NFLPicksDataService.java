@@ -182,6 +182,16 @@ public class NFLPicksDataService {
 												"team_id = ? " +
 												"where id = ? ";
 	
+	/**
+	 * 
+	 * For the case where we want to remove a pick that somebody made.
+	 * 
+	 */
+	protected static final String DELETE_PICK = "delete from pick " +
+												"where game_id = ? " + 
+												" and player_id = ? " +
+												" and id = ? ";
+	
 	//Statements for dealing with the people... still don't quite like that people have ids.
 	protected static final String SELECT_PLAYER = "select id, name from player ";
 	
@@ -1605,14 +1615,15 @@ public class NFLPicksDataService {
 		PreparedStatement statement = null;
 		ResultSet results = null;
 
+		//this should just get it by abbreviation ... there should be another one that gets
+		//all teams as a group ... like oak and lv
 		try {
 			String query = SELECT_TEAM + 
-						   "where abbreviation = ? or current_abbreviation = ? ";
+						   "where abbreviation = ? ";
 			
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
 			statement.setString(1, abbreviation);
-			statement.setString(2, abbreviation);
 			
 			results = statement.executeQuery();
 			
@@ -2804,10 +2815,11 @@ public class NFLPicksDataService {
 	 * 
 	 * This function will get the current week.  The current week is defined as:
 	 * 
-	 * 		The largest week in the current season which has results.
+	 * 		The smallest week in the current season that has a game without a winner.
 	 * 
-	 * If there are no results for the current season, that means the current week is
-	 * number 1.
+	 * This makes it so a week is "in progress" until all of its games have winners.
+	 * Once they do, the next week becomes the current week because it's the smallest
+	 * week that has a game without a winner.
 	 * 
 	 * It will do a full retrieval for the week and include all the games in it.
 	 * 
@@ -2817,7 +2829,7 @@ public class NFLPicksDataService {
 		
 		//Steps to do:
 		//	1. Get the current year.
-		//	2. Run the query to get the largest week with results in 
+		//	2. Run the query to get the smallest week without results in 
 		//	   the current year.
 		//	3. If we find something, that's the current week.
 		//	4. If we don't, that means it should be week 1 for the current year.
@@ -2834,18 +2846,13 @@ public class NFLPicksDataService {
 			connection = getConnection();
 			
 			String query = SELECT_WEEK + 
-						   //The season should be in the current year.
-						   "where season_id in (select id " +
-						   					   "from season " +
-						   					   "where year = ? ) " +
-						   		 //There should be results for the week.
-						   		 "and id in (select g.week_id " + 
-				   		 			  		"from game g " + 
-				   		 			  		"where g.winning_team_id is not null) " +
-				   		   //And we want the largest week that fits the bill.
-						   "order by week_number desc " +
-				   		   "offset 0 limit 1 ";
-
+						   " where season_id in (select id " +
+							    				"from season where year = ? ) " + 
+							    				"and id in (select week_id " +
+							    						   "from game g " + 
+							    						   "where g.winning_team_id is null) " + 
+					       " order by week_number asc offset 0 limit 1 ";
+			
 			statement = connection.prepareStatement(query);
 			statement.setString(1, currentYear);
 			results = statement.executeQuery();
@@ -2918,7 +2925,8 @@ public class NFLPicksDataService {
 	/**
 	 * 
 	 * This function will get the games for the week with the given id.  It will do a "full" retrieval
-	 * of the games, so it'll include the teams too.
+	 * of the games, so it'll include the teams too.  It will order the games by id in ascending order
+	 * so that we can predict the order.
 	 * 
 	 * @param weekId
 	 * @return
@@ -2934,7 +2942,8 @@ public class NFLPicksDataService {
 		try {
 			connection = getConnection();
 			String query = SELECT_GAME + 
-						   " where week_id = ? "; 
+						   " where week_id = ? " +
+						   " order by id asc "; 
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, weekId);
 			results = statement.executeQuery();
@@ -3042,90 +3051,19 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
-	 * This function will get the games for the next week.  It tries to be fancy and do
-	 * all the work in one massive query.
-	 * 
-	 * The games for the next week are defined as the games for the week after the current
-	 * week, with the current week being the largest week for which we have results for the
-	 * current year.
-	 * 
-	 * Basically, it flows like this:
-	 * 
-	 * 		1. Current year = largest year in the season table.
-	 * 		2. Current week = largest week in the current year which has results for a game.
-	 * 		3. Next week = current week + 1
-	 * 
-	 * If it couldn't find any games for the next week, it'll get the games for week 1 for the current
-	 * year.
+	 * This function will get the games for the current week.  Not much to it.  It just
+	 * gets the current week and then uses that to get the games in it.
 	 * 
 	 * @return
 	 */
-	public List<Game> getGamesForNextWeek(){
+	public List<Game> getGamesForCurrentWeek(){
 
 		//Steps to do:
-		//	1. Run the query.
-		//	2. Return the results.
+		//	1. Get the current week.
+		//	2. The games will be inside.
 		
-		List<Game> games = new ArrayList<Game>();
-		
-		Connection connection = null;
-		PreparedStatement statement = null;
-		ResultSet results = null;
-
-		try {
-			String query = SELECT_GAME + 
-						   "where week_id in (select w.id " + 
-						   					 "from week w " + 
-						   					 //This part gets the current season.
-						   					 "where w.season_id in (select s.id " + 
-						   					   					   "from season s " + 
-						   					   					   "order by s.year desc " +
-						   					   					   "limit 1) " + 
-						   					   		 //And this part gets the current week + 1 (which gives us the next week).
-						   					   		 "and w.week_number in (select w2.week_number + 1 " + 
-	   					   						 	   			    	   "from week w2 " + 
-	   					   						 	   			    	   "where w2.id in (select g2.week_id " + 
-	   					   						 	   				  			    	   "from game g2 " + 
-	   					   						 	   				  			    	   //winning_team_id is not null = there are resuls for the week.
-	   					   						 	   				  			    	   "where g2.winning_team_id is not null  " + 
-	   					   						 	   				  			    	   		 "and g2.week_id in (select w3.id " + 
-	   					   						 	   				  			            				 	    "from week w3 " + 
-	   					   						 	   				  			            				 	    //Have to make sure it's in the current season again.
-	   					   						 	   				  			            				 	    "where w3.season_id in (select s3.id " + 
-	   					   						 	   				  			            				   							   "from season s3 " +
-	   					   						 	   				  			            				   							   "order by s3.year desc " + 
-	   					   						 	   				  			            				   							   "limit 1) " +
-	   					   						 	   				  			            				   		") " + 
-	   					   						 	   				  			          ") " + 
-	   					   						 	   				  	   //We want the largest one.
-	   					   						 	   				  	   "order by w2.week_number desc " + 
-	   					   						 	   				  	   "limit 1 " + 
-	   					   						 	   				  	   ") " + 
-	   					   				") " + 
-	   					   	"order by id asc ";
-			
-			connection = dataSource.getConnection();
-			statement = connection.prepareStatement(query);
-			
-			results = statement.executeQuery();
-			
-			while (results.next()){
-				Game game = mapGame(results);
-				games.add(game);
-			}
-			
-			if (games.size() == 0){
-				String currentYear = getCurrentYear();
-				games = getGames(currentYear, 1);
-			}
-		}
-		catch (Exception e){
-			log.error("Error getting for next week!", e);
-			rollback(connection);
-		}
-		finally {
-			close(results, statement, connection);
-		}
+		Week currentWeek = getCurrentWeek();
+		List<Game> games = currentWeek.getGames();
 		
 		return games;
 		
@@ -4165,7 +4103,80 @@ public class NFLPicksDataService {
 			rollback(connection);
 		}
 		finally {
-			close(null, statement, connection);
+			close(statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	/**
+	 *
+	 * This function will delete the given pick.  It pulls out the pick id, game id, and player id
+	 * and will quit if any of them aren't there because I figured it might be a good idea to be
+	 * extra sure before doing a delete on anything.
+	 * 
+	 * @param pick
+	 * @return
+	 */
+	public int deletePick(Pick pick) {
+		
+		//Steps to do:
+		//	1. Pull out the ids and quit if any aren't there.
+		//	2. Call the function that does the work.
+		
+		int id = pick.getId();
+
+		Game game = pick.getGame();
+		if (game == null){
+			return 0;
+		}
+		int gameId = game.getId();
+		
+		Player player = pick.getPlayer();
+		if (player == null){
+			return 0;
+		}
+		int playerId = player.getId();
+		
+		int numberOfRowsAffected = deletePick(id, gameId, playerId);
+		
+		return numberOfRowsAffected;
+	}
+	
+	/**
+	 * 
+	 * This function will delete the pick with the given id for the given game and player.
+	 * I originally wasn't going to have a delete function, but I think it kind of makes sense
+	 * in this case.
+	 * 
+	 * @param id
+	 * @param gameId
+	 * @param playerId
+	 * @return
+	 */
+	public int deletePick(int id, int gameId, int playerId) {
+	
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		int numberOfAffectedRows = 0;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(DELETE_PICK);
+			statement.setInt(1, gameId);
+			statement.setInt(2, playerId);
+			statement.setInt(3, id);
+			
+			numberOfAffectedRows = statement.executeUpdate();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error deleting pick!  id = " + id + ", gameId = " + gameId, e);
+			rollback(connection);
+		}
+		finally {
+			close(statement, connection);
 		}
 		
 		return numberOfAffectedRows;
@@ -6437,7 +6448,7 @@ public class NFLPicksDataService {
 		String teamCity = results.getString("team_city");
 		String teamNickname = results.getString("team_nickname");
 		String teamAbbreviation = results.getString("team_abbreviation");
-		/////////
+
 		Team team = new Team(teamId, divisionId, teamCity, teamNickname, teamAbbreviation, null, null, null);
 		
 		int actualWins = results.getInt("actual_wins");

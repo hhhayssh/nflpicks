@@ -120,20 +120,20 @@ public class NFLPicksServlet extends HttpServlet {
 			json = JSONUtil.playersToJSONString(players);
 		}
 		else if (TARGET_PICKS.equals(target)){
-//			String playerName = getParameter(request, PARAMETER_NAME_PLAYER);
-//			String year = getParameter(request, PARAMETER_NAME_YEAR);
-//			String weekString = getParameter(request, PARAMETER_NAME_WEEK);
-//			int week = Util.parseInt(weekString, 0);
-//			
-//			List<Pick> picks = null;
-//			if (PARAMETER_VALUE_ALL.equals(playerName)){
-//				picks = dataService.getPicks(year, week);
-//			}
-//			else {
-//				picks = dataService.getPicks(playerName, year, week);
-//			}
-//			
-//			json = JSONUtil.picksToJSONString(picks);
+			String playerName = getParameter(request, PARAMETER_NAME_PLAYER);
+			String year = getParameter(request, PARAMETER_NAME_YEAR);
+			String weekString = getParameter(request, PARAMETER_NAME_WEEK);
+			int week = Util.parseInt(weekString, 0);
+			
+			List<Pick> picks = null;
+			if (PARAMETER_VALUE_ALL.equals(playerName)){
+				picks = dataService.getPicks(year, week);
+			}
+			else {
+				picks = dataService.getPicks(playerName, year, week);
+			}
+			
+			json = JSONUtil.picksToJSONString(picks);
 		}
 		else if (TARGET_COMPACT_PICKS_GRID.equals(target)){
 			long start = System.currentTimeMillis();
@@ -207,33 +207,8 @@ public class NFLPicksServlet extends HttpServlet {
 			System.out.println("Time to get compact grid =  " + elapsed);
 			
 		}
+		//Still used by the edit...
 		else if (TARGET_PICKS_GRID.equals(target)){
-			/*
-			 
-			 	selected = year = all, week = all, player = all, team = all ... should a team selection be forced when year = all or week = all?  No, that doesn't make sense.
-			 	would be confusing for people ... better to just put out a huge grid
-			 	year	week	game	benny	bruce	chance
-			 	
-			 	selected = year = 2016, week = all, player = all
-			 	week	game	benny	bruce	chance
-			 	
-			 	
-			 	The all parameter shouldn't get outside of here
-			 	
-			 	dataService.getPicks(year, week, team, player)
-			 	
-			 	This should do it so it's the most flexible
-			 	dataService.getPicks(years, weeks, teams, players)
-			 	
-			 	Would also need to get the games for the years, weeks, and teams
-			
-				When rendering, just check whether all is selected for years. if it is, show the year column
-				if week is all, show the week column
-			 
-			 */
-			
-			//dataService.getCompactPicks(years, weekNumbers, playerNames)?
-			
 			String yearParameter = getParameter(request, PARAMETER_NAME_YEAR);
 			String weekParameter = getParameter(request, PARAMETER_NAME_WEEK);
 			String playerParameter = Util.replaceUrlCharacters(request.getParameter(PARAMETER_NAME_PLAYER));
@@ -278,6 +253,7 @@ public class NFLPicksServlet extends HttpServlet {
 			List<Pick> picks = dataService.getPicks(years, weeks, playerNames, teams);
 			
 			JSONObject gridJSONObject = new JSONObject();
+
 			gridJSONObject.put(NFLPicksConstants.JSON_PICK_GRID_PLAYERS, JSONUtil.playersToJSONArray(players));
 			gridJSONObject.put(NFLPicksConstants.JSON_PICK_GRID_GAMES, JSONUtil.gamesToJSONArray(games));
 			gridJSONObject.put(NFLPicksConstants.JSON_PICK_GRID_PICKS, JSONUtil.picksToJSONArray(picks));
@@ -355,7 +331,7 @@ public class NFLPicksServlet extends HttpServlet {
 				return;
 			}
 			
-			List<String> years = dataService.getYears();
+			List<String> years = dataService.getYearsForCriteria();
 			
 			JSONObject selectionCriteriaJSONObject = new JSONObject();
 			
@@ -601,7 +577,6 @@ public class NFLPicksServlet extends HttpServlet {
 					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
 				List<String> years = null; 
 				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
@@ -621,27 +596,56 @@ public class NFLPicksServlet extends HttpServlet {
 		}
 		else if (TARGET_MAKE_PICKS.equals(target)){
 			
-			List<Game> gamesForNextWeek = dataService.getGamesForNextWeek();
+			List<Game> gamesForNextWeek = dataService.getGamesForCurrentWeek();
 			
 			json = JSONUtil.gamesToJSONString(gamesForNextWeek);
 		}
 		
 		writeJSONResponse(response, json);
 	}
-	
+
+	/**
+	 * 
+	 * A convenience function so we can use the same error message as a response if we need to.
+	 * Basically, here so whatever catches the error won't have to think about what to do with it.
+	 * 
+	 * @param response
+	 * @throws IOException
+	 */
 	protected void writeErrorResponse(HttpServletResponse response) throws IOException {
 		writeJSONResponse(response, ERROR_JSON_RESPONSE);
-		
 	}
 	
+	/**
+	 * 
+	 * A convenience function for writing json to an http response.  Makes sure the content is right
+	 * on the response and then writes it using the response's writer.
+	 * 
+	 * @param response
+	 * @param json
+	 * @throws IOException
+	 */
 	protected void writeJSONResponse(HttpServletResponse response, String json) throws IOException {
 		response.setContentType("text/plain; charset=UTF-8");
 
 		PrintWriter writer = response.getWriter();
+		
 		writer.println(json);
 	}
 	
+	/**
+	 * 
+	 * This function will handle processing either game or pick updates.  The "target" parameter determines what it does.
+	 * It's mainly here to update the winners and who people picked, so that's all it'll do.
+	 * 
+	 * It expects the body of the given request to be json with the games or picks to save.
+	 * 
+	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse respsonse){
+		
+		//Steps to do:
+		//	1. Pull out the target and use it to decide what to do.
+		//	I'll comment on the lines instead of here...
 		
 		log.info("Processing request... request = " + request.getRequestURL() + "?" + request.getQueryString());
 		
@@ -655,6 +659,7 @@ public class NFLPicksServlet extends HttpServlet {
 				return;
 			}
 			
+			//The body should be json and we just have to pull it out.
 			JSONObject gamesToSave = JSONUtil.createJSONObjectFromString(body);
 			
 			if (gamesToSave == null){
@@ -662,6 +667,7 @@ public class NFLPicksServlet extends HttpServlet {
 				return;
 			}
 			
+			//Just have to go through and update all the games and who won each.
 			JSONArray games = gamesToSave.optJSONArray(PARAMETER_NAME_GAMES);
 			
 			for (int index = 0; index < games.length(); index++){
@@ -682,6 +688,7 @@ public class NFLPicksServlet extends HttpServlet {
 				
 				existingGame.setWinningTeam(winningTeam);
 				
+				//If nobody won, the winning team will be null and so we have to flip the tie switch.
 				if (winningTeamId == -1){
 					existingGame.setTie(true);
 				}
@@ -697,25 +704,53 @@ public class NFLPicksServlet extends HttpServlet {
 				return;
 			}
 			
+			//Same deal with the picks as with the games.
 			JSONObject picksToSave = JSONUtil.createJSONObjectFromString(body);
+			if (picksToSave == null){
+				log.error("Error reading picks from request body!  body = " + body);
+				return;
+			}
 			
+			//We have the picks and person who made them, so pull them out.
 			String playerString = picksToSave.optString(PARAMETER_NAME_PLAYER);
 			JSONArray picks = picksToSave.optJSONArray(PARAMETER_NAME_PICKS);
 			
+			Player player = dataService.getPlayer(playerString);
+			
+			if (player == null){
+				log.error("Error finding player to update picks!  player = " + playerString + ", body = " + body);
+			}
+			
+			//Now we just have to go through all the picks they made and add each one.
+			//If there's one that has a blank team, then we'll want to delete that pick because
+			//it's like they didn't make one.
 			for (int index = 0; index < picks.length(); index++){
 				JSONObject pick = picks.optJSONObject(index);
 				String gameId = pick.optString(PARAMETER_NAME_GAME_ID);
 				String teamId = pick.optString(PARAMETER_NAME_TEAM_ID);
-				
+
 				int gameIdInt = Util.parseInt(gameId, 0);
 				int teamIdInt = Util.parseInt(teamId, 0);
-				
-				Player player = dataService.getPlayer(playerString);
-				Pick pickToSave = dataService.getPick(gameIdInt, player.getId());
+
+				//If no team was given, that means they didn't make a pick, so we should delete
+				//one if it's already there.
+				if (Util.isBlank(teamId) || teamIdInt == 0){
+					Pick pickToDelete = dataService.getPick(gameIdInt, player.getId());
+					
+					//If they made a pick before, delete it.  If they didn't, there's nothing to do, so we should just
+					//go to the next game and pick.
+					if (pickToDelete != null){
+						dataService.deletePick(pickToDelete);
+					}
+					
+					continue;
+				}
 				
 				Game game = dataService.getGame(gameIdInt);
 				Team team = dataService.getTeam(teamIdInt);
-				
+
+				Pick pickToSave = dataService.getPick(gameIdInt, player.getId());
+				//If there is no pick, we'll be doing an insert.  Otherwise, it'll be an update.
 				if (pickToSave == null){
 					pickToSave = new Pick();
 				}
@@ -728,9 +763,18 @@ public class NFLPicksServlet extends HttpServlet {
 		}
 	}
 	
+	/**
+	 * 
+	 * A convenience function for reading the body of a request.  Just reads all the lines
+	 * that were sent with it.
+	 * 
+	 * @param request
+	 * @return
+	 */
 	protected String readBody(HttpServletRequest request){
 		
 		BufferedReader reader = null;
+		
 		StringBuilder bodyStringBuilder = new StringBuilder();
 		try {
 			reader = request.getReader();
@@ -746,7 +790,14 @@ public class NFLPicksServlet extends HttpServlet {
 		
 		return bodyStringBuilder.toString();
 	}
-	
+
+	/**
+	 * 
+	 * A little bit of security.  Checks to see if the key that was sent is right.
+	 * 
+	 * @param key
+	 * @return
+	 */
 	protected boolean checkEditKey(String key){
 		
 		LocalDateTime ldt = LocalDateTime.now();
@@ -761,9 +812,17 @@ public class NFLPicksServlet extends HttpServlet {
 		}
 		
 		return false;
-		
 	}
 	
+	/**
+	 * 
+	 * A convenience function for getting a parameter value from a request.  It'll replace
+	 * the "url" characters in the value before returning it.
+	 * 
+	 * @param request
+	 * @param parameterName
+	 * @return
+	 */
 	protected String getParameter(HttpServletRequest request, String parameterName){
 		
 		String value = request.getParameter(parameterName);
@@ -773,6 +832,15 @@ public class NFLPicksServlet extends HttpServlet {
 		return unescapedValue;
 	}
 	
+	/**
+	 * 
+	 * Checks to see whether the given "parameter values" list is really
+	 * just a single item list with "ALL" in it.
+	 * 
+	 * 
+	 * @param parameterValues
+	 * @return
+	 */
 	protected boolean isAllParameterValue(List<String> parameterValues){
 		
 		if (parameterValues == null){
@@ -790,7 +858,6 @@ public class NFLPicksServlet extends HttpServlet {
 		}
 		
 		return false;
-		
 	}
 	
 	public void destroy() {

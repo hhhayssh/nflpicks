@@ -1,3 +1,4 @@
+
 function onClickTypeSelector(event){
 	event.stopPropagation();
 	var wasSelectorVisible = isVisible('typeSelectorContainer'); 
@@ -851,6 +852,22 @@ function removeTeamFromCurrentSelection(value){
 	}
 }
 
+/**
+ * 
+ * This function will completely unselect the team by its value.
+ * It will make the team unselected on the ui, remove it from
+ * the "current selections" array, and update the selected teams
+ * in the NFL_PICKS_GLOBAL variable.
+ * 
+ * @param value
+ * @returns
+ */
+function unselectTeamFull(value){
+	unselectTeam(value);
+	removeTeamFromCurrentSelection(value);
+	setSelectedTeams(currentTeamSelections);
+}
+
 function getAllTeams(){
 	return NFL_PICKS_GLOBAL.teams;
 }
@@ -942,6 +959,50 @@ function getTeamValuesForRequest(){
 
 function getSelectedTeams(){
 	return NFL_PICKS_GLOBAL.selections.teams;
+}
+
+/*
+ var normalizedValue = normalizeTeamValue(team.value);
+		
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == teams.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
+
+		var teamHtml = '<div id="team-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickTeam(event, \'' + team.value + '\');">' +
+ */
+
+function getTeamSelectorContainerId(team){
+	
+	var normalizedTeamAbbreviation = normalizeTeamValue(team);
+	
+	var teamSelectorContainerId = 'team-selector-container-' + normalizedTeamAbbreviation;
+	
+	return teamSelectorContainerId;
+}
+
+function showTeamItem(team){
+	var teamSelectorContainerId = getTeamSelectorContainerId(team);
+	$('#' + teamSelectorContainerId).show();
+}
+
+function hideTeamItem(team){
+	var teamSelectorContainerId = getTeamSelectorContainerId(team);
+	$('#' + teamSelectorContainerId).hide();
+}
+
+function showTeamItems(teams){
+	for (var index = 0; index < teams.length; index++){
+		var team = teams[index];
+		showTeamItem(team);
+	}
+}
+
+function hideTeamItems(teams){
+	for (var index = 0; index < teams.length; index++){
+		var team = teams[index];
+		hideTeamItem(team);
+	}
 }
 
 
@@ -1448,44 +1509,12 @@ function getYearValuesForRequest(){
 	
 	var valuesToSend = [];
 	
-	var realYears = getRealYears();
-	
-	/*
-	 var yearOptions = [{label: 'All', value: 'all'},
-		                   {label: 'Jurassic Period (2010-2015)', value: 'jurassic-period'},
-		                   {label: 'First year (2016)', value: 'first-year'},
-		                   {label: 'Modern Era (2017 - now)', value: 'modern-era'}];
-	 */
-	
 	for (var index = 0; index < selectedValues.length; index++){
 		var selectedValue = selectedValues[index];
 		
-		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realYears.length; index2++){
-				var realYear = realYears[index2];
-				valuesToSend.push(realYear.value);
-			}
-		}
-		else if ('jurassic-period' == selectedValue){
-			valuesToSend = valuesToSend.concat(['2010', '2011', '2012', '2013', '2014', '2015']);
-		}
-		else if ('first-year' == selectedValue){
-			valuesToSend.push('2016');
-		}
-		else if ('modern-era' == selectedValue){
-			for (var index2 = 0; index2 < realYears.length; index2++){
-				var realYear = realYears[index2];
-				
-				var realYearValue = parseInt(realYear.value);
-				
-				if (realYearValue >= 2017){
-					valuesToSend.push(realYear.value);
-				}
-			}
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
+		var yearsForSelectedValue = getYearsForYearValue(selectedValue);
+		
+		valuesToSend = valuesToSend.concat(yearsForSelectedValue);
 	}
 	
 	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
@@ -1497,6 +1526,73 @@ function getYearValuesForRequest(){
 
 function getSelectedYears(){
 	return NFL_PICKS_GLOBAL.selections.years;
+}
+
+function getYearValuesForSelectedYears(){
+	
+	var selectedValues = getSelectedYearValues();
+	
+	var yearValues = [];
+	
+	for (var index = 0; index < selectedValues.length; index++){
+		var selectedValue = selectedValues[index];
+		
+		var yearsForSelectedValue = getYearsForYearValue(selectedValue);
+		
+		yearValues = yearValues.concat(yearsForSelectedValue);
+	}
+	
+	return yearValues;
+}
+
+/**
+ * 
+ * This function is here to get the years we should use for the given year value.
+ * It will just do the "translation" from something like "jurassic-period" to 
+ * values like ["2010", "2011", "2012", ...].
+ * 
+ * Here so that "mapping" can hopefully be done in one place.  I could make it a constant I guess,
+ * but doing it this way kind of puts in the rule that "every year 2017 and over is the modern
+ * era" and that would be hard to turn into a constant value.
+ * 
+ * @param yearValue
+ * @returns
+ */
+function getYearsForYearValue(yearValue){
+	
+	var yearsForYearValue = [];
+
+	var realYears = getRealYears();
+	
+	if ('all' == yearValue){
+		for (var index = 0; index < realYears.length; index++){
+			var realYear = realYears[index];
+			yearsForYearValue.push(realYear.value);
+		}
+	}
+	else if ('jurassic-period' == yearValue){
+		yearsForYearValue = ['2010', '2011', '2012', '2013', '2014', '2015'];
+	}
+	else if ('first-year' == yearValue){
+		yearsForYearValue = ['2016'];
+	}
+	else if ('modern-era' == yearValue){
+		
+		for (var index = 0; index < realYears.length; index++){
+			var realYear = realYears[index];
+
+			var realYearValue = parseInt(realYear.value);
+
+			if (realYearValue >= 2017){
+				yearsForYearValue.push(realYear.value);
+			}
+		}
+	}
+	else {
+		yearsForYearValue.push(yearValue);
+	}
+	
+	return yearsForYearValue;
 }
 
 

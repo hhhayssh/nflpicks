@@ -11,11 +11,12 @@ AFC,AFC,2010,,South,South,2010,,Indianapolis,Colts,IND,2010,,IND
 AFC,AFC,2010,,South,South,2010,,Houston,Texans,HOU,2010,,HOU
 AFC,AFC,2010,,South,South,2010,,Tennessee,Titans,TEN,2010,,TEN
 AFC,AFC,2010,,South,South,2010,,Jacksonville,Jaguars,JAX,2010,,JAX
-AFC,AFC,2010,,West,West,2010,,Oakland,Raiders,OAK,2010,,OAK
 AFC,AFC,2010,,West,West,2010,,Denver,Broncos,DEN,2010,,DEN
 AFC,AFC,2010,,West,West,2010,,Kansas City,Chiefs,KC,2010,,KC
-AFC,AFC,2010,,West,West,2010,,Los Angeles,Chargers,LAC,2010,,LAC
-AFC,AFC,2010,,West,West,2010,,San Diego,Chargers,SD,2010,2016,LAC
+AFC,AFC,2020,,West,West,2020,,Las Vegas,Raiders,LV,2020,,LV
+AFC,AFC,2010,2019,West,West,2010,2019,Oakland,Raiders,OAK,2010,2019,LV
+AFC,AFC,2017,,West,West,2017,,Los Angeles,Chargers,LAC,2017,,LAC
+AFC,AFC,2010,2016,West,West,2010,2016,San Diego,Chargers,SD,2010,2016,LAC
 NFC,NFC,2010,,East,East,2010,,Philadelphia,Eagles,PHI,2010,,PHI
 NFC,NFC,2010,,East,East,2010,,New York,Giants,NYG,2010,,NYG
 NFC,NFC,2010,,East,East,2010,,Washington,Redskins,WASH,2010,,WASH
@@ -28,8 +29,8 @@ NFC,NFC,2010,,South,South,2010,,New Orleans,Saints,NO,2010,,NO
 NFC,NFC,2010,,South,South,2010,,Carolina,Panthers,CAR,2010,,CAR
 NFC,NFC,2010,,South,South,2010,,Tampa Bay,Buccaneers,TB,2010,,TB
 NFC,NFC,2010,,South,South,2010,,Atlanta,Falcons,ATL,2010,,ATL
-NFC,NFC,2010,,West,West,2010,,San Fransisco,49ers,SF,2010,,SF
+NFC,NFC,2010,,West,West,2010,,San Francisco,49ers,SF,2010,,SF
 NFC,NFC,2010,,West,West,2010,,Seattle,Seahawks,SEA,2010,,SEA
 NFC,NFC,2010,,West,West,2010,,Arizona,Cardinals,ARZ,2010,,ARZ
-NFC,NFC,2010,,West,West,2010,,Los Angeles,Rams,LAR,2010,,LAR
-NFC,NFC,2010,,West,West,2010,,St. Louis,Rams,STL,2010,2015,LAR
+NFC,NFC,2016,,West,West,2016,,Los Angeles,Rams,LAR,2016,,LAR
+NFC,NFC,2010,2015,West,West,2010,2015,St. Louis,Rams,STL,2010,2015,LAR

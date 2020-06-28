@@ -166,7 +166,7 @@
     									<resource>
     										<directory>src/main/data</directory>
     										<includes>
-    											<include>nflpicks_initial_data.csv</include>
+    											<include>**/*</include>
     										</includes>
     										<filtering>false</filtering>
     									</resource>

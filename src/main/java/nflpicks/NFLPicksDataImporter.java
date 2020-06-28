@@ -474,6 +474,14 @@ public class NFLPicksDataImporter {
 		else {
 			Team winningTeam = getTeam(winningTeamAbbreviation);
 			game.setWinningTeam(winningTeam);
+			//If there was no winning team, it'll be null, but the abbreviation for it will be "TIE".
+			//If that's the case, flip the "tie" switch on the game so it's treated like a tie the
+			//rest of the way.
+			if (winningTeam == null) {
+				if (NFLPicksConstants.TIE_TEAM_ABBREVIATION.equals(winningTeamAbbreviation)) {
+					game.setTie(true);
+				}
+			}
 			dataService.saveGame(game);
 		}
 		

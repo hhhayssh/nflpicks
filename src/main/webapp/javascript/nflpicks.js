@@ -6,6 +6,15 @@
  */
 var NFL_PICKS_GLOBAL = {
 
+	data: {
+		teams: [],
+		players: [],
+		years: []
+		/* Not sure if other stuff should be in here too ... like the current games and stuff like that
+		 * that kind of depends on the context.
+		 * */
+	},
+		
 	/**
 	 * The possible types for what they can view.  Like standings, picks, and stats.
 	 * Holds label and value pairs of all the possible types.
@@ -399,6 +408,10 @@ function getSelectionCriteriaAndInitialize(){
 	.done(function(data) {
 		var selectionCriteriaContainer = $.parseJSON(data);
 		
+		NFL_PICKS_GLOBAL.data.teams = selectionCriteriaContainer.teams;
+		NFL_PICKS_GLOBAL.data.players = selectionCriteriaContainer.players;
+		NFL_PICKS_GLOBAL.data.years = selectionCriteriaContainer.years;
+		
 		var types = [{label: 'Standings', value: 'standings'},
 		             {label: 'Picks', value: 'picks'},
 		             {label: 'Stats', value: 'stats'}];
@@ -442,17 +455,23 @@ function getSelectionCriteriaAndInitialize(){
 		                   {label: 'Divisional', value: '19'}, {label: 'Conference Championship', value: '20'},
 		                   {label: 'Superbowl', value: '21'}
 		                   ];
+		
 		var realWeeks = [{label: 'Week 1', value: '1'}, {label: 'Week 2', value: '2'},
-		                   {label: 'Week 3', value: '3'}, {label: 'Week 4', value: '4'},
-		                   {label: 'Week 5', value: '5'}, {label: 'Week 6', value: '6'},
-		                   {label: 'Week 7', value: '7'}, {label: 'Week 8', value: '8'},
-		                   {label: 'Week 9', value: '9'}, {label: 'Week 10', value: '10'},
-		                   {label: 'Week 11', value: '11'}, {label: 'Week 12', value: '12'},
-		                   {label: 'Week 13', value: '13'}, {label: 'Week 14', value: '14'},
-		                   {label: 'Week 15', value: '15'}, {label: 'Week 16', value: '16'},
-		                   {label: 'Week 17', value: '17'}, {label: 'Wild Card', value: '18'},
-		                   {label: 'Divisional', value: '19'}, {label: 'Conference Championship', value: '20'},
-		                   {label: 'Superbowl', value: '21'}];
+		                 {label: 'Week 3', value: '3'}, {label: 'Week 4', value: '4'},
+		                 {label: 'Week 5', value: '5'}, {label: 'Week 6', value: '6'},
+		                 {label: 'Week 7', value: '7'}, {label: 'Week 8', value: '8'},
+		                 {label: 'Week 9', value: '9'}, {label: 'Week 10', value: '10'},
+		                 {label: 'Week 11', value: '11'}, {label: 'Week 12', value: '12'},
+		                 {label: 'Week 13', value: '13'}, {label: 'Week 14', value: '14'},
+		                 {label: 'Week 15', value: '15'}, {label: 'Week 16', value: '16'},
+		                 {label: 'Week 17', value: '17'}, {label: 'Wild Card', value: '18'},
+		                 {label: 'Divisional', value: '19'}, {label: 'Conference Championship', value: '20'},
+		                 {label: 'Superbowl', value: '21'}];
+		
+		//need to refactor the NFL_PICKS_GLOBAL so that it has all the options
+		//and all the data
+		//NFL_PICKS_GLOBAL.criteria.weeks - the weeks as selection criteria
+		//NFL_PICKS_GLOBAL.data.weeks - all the actual weeks
 		NFL_PICKS_GLOBAL.weeks = weekOptions;
 		NFL_PICKS_GLOBAL.realWeeks = realWeeks;
 		var weekSelectorHtml = createWeekSelectorHtml(weekOptions);
@@ -469,12 +488,15 @@ function getSelectionCriteriaAndInitialize(){
 			realPlayers.push(playerObject);
 		}
 		setOptionsInSelect('player', playerOptions);
-//		hideSelectedPlayersOption();
+
 		NFL_PICKS_GLOBAL.players = playerOptions;
 		NFL_PICKS_GLOBAL.realPlayers = realPlayers;
 		var playerSelectorHtml = createPlayerSelectorHtml(playerOptions);
 		$('#selectorContainer').append(playerSelectorHtml);
 		
+		//Need to filter the teams so that we only show teams that had a game in a given year.
+		//Probably just do a ui filter because we probably don't want to make a trip to the server
+		//
 		var teams = selectionCriteriaContainer.teams;
 		//Sort the teams in alphabetical order to make sure we show them in a consistent order.
 		teams.sort(function (teamA, teamB){
@@ -696,6 +718,11 @@ function updateView(){
 	//on the type.
 	updateSelectors(type);
 	
+	updateAvailableCriteriaOptions();
+	
+	//need an "update selector content" here too so that we can show and hide teams that aren't
+	//around for a year
+	
 	if ('picks' == type){
 		updatePicks();
 	}
@@ -719,6 +746,103 @@ function updateView(){
 	
 	//And we need to make sure we're showing the right "forward" and "back" links.
 	updateNavigationLinksVisibility();
+}
+
+/**
+ * 
+ * This function will update the available options for the criteria based on what's selected.
+ * It's here mainly for the situation where you select an option in a "selector" and that option
+ * should cause options in other selectors to be either shown or hidden.
+ * 
+ * I made it for the situation where somebody picks a year and we should only show the teams
+ * that actually existed that year.  Like, if somebody picks "2020" as the year, we shouldn't
+ * show "OAK", but we should show "LV".
+ * 
+ * It will farm the work out to other functions that handle the specific scenarios for each
+ * kind of "selector".
+ * 
+ * @returns
+ */
+function updateAvailableCriteriaOptions(){
+	
+	updateAvailableTeamOptions();
+}
+
+/**
+ * 
+ * This function will update the available teams that can be selected.  It will just go through
+ * and check whether each team was "active" during the selected years.  If they were, then it'll
+ * show them and if they weren't, it'll hide them.
+ * 
+ * @returns
+ */
+function updateAvailableTeamOptions(){
+	
+	//Steps to do:
+	//	1. Get the year values as integers.
+	//	2. Go through every team and get when it started and ended.
+	//	3. If the year it started is after any of the selected years and it doesn't have an
+	//	   end or its end is before one of the selected years, that means it played games during
+	//	   the selected years so it should be shown.
+	//	4. Otherwise, it didn't and so it should be hidden.
+	
+	var currentSelectedYearValues = getYearValuesForSelectedYears();
+	var integerYearValues = getValuesAsIntegers(currentSelectedYearValues);
+	
+	var teamsToShow = [];
+	var teamsToHide = [];
+
+	//All the teams are stored in the global variable.  Just have to go through them.
+	var teams = NFL_PICKS_GLOBAL.data.teams;
+	
+	for (var index = 0; index < teams.length; index++){
+		var team = teams[index];
+		
+		//Flipping this switch off and I'll flip it on if the team's start and end years show
+		//it played games in the selected years.
+		var showTeam = false;
+		
+		//Make sure to turn their years into numbers.
+		var teamStartYearInteger = parseInt(team.startYear);
+		var teamEndYearInteger = -1;
+		if (isDefined(team.endYear)){
+			teamEndYearInteger = parseInt(team.endYear);
+		}
+
+		//Go through each selected year.
+		for (var yearIndex = 0; yearIndex < integerYearValues.length; yearIndex++){
+			var currentYearValue = integerYearValues[yearIndex];
+			
+			//If the team started before the current year and either is still active (end year = -1) or was active after the
+			//current year, that means it played games in the selected year, so it should be shown.
+			if (teamStartYearInteger <= currentYearValue && (teamEndYearInteger == -1 || teamEndYearInteger >= currentYearValue)){
+				showTeam = true;
+			}
+		}
+		
+		//Just put it in the list based on whether it should be shown or not.
+		if (showTeam){
+			teamsToShow.push(team.abbreviation);
+		}
+		else {
+			teamsToHide.push(team.abbreviation);
+		}
+	}
+	
+	//Show the teams that should be shown in the selector dropdown.
+	showTeamItems(teamsToShow);
+	
+	//Hid the teams that should be hidden in the selector.
+	hideTeamItems(teamsToHide);
+	
+	//And, we have to go through and unselect the ones we should hide in case they 
+	//were selected.  If we just hide them and they're still selected, they'll still
+	//show up on the ui, just not in the selection dropdown.
+	for (var index = 0; index < teamsToHide.length; index++){
+		var teamToHide = teamsToHide[index];
+		unselectTeamFull(teamToHide);
+	}
+	
 }
 
 /**
@@ -2238,6 +2362,8 @@ function sortWeekRecordsBySeasonWeekAndRecord(weekRecords){
  * This function will say whether a "specific" year was selected
  * (basically if the year isn't "all" or one of the special ones).
  * 
+ * This should go in the selectors javascript file i think.
+ * 
  * @returns
  */
 function isSpecificYearSelected(){
@@ -2604,9 +2730,18 @@ function showPickView(year, week, team, player){
  * @returns
  */
 function shortenWeekLabel(label){
-	
-	if ('Conference Championship' == label){
-		return 'Conf Champ';
+
+	if ('Playoffs - Wild Card' == label){
+		return 'Wild card';
+	}
+	else if ('Playoffs - Divisional' == label){
+		return 'Divisional';
+	}
+	else if ('Playoffs - Conference Championship' == label){
+		return 'Conf champ';
+	}
+	else if ('Playoffs - Super Bowl' == label){
+		return 'Super bowl';
 	}
 	
 	return label;

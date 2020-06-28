@@ -1,3 +1,7 @@
+//I think I need to put all of these in an object
+//NFLPicksCommon.isBlank(value) ...
+//NFLPicksCommon.isDefined(value)
+//otherwise, it's too hard to know what's in what file
 function isBlank(value){
 	
 	if (!isDefined(value)){
@@ -12,6 +16,7 @@ function isBlank(value){
 }
 
 function isDefined(value){
+	
 	if (value == null || value == undefined){
 		return false;
 	}
@@ -259,4 +264,23 @@ function getUniqueValuesFromArray(values){
 	var uniqueValues = Array.from(new Set(values));
 	
 	return uniqueValues;
+}
+
+function getValuesAsIntegers(values){
+	
+	if (values == null || values == undefined){
+		return null;
+	}
+	
+	var valuesAsIntegers = [];
+	
+	for (var index = 0; index < values.length; index++){
+		var value = values[index];
+		
+		var integerValue = parseInt(value);
+		
+		valuesAsIntegers.push(integerValue);
+	}
+	
+	return valuesAsIntegers;
 }
