@@ -6,13 +6,14 @@
  */
 var NFL_PICKS_GLOBAL = {
 
+	/**
+	 * Here to store data from the server so we can hopefully load it once and then
+	 * get to it whenever it's needed as we're dealing with other stuff.
+	 */
 	data: {
 		teams: [],
 		players: [],
 		years: []
-		/* Not sure if other stuff should be in here too ... like the current games and stuff like that
-		 * that kind of depends on the context.
-		 * */
 	},
 		
 	/**
@@ -718,10 +719,8 @@ function updateView(){
 	//on the type.
 	updateSelectors(type);
 	
+	//And update the options for the criteria in each selector.
 	updateAvailableCriteriaOptions();
-	
-	//need an "update selector content" here too so that we can show and hide teams that aren't
-	//around for a year
 	
 	if ('picks' == type){
 		updatePicks();
@@ -1101,136 +1100,33 @@ function setPreviousType(newPreviousType){
 	NFL_PICKS_GLOBAL.previousType = newPreviousType;
 }
 
-//function showSelectMultiplePlayersOption(){
-//	$('#select-multiple-players').show();
-//}
-//
-//function hideSelectMultiplePlayersOption(){
-//	$('#select-multiple-players').hide();
-//}
-//
-//function showSelectSinglePlayersOption(){
-//	$('#select-single-player').show();
-//}
-//
-//function hideSelectSinglePlayersOption(){
-//	$('#select-single-player').hide();
-//}
-//
-//function updateSelectedPlayersOption(selectedPlayers){
-//	$('#selected-players').val(selectedPlayers);
-//	$('#selected-players').text(selectedPlayers);
-//}
-//
-//function showSelectedPlayersOption(){
-//	$('#selected-players').show();
-//}
-//
-//function hideSelectedPlayersOption(){
-//	$('#selected-players').hide();
-//}
-//
-//function hidePlayerOptions(players){
-//	
-//	var playersArray = players.split(',');
-//	
-//	for (var index = 0; index < playersArray.length; index++){
-//		var player = playersArray[index].trim();
-//		hidePlayerOption(player);
-//	}
-//}
-//
-//function hidePlayerOption(player){
-//	$('#' + normalizePlayerValue('player-' + player)).hide();
-//}
-
-//function showAllPlayerOptions(){
-//	var allOptions = $('#player option');
-//	
-//	for (var index = 0; index < allOptions.length; index++){
-//		var option = allOptions[index];
-//		
-//		if (isDefined(option.id) && option.id.startsWith('player-')){
-//			$('#' + option.id).show();
-//		}
-//	}
-//}
-
-///**
-// * 
-// * Gets the player that's selected.
-// * 
-// * @returns
-// */
-//function getSelectedPlayer(){
-//	return $('#player option:selected').val();
-//}
-
-///**
-// * 
-// * Sets the selected player to the given one if that player is
-// * one of the player input's options.
-// * 
-// * If the given player has multiple players in it, it will enable
-// * multi select for players (if it's not enabled already).
-// * 
-// * It will also update the multi select player container option with the
-// * given player and, finally, set the given player as the actual selected value.
-// * 
-// * If the given player is null or not defined, it won't do anything.
-// * 
-// * @param player
-// * @returns
-// */
-//function setSelectedPlayer(player){
-//	
-//	//Steps to do:
-//	//	1. If the given player is null, there's nothing to do.
-//	//	2. Check whether it has multiple values.
-//	//	3. If it does, then flip the switch that says selecting multiple players
-//	//	   is enabled.
-//	//	4. If it doesn't, that doesn't mean it's disabled, just that the given player isn't
-//	//	   multiple players.
-//	//	5. Because multi select players might be enabled (or might not be), get whether it's
-//	//	   enabled or not.
-//	//	6. If it's not enabled, then we just have to set the actual value of the select
-//	//	   input to what we were given and that's it.
-//	//	7. Otherwise, if it is enabled, then we want what we were given to become
-//	//	   both the "selected players" container option and the value for the select.
-//	
-//	if (!isDefined(player)){
-//		return;
-//	}
-//	
-//	//if the player has a comma in it, we need to enable multi select for the player
-//	//the forward and backward navigation need this...
-//	if (doesValueHaveMultipleValues(player)){
-//		setMultiSelectPlayer(true);
-//	}
-//	
-//	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
-//	
-//	if (!multiSelectPlayerEnabled){
-//		//I think this should go away ... there should be a function that updates
-//		//the visibility of the options
-//		//??????? put this back in?
-//		//this is all too complicated to keep straight...
-//		updateSelectedPlayersOption('');
-//		setSelectedPlayerValue(player);
-//		return;
-//	}
-//
-//	//Set the "container" option to what we were given.
-//	updateSelectedPlayersOption(player);
-//	//Make sure to select that option.
-//	setSelectedPlayerValue(player);
-//}
-
-//could be a single value
-//an array with commas
-//or an array
-//these are expected to be values
+/**
+ * 
+ * This function will set the given players as being selected in the NFL_PICKS_GLOBAL
+ * variable (NFL_PICKS_GLOBAL.selections.players) and it'll call the "selectPlayer"
+ * function in the selectors file for each player so they get "selected" on the UI too.
+ * 
+ * It expects the given players variable to either be...
+ * 	1. An array of player names.
+ * 	2. A comma separated string of player names.
+ * 	3. A single player name.
+ * 
+ * It will put the actual player objects into the NFL_PICKS_GLOBAL variable for
+ * each player name that's given.
+ * 
+ * @param players
+ * @returns
+ */
 function setSelectedPlayers(players){
+	
+	//Steps to do:
+	//	1. Check whether the players variable is an array.
+	//	2. If it is, just keep it.
+	//	3. Otherwise, it's a string so check to see if it has multiple values.
+	//	4. If it does, then turn it into an array.
+	//	5. Otherwise, just put it in there as a single value.
+	//	6. Go through each player in the array, get the actual object for the player name
+	//	   and put it in the global variable.  And, "select" them in the ui.
 	
 	var playerValuesArray = [];
 	
@@ -1250,7 +1146,6 @@ function setSelectedPlayers(players){
 		}
 	}
 	
-	//at this point, it should be an array
 	var playersArray = [];
 	
 	for (var index = 0; index < playerValuesArray.length; index++){
@@ -1264,83 +1159,32 @@ function setSelectedPlayers(players){
 	NFL_PICKS_GLOBAL.selections.players = playersArray;
 }
 
-///**
-// * 
-// * Sets the value on the player input to the given value.  Doesn't do any
-// * funny business of trying to figure out whether it's mutliple select or not.
-// * 
-// * @param value
-// * @returns
-// */
-//function setSelectedPlayerValue(value){
-//	$('#player').val(value);
-//}
-
-///**
-// * 
-// * Gets the selected year.
-// * 
-// * @returns
-// */
-//function getSelectedYear(){
-//	return $('#year option:selected').val();
-//}
-
-///**
-// * 
-// * Gets the years to use when sending a request to the server.  We use aliases
-// * for the "jurassic" period (2010-2015) and the "modern" era (2016-?) in the
-// * select dropdown and we don't want the server to have to figure out what
-// * the aliases are or how to handle them.  We want to keep it dumb.
-// * 
-// * It'll get the same value as getSelectedYear unless the selected year is...
-// * 
-// * 		old - It'll get 2010,2011,2012,2013,2014,2015
-// * 		half-modern - 2016
-// * 		modern - It'll get 2017,2018
-// * 
-// * @returns
-// */
-//function getSelectedYearToUse(){
-//	
-//	//Steps to do:
-//	//	1. Get the normal year.
-//	//	2. If it's one of the special ones, translate it to the real
-//	//	   values.
-//	
-//	var yearToUse = getSelectedYear();
-//	
-//	if ('jurassic-period' == yearToUse){
-//		yearToUse = '2010,2011,2012,2013,2014,2015';
-//	}
-//	else if ('first-year' == yearToUse){
-//		yearToUse = '2016';
-//	}
-//	else if ('modern-era' == yearToUse){
-//		yearToUse = '2017,2018';
-//	}
-//	else {
-//		yearToUse = 'all';
-//	}
-//	
-//	return yearToUse;
-//}
-
-///**
-// * 
-// * Sets the selected year if the year input has the given
-// * year as an option.
-// * 
-// * @param year
-// * @returns
-// */
-//function setSelectedYear(year){
-////	if (doesSelectHaveOptionWithValue('year', year)){
-////		$('#year').val(year);
-////	}
-//}
-
+/**
+ * 
+ * This function will set the given years as being selected in the UI and in the
+ * NFL_PICKS_GLOBAL variable (NFL_PICKS_GLOBAL.selections.years).  
+ * 
+ * It expects the given years variable to either be...
+ * 	1. An array of year values.
+ * 	2. A comma separated string of year values.
+ * 	3. A single year value.
+ * 
+ * It will put the actual year objects into the NFL_PICKS_GLOBAL variable for
+ * each year value that's given.
+ * 
+ * @param years
+ * @returns
+ */
 function setSelectedYears(years){
+	
+	//Steps to do:
+	//	1. Check whether the years variable is an array.
+	//	2. If it is, just keep it.
+	//	3. Otherwise, it's a string so check to see if it has multiple values.
+	//	4. If it does, then turn it into an array.
+	//	5. Otherwise, just put it in there as a single value.
+	//	6. Go through each year in the array, get the actual object for the year
+	//	   and put it in the global variable.  And, "select" it in the ui.
 	
 	var yearValuesArray = [];
 	
@@ -1360,7 +1204,6 @@ function setSelectedYears(years){
 		}
 	}
 	
-	//at this point, it should be an array
 	var yearsArray = [];
 	
 	for (var index = 0; index < yearValuesArray.length; index++){
@@ -1372,62 +1215,34 @@ function setSelectedYears(years){
 	}
 	
 	NFL_PICKS_GLOBAL.selections.years = yearsArray;
-	
 }
 
-///**
-// * 
-// * Gets the selected week.
-// * 
-// * @returns
-// */
-//function getSelectedWeek(){
-//	return $('#week option:selected').val();
-//}
-
-///**
-// * 
-// * Gets the selected week we should use when sending a request to the server.
-// * We use aliases in the display that the server doesn't understand, and this
-// * makes it so we do the translation here instead of expecting the server to
-// * understand weird stuff.
-// * 
-// * It'll return the value of getSelectedWeek unless the week is:
-// * 
-// * 		regular-season - It'll return all the weeks (1,2,3,4,...)
-// * 		playoffs - It'll return everything after week 17 (18,19,20,21)
-// * 
-// * @returns
-// */
-//function getSelectedWeekToUse(){
-//	
-//	var weekToUse = getSelectedWeek();
-//	
-//	if ('regular-season' == weekToUse){
-//		weekToUse = '1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17';
-//	}
-//	else if ('playoffs' == weekToUse){
-//		weekToUse = '18,19,20,21';
-//	}
-//	
-//	return weekToUse;
-//}
-
-///**
-// * 
-// * Sets the selected week to the given week if it's one of
-// * the week input's options.
-// * 
-// * @param week
-// * @returns
-// */
-//function setSelectedWeek(week){
-//	if (doesSelectHaveOptionWithValue('week', week)){
-//		$('#week').val(week);
-//	}
-//}
-
+/**
+ * 
+ * This function will set the given weeks as being selected in the UI and in the
+ * NFL_PICKS_GLOBAL variable (NFL_PICKS_GLOBAL.selections.weeks).  
+ * 
+ * It expects the given weeks variable to either be...
+ * 	1. An array of week numbers.
+ * 	2. A comma separated string of week numbers.
+ * 	3. A single week number.
+ * 
+ * It will put the actual week objects into the NFL_PICKS_GLOBAL variable for
+ * each week number that's given.
+ * 
+ * @param weeks
+ * @returns
+ */
 function setSelectedWeeks(weeks){
+	
+	//Steps to do:
+	//	1. Check whether the weeks variable is an array.
+	//	2. If it is, just keep it.
+	//	3. Otherwise, it's a string so check to see if it has multiple values.
+	//	4. If it does, then turn it into an array.
+	//	5. Otherwise, just put it in there as a single value.
+	//	6. Go through each week in the array, get the actual object for the week
+	//	   and put it in the global variable.  And, "select" it in the ui.
 	
 	var weekValuesArray = [];
 	
@@ -1447,7 +1262,6 @@ function setSelectedWeeks(weeks){
 		}
 	}
 	
-	//at this point, it should be an array
 	var weeksArray = [];
 	
 	for (var index = 0; index < weekValuesArray.length; index++){
@@ -1461,6 +1275,63 @@ function setSelectedWeeks(weeks){
 	NFL_PICKS_GLOBAL.selections.weeks = weeksArray;
 }
 
+/**
+ * 
+ * This function will set the given teams as being selected in the UI and in the
+ * NFL_PICKS_GLOBAL variable (NFL_PICKS_GLOBAL.selections.teams).  
+ * 
+ * It expects the given teams variable to either be...
+ * 	1. An array of team abbreviations.
+ * 	2. A comma separated string of team abbreviations.
+ * 	3. A single team abbreviation.
+ * 
+ * It will put the actual team objects into the NFL_PICKS_GLOBAL variable for
+ * each team abbreviation that's given.
+ * 
+ * @param teams
+ * @returns
+ */
+function setSelectedTeams(teams){
+	
+	//Steps to do:
+	//	1. Check whether the teams variable is an array.
+	//	2. If it is, just keep it.
+	//	3. Otherwise, it's a string so check to see if it has multiple values.
+	//	4. If it does, then turn it into an array.
+	//	5. Otherwise, just put it in there as a single value.
+	//	6. Go through each team in the array, get the actual object for the team
+	//	   and put it in the global variable.  And, "select" it in the ui.
+	
+	var teamValuesArray = [];
+	
+	var isArray = Array.isArray(teams);
+	
+	if (isArray){
+		teamValuesArray = teams;
+	}
+	else {
+		var hasMultipleValues = doesValueHaveMultipleValues(teams);
+		
+		if (hasMultipleValues){
+			teamValuesArray = delimitedValueToArray(teams);
+		}
+		else {
+			teamValuesArray.push(teams);
+		}
+	}
+	
+	var teamsArray = [];
+	
+	for (var index = 0; index < teamValuesArray.length; index++){
+		var value = teamValuesArray[index];
+		selectTeam(value);
+
+		var team = getTeam(value);
+		teamsArray.push(team);
+	}
+	
+	NFL_PICKS_GLOBAL.selections.teams = teamsArray;
+}
 
 /**
  * 
@@ -1485,125 +1356,6 @@ function setSelectedStatName(statName){
 	NFL_PICKS_GLOBAL.selections.statName = statName;
 }
 
-///**
-// * 
-// * Gets the selected team.
-// * 
-// * @returns
-// */
-//function getSelectedTeam(){
-//	return $('#team option:selected').val();
-//}
-
-function setSelectedTeams(teams){
-	
-	var teamValuesArray = [];
-	
-	var isArray = Array.isArray(teams);
-	
-	if (isArray){
-		teamValuesArray = teams;
-	}
-	else {
-		var hasMultipleValues = doesValueHaveMultipleValues(teams);
-		
-		if (hasMultipleValues){
-			teamValuesArray = delimitedValueToArray(teams);
-		}
-		else {
-			teamValuesArray.push(teams);
-		}
-	}
-	
-	//at this point, it should be an array
-	var teamsArray = [];
-	
-	for (var index = 0; index < teamValuesArray.length; index++){
-		var value = teamValuesArray[index];
-		selectTeam(value);
-
-		var team = getTeam(value);
-		teamsArray.push(team);
-	}
-	
-	NFL_PICKS_GLOBAL.selections.teams = teamsArray;
-}
-
-
-
-
-///**
-// * 
-// * This function will make sure everything that should be shown for picking more
-// * than one player is shown.  It was made so this can be done in one place.
-// * 
-// * It will decide what to do based on whether multi select for players is enabled 
-// * or not.
-// * 
-// * If it is, it will...
-// * 
-// * 		1. Make sure the "multi select players" option in the select is shown.
-// * 		2. Make sure that all the players in the multi select player option are hidden
-// * 		   as regular options.
-// *		3. Make sure the "all" player option isn't shown.
-// * 
-// * If it's not, it will...
-// * 
-// * 		1. Hide the "multi select players" container option in the select.
-// * 		2. Show all of the individual player options.
-// * 		3. Show the "all" player option.
-// * 
-// * @returns
-// */
-//function updateMultiSelectVisibilityPlayer(){
-//	
-//	//Steps to do:
-//	//	1. Get whether multi select is enabled or not.
-//	//	2. If it is, then get whether any players are selected.
-//	//	3. If they are, then make sure we show that option.
-//	//	4. Make sure we are only showing the individual player options
-//	//	   that should be shown.
-//	//	5. Hide the "all" option.
-//	//	6. If it's not, hide the "multi select player" container option.
-//	//	7. Make sure all the individual player options are shown.
-//	//	8. Make sure the "all" option is shown.
-//	
-//	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
-//	
-//	if (multiSelectPlayerEnabled){
-//		
-//		//If there's any selected players, make sure the option for it is shown.
-//		var selectedPlayers = getSelectedPlayers();
-//		if (selectedPlayers != null && selectedPlayers != ''){
-//			showSelectedPlayersOption();
-//		}
-//
-//		//And, make sure we're only showing the individual player options that
-//		//aren't in the multi select.
-//		//First, show all the individual players.
-//		showAllPlayerOptions();
-//		//Then, hide all the options for the players that are picked.
-//		var currentSelectedPlayer = getSelectedPlayer();
-//		hidePlayerOptions(currentSelectedPlayer);
-//		//And, hide the "all" option.
-//		hideAllPlayerOption();
-//	}
-//	else {
-//		//Otherwise, just hide the multi select container option, show
-//		//all the individual players, and show the "all" option.
-//		hideSelectedPlayersOption();
-//		showAllPlayerOption();
-//		showAllPlayerOptions();
-//	}
-//}
-
-//function setMultiSelectPlayer(value){
-//	return $('#multiSelectPlayer').prop('checked', value);
-//}
-//
-//function isMultiSelectPlayerEnabled(){
-//	return $('#multiSelectPlayer').prop('checked');
-//}
 
 /**
  * 
@@ -1636,14 +1388,6 @@ function updateStandings(){
 	var playerValuesForRequest = getPlayerValuesForRequest();
 	var yearValuesForRequest = getYearValuesForRequest();
 	var weekValuesForRequest = getWeekValuesForRequest();
-	//var week = getSelectedWeek();
-	//If they picked "regular season", that's weeks 1-17.
-	//Otherwise, if they picked the playoffs, that's weeks 18-21.
-	//var weekToUse = getSelectedWeekToUse();
-	
-	//var playersToSend = arrayToDelimitedValue(selectedPlayerValues, ',');
-	//var yearsToSend = arrayToDelimitedValue(selectedYearValues, ',');
-	//var weeksToSend = arrayToDelimitedValue(selectedWeekValues, ',');
 	
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
@@ -1688,99 +1432,6 @@ function updateStandings(){
 	.always(function() {
 	});
 }
-
-//function hideAllPlayerOption(){
-//	$('#player option[value=all]').hide();
-//}
-//
-//function showAllPlayerOption(){
-//	$('#player option[value=all]').show();
-//}
-//
-//function hideAllWeekOption(){
-//	$('#week option[value=all]').hide();
-//}
-//
-//function showAllWeekOption(){
-//	$('#week option[value=all]').show();
-//}
-//
-//function hideAllYearOption(){
-//	$('#year option[value=all]').hide();
-//}
-//
-//function showAllYearOption(){
-//	$('#year option[value=all]').show();
-//}
-//
-function showYearContainer(){
-	$('#yearContainer').show();
-}
-
-function hideYearContainer(){
-	$('#yearContainer').hide();
-}
-
-function showPlayerContainer(){
-	$('#playerContainer').show();
-}
-
-function hidePlayerContainer(){
-	$('#playerContainer').hide();
-}
-
-function showWeekContainer(){
-	$('#weekContainer').show();
-}
-
-function hideWeekContainer(){
-	$('#weekContainer').hide();
-}
-
-function showTeamContainer(){
-	$('#teamContainer').show();
-}
-
-function hideTeamContainer(){
-	$('#teamContainer').hide();
-}
-
-function showStatNameContainer(){
-	$('#statNameContainer').show();
-}
-
-function hideStatNameContainer(){
-	$('#statNameContainer').hide();
-}
-
-//function areOptionsShown(){
-//	
-//	if ($('#options').is(':visible')){
-//		return true;
-//	}
-//	
-//	return false;
-//}
-//
-//function showOptions(){
-//	$('#optionsLink').text('Hide options');
-//	$('#options').show();
-//}
-//
-//function hideOptions(){
-//	$('#optionsLink').text('Options');
-//	$('#options').hide();
-//}
-//
-//function toggleOptions(){
-//	
-//	if (areOptionsShown()){
-//		hideOptions();
-//	}
-//	else {
-//		showOptions();
-//	}
-//}
 
 /**
  * 
@@ -2079,6 +1730,14 @@ function recordWinComparisonFunction(record1, record2){
 	return 0;
 }
 
+/**
+ * 
+ * When somebody clicks the "body" of the page, we want it to hide everything, so
+ * that's what this function will do.  It just goes through and calls the function
+ * that hides the selectors.  It also resets them too.
+ * 
+ * @returns
+ */
 function onClickBody(){
 	hideTypeSelector();
 	resetAndHidePlayerSelections();
@@ -2087,6 +1746,13 @@ function onClickBody(){
 	hideStatNameSelector();
 }
 
+/**
+ * 
+ * A convenience function for hiding all the selector containers.  Not much
+ * to it.
+ * 
+ * @returns
+ */
 function hideSelectorContainers(){
 	hideTypeSelector();
 	hidePlayerSelector();
@@ -2123,6 +1789,14 @@ function toggleVisibilty(id){
 	}
 }
 
+/**
+ * 
+ * A really dumb function for checking whether an element with the given
+ * id is visible or not.  Just calls jquery to do the work.
+ * 
+ * @param id
+ * @returns
+ */
 function isVisible(id){
 	
 	var isElementVisible = $('#' + id).is(':visible');
@@ -2302,6 +1976,15 @@ function sortWeekRecordsBySeasonAndWeek(weekRecords){
 	});
 }
 
+/**
+ * 
+ * This function will sort the given array of "week records" so that it
+ * goes in ascending order by the week's year and week (so it's in increasing
+ * order by season and by week within each season).
+ * 
+ * @param weekRecords
+ * @returns
+ */
 function sortWeekRecordsBySeasonWeekAndRecord(weekRecords){
 	
 	//Steps to do:
@@ -2320,9 +2003,9 @@ function sortWeekRecordsBySeasonWeekAndRecord(weekRecords){
 		else if (year1 > year2){
 			return 1;
 		}
-		//same year
+		//If it's the same year...
 		else {
-			//Otherwise, compare on the weeks.
+			//Compare on the weeks.
 			var week1 = weekRecord1.week.weekNumber;
 			var week2 = weekRecord2.week.weekNumber;
 			
@@ -2432,6 +2115,14 @@ function isSpecificWeekSelected(){
 	return true;
 }
 
+/**
+ * 
+ * A convenience function for checking whether a single player is selected or not.
+ * It'll return false if the current selected player is "all" or if it has multiple
+ * values.  Otherwise, it'll return true.
+ * 
+ * @returns
+ */
 function isASinglePlayerSelected(){
 	
 	var selectedPlayer = getSelectedPlayer();
@@ -2748,17 +2439,15 @@ function shortenWeekLabel(label){
 }
 
 /**
- * Here to hold the current weeks games so we can reference them when showing the picks
- * that people make.
  * 
- * I think this is the only global "non-global" variable
+ * This function will check whether the given value has multiple values
+ * in it or not.  Basically, it'll return true if the given value is defined
+ * and it has a comma in it.  It assumes the given value is a string and multiple
+ * values are separated by commas in that string.
+ * 
+ * @param value
+ * @returns
  */
-//var currentMakePicksGames = null;
-
-
-
-/////////////////
-
 function doesValueHaveMultipleValues(value){
 	
 	if (isDefined(value) && value.indexOf(',') != -1){
@@ -2766,4 +2455,44 @@ function doesValueHaveMultipleValues(value){
 	}
 	
 	return false;
+}
+
+function showYearContainer(){
+	$('#yearContainer').show();
+}
+
+function hideYearContainer(){
+	$('#yearContainer').hide();
+}
+
+function showPlayerContainer(){
+	$('#playerContainer').show();
+}
+
+function hidePlayerContainer(){
+	$('#playerContainer').hide();
+}
+
+function showWeekContainer(){
+	$('#weekContainer').show();
+}
+
+function hideWeekContainer(){
+	$('#weekContainer').hide();
+}
+
+function showTeamContainer(){
+	$('#teamContainer').show();
+}
+
+function hideTeamContainer(){
+	$('#teamContainer').hide();
+}
+
+function showStatNameContainer(){
+	$('#statNameContainer').show();
+}
+
+function hideStatNameContainer(){
+	$('#statNameContainer').hide();
 }
