@@ -349,8 +349,12 @@ public class NFLPicksDataService {
 															 "best_weeks.wins, " + 
 															 "best_weeks.losses, " + 
 															 "best_weeks.ties, " + 
-															 "best_weeks.number_of_games, " + 
-															 "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games as decimal), 3) as win_percentage " +
+															 "best_weeks.number_of_games_in_week, " +
+														     "round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_picks as decimal), 3) as win_percentage, " +
+														     "(case when number_of_games_in_week < 10 then round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games_in_week * 10 as decimal), 3) " +
+														    	   "when number_of_picks < 8 then round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_games_in_week * 20 as decimal), 3) " + 
+														    	   "else round(cast(best_weeks.wins as decimal) / cast(best_weeks.number_of_picks as decimal), 3) " + 
+														      "end) as xrank " +
 															//Add up all the wins, losses and ties, so we have totals for the time period.
 															"from (select pick_totals.season_id, " + 
 																	     "pick_totals.year, " + 
@@ -362,7 +366,10 @@ public class NFLPicksDataService {
 																	     "sum(pick_totals.wins) as wins, " + 
 																	     "sum(pick_totals.losses) as losses, " + 
 																	     "sum(pick_totals.ties) as ties, " + 
-																	     "(select count(id) from game gx where gx.week_id = pick_totals.week_id) as number_of_games " +
+																	     "(case when sum(pick_totals.wins) + sum(pick_totals.losses) = 0 then 1 " + 
+																		       "else sum(pick_totals.wins) + sum(pick_totals.losses) " +
+																	     "end) as number_of_picks, " +
+																	     "(select count(id) from game gx where gx.week_id = pick_totals.week_id) as number_of_games_in_week " +
 																 //The "base" query.  "Mark" each pick as a win or loss so the outer query can sum them up and
 																 //get totals.
 																 "from (select pl.id as player_id, " + 
@@ -392,7 +399,7 @@ public class NFLPicksDataService {
 																 	  ") pick_totals " + 
 																"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week_number, week_label " + 
 													") best_weeks " + 
-													"order by win_percentage desc, wins desc ";
+													"order by xrank desc, wins desc, losses desc ";
 	
 	/**
 	 * 
