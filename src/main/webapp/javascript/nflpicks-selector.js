@@ -694,11 +694,6 @@ function hideTeamSelector(){
 var currentTeamSelections = [];
 
 
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearTeams(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllTeams(event);>Select all</a></div>' +
- */
-
 function onClickSelectAllTeams(event){
 	
 	event.stopPropagation();
@@ -850,6 +845,20 @@ function removeTeamFromCurrentSelection(value){
 	if (indexOfValue >= 0){
 		currentTeamSelections.splice(indexOfValue, 1);
 	}
+}
+
+/**
+ * 
+ * This function will cause the given team (the value should be the abbreviation)
+ * to be the only team selected.
+ * 
+ * @param value
+ * @returns
+ */
+function selectSingleTeamFull(value){
+	currentTeamSelections = [];
+	selectTeam(value);
+	addTeamToCurrentSelection(value);
 }
 
 /**

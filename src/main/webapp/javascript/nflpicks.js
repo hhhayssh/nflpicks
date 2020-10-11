@@ -523,13 +523,15 @@ function getSelectionCriteriaAndInitialize(){
 		
 		var statNameOptions = [{label: 'Champions', value: 'champions'},
 		                       {label: 'Championship Standings', value: 'championshipStandings'},
-		                       {label: 'Season standings', value: 'seasonStandings'},
+		                       {label: 'Season Standings', value: 'seasonStandings'},
 		                       {label: 'Week Standings', value: 'weekStandings'},
 		                       {label: 'Weeks Won Standings', value: 'weeksWonStandings'},
 		                       {label: 'Weeks Won By Week', value: 'weeksWonByWeek'},
 		                       {label: 'Week Records By Player', value: 'weekRecordsByPlayer'},
 		                       {label: 'Pick Accuracy', value: 'pickAccuracy'},
-		                       {label: 'Pick Splits', value: 'pickSplits'}];
+		                       {label: 'Pick Splits', value: 'pickSplits'},
+		                       {label: 'Week Comparison', value: 'weekComparison'}];
+
 		var statNameSelectorHtml = createStatNameSelectorHtml(statNameOptions);
 		$('#selectorContainer').append(statNameSelectorHtml);
 		NFL_PICKS_GLOBAL.statNames = statNameOptions;
@@ -1050,6 +1052,12 @@ function updateStatsSelectors(type){
 		showWeeksLink();
 		showTeamsLink();
 	}
+	else if ('weekComparison' == statName){
+		showPlayersLink();
+		showYearsLink();
+		showWeeksLink();
+		hideTeamsLink();
+	}
 	
 	setPreviousType(type);
 }
@@ -1402,6 +1410,7 @@ function updateStandings(){
 
 		//We want the record with the most wins coming first.  If they have the same number
 		//of wins, we want the one with fewer losses coming first.
+		//And if they're tied, we want them ordered by name.
 		records.sort(function (record1, record2){
 			if (record1.wins > record2.wins){
 				return -1;
@@ -1417,6 +1426,14 @@ function updateStandings(){
 					return 1;
 				}
 			}
+			
+			if (record1.player.name < record2.player.name){
+				return -1;
+			}
+			else if (record1.player.name > record2.player.name){
+				return 1;
+			}
+			
 			return 0;
 		});
 		
@@ -1644,6 +1661,12 @@ function updateStats(){
 		else if ('pickSplits' == statName){
 			var pickSplits = $.parseJSON(data);
 			statsHtml = createPickSplitsGridHtml(pickSplits);
+		}
+		else if ('weekComparison' == statName){
+			var weekRecords = $.parseJSON(data);
+			//Like with the other records, we want to sort them before we show them.
+			sortWeekRecordsBySeasonWeekAndRecord(weekRecords);
+			statsHtml = createWeekComparisonHtml(weekRecords);
 		}
 		
 		setContent(statsHtml);
@@ -1926,6 +1949,14 @@ function sortWeekRecords(weekRecords){
 		else if (weekRecord1.weekRecords.length < weekRecord2.weekRecords.length){
 			return 1;
 		}
+
+		//Sort it alphabetically by name if they have the same record.
+		if (weekRecord1.player.name < weekRecord2.player.name){
+			return -1;
+		}
+		else if (weekRecord1.player.name > weekRecord2.player.name){
+			return 1;
+		}
 		return 0;
 	});
 }
@@ -2030,6 +2061,15 @@ function sortWeekRecordsBySeasonWeekAndRecord(weekRecords){
 					}
 					else if (weekRecord1.record.losses > weekRecord2.record.losses){
 						return 1;
+					}
+					//Same year, week, wins, and losses, sort by the name
+					else {
+						if (weekRecord1.player.name < weekRecord2.player.name){
+							return -1;
+						}
+						else if (weekRecord1.player.name > weekRecord2.player.name){
+							return 1;
+						}
 					}
 				}
 			}
@@ -2236,7 +2276,7 @@ function sortAlphabetically(values){
 /**
  * 
  * Here so we can make sure the pick accuracies are in the right order (with the most
- * accuracte team coming first).
+ * accurate team coming first).
  * 
  * @param pickAccuracySummaries
  * @returns
@@ -2257,6 +2297,30 @@ function sortPickAccuracySummariesByTimesRight(pickAccuracySummaries){
 			return 1;
 		}
 		
+		//If they have the same times right, sort on times wrong.
+		if (pickAccuracySummaryA.timesWrong < pickAccuracySummaryB.timesWrong){
+			return -1;
+		}
+		//Fewer times right = back of the list.
+		else if (pickAccuracySummaryA.timesWrong > pickAccuracySummaryB.timesWrong){
+			return 1;
+		}
+		
+		//If they have the same times right and wrong, sort by player name.
+		if (pickAccuracySummaryA.player.name < pickAccuracySummaryB.player.name){
+			return -1;
+		}
+		else if (pickAccuracySummaryA.player.name > pickAccuracySummaryB.player.name){
+			return 1;
+		}
+		
+		//If they have the same player name, sort by team abbreviation.
+		if (pickAccuracySummaryA.team.abbreviation < pickAccuracySummaryB.team.abbreviation){
+			return -1;
+		}
+		else if (pickAccuracySummaryA.team.abbreviation > pickAccuracySummaryB.team.abbreviation){
+			return 1;
+		}
 		return 0;
 		
 	});
@@ -2405,7 +2469,7 @@ function showPickView(year, week, team, player){
 	}
 	
 	if (isDefined(team)){
-		setSelectedTeams(team);
+		selectSingleTeamFull(team);
 	}
 	
 	updateView();
@@ -2428,7 +2492,7 @@ function shortenWeekLabel(label){
 	else if ('Playoffs - Divisional' == label){
 		return 'Divisional';
 	}
-	else if ('Playoffs - Conference Championship' == label){
+	else if ('Playoffs - Conference Championship' == label || 'Conference Championship' == label){
 		return 'Conf champ';
 	}
 	else if ('Playoffs - Super Bowl' == label){

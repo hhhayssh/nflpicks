@@ -327,7 +327,7 @@ public class NFLPicksDataService {
 	 * a given week.
 	 * 
 	 */
-	protected static final String SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD = SELECT_WEEK_RECORDS_BASE + " order by year asc, week_number asc, wins desc, losses asc ";
+	protected static final String SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD = SELECT_WEEK_RECORDS_BASE + " order by year asc, week_number asc, wins desc, losses asc, player_name asc ";
 	
 	/**
 	 * 
@@ -399,7 +399,7 @@ public class NFLPicksDataService {
 																 	  ") pick_totals " + 
 																"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week_number, week_label " + 
 													") best_weeks " + 
-													"order by xrank desc, wins desc, losses desc ";
+													"order by xrank desc, wins desc, losses desc, player_name asc ";
 	
 	/**
 	 * 

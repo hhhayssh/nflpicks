@@ -850,6 +850,7 @@ function createWeeksWonHtml(weekRecords){
 			else if (record1.weekRecords.length < record2.weekRecords.length){
 				return 1;
 			}
+			
 			return 0;
 		}, 
 		function (record1, record2){
@@ -1111,7 +1112,7 @@ function createWeekStandingsHtml(playerWeekRecords){
 		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
 	}
 	
-	//Going to keep this "old school" since doing it "new school" would mean O(n^) for 
+	//Going to keep this "old school" since doing it "new school" would mean O(n^2) for 
 	//getting a record's rank ... and we could have hundreds of records (since there might be a
 	//lot of players, with 17 * number of years worth of weeks for each player.
 
@@ -1369,6 +1370,13 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 			return 1;
 		}
 		
+		if (playerChampionships1.player.name < playerChampionships2.player.name){
+			return -1;
+		}
+		else if (playerChampionships1.player.name > playerChampionships2.player.name){
+			return 1;
+		}
+		
 		return 0;
 	});
 	
@@ -1582,19 +1590,6 @@ function createSeasonStandingsHtml(seasonRecords){
 		
 		var percentageString = getWinningPercentage(seasonRecord.record.wins, seasonRecord.record.losses);
 		
-		/*
-		 var standingsHeaderHtml = '<thead class="standings-table-head">' +
-						 			'<th class="standings-table-player-header"></th>' +
-						 			yearHeader + 
-						 			'<th class="standings-table-header-small">W</th>' + 
-						 			'<th class="standings-table-header-small">L</th>' +
-						 			tiesHeader + 
-						 			'<th class="standings-table-header-small">%</th>' + 
-						 			'<th class="standings-table-header">Rank In Season</th>' +
-						 			'<th class="standings-table-header">Championship</th>' + 
-						 	   '</thead>';
-		 */
-		
 		var championship = '<td></td>';
 		if (seasonRecord.championship){
 			championship = '<td><img src="files/wwf-belt-icon.png" width="32" height="15" title="Won Championship"/></td>';
@@ -1614,7 +1609,6 @@ function createSeasonStandingsHtml(seasonRecords){
 		
 		//Keep the current rank as the previous for the next time through.
 		previousRank = rank;
-		
 	}
 	
 	var standingsBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + '</tbody>';
@@ -2119,4 +2113,200 @@ function createPickSplitsGridHtml(pickSplits){
 	var pickSplitsHtml = '<table class="picks-table" align="center">' + pickSplitsHeaderHtml + pickSplitsBodyHtml + '</table>';;
 	
 	return pickSplitsHtml;
+}
+
+/**
+ * 
+ * This function will create the "week comparison" html.  It expects the given "week records"
+ * to basically be a sorted list of "player week records" (which are the records for a given year, week,
+ * and record, sorted in that order).
+ * 
+ * It will go through and try to make a table like this:
+ * 
+ * Week comparison
+ * 
+ * 		Year	Week		Player				Result
+ * 		2019	12			Doodle (10 - 4) 	Doodle (+1)
+ * 							Jerry (9 - 5)
+ * 		2019	13			Jerry (9 - 7)		Jerry (+1)
+ * 							Doodle (8 - 8)
+ * 
+ * This will show who won each week and how much they won it by.  I made it so it's hopefully easy
+ * to see what the differences between people are (like to see where somebody blows it, pretty much).
+ * 
+ * @param weekRecords
+ * @returns
+ */
+function createWeekComparisonHtml(weekRecords){
+	
+	//Steps to do:
+	//	1. Make the header (add in one for ties and a year if they haven't picked one).
+	//	2. Go through and output each record and that's pretty much it.
+
+	//Only show the years and weeks if a specific one isn't selected.
+	var yearHeader = '';
+	var aYearIsSelected = isSpecificYearSelected();
+	if (!aYearIsSelected){
+		yearHeader = '<th class="common-table-header">Year</th>';
+	}
+	
+	var weekHeader = '';
+	var aWeekIsSelected = isSpecificWeekSelected();
+	if (!aWeekIsSelected){
+		weekHeader = '<th class="common-table-header">Week</th>';
+	}
+	
+	var tableHead = '<thead class="standings-table-head">' + 
+						'<tr class="standings-table-row">' + 
+							yearHeader +
+							weekHeader +
+							'<th class="common-table-header">Player</th>' +
+							'<th class="common-table-header">Result</th>' + 
+						'</tr>' +
+					'</thead>';
+	
+	var tableBody = '<tbody class="standings-table-body">';
+	
+	if (isEmpty(weekRecords)){
+		tableBody = tableBody + '<tr><td colspan="7" style="text-align: center;">No results</td></tr>';
+	}
+
+	//All the records should be sorted by year, week, and record.  They're all in one giant list
+	//so we'll have to kind of "detect" the change from one year and week to the next.
+	//These variables will let us do that.
+	//Whenever the record we just got has a different year or week from what we just processed,
+	//that means the year or week changed, so we should output a row using the records we've been
+	//"collecting" for the (now previous) week.
+	var previousWeekRecord = null;
+	//These are the records for the current week.  We're "collecting" from the big list into this one
+	//and, once we hit a new week, we'll use this array to output the row for the records we collected.
+	var currentRecords = [];
+	
+	for (var index = 0; index < weekRecords.length; index++){
+		var weekRecord = weekRecords[index];
+
+		//The first time through, we don't have a previous record yet so we should just set it now.
+		if (previousWeekRecord == null){
+			previousWeekRecord = weekRecord;
+		}
+		
+		//We should output a row if:
+		//	1. The year changed between the previous record and this one.
+		//	2. The week changed between the previous record and this one.
+		//	3. We're at the end of the list.
+		if (previousWeekRecord.season.year != weekRecord.season.year || 
+				previousWeekRecord.week.label != weekRecord.week.label ||
+				index + 1 == weekRecords.length){
+			
+			//If this is the last record in the list, add it to the current records.
+			if (index + 1 == weekRecords.length){
+				currentRecords.push(weekRecord);
+			}
+			
+			//Add the year if we have it.
+			var yearCell = '';
+			if (!aYearIsSelected){
+				yearCell = '<td class="common-table-cell">' + previousWeekRecord.season.year + '</td>';
+			}
+			
+			var weekCell = '';
+			if (!aWeekIsSelected){
+				//We'll want a link to the picks grid for the week.
+				var weekLabelToUse = shortenWeekLabel(previousWeekRecord.week.label);
+				var picksLink = createPicksLink(weekLabelToUse, previousWeekRecord.season.year, previousWeekRecord.week.weekNumber, null, null);
+				weekCell = '<td class="common-table-cell">' + picksLink + '</td>'; 
+			}
+
+			//And we have the first part of the row.
+			var row = '<tr class="standings-table-row">' +
+						yearCell +
+						weekCell;
+			
+			//Now we just have to add a column for the records for the players for the week.
+			//And then another that shows the result (who won and by how much).
+			var playersCell = '<td class="common-table-cell"><ul style="list-style: none; padding: 0px;">';
+			
+			//The record with the largest number of wins for the week.  Keeping this so we can calculate the difference
+			//between it and the one that was second.
+			var topWins = 0;
+			var previousWins = 0;
+			var winDifference = 0;
+
+			//The names of the players who won the week.  There could be more than one.
+			var winningPlayerNames = [];
+			
+			for (var currentRecordIndex = 0; currentRecordIndex < currentRecords.length; currentRecordIndex++){
+				var currentRecord = currentRecords[currentRecordIndex];
+				
+				//Add the record for the player to the list.
+				var recordLabelToUse = '';
+				if (isDefined(currentRecord.record.ties) && currentRecord.record.ties != 0){
+					recordLabelToUse = '(' + currentRecord.record.wins + ' - ' + currentRecord.record.losses + ' - ' + currentRecord.record.ties + ')';
+				}
+				else {
+					recordLabelToUse = '(' + currentRecord.record.wins + ' - ' + currentRecord.record.losses + ')';
+				}
+				
+				playersCell = playersCell + '<li>' + currentRecord.player.name + ' ' + recordLabelToUse + '</li>';
+				
+				//If this record has as many or more wins than the current top wins, add them to the list.
+				//Since all the records are sorted by the number of wins, we should only go into this the first
+				//time we see a record or when a record ties the one we saw the first time.
+				if (currentRecord.record.wins >= topWins){
+					winningPlayerNames.push(currentRecord.player.name);
+					topWins = currentRecord.record.wins;
+				}
+				//Otherwise, the record didn't win during the week.  If we haven't calculated a difference
+				//for the week yet, that means it came in second.  In that case, we'll want to calculate the 
+				//difference between it and the "top wins" so we can show how much the top person won by.
+				else {
+					if (winDifference == 0){
+						winDifference = topWins - currentRecord.record.wins;
+					}
+				}
+				
+				previousWins = currentRecord.record.wins;
+			}
+			
+			//And now we have the players all in a list so we can add them to the table.
+			playersCell = playersCell + '</ul></td>';
+			
+			//For the result cell, we just want to list the names of the winners and, for the first winner,
+			//how much all the winners beat 2nd place by.
+			var resultCell = '<td class="common-table-cell"><ul class="standings-table-cell-list">';
+			for (var winningNameIndex = 0; winningNameIndex < winningPlayerNames.length; winningNameIndex++){
+				var playerName = winningPlayerNames[winningNameIndex];
+				
+				//Add how much the player won by if we're on the first player.
+				if (winningNameIndex == 0){
+					if (winDifference == 0){
+						playerName = playerName + ' (tie)';
+					}
+					else {
+						playerName = playerName + ' (+' + winDifference + ')';
+					}
+				}
+				
+				resultCell = resultCell + '<li>' + playerName + '</li>';
+			}
+			
+			//And we're done with the result table.
+			resultCell = resultCell + '</ul></td>';
+			
+			row = row + playersCell + resultCell + '</tr>';
+			
+			tableBody = tableBody + row;
+			
+			currentRecords = [];
+		}
+		
+		currentRecords.push(weekRecord);
+		previousWeekRecord = weekRecord;
+	}
+	
+	tableBody = tableBody + '</tbody>';
+
+	var weekRecordsByPlayerHtml = '<table class="standings-table">' + tableHead + tableBody + '</table>';
+	
+	return weekRecordsByPlayerHtml;
 }

@@ -371,3 +371,11 @@ html, body {
 	padding-left: 5px;
 	padding-right: 5px;
 }
+
+.common-table-header {
+	padding-right: 10px;
+}
+
+.common-table-cell {
+	padding-right: 10px;
+}
