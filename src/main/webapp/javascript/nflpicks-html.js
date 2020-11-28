@@ -2161,7 +2161,7 @@ function createWeekComparisonHtml(weekRecords){
 							yearHeader +
 							weekHeader +
 							'<th class="common-table-header">Player</th>' +
-							'<th class="common-table-header">Result</th>' + 
+							'<th class="common-table-header">Winner</th>' + 
 						'</tr>' +
 					'</thead>';
 	
@@ -2309,4 +2309,308 @@ function createWeekComparisonHtml(weekRecords){
 	var weekRecordsByPlayerHtml = '<table class="standings-table">' + tableHead + tableBody + '</table>';
 	
 	return weekRecordsByPlayerHtml;
+}
+
+/**
+ * 
+ * This function will create the "season progression" html.  The season progression
+ * is basically like totaling up all the records for a season (or multiple seasons) as
+ * they go.  So, like, if it's for a season, after the first week it'll show the records
+ * for week 1.  After week 2, it'll show the records <i>through</i> week 2 (week 1 + week 2).
+ * After week 3, it'll show the records through week 3 (week 1 + week 2 + week 3)... and so on.
+ * 
+ * The table it makes is just like the "week comparison" one where it'll show the records
+ * in one column and then who won and by how much in the other column.  
+ * 
+ * It's here so we can see how records change as it goes along...
+ * 
+ * @param weekRecords
+ * @returns
+ */
+function createSeasonProgressionHtml(weekRecords){
+	
+	//Steps to do:
+	//	1. Make the header (add in one for ties and a year if they haven't picked one).
+	//	2. Go through the records and, when we've hit a "batch" for a week...
+	//	3. Add those weeks to the "accumulated records" we've processed so far.
+	//	4. Output the accumulated records up to that point.
+	//	5. Keep going through the records, stopping to add them to the accumulated records
+	//	   when we hit the end of a week.
+
+	//Only show the years and weeks if a specific one isn't selected.
+	var yearHeader = '';
+	var aYearIsSelected = isSpecificYearSelected();
+	if (!aYearIsSelected){
+		yearHeader = '<th class="common-table-header">Year</th>';
+	}
+	
+	var weekHeader = '';
+	var aWeekIsSelected = isSpecificWeekSelected();
+	if (!aWeekIsSelected){
+		weekHeader = '<th class="common-table-header">Week</th>';
+	}
+	
+	var tableHead = '<thead class="standings-table-head">' + 
+						'<tr class="standings-table-row">' + 
+							yearHeader +
+							weekHeader +
+							'<th class="common-table-header">Player</th>' +
+							'<th class="common-table-header">Winner</th>' + 
+						'</tr>' +
+					'</thead>';
+	
+	var tableBody = '<tbody class="standings-table-body">';
+	
+	if (isEmpty(weekRecords)){
+		tableBody = tableBody + '<tr><td colspan="7" style="text-align: center;">No results</td></tr>';
+	}
+
+	//All the records should be sorted by year, week, and record.  They're all in one giant list
+	//so we'll have to kind of "detect" the change from one year and week to the next.
+	//These variables will let us do that.
+	//Whenever the record we just got has a different year or week from what we just processed,
+	//that means the year or week changed, so we should output a row using the records we've been
+	//"collecting" for the (now previous) week.
+	var previousWeekRecord = null;
+	//These are the records for the current week.  We're "collecting" from the big list into this one
+	//and, once we hit a new week, we'll use this array to output the row for the records we collected.
+	var currentRecords = [];
+	
+	//These are the records for all the weeks so far.  When we hit the "end" of the records for a week,
+	//we'll take the records for that week and add them to the records here (so that this has the total
+	//for a player's record up to that point).
+	var accumulatedRecords = [];
+	
+	for (var index = 0; index < weekRecords.length; index++){
+		var weekRecord = weekRecords[index];
+
+		//The first time through, we don't have a previous record yet so we should just set it now.
+		if (previousWeekRecord == null){
+			previousWeekRecord = weekRecord;
+		}
+		
+		//We should output a row if:
+		//	1. The year changed between the previous record and this one.
+		//	2. The week changed between the previous record and this one.
+		//	3. We're at the end of the list.
+		if (previousWeekRecord.season.year != weekRecord.season.year || 
+				previousWeekRecord.week.label != weekRecord.week.label ||
+				index + 1 == weekRecords.length){
+			
+			//If this is the last record in the list, add it to the current records.
+			if (index + 1 == weekRecords.length){
+				currentRecords.push(weekRecord);
+			}
+			
+			//Add the year if we have it.
+			var yearCell = '';
+			if (!aYearIsSelected){
+				yearCell = '<td class="common-table-cell">' + previousWeekRecord.season.year + '</td>';
+			}
+			
+			var weekCell = '';
+			if (!aWeekIsSelected){
+				//We'll want a link to the picks grid for the week.
+				var weekLabelToUse = shortenWeekLabel(previousWeekRecord.week.label);
+				var picksLink = createPicksLink(weekLabelToUse, previousWeekRecord.season.year, previousWeekRecord.week.weekNumber, null, null);
+				weekCell = '<td class="common-table-cell">' + picksLink + '</td>'; 
+			}
+
+			//And we have the first part of the row.
+			var row = '<tr class="standings-table-row">' +
+						yearCell +
+						weekCell;
+			
+			//Now we just have to add a column for the records for the players for the week.
+			//And then another that shows the result (who won and by how much).
+			var playersCell = '<td class="common-table-cell"><ul style="list-style: none; padding: 0px;">';
+			
+			//The record with the largest number of wins for the week.  Keeping this so we can calculate the difference
+			//between it and the one that was second.
+			var topWins = 0;
+			var previousWins = 0;
+			var winDifference = 0;
+
+			//The names of the players who won the week.  There could be more than one.
+			var winningPlayerNames = [];
+			
+			//Since we're through a week, it's time to add what we have for this week to what we've "accumulated" so far.
+			for (var currentRecordIndex = 0; currentRecordIndex < currentRecords.length; currentRecordIndex++){
+				var currentRecord = currentRecords[currentRecordIndex];
+			
+				//For each record, get the "accumulated" record for that player.
+				var accumulatedRecord = getAccumulatedRecord(currentRecord.player.id, accumulatedRecords);
+
+				//If we find a record, then we just have to add the current record's wins and losses to it.
+				if (accumulatedRecord != null){
+					accumulatedRecord.record.wins = accumulatedRecord.record.wins + currentRecord.record.wins;
+					accumulatedRecord.record.losses = accumulatedRecord.record.losses + currentRecord.record.losses;
+					if (isDefined(currentRecord.record.ties) && currentRecord.record.ties != 0){
+						accumulatedRecord.record.ties = accumulatedRecord.record.ties + currentRecord.record.ties;
+					}
+				}
+				//Otherwise, if we don't find a record, the this is the first time through, so the record to this point
+				//is just the current record's record.  So, just copy everything to it.
+				else {
+					accumulatedRecord = {};
+					accumulatedRecord.player = currentRecord.player;
+					accumulatedRecord.record = currentRecord.record;
+					//Don't really need the season and week, but I'm copying them anyway.
+					accumulatedRecord.season = currentRecord.season;
+					accumulatedRecord.week = currentRecord.week;
+					accumulatedRecords.push(accumulatedRecord);
+				}
+			}
+			
+			//Now that we have all the current records added in, we have to "resort" the accumulated records because
+			//the "ranking" might have changed.
+			sortAccumulatedRecords(accumulatedRecords);
+			
+			//Now that they're sorted, we just have to output them in the order they're in, just like we do with the
+			//week comparison html.
+			for (var accumulatedRecordIndex = 0; accumulatedRecordIndex < accumulatedRecords.length; accumulatedRecordIndex++){
+				var accumulatedRecord = accumulatedRecords[accumulatedRecordIndex];
+				
+				//Add the record for the player to the list.
+				var recordLabelToUse = '';
+				if (isDefined(accumulatedRecord.record.ties) && accumulatedRecord.record.ties != 0){
+					recordLabelToUse = '(' + accumulatedRecord.record.wins + ' - ' + accumulatedRecord.record.losses + ' - ' + accumulatedRecord.record.ties + ')';
+				}
+				else {
+					recordLabelToUse = '(' + accumulatedRecord.record.wins + ' - ' + accumulatedRecord.record.losses + ')';
+				}
+				
+				playersCell = playersCell + '<li>' + accumulatedRecord.player.name + ' ' + recordLabelToUse + '</li>';
+				
+				//If this record has as many or more wins than the current top wins, add them to the list.
+				//Since all the records are sorted by the number of wins, we should only go into this the first
+				//time we see a record or when a record ties the one we saw the first time.
+				if (accumulatedRecord.record.wins >= topWins){
+					winningPlayerNames.push(accumulatedRecord.player.name);
+					topWins = accumulatedRecord.record.wins;
+				}
+				//Otherwise, the record didn't win during the week.  If we haven't calculated a difference
+				//for the week yet, that means it came in second or worse.  In that case, we'll want to calculate the 
+				//difference between it and the "top wins" so we can show how much the top person won by.
+				else {
+					if (winDifference == 0){
+						winDifference = topWins - accumulatedRecord.record.wins;
+					}
+				}
+				
+				previousWins = accumulatedRecord.record.wins;
+			}
+			
+			//And now we have the players all in a list so we can add them to the table.
+			playersCell = playersCell + '</ul></td>';
+			
+			//For the result cell, we just want to list the names of the winners and, for the first winner,
+			//how much all the winners beat 2nd place by.
+			var resultCell = '<td class="common-table-cell"><ul class="standings-table-cell-list">';
+			for (var winningNameIndex = 0; winningNameIndex < winningPlayerNames.length; winningNameIndex++){
+				var playerName = winningPlayerNames[winningNameIndex];
+				
+				//Add how much the player won by if we're on the first player.
+				if (winningNameIndex == 0){
+					if (winDifference == 0){
+						playerName = playerName + ' (tie)';
+					}
+					else {
+						playerName = playerName + ' (+' + winDifference + ')';
+					}
+				}
+				
+				resultCell = resultCell + '<li>' + playerName + '</li>';
+			}
+			
+			//And we're done with the result table.
+			resultCell = resultCell + '</ul></td>';
+			
+			row = row + playersCell + resultCell + '</tr>';
+			
+			tableBody = tableBody + row;
+			
+			currentRecords = [];
+		}
+		
+		currentRecords.push(weekRecord);
+		previousWeekRecord = weekRecord;
+	}
+	
+	tableBody = tableBody + '</tbody>';
+
+	var weekRecordsByPlayerHtml = '<table class="standings-table">' + tableHead + tableBody + '</table>';
+	
+	return weekRecordsByPlayerHtml;
+}
+
+/**
+ * 
+ * This function will get the accumulated record for the player with the given id
+ * from the given list of accumulated records.  If there isn't a record with that player,
+ * it'll return null.
+ * 
+ * @param playerId
+ * @param accumulatedRecords
+ * @returns
+ */
+function getAccumulatedRecord(playerId, accumulatedRecords){
+	
+	for (var index = 0; index < accumulatedRecords.length; index++){
+		var accumulatedRecord = accumulatedRecords[index];
+		
+		if (playerId == accumulatedRecord.player.id){
+			return accumulatedRecord;
+		}
+	}
+	
+	return null;
+}
+
+/**
+ * 
+ * This function will sort the accumulated records in the usual order: 
+ * by the largest number of wins.  If two records have the same number of wins, then
+ * it's by the fewest number of losses.  If two records have the same number of wins
+ * and losses, then it's alphabetical by name.
+ * 
+ * @param accumulatedRecords
+ * @returns
+ */
+function sortAccumulatedRecords(accumulatedRecords){
+	
+	accumulatedRecords.sort(function(accumulatedRecord1, accumulatedRecord2){
+		
+		//Most wins goes first.
+		if (accumulatedRecord1.record.wins > accumulatedRecord2.record.wins){
+			return -1;
+		}
+		else if (accumulatedRecord1.record.wins < accumulatedRecord2.record.wins){
+			return 1;
+		}
+		//If they have the same number of wins...
+		else {
+			//Fewest losses goes first.
+			if (accumulatedRecord1.record.losses < accumulatedRecord2.record.losses){
+				return -1;
+			}
+			else if (accumulatedRecord1.record.losses > accumulatedRecord2.record.losses){
+				return 1;
+			}
+			//If they have the same number of wins and losses...
+			else {
+				//Go by their name.
+				if (accumulatedRecord1.player.name < accumulatedRecord2.player.name){
+					return -1;
+				}
+				else if (accumulatedRecord1.player.name > accumulatedRecord2.player.name){
+					return 1;
+				}
+			}
+		}
+		
+		//Blah
+		return 0;
+	});
+	
 }

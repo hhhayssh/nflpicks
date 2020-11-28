@@ -530,7 +530,8 @@ function getSelectionCriteriaAndInitialize(){
 		                       {label: 'Week Records By Player', value: 'weekRecordsByPlayer'},
 		                       {label: 'Pick Accuracy', value: 'pickAccuracy'},
 		                       {label: 'Pick Splits', value: 'pickSplits'},
-		                       {label: 'Week Comparison', value: 'weekComparison'}];
+		                       {label: 'Week Comparison', value: 'weekComparison'},
+		                       {label: 'Season Progression', value: 'seasonProgression'}];
 
 		var statNameSelectorHtml = createStatNameSelectorHtml(statNameOptions);
 		$('#selectorContainer').append(statNameSelectorHtml);
@@ -1053,6 +1054,12 @@ function updateStatsSelectors(type){
 		showTeamsLink();
 	}
 	else if ('weekComparison' == statName){
+		showPlayersLink();
+		showYearsLink();
+		showWeeksLink();
+		hideTeamsLink();
+	}
+	else if ('seasonProgression' == statName){
 		showPlayersLink();
 		showYearsLink();
 		showWeeksLink();
@@ -1667,6 +1674,12 @@ function updateStats(){
 			//Like with the other records, we want to sort them before we show them.
 			sortWeekRecordsBySeasonWeekAndRecord(weekRecords);
 			statsHtml = createWeekComparisonHtml(weekRecords);
+		}
+		else if ('seasonProgression' == statName){
+			var weekRecords = $.parseJSON(data);
+			//Like with the other records, we want to sort them before we show them.
+			sortWeekRecordsBySeasonWeekAndRecord(weekRecords);
+			statsHtml = createSeasonProgressionHtml(weekRecords);
 		}
 		
 		setContent(statsHtml);
