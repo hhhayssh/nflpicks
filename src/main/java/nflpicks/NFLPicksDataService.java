@@ -6712,15 +6712,16 @@ public class NFLPicksDataService {
 	 * This function will get the season long records for the given years and players.  Not much to it.
 	 * 
 	 * @param years
+	 * @param weeks
 	 * @param players
 	 * @return
 	 */
-	public List<SeasonRecordForPlayer> getSeasonRecords(List<String> years, List<String> players){
+	public List<SeasonRecordForPlayer> getSeasonRecords(List<String> years, List<String> weeks, List<String> players){
 		
 		//Steps to do:
 		//	1. Get all the championships since we want to mark them if somebody won
 		//	   one in a season.
-		//	2. Go through and get the records for the years and players we were given.
+		//	2. Go through and get the records for the years, weeks, and players we were given.
 		//	3. Map each one and that's it.
 		
 		List<SeasonRecordForPlayer> seasonRecords = new ArrayList<SeasonRecordForPlayer>();
@@ -6765,6 +6766,20 @@ public class NFLPicksDataService {
 				whereClause = whereClause + " s.year in " + inParameterString;
 			}
 			
+			boolean hasWeeks = Util.hasSomething(weeks);
+			if (hasWeeks){
+				if (addedWhere){
+					whereClause = whereClause + " and ";
+				}
+				else {
+					whereClause = whereClause + " where ";
+					addedWhere = true;
+				}
+				
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weeks.size());
+				whereClause = whereClause + " w.week_number in " + inParameterString;
+			}
+			
 			boolean hasPlayers = Util.hasSomething(players);
 			if (hasPlayers){
 				if (addedWhere){
@@ -6791,6 +6806,14 @@ public class NFLPicksDataService {
 				}
 			}
 			
+			if (hasWeeks){
+				for (int index = 0; index < weeks.size(); index++){
+					String week = weeks.get(index);
+					statement.setInt(parameterIndex, Integer.parseInt(week));
+					parameterIndex++;
+				}
+			}
+			
 			if (hasPlayers){
 				for (int index = 0; index < players.size(); index++){
 					String player = players.get(index);
@@ -6809,7 +6832,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting season records!  years = " + years, e);
+			log.error("Error getting season records!  years = " + years + ", weeks = " + weeks + ", players = " + players, e);
 		}
 		finally {
 			close(results, statement, connection);

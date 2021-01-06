@@ -478,13 +478,19 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
+				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weeks = null;
+				if (!PARAMETER_VALUE_ALL.equals(weeksString)){
+					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				}
+				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
 				List<String> years = null; 
 				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<SeasonRecordForPlayer> seasonRecords = dataService.getSeasonRecords(years, players);
+				List<SeasonRecordForPlayer> seasonRecords = dataService.getSeasonRecords(years, weeks, players);
 				
 				json = JSONUtil.seasonRecordsForPlayersToJSONString(seasonRecords);
 			}

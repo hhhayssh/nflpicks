@@ -1014,7 +1014,7 @@ function updateStatsSelectors(type){
 	else if ('seasonStandings' == statName){
 		showPlayersLink();
 		showYearsLink();
-		hideWeeksLink();
+		showWeeksLink();
 		hideTeamsLink();
 	}
 	else if ('weekStandings' == statName){
