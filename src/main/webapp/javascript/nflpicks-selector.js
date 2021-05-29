@@ -1939,6 +1939,22 @@ function addWeekToCurrentSelection(value){
 	currentWeekSelections.push(value);
 }
 
+/**
+ * 
+ * This function will completely unselect the week by its value.
+ * It will make the week unselected on the ui, remove it from
+ * the "current selections" array, and update the selected weeks
+ * in the NFL_PICKS_GLOBAL variable.
+ * 
+ * @param value
+ * @returns
+ */
+function unselectWeekFull(value){
+	unselectWeek(value);
+	removeWeekFromCurrentSelection(value);
+	setSelectedWeeks(currentWeekSelections);
+}
+
 function unselectWeeksByValue(weeks){
 	for (var index = 0; index < weeks.length; index++){
 		var week = weeks[index];
@@ -2019,13 +2035,65 @@ function getSelectedWeekValues(){
 	return weekValues;
 }
 
+function getRegularSeasonWeeksForSelectedYears(){
+	
+	var selectedYearValues = getSelectedYearValues();
+	var integerYearValues = getValuesAsIntegers(selectedYearValues);
+	
+	var regularSeasonWeeksBefore2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
+								    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
+								    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
+								    'SUPERBOWL'];
+	
+	var regularSeasonWeeksAfter2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
+	    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
+	    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WEEK_18', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
+	    'SUPERBOWL'];
+	
+	for (var index = 0; index < integerYearValues.length; index++){
+		var integerYearValue = integerYearValues[index];
+		
+		if (integerYearValue >= 2021){
+			return regularSeasonWeeksAfter2021;
+		}
+	}
+	
+	return regularSeasonWeeksBefore2021;
+}
+
+function getAllWeekValuesForSelectedYears(){
+	
+	var selectedYearValues = getSelectedYearValues();
+	var integerYearValues = getValuesAsIntegers(selectedYearValues);
+	
+	var availableWeeksBefore2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
+								    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
+								    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
+								    'SUPERBOWL'];
+	
+	var availableWeeksAfter2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
+	    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
+	    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WEEK_18', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
+	    'SUPERBOWL'];
+	
+	for (var index = 0; index < integerYearValues.length; index++){
+		var integerYearValue = integerYearValues[index];
+		
+		if (integerYearValue >= 2021){
+			return availableWeeksAfter2021;
+		}
+	}
+	
+	return availableWeeksBefore2021;
+}
+
 function getWeekValuesForRequest(){
 	
 	var selectedValues = getSelectedWeekValues();
 	
 	var valuesToSend = [];
 	
-	var realWeeks = getRealWeeks();
+	var realWeeks = getAllWeekValuesForSelectedYears();
 	
 	for (var index = 0; index < selectedValues.length; index++){
 		var selectedValue = selectedValues[index];
@@ -2033,14 +2101,15 @@ function getWeekValuesForRequest(){
 		if ('all' == selectedValue){
 			for (var index2 = 0; index2 < realWeeks.length; index2++){
 				var realWeek = realWeeks[index2];
-				valuesToSend.push(realWeek.value);
+				valuesToSend.push(realWeek);
 			}
 		}
+		//needs to change....
 		else if ('regular-season' == selectedValue){
-			valuesToSend = valuesToSend.concat(['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16', '17']);
+			valuesToSend = getRegularSeasonWeeksForSelectedYears();
 		}
 		else if ('playoffs' == selectedValue){
-			valuesToSend = valuesToSend.concat(['18', '19', '20', '21']);
+			valuesToSend = valuesToSend.concat(['WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP', 'SUPERBOWL']);
 		}
 		else {
 			valuesToSend.push(selectedValue);
@@ -2057,4 +2126,37 @@ function getWeekValuesForRequest(){
 
 function getSelectedWeeks(){
 	return NFL_PICKS_GLOBAL.selections.weeks;
+}
+
+function getWeekSelectorContainerId(week){
+	
+	var normalizedWeekValue = normalizeWeekValue(week);
+	
+	var weekSelectorContainerId = 'week-selector-container-' + normalizedWeekValue;
+	
+	return weekSelectorContainerId;
+}
+
+function showWeekItem(week){
+	var weekSelectorContainerId = getWeekSelectorContainerId(week);
+	$('#' + weekSelectorContainerId).show();
+}
+
+function hideWeekItem(week){
+	var weekSelectorContainerId = getWeekSelectorContainerId(week);
+	$('#' + weekSelectorContainerId).hide();
+}
+
+function showWeekItems(weeks){
+	for (var index = 0; index < weeks.length; index++){
+		var week = weeks[index];
+		showWeekItem(week);
+	}
+}
+
+function hideWeekItems(weeks){
+	for (var index = 0; index < weeks.length; index++){
+		var week = weeks[index];
+		hideWeekItem(week);
+	}
 }

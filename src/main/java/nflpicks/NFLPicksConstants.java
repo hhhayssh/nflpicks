@@ -63,6 +63,36 @@ public interface NFLPicksConstants {
 	 */
 	public static final int TIE_WINNING_TEAM_ID = -1;
 	
+	/**
+	 * This says the week is in the regular season.
+	 */
+	public static final String WEEK_TYPE_REGULAR_SEASON = "REGULAR_SEASON";
+	
+	/**
+	 * This says the week is in the playoffs.
+	 */
+	public static final String WEEK_TYPE_PLAYOFFS = "PLAYOFFS";
+	
+	/**
+	 * This says the week is part of the wildcard round of the playoffs.
+	 */
+	public static final String WEEK_KEY_WILDCARD = "WILDCARD";
+	
+	/**
+	 * This says the week is part of the divisional round of the playoffs.
+	 */
+	public static final String WEEK_KEY_DIVISIONAL = "DIVISIONAL";
+	
+	/**
+	 * This says the week is part of the conference championships blah.
+	 */
+	public static final String WEEK_KEY_CONFERENCE_CHAMPIONSHIP = "CONFERENCE_CHAMPIONSHIP";
+	
+	/**
+	 * This says it's the superbowl.
+	 */
+	public static final String WEEK_KEY_SUPERBOWL = "SUPERBOWL";
+	
 	// Constants for the names of json fields.  They're here because I'm not doing any of that
 	// auto crap and I wanted to use constants.
 	
@@ -142,7 +172,7 @@ public interface NFLPicksConstants {
 	public static final String JSON_SELECTION_CRITERIA_TEAMS = "teams";
 	
 	public static final String JSON_CURRENT_YEAR = "currentYear";
-	public static final String JSON_CURRENT_WEEK_NUMBER = "currentWeekNumber";
+	public static final String JSON_CURRENT_WEEK_KEY = "currentWeekKey";
 	
 	public static final String JSON_PICK_ACCURACY_SUMMARY_PLAYER = "player";
 	public static final String JSON_PICK_ACCURACY_SUMMARY_TEAM = "team";
@@ -163,6 +193,7 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_COMPACT_PICK_YEAR = "year";
 	public static final String JSON_COMPACT_PICK_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_COMPACT_PICK_WEEK_KEY = "weekKey";
 	public static final String JSON_COMPACT_PICK_WEEK_LABEL = "weekLabel";
 	public static final String JSON_COMPACT_PICK_HOME_TEAM_ABBREVIATION = "homeTeamAbbreviation";
 	public static final String JSON_COMPACT_PICK_AWAY_TEAM_ABBREVIATION = "awayTeamAbbreviation";

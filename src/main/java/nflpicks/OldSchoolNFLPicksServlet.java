@@ -104,13 +104,6 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				year = Util.getCurrentYear();
 			}
 			
-			int weekInt = Util.parseInt(week, 0);
-			
-			if (weekInt == 0){
-				week = null;
-				weekInt = 1;
-			}
-			
 			List<Player> players = null;
 			if ("all".equals(player)){
 				players = dataService.getPlayersForYear(year);
@@ -132,15 +125,15 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				playerNames.add(currentPlayer.getName());
 			}
 			
-			List<Game> games = dataService.getGames(year, weekInt);
+			List<Game> games = dataService.getGames(year, week);
 			
 			List<Pick> picks = null;
 			
 			if ("all".equals(player)){
-				picks = dataService.getPicks(year, weekInt);
+				picks = dataService.getPicks(year, week);
 			}
 			else {
-				picks = dataService.getPicks(player, year, weekInt);
+				picks = dataService.getPicks(player, year, week);
 			}
 			
 			List<String> years = year == null ? null : Arrays.asList(year);
@@ -260,7 +253,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 		}
 		for (int index = 0; index < weeks.size(); index++){
 			Week currentWeek = weeks.get(index);
-			weekOptions.add(new String[]{String.valueOf(currentWeek.getWeekNumber()), String.valueOf(currentWeek.getLabel())});
+			weekOptions.add(new String[]{String.valueOf(currentWeek.getSequenceNumber()), String.valueOf(currentWeek.getLabel())});
 		}
 		
 		String typeSelectHtml = HtmlUtil.createSelectHtml(typeOptions, type, "type", "type", null, "criteria-selector", null);

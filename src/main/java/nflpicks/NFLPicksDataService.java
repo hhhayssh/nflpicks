@@ -138,15 +138,19 @@ public class NFLPicksDataService {
 	//Statements for dealing with the week table.
 	protected static final String SELECT_WEEK = "select id, " +
 												"season_id, " +
-												"week_number, " + 
+												"sequence_number, " + 
+												"type, " +
+												"key, " +
 												"label " + 
 												"from week ";
 	
-	protected static final String INSERT_WEEK = "insert into week (season_id, week_number, label) values (?, ?, ?) ";
+	protected static final String INSERT_WEEK = "insert into week (season_id, sequence_number, type, key, label) values (?, ?, ?, ?, ?) ";
 	
 	protected static final String UPDATE_WEEK = "update week " + 
 												"set season_id = ?, " + 
-												"week_number = ?, " + 
+												"sequence_number = ?, " +
+												"type = ?, " +
+												"key = ?, " +
 												"label = ? " + 
 												"where id = ? ";
 	
@@ -246,7 +250,8 @@ public class NFLPicksDataService {
 													 		   "pick_totals.player_id, " + 
 													 		   "pick_totals.player_name, " + 
 													 		   "pick_totals.week_id, " + 
-													 		   "pick_totals.week_number, " + 
+													 		   "pick_totals.sequence_number, " +
+													 		   "pick_totals.week_key, " +
 													 		   "pick_totals.week_label, " + 
 													 		   "sum(pick_totals.wins) as wins, " + 
 													 		   "sum(pick_totals.losses) as losses, " + 
@@ -256,7 +261,8 @@ public class NFLPicksDataService {
 													 		 	  	 "s.id as season_id, " + 
 													 		 	  	 "s.year as year, " + 
 													 		 	  	 "w.id as week_id, " + 
-													 		 	  	 "w.week_number as week_number, " + 
+													 		 	  	 "w.sequence_number as sequence_number, " +
+													 		 	  	 "w.key as week_key, " + 
 													 		 	  	 "w.label as week_label, " + 
 													 		 	  	 "(case when p.team_id = g.winning_team_id " + 
 													 		 	  	       "then 1 " + 
@@ -276,8 +282,8 @@ public class NFLPicksDataService {
 													 	           "join season s on w.season_id = s.id " + 
 													 	           " %s " + 
 													 	     ") pick_totals " + 
-													    "group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week_number, week_label " + 
-													    "order by year, week_number, player_name ";
+													    "group by pick_totals.season_id, year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_key, pick_totals.week_label " + 
+													    "order by year, sequence_number, player_name ";
 	
 	/**
 	 * 
@@ -289,7 +295,8 @@ public class NFLPicksDataService {
 															 		"pick_totals.player_id, " + 
 															 		"pick_totals.player_name, " + 
 															 		"pick_totals.week_id, " + 
-															 		"pick_totals.week_number, " + 
+															 		"pick_totals.sequence_number, " +
+															 		"pick_totals.week_key, " +
 															 		"pick_totals.week_label, " + 
 															 		"sum(pick_totals.wins) as wins, " + 
 															 		"sum(pick_totals.losses) as losses, " + 
@@ -299,7 +306,8 @@ public class NFLPicksDataService {
 															 		 	  "s.id as season_id, " + 
 															 		 	  "s.year as year, " + 
 															 		 	  "w.id as week_id, " + 
-															 		 	  "w.week_number as week_number, " + 
+															 		 	  "w.sequence_number as sequence_number, " + 
+															 		 	  "w.key as week_key, " +
 															 		 	  "w.label as week_label, " + 
 															 		 	  "(case when p.team_id = g.winning_team_id " + 
 															 		 	  	    "then 1 " + 
@@ -319,7 +327,7 @@ public class NFLPicksDataService {
 															 	        "join season s on w.season_id = s.id " + 
 															 	        " %s " + 
 															 	   ") pick_totals " + 
-															"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week_number, week_label ";
+															"group by pick_totals.season_id, pick_totals.year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_key, pick_totals.week_label ";
 	
 	/**
 	 * 
@@ -327,7 +335,7 @@ public class NFLPicksDataService {
 	 * a given week.
 	 * 
 	 */
-	protected static final String SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD = SELECT_WEEK_RECORDS_BASE + " order by year asc, week_number asc, wins desc, losses asc, player_name asc ";
+	protected static final String SELECT_WEEK_RECORDS_ORDER_BY_WEEK_AND_RECORD = SELECT_WEEK_RECORDS_BASE + " order by year asc, sequence_number asc, wins desc, losses asc, player_name asc ";
 	
 	/**
 	 * 
@@ -344,7 +352,8 @@ public class NFLPicksDataService {
 															 "best_weeks.player_id, " + 
 															 "best_weeks.player_name, " + 
 															 "best_weeks.week_id, " +
-															 "best_weeks.week_number, " + 
+															 "best_weeks.sequence_number, " +
+															 "best_weeks.week_key, " + 
 															 "best_weeks.week_label, " + 
 															 "best_weeks.wins, " + 
 															 "best_weeks.losses, " + 
@@ -361,7 +370,8 @@ public class NFLPicksDataService {
 																	     "pick_totals.player_id, " + 
 																	     "pick_totals.player_name, " + 
 																	     "pick_totals.week_id, " + 
-																	     "pick_totals.week_number, " + 
+																	     "pick_totals.sequence_number, " + 
+																	     "pick_totals.week_key, " +
 																	     "pick_totals.week_label, " + 
 																	     "sum(pick_totals.wins) as wins, " + 
 																	     "sum(pick_totals.losses) as losses, " + 
@@ -377,7 +387,8 @@ public class NFLPicksDataService {
 																 	 		  "s.id as season_id, " + 
 																 	 		  "s.year as year, " + 
 																 	 		  "w.id as week_id, " + 
-																 	 		  "w.week_number as week_number, " + 
+																 	 		  "w.sequence_number as sequence_number, " + 
+																 	 		  "w.key as sequence_number, " +
 																 	 		  "w.label as week_label, " + 
 																 	 		  "(case when p.team_id = g.winning_team_id " + 
 																 	 		  "then 1 " + 
@@ -397,7 +408,7 @@ public class NFLPicksDataService {
 																 	  	   "join season s on w.season_id = s.id " +
 																 	  	   " %s " + 
 																 	  ") pick_totals " + 
-																"group by season_id, year, pick_totals.player_id, pick_totals.player_name, week_id, week_number, week_label " + 
+																"group by pick_totals.season_id, pick_totals.year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_key, pick_totals.week_label " + 
 													") best_weeks " + 
 													"order by xrank desc, wins desc, losses desc, player_name asc ";
 	
@@ -430,7 +441,8 @@ public class NFLPicksDataService {
 																		 	  "s.id as season_id, " + 
 																		 	  "s.year as year, " + 
 																		 	  "w.id as week_id, " + 
-																		 	  "w.week_number as week_number, " + 
+																		 	  "w.sequence_number as sequence_number, " + 
+																		 	  "w.key as week_key, " +
 																		 	  "w.label as week_label, " + 
 																		 	  "(case when p.team_id = g.winning_team_id " + 
 																		 	  "then 1 " + 
@@ -471,7 +483,8 @@ public class NFLPicksDataService {
 														  			   "s.id as season_id, " + 
 														  			   "s.year as year, " + 
 														  			   "w.id as week_id, " + 
-														  			   "w.week_number as week_number, " + 
+														  			   "w.sequence_number as sequence_number, " + 
+														  			   "w.key as week_key, " +
 														  			   "w.label as week_label, " + 
 														  			   "(case when p.team_id = g.winning_team_id " + 
 														  			         "then 1 " + 
@@ -721,7 +734,8 @@ public class NFLPicksDataService {
 	 * 
 	 */
 	protected static final String SELECT_PICK_SPLIT_BASE = "select s.year as year, " + 
-																  "w.week_number as week_number, " +
+																  "w.sequence_number as sequence_number, " +
+																  "w.key as week_key, " +
 																  "w.label as week_label, " + 
 																  "g.id as game_id, " +
 																  "g.winning_team_id as winning_team_id, " +
@@ -746,7 +760,8 @@ public class NFLPicksDataService {
 	 * 
 	 */
 	protected static final String SELECT_COMPACT_PICK_BASE = "select s.year as year, " + 
-																	"w.week_number as week_number, " +
+																	"w.sequence_number as sequence_number, " +
+																	"w.key as week_key, " +
 																	"w.label as week_label, " +
 																	"home_team.abbreviation as home_team_abbreviation, " + 
 																	"away_team.abbreviation as away_team_abbreviation, " +
@@ -2127,16 +2142,16 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
-	 * This function will get the weeks in the given years with the given numbers.  It does
+	 * This function will get the weeks in the given years with the "keys".  It does
 	 * a "full" retrieval of the weeks it finds, getting their games too.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @return
 	 */
-	public List<Week> getWeeks(List<String> years, List<String> weekNumbers){
+	public List<Week> getWeeks(List<String> years, List<String> weekKeys){
 	
-		List<Week> weeks = getWeeks(years, weekNumbers, false);
+		List<Week> weeks = getWeeks(years, weekKeys, false);
 		
 		return weeks;
 	}
@@ -2151,11 +2166,11 @@ public class NFLPicksDataService {
 	 * years are null, it'll get those specific weeks for all years.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param shallow
 	 * @return
 	 */
-	public List<Week> getWeeks(List<String> years, List<String> weekNumbers, boolean shallow){
+	public List<Week> getWeeks(List<String> years, List<String> weekKeys, boolean shallow){
 		
 		//Steps to do:
 		//	1. Just take the query and add in the years and weeks stuff if we were given
@@ -2163,7 +2178,7 @@ public class NFLPicksDataService {
 		
 		List<Week> weeks = new ArrayList<Week>();
 		
-		List<Integer> weekNumberIntegers = Util.toIntegers(weekNumbers);
+//		List<Integer> weekSequenceNumberIntegers = Util.toIntegers(weekKeys);
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -2194,7 +2209,7 @@ public class NFLPicksDataService {
 			}
 			
 			//And add in weeks too.
-			if (weekNumberIntegers != null && weekNumberIntegers.size() > 0){
+			if (weekKeys != null && weekKeys.size() > 0){
 				if (!addedWhere){
 					 stringBuilder.append(" where ");
 					 addedWhere = true;
@@ -2203,9 +2218,9 @@ public class NFLPicksDataService {
 					stringBuilder.append(" and ");
 				}
 				
-				String inParameterString = DatabaseUtil.createInClauseParameterString(weekNumberIntegers.size());
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weekKeys.size());
 			
-				stringBuilder.append("week_number in ")
+				stringBuilder.append("key in ")
 							 .append(inParameterString)
 							 .append(")");
 			}
@@ -2225,10 +2240,10 @@ public class NFLPicksDataService {
 				}
 			}
 			
-			if (weekNumberIntegers != null && weekNumberIntegers.size() > 0){
+			if (weekKeys != null && weekKeys.size() > 0){
 				for (int index = 0; index < weeks.size(); index++){
-					Integer weekNumber = weekNumberIntegers.get(index);
-					statement.setInt(parameterIndex, weekNumber);
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -2241,7 +2256,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting weeks!  years = " + years + ", weekNumbers = " + weekNumbers + ", shallow = " + shallow, e);
+			log.error("Error getting weeks!  years = " + years + ", weekKeys = " + weekKeys + ", shallow = " + shallow, e);
 			rollback(connection);
 		}
 		finally {
@@ -2590,7 +2605,7 @@ public class NFLPicksDataService {
 		Week savedWeek = null;
 		
 		if (numberOfRowsAffected == 1){
-			savedWeek = getWeek(week.getSeasonId(), week.getWeekNumber());
+			savedWeek = getWeek(week.getSeasonId(), week.getKey());
 		}
 		
 		return savedWeek;
@@ -2611,10 +2626,13 @@ public class NFLPicksDataService {
 		
 		try {
 			connection = getConnection();
+
 			statement = connection.prepareStatement(INSERT_WEEK);
 			statement.setInt(1, week.getSeasonId());
-			statement.setInt(2, week.getWeekNumber());
-			statement.setString(3, week.getLabel());
+			statement.setInt(2, week.getSequenceNumber());
+			statement.setString(3, week.getType());
+			statement.setString(4, week.getKey());
+			statement.setString(5, week.getLabel());
 			
 			numberOfAffectedRows = statement.executeUpdate();
 			
@@ -2648,11 +2666,14 @@ public class NFLPicksDataService {
 		
 		try {
 			connection = getConnection();
+
 			statement = connection.prepareStatement(UPDATE_WEEK);
 			statement.setInt(1, week.getSeasonId());
-			statement.setInt(2, week.getWeekNumber());
-			statement.setString(3, week.getLabel());
-			statement.setInt(4, week.getId());
+			statement.setInt(2, week.getSequenceNumber());
+			statement.setString(3, week.getType());
+			statement.setString(4, week.getKey());
+			statement.setString(5, week.getLabel());
+			statement.setInt(6, week.getId());
 			
 			numberOfAffectedRows = statement.executeUpdate();
 			
@@ -2673,16 +2694,16 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
-	 * This function will get the week in the given season with the given week number.
+	 * This function will get the week in the given season with the given key.
 	 * That combination should be unique.
 	 * 
 	 * It'll do a full retrieval of the week, so it'll include the games too.
 	 * 
 	 * @param seasonId
-	 * @param weekNumber
+	 * @param weekKey
 	 * @return
 	 */
-	public Week getWeek(int seasonId, int weekNumber){
+	public Week getWeek(int seasonId, String weekKey){
 		
 		Week retrievedWeek = null;
 		
@@ -2694,10 +2715,10 @@ public class NFLPicksDataService {
 			connection = getConnection();
 			String query = SELECT_WEEK + 
 						   "where season_id = ?" +
-						   		 "and week_number = ? ";
+						   		 "and key = ? ";
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, seasonId);
-			statement.setInt(2, weekNumber);
+			statement.setString(2, weekKey);
 			results = statement.executeQuery();
 			
 			if (results.next()){
@@ -2705,7 +2726,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting week! seasonId = " + seasonId + ", weekNumber = " + weekNumber, e);
+			log.error("Error getting week! seasonId = " + seasonId + ", weekSequenceNumber = " + weekKey, e);
 			rollback(connection);
 		}
 		finally {
@@ -2717,32 +2738,58 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
-	 * This function will get the week in the given year with the given week number.
-	 * It'll do a full retrieval of the week and include the games in it.
+	 * This function will get the week in the given season with the given sequence number.
+	 * That combination should be unique.
 	 * 
-	 * @param year
-	 * @param weekNumber
+	 * It'll do a full retrieval of the week, so it'll include the games too.
+	 * 
+	 * @param seasonId
+	 * @param weekSequenceNumber
 	 * @return
 	 */
-	public Week getWeek(String year, String weekNumber){
+	public Week getWeek(int seasonId, int weekSequenceNumber){
 		
-		int weekNumberInt = Integer.parseInt(weekNumber);
+		Week retrievedWeek = null;
 		
-		Week weekObject = getWeek(year, weekNumberInt);
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
 		
-		return weekObject;
+		try {
+			connection = getConnection();
+			String query = SELECT_WEEK + 
+						   "where season_id = ?" +
+						   		 "and sequence_number = ? ";
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, seasonId);
+			statement.setInt(2, weekSequenceNumber);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				retrievedWeek = mapWeek(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting week! seasonId = " + seasonId + ", weekSequenceNumber = " + weekSequenceNumber, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return retrievedWeek;
 	}
 	
 	/**
 	 * 
-	 * This function will get the week in the given year with the given number.
-	 * It will do a full retrieval of the week, so it'll include the games too.
+	 * This function will get the week in the given year with the given key.
+	 * It'll do a full retrieval of the week and include the games in it.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekKey
 	 * @return
 	 */
-	public Week getWeek(String year, int weekNumber){
+	public Week getWeek(String year, String weekKey){
 		
 		//Steps to do:
 		//	1. Make the query.
@@ -2760,10 +2807,10 @@ public class NFLPicksDataService {
 						   "where season_id in (select id " +
 						   					   "from season " +
 						   					   "where year = ? )" +
-						   		 "and week_number = ? ";
+						   		 "and key = ? ";
 			statement = connection.prepareStatement(query);
 			statement.setString(1, year);
-			statement.setInt(2, weekNumber);
+			statement.setString(2, weekKey);
 			results = statement.executeQuery();
 			
 			if (results.next()){
@@ -2771,7 +2818,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting week! year = " + year + ", weekNumber = " + weekNumber, e);
+			log.error("Error getting week! year = " + year + ", weekKey = " + weekKey, e);
 			rollback(connection);
 		}
 		finally {
@@ -2783,39 +2830,69 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
+	 * This function will get the current week "key" that's based on the picks
+	 * that have been filled in.  The current week is defined as the biggest
+	 * week number with results for the current season.
+	 * 
+	 * @return
+	 */
+	public String getCurrentWeekKey(){
+		
+		Week currentWeek = getCurrentWeek();
+		
+		String weekKey = currentWeek.getKey();
+		
+		return weekKey;
+	}
+	
+	/**
+	 * 
 	 * This function will get the current week number that we're on based on the picks
 	 * that have been filled in.  The current week number is basically defined as
 	 * the biggest week number with results for the current season.
 	 * 
 	 * @return
 	 */
-	public int getCurrentWeekNumber(){
+	public int getCurrentWeekSequenceNumber(){
 		
 		Week currentWeek = getCurrentWeek();
 		
-		int currentWeekNumber = currentWeek.getWeekNumber();
+		int currentWeekSequenceNumber = currentWeek.getSequenceNumber();
 		
-		return currentWeekNumber;
+		return currentWeekSequenceNumber;
 	}
 	
 	/**
 	 * 
 	 * This function will get the "next" week number.  This is basically defined as:
-	 * the current week number plus 1.  If that's greater than week 21 (the superbowl),
-	 * then it stays as week 21.
+	 * the current week number plus 1.  It'll make sure it doesn't go beyond the number
+	 * of weeks in the current year.  It'll get the current year and, if it's before 2021,
+	 * make sure it doesn't go beyond 21 (the superbowl).  If it's 2021 or after, it'll make
+	 * sure it doesn't go after 22.
 	 * 
 	 * @return
 	 */
-	public int getNextWeekNumber(){
+	public int getNextWeekSequenceNumber(){
 		
-		int currentWeekNumber = getCurrentWeekNumber();
+		int currentWeekSequenceNumber = getCurrentWeekSequenceNumber();
+		String year = getCurrentYear();
 		
-		int nextWeekNumber = currentWeekNumber + 1;
-		if (nextWeekNumber > 21){
-			nextWeekNumber = 21;
+		int yearInt = Util.toInteger(year);
+		
+		int nextWeekSequenceNumber = currentWeekSequenceNumber + 1;
+		
+		if (yearInt < 2021){
+			if (nextWeekSequenceNumber > 21){
+				nextWeekSequenceNumber = 21;
+			}
+		}
+		else {
+			if (nextWeekSequenceNumber > 22){
+				nextWeekSequenceNumber = 22;
+			}
 		}
 		
-		return nextWeekNumber;
+		return nextWeekSequenceNumber;
 	}
 	
 	/**
@@ -2858,7 +2935,7 @@ public class NFLPicksDataService {
 							    				"and id in (select week_id " +
 							    						   "from game g " + 
 							    						   "where g.winning_team_id is null) " + 
-					       " order by week_number asc offset 0 limit 1 ";
+					       " order by sequence_number asc offset 0 limit 1 ";
 			
 			statement = connection.prepareStatement(query);
 			statement.setString(1, currentYear);
@@ -2869,7 +2946,8 @@ public class NFLPicksDataService {
 			}
 			//If we don't find a week that has results, that means we're on week number 1.
 			else {
-				currentWeek = getWeek(currentYear, 1);
+				int currentYearInt = Util.toInteger(currentYear);
+				currentWeek = getWeek(currentYearInt, 1);
 			}
 		}
 		catch (Exception e){
@@ -2918,7 +2996,9 @@ public class NFLPicksDataService {
 		week.setId(weekId);
 		int seasonId = result.getInt("season_id");
 		week.setSeasonId(seasonId);
-		week.setWeekNumber(result.getInt("week_number"));
+		week.setSequenceNumber(result.getInt("sequence_number"));
+		week.setType(result.getString("type"));
+		week.setKey(result.getString("key"));
 		week.setLabel(result.getString("label"));
 		
 		if (!shallow){
@@ -3014,10 +3094,10 @@ public class NFLPicksDataService {
 	 * ones should come first).
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekKey
 	 * @return
 	 */
-	public List<Game> getGames(String year, int weekNumber){
+	public List<Game> getGames(String year, String weekKey){
 		
 		List<Game> games = new ArrayList<Game>();
 		
@@ -3030,13 +3110,13 @@ public class NFLPicksDataService {
 			String query = SELECT_GAME + 
 						   " where week_id in (select w.id " +
 						   					  "from week w " + 
-						   					  "where week_number = ? " + 
+						   					  "where key = ? " + 
 						   					  	    "and season_id in (select id " +
 						   					  					      "from season " + 
 						   					  					      "where year = ?)) " +
 						   "order by id asc ";
 			statement = connection.prepareStatement(query);
-			statement.setInt(1, weekNumber);
+			statement.setString(1, weekKey);
 			statement.setString(2, year);
 			results = statement.executeQuery();
 			
@@ -3046,7 +3126,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting games! weekNumber = " + weekNumber + ", year = " + year, e);
+			log.error("Error getting games! weekKey = " + weekKey + ", year = " + year, e);
 			rollback(connection);
 		}
 		finally {
@@ -3084,11 +3164,11 @@ public class NFLPicksDataService {
 	 * It'll do a full retrieval of the games and so it'll include the teams too.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param teams
 	 * @return
 	 */
-	public List<Game> getGames(List<String> years, List<String> weekNumbers, List<String> teams){
+	public List<Game> getGames(List<String> years, List<String> weekKeys, List<String> teams){
 		
 		//Steps to do:
 		//	1. Add in each of the clauses for the years, weeks, and teams if we have them.
@@ -3117,8 +3197,8 @@ public class NFLPicksDataService {
 				addedWhere = true;
 			}
 			
-			if (weekNumbers != null && weekNumbers.size() > 0){
-				String weekNumbersParameterString = DatabaseUtil.createInClauseParameterString(weekNumbers.size());
+			if (weekKeys != null && weekKeys.size() > 0){
+				String weekKeysParameterString = DatabaseUtil.createInClauseParameterString(weekKeys.size());
 				
 				if (addedWhere){
 					query = query + " and ";
@@ -3130,11 +3210,11 @@ public class NFLPicksDataService {
 				
 				query = query + " week_id in (select id " +
 											 "from week " + 
-											 "where week_number in (" + weekNumbersParameterString + ")) ";
+											 "where key in (" + weekKeysParameterString + ")) ";
 			}
 			
 			if (teams != null && teams.size() > 0){
-				String teamsParameterString = DatabaseUtil.createInClauseParameterString(weekNumbers.size());
+				String teamsParameterString = DatabaseUtil.createInClauseParameterString(weekKeys.size());
 				
 				if (addedWhere){
 					query = query + " and ";
@@ -3165,11 +3245,10 @@ public class NFLPicksDataService {
 				}
 			}
 			
-			if (weekNumbers != null && weekNumbers.size() > 0){
-				for (int index = 0; index < weekNumbers.size(); index++){
-					String weekNumber = weekNumbers.get(index);
-					int weekNumberInt = Integer.parseInt(weekNumber);
-					statement.setInt(argumentNumber, weekNumberInt);
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(argumentNumber, weekKey);
 					argumentNumber++;
 				}
 			}
@@ -3190,7 +3269,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting games! years = " + years + ", weekNumbers = " + weekNumbers + ", teams = " + teams, e);
+			log.error("Error getting games! years = " + years + ", weekKeys = " + weekKeys + ", teams = " + teams, e);
 			rollback(connection);
 		}
 		finally {
@@ -3207,12 +3286,12 @@ public class NFLPicksDataService {
 	 * It expects all the arguments to be given.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @param awayTeamAbbreviation
 	 * @param homeTeamAbbreviation
 	 * @return
 	 */
-	public Game getGame(String year, String weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation){
+	public Game getGame(String year, String weekSequenceNumber, String awayTeamAbbreviation, String homeTeamAbbreviation){
 		
 		//Steps to do:
 		//	1. Build the query.
@@ -3229,7 +3308,7 @@ public class NFLPicksDataService {
 			String query = SELECT_GAME + 
 						   "where week_id in (select w.id " +
 						   					 "from week w " + 
-						   					 "where w.week_number = ? " + 
+						   					 "where w.sequence_number = ? " + 
 						   					 	   "and w.season_id in (select s.id " + 
 						   					 					 	   "from season s " + 
 						   					 					 	   "where s.year = ?)) " +
@@ -3242,7 +3321,7 @@ public class NFLPicksDataService {
 			
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
-			statement.setInt(1, Integer.parseInt(weekNumber));
+			statement.setInt(1, Integer.parseInt(weekSequenceNumber));
 			statement.setString(2, year);
 			statement.setString(3, homeTeamAbbreviation);
 			statement.setString(4, awayTeamAbbreviation);
@@ -3254,7 +3333,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting game! year = " + year + ", weekNumber = " + weekNumber + ", awayTeamAbbreviation = " + awayTeamAbbreviation + 
+			log.error("Error getting game! year = " + year + ", weekSequenceNumber = " + weekSequenceNumber + ", awayTeamAbbreviation = " + awayTeamAbbreviation + 
 					  ", homeTeamAbbreviation = " + homeTeamAbbreviation, e);
 			rollback(connection);
 		}
@@ -3275,11 +3354,11 @@ public class NFLPicksDataService {
 	 * It'll do a full retrieval on the game it finds.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @param teamAbbreviation
 	 * @return
 	 */
-	public Game getGame(String year, int weekNumber, String teamAbbreviation){
+	public Game getGame(String year, int weekSequenceNumber, String teamAbbreviation){
 		
 		//Steps to do:
 		//	1. Build the query.
@@ -3296,7 +3375,7 @@ public class NFLPicksDataService {
 			String query = SELECT_GAME + 
 						   "where week_id in (select w.id " +
 						   					 "from week w " + 
-						   					 "where w.week_number = ? " + 
+						   					 "where w.sequence_number = ? " + 
 						   					 "and w.season_id in (select s.id " + 
 						   					 					 "from season s " + 
 						   					 					 "where s.year = ?)) " +
@@ -3308,7 +3387,7 @@ public class NFLPicksDataService {
 						   					 		       "where t.abbreviation = ?)) ";
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
-			statement.setInt(1, weekNumber);
+			statement.setInt(1, weekSequenceNumber);
 			statement.setString(2, year);
 			statement.setString(3, teamAbbreviation);
 			statement.setString(4, teamAbbreviation);
@@ -3320,7 +3399,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting game! year = " + year + ", weekNumber = " + weekNumber + ", teamAbbreviation = " + teamAbbreviation, e);
+			log.error("Error getting game! year = " + year + ", weekSequenceNumber = " + weekSequenceNumber + ", teamAbbreviation = " + teamAbbreviation, e);
 			rollback(connection);
 		}
 		finally {
@@ -3617,12 +3696,12 @@ public class NFLPicksDataService {
 	 * 
 	 * @param playerName
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @param homeTeamAbbreviation
 	 * @param awayTeamAbbreviation
 	 * @return
 	 */
-	public Pick getPick(String playerName, String year, int weekNumber, String homeTeamAbbreviation, String awayTeamAbbreviation){
+	public Pick getPick(String playerName, String year, int weekSequenceNumber, String homeTeamAbbreviation, String awayTeamAbbreviation){
 		
 		//Steps to do:
 		//	1. Make the query.
@@ -3649,7 +3728,7 @@ public class NFLPicksDataService {
 							   					 				    "where season_id in (select id " +
 							   					 				   					    "from season " +
 							   					 				   					    "where year = ?) " +
-							   					 				   		  "and week_number = ? ) " +
+							   					 				   		  "and sequence_number = ? ) " +
 							   					 	    "and home_team_id in (select id " +
 							   					 				   		  	 "from team " +
 							   					 				   		  	 "where abbreviation = ?) " +
@@ -3661,7 +3740,7 @@ public class NFLPicksDataService {
 			statement = connection.prepareStatement(query);
 			statement.setString(1, playerName);
 			statement.setString(2, year);
-			statement.setInt(3, weekNumber);
+			statement.setInt(3, weekSequenceNumber);
 			statement.setString(4, homeTeamAbbreviation);
 			statement.setString(5, awayTeamAbbreviation);
 			results = statement.executeQuery();
@@ -3671,7 +3750,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting picks! playerName = " + playerName + ", year = " + year + ", weekNumber = " + weekNumber + 
+			log.error("Error getting picks! playerName = " + playerName + ", year = " + year + ", weekSequenceNumber = " + weekSequenceNumber + 
 					  ", homeTeamAbbreviation = " + homeTeamAbbreviation + ", awayTeamAbbreviation = " + awayTeamAbbreviation, e);
 			rollback(connection);
 		}
@@ -3689,10 +3768,10 @@ public class NFLPicksDataService {
 	 * 
 	 * @param playerId
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @return
 	 */
-	public List<Pick> getPicks(int playerId, String year, int weekNumber){
+	public List<Pick> getPicks(int playerId, String year, int weekSequenceNumber){
 		
 		//Steps to do:
 		//	1. Build the query.
@@ -3716,11 +3795,11 @@ public class NFLPicksDataService {
 							   					 				    "where season_id in (select id " +
 							   					 				   					    "from season " +
 							   					 				   					    "where year = ?) " +
-							   					 				   		  "and week_number = ? ";
+							   					 				   		  "and sequence_number = ? ";
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, playerId);
 			statement.setString(2, year);
-			statement.setInt(3, weekNumber);
+			statement.setInt(3, weekSequenceNumber);
 			results = statement.executeQuery();
 			
 			while (results.next()){
@@ -3729,7 +3808,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting picks! playerId = " + playerId + ", year = " + year + ", weekNumber = " + weekNumber, e);
+			log.error("Error getting picks! playerId = " + playerId + ", year = " + year + ", weekSequenceNumber = " + weekSequenceNumber, e);
 			rollback(connection);
 		}
 		finally {
@@ -3745,19 +3824,19 @@ public class NFLPicksDataService {
 	 * both arguments to be given.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekKey
 	 * @return
 	 */
-	public List<Pick> getPicks(String year, int weekNumber){
+	public List<Pick> getPicks(String year, String weekKey){
 		
 		//Steps to do:
 		//	1. Convert the arguments to what the real function expects (lists).
 		//	2. Call it to do the work.
 		
 		List<String> years = Arrays.asList(year);
-		List<String> weekNumbers = Arrays.asList(String.valueOf(weekNumber));
+		List<String> weekSequenceNumbers = Arrays.asList(weekKey);
 		
-		List<Pick> picks = getPicks(years, weekNumbers, null, null);
+		List<Pick> picks = getPicks(years, weekSequenceNumbers, null, null);
 		
 		return picks;
 	}
@@ -3769,10 +3848,10 @@ public class NFLPicksDataService {
 	 * 
 	 * @param player
 	 * @param year
-	 * @param weekNumber
+	 * @param weekKey
 	 * @return
 	 */
-	public List<Pick> getPicks(String player, String year, int weekNumber){
+	public List<Pick> getPicks(String player, String year, String weekKey){
 		
 		//Steps to do:
 		//	1. Convert the arguments to what the real function expects (lists).
@@ -3780,9 +3859,9 @@ public class NFLPicksDataService {
 		
 		List<String> players = Arrays.asList(player);
 		List<String> years = Arrays.asList(year);
-		List<String> weekNumbers = Arrays.asList(String.valueOf(weekNumber));
+		List<String> weekSequenceNumbers = Arrays.asList(weekKey);
 		
-		List<Pick> picks = getPicks(years, weekNumbers, players, null);
+		List<Pick> picks = getPicks(years, weekSequenceNumbers, players, null);
 		
 		return picks;
 	}
@@ -3793,12 +3872,12 @@ public class NFLPicksDataService {
 	 * if they're given.  The given teams could be the home or away teams for the games that the picks are for.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param playerNames
 	 * @param teamNames
 	 * @return
 	 */
-	public List<Pick> getPicks(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teamNames){
+	public List<Pick> getPicks(List<String> years, List<String> weekKeys, List<String> playerNames, List<String> teamNames){
 		
 		//Steps to do:
 		//	1. Add the arguments that we have to build the query.
@@ -3813,12 +3892,10 @@ public class NFLPicksDataService {
 		
 		try {
 			
-			List<Integer> weekNumberIntegers = Util.toIntegers(weekNumbers);
-			
 			//another programming language idea ... where if you "add" something, it just adds to the data structure.
 			
 			boolean hasWeeks = false;
-			if (weekNumberIntegers != null && weekNumberIntegers.size() > 0){
+			if (weekKeys != null && weekKeys.size() > 0){
 				hasWeeks = true;
 			}
 			
@@ -3846,7 +3923,7 @@ public class NFLPicksDataService {
 												   "from game " + 
 												   "where week_id in (select id " + 
 												   					 "from week " +
-												   					 "where week_number in (" + DatabaseUtil.createInClauseParameterString(weekNumberIntegers.size()) + "))) ";
+												   					 "where key in (" + DatabaseUtil.createInClauseParameterString(weekKeys.size()) + "))) ";
 				
 				addedWhere = true;
 			}
@@ -3903,9 +3980,9 @@ public class NFLPicksDataService {
 			int parameterIndex = 1;
 			if (hasWeeks){
 				
-				for (int index = 0; index < weekNumberIntegers.size(); index++){
-					Integer weekNumber = weekNumberIntegers.get(index);
-					statement.setInt(parameterIndex, weekNumber);
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -3942,7 +4019,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting picks! years = " + years + ", weekNumbers = " + weekNumbers + ", playerNames = " + playerNames + ", teamNames = " + teamNames, e);
+			log.error("Error getting picks! years = " + years + ", weekSequenceNumbers = " + weekKeys + ", playerNames = " + playerNames + ", teamNames = " + teamNames, e);
 			rollback(connection);
 		}
 		finally {
@@ -4736,11 +4813,11 @@ public class NFLPicksDataService {
 	 * are optional and will only be included if they're given.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param players
 	 * @return
 	 */
-	public List<Record> getRecords(List<String> years, List<String> weekNumbers, List<String> players){
+	public List<Record> getRecords(List<String> years, List<String> weekKeys, List<String> players){
 		
 		//Steps to do:
 		//	1. Add in the arguments we were given to the query if they're there.
@@ -4756,7 +4833,7 @@ public class NFLPicksDataService {
 		try {
 			connection = dataSource.getConnection();
 			
-			String recordsCriteria = createRecordsCriteria(years, weekNumbers, players);
+			String recordsCriteria = createRecordsCriteria(years, weekKeys, players);
 			
 			String query = String.format(SELECT_RECORD, recordsCriteria);
 			
@@ -4773,11 +4850,10 @@ public class NFLPicksDataService {
 			}
 			
 			//Then weeks
-			if (weekNumbers != null && weekNumbers.size() > 0){
-				for (int index = 0; index < weekNumbers.size(); index++){
-					String weekNumber = weekNumbers.get(index);
-					int weekNumberInt = Integer.parseInt(weekNumber);
-					statement.setInt(parameterIndex, weekNumberInt);
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -4799,7 +4875,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting records! years = " + years + ", weekNumbers = " + weekNumbers + ", players = " + players, e);
+			log.error("Error getting records! years = " + years + ", weekSequenceNumbers = " + weekKeys + ", players = " + players, e);
 			rollback(connection);
 		}
 		finally {
@@ -4841,11 +4917,11 @@ public class NFLPicksDataService {
 	 * the arguments that aren't given.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param players
 	 * @return
 	 */
-	protected String createRecordsCriteria(List<String> years, List<String> weekNumbers, List<String> players){
+	protected String createRecordsCriteria(List<String> years, List<String> weekKeys, List<String> players){
 		
 		//Steps to do:
 		//	1. Add in the where clauses for the arguments that were given.
@@ -4869,7 +4945,7 @@ public class NFLPicksDataService {
 		}
 		
 		boolean hasYears = years != null && years.size() > 0;
-		boolean hasWeeks = weekNumbers != null && weekNumbers.size() > 0;
+		boolean hasWeeks = weekKeys != null && weekKeys.size() > 0;
 		
 		if (hasYears || hasWeeks){
 			
@@ -4883,8 +4959,8 @@ public class NFLPicksDataService {
 			whereClause.append("g.week_id in (select w.id from week w where ");
 		
 			if (hasWeeks){
-				whereClause.append("w.week_number in (");
-				for (int index = 0; index < weekNumbers.size(); index++){
+				whereClause.append("w.key in (");
+				for (int index = 0; index < weekKeys.size(); index++){
 					if (index > 0){
 						whereClause.append(", ");
 					}
@@ -4941,12 +5017,12 @@ public class NFLPicksDataService {
 	 * The "compact" picks are objects that have the bare minimum of info that we need to show a pick (the player, game, and team picked).
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param playerNames
 	 * @param teams
 	 * @return
 	 */
-	public List<CompactPick> getCompactPicks(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teams) {
+	public List<CompactPick> getCompactPicks(List<String> years, List<String> weekKeys, List<String> playerNames, List<String> teams) {
 		
 		//Steps to do:
 		//	1. Make the query.
@@ -5020,7 +5096,7 @@ public class NFLPicksDataService {
 			
 			boolean addedWhere = false;
 			boolean hasYears = Util.hasSomething(years);
-			boolean hasWeeks = Util.hasSomething(weekNumbers);
+			boolean hasWeeks = Util.hasSomething(weekKeys);
 			boolean hasTeams = Util.hasSomething(teams);
 			
 			if (hasYears){
@@ -5039,8 +5115,8 @@ public class NFLPicksDataService {
 					addedWhere = true;
 				}
 				
-				String inParameterString = DatabaseUtil.createInClauseParameterString(weekNumbers.size());
-				whereBase = whereBase + " w.week_number in " + inParameterString;
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weekKeys.size());
+				whereBase = whereBase + " w.key in " + inParameterString;
 			}
 			
 			if (hasTeams){
@@ -5058,7 +5134,7 @@ public class NFLPicksDataService {
 									 	  "or away_team.abbreviation in " + inParameterString + ") ";
 			}
 			
-			String orderBy = "order by s.year asc, w.week_number asc, g.id asc ";
+			String orderBy = "order by s.year asc, w.sequence_number asc, g.id asc ";
 			
 			String query = selectBase + " " + fromBase + " " + whereBase + " " + orderBy;
 			
@@ -5081,9 +5157,9 @@ public class NFLPicksDataService {
 			}
 			
 			if (hasWeeks){
-				for (int index = 0; index < weekNumbers.size(); index++){
-					String weekNumber = weekNumbers.get(index);
-					statement.setInt(parameterIndex, Integer.parseInt(weekNumber));
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -5148,7 +5224,7 @@ public class NFLPicksDataService {
 		CompactPick compactPick = new CompactPick();
 		
 		String year = results.getString("year");
-		int weekNumber = results.getInt("week_number");
+		int weekSequenceNumber = results.getInt("sequence_number");
 		String weekLabel = results.getString("week_label");
 		String homeTeamAbbreviation = results.getString("home_team_abbreviation");
 		String awayTeamAbbreviation = results.getString("away_team_abbreviation");
@@ -5166,7 +5242,7 @@ public class NFLPicksDataService {
 		}
 		
 		compactPick.setYear(year);
-		compactPick.setWeekNumber(weekNumber);
+		compactPick.setWeekSequenceNumber(weekSequenceNumber);
 		compactPick.setWeekLabel(weekLabel);
 		compactPick.setHomeTeamAbbreviation(homeTeamAbbreviation);
 		compactPick.setAwayTeamAbbreviation(awayTeamAbbreviation);
@@ -5214,14 +5290,14 @@ public class NFLPicksDataService {
 			Week week1 = weekRecord1.getWeek();
 			Week week2 = weekRecord2.getWeek();
 			
-			int weekNumber1 = week1.getWeekNumber();
-			int weekNumber2 = week2.getWeekNumber();
+			int weekSequenceNumber1 = week1.getSequenceNumber();
+			int weekSequenceNumber2 = week2.getSequenceNumber();
 			
 			//We want it ascending by week.
-			if (weekNumber1 < weekNumber2){
+			if (weekSequenceNumber1 < weekSequenceNumber2){
 				return -1;
 			}
-			else if (weekNumber1 > weekNumber2){
+			else if (weekSequenceNumber1 > weekSequenceNumber2){
 				return 1;
 			}
 			
@@ -5276,12 +5352,12 @@ public class NFLPicksDataService {
 	 * that I decided to put them in different functions.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param players
 	 * @param onlyFinishedGames
 	 * @return
 	 */
-	public List<WeekRecordForPlayers> getWeeksWonByWeek(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
+	public List<WeekRecordForPlayers> getWeeksWonByWeek(List<String> years, List<String> weekKeys, List<String> players, boolean onlyFinishedGames){
 		
 		//Steps to do:
 		//	1. Get the weekly records for the years and weeks we were given.
@@ -5300,14 +5376,14 @@ public class NFLPicksDataService {
 		//need all the records for that week.
 		//Then, later, we'll go through all the winning records and make sure we only include ones for players that we were given.
 		//That way we will wind up with the weeks won for the given players.
-		List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(query, years, weekNumbers, null, onlyFinishedGames);
+		List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(query, years, weekKeys, null, onlyFinishedGames);
 
 		List<WeekRecordForPlayers> weeksWonByWeek = new ArrayList<WeekRecordForPlayers>();
 		
 		WeekRecordForPlayers currentWeekRecord = null;
 		
 		String currentYear = null;
-		int currentWeekNumber = -1;
+		int currentWeekSequenceNumber = -1;
 		
 		//Now go through each weekly record and keep only the winning ones for each week.
 		
@@ -5315,14 +5391,14 @@ public class NFLPicksDataService {
 			WeekRecordForPlayer playerWeekRecord = playerWeekRecords.get(index);
 
 			String recordYear = playerWeekRecord.getSeason().getYear();
-			int recordWeekNumber = playerWeekRecord.getWeek().getWeekNumber();
+			int recordWeekSequenceNumber = playerWeekRecord.getWeek().getSequenceNumber();
 			
 			//If we're at the start or we switched to a new year or week, make a new object and keep
 			//the first record as the winner.  The first record for a year or a week will be the
 			//one with the most wins because that's how we sorted the records in the query.  So, we know
 			//we'll want to keep it.
 			if (currentYear == null || 
-					(!recordYear.equals(currentYear)) || recordWeekNumber != currentWeekNumber){
+					(!recordYear.equals(currentYear)) || recordWeekSequenceNumber != currentWeekSequenceNumber){
 				
 				currentWeekRecord = new WeekRecordForPlayers();
 				currentWeekRecord.setRecord(playerWeekRecord.getRecord());
@@ -5335,7 +5411,7 @@ public class NFLPicksDataService {
 				weeksWonByWeek.add(currentWeekRecord);
 				
 				currentYear = recordYear;
-				currentWeekNumber = recordWeekNumber;
+				currentWeekSequenceNumber = recordWeekSequenceNumber;
 			}
 			//Otherwise, get the wins for the record.  If it's the same as the number of wins for the
 			//current "winning record", then we want to keep it.
@@ -5404,12 +5480,12 @@ public class NFLPicksDataService {
 	 * "player" -> weeks they won.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param players
 	 * @param onlyFinishedGames
 	 * @return
 	 */
-	public List<WeekRecordsForPlayer> getWeeksWon(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
+	public List<WeekRecordsForPlayer> getWeeksWon(List<String> years, List<String> weekKeys, List<String> players, boolean onlyFinishedGames){
 
 		//Steps to do:
 		//	1. Get the records for the years and weeks we're interested in.
@@ -5430,7 +5506,7 @@ public class NFLPicksDataService {
 			playerNamesForYears.add(player.getName());
 		}
 		
-		List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(years, weekNumbers, playerNamesForYears, onlyFinishedGames);
+		List<WeekRecordForPlayer> playerWeekRecords = getPlayerWeekRecords(years, weekKeys, playerNamesForYears, onlyFinishedGames);
 		
 		//This map will hold the "year and week" to best record for that year and week.  Basically, it'll group
 		//the records by the best ones for each year and week, with the key being the year and week combination and
@@ -5453,9 +5529,9 @@ public class NFLPicksDataService {
 			String recordYear = season.getYear();
 			
 			Week week = playerWeekRecord.getWeek();
-			int weekNumber = week.getWeekNumber();
+			int weekSequenceNumber = week.getSequenceNumber();
 			
-			String key = recordYear + "-" + weekNumber;
+			String key = recordYear + "-" + weekSequenceNumber;
 			
 			//Get the current records we have for the year and week.
 			List<WeekRecordForPlayer> currentBestRecords = bestRecordsMap.get(key);
@@ -5588,12 +5664,12 @@ public class NFLPicksDataService {
 	 * 
 	 * @param query
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param players
 	 * @param onlyFinishedGames
 	 * @return
 	 */
-	protected List<WeekRecordForPlayer> getPlayerWeekRecords(String query, List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
+	protected List<WeekRecordForPlayer> getPlayerWeekRecords(String query, List<String> years, List<String> weekKeys, List<String> players, boolean onlyFinishedGames){
 		
 		//Steps to do:
 		//	1. Get the "criteria" (the where clause) we should use for the given years, weeks, and players.
@@ -5611,7 +5687,7 @@ public class NFLPicksDataService {
 		try {
 			connection = dataSource.getConnection();
 			
-			String weekRecordsCriteria = createWeekRecordsCriteria(years, weekNumbers, players, onlyFinishedGames);
+			String weekRecordsCriteria = createWeekRecordsCriteria(years, weekKeys, players, onlyFinishedGames);
 			
 			String fullQuery = String.format(query, weekRecordsCriteria);
 			
@@ -5628,11 +5704,10 @@ public class NFLPicksDataService {
 			}
 			
 			//Then weeks
-			if (weekNumbers != null && weekNumbers.size() > 0){
-				for (int index = 0; index < weekNumbers.size(); index++){
-					String weekNumber = weekNumbers.get(index);
-					int weekNumberInt = Integer.parseInt(weekNumber);
-					statement.setInt(parameterIndex, weekNumberInt);
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -5654,7 +5729,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting records! years = " + years + ", weekNumbers = " + weekNumbers + ", players = " + players, e);
+			log.error("Error getting records! years = " + years + ", weekSequenceNumbers = " + weekKeys + ", players = " + players, e);
 			rollback(connection);
 		}
 		finally {
@@ -5670,7 +5745,7 @@ public class NFLPicksDataService {
 	 * places and I figured it was best to just do it once.  It will assume that the table aliases used for each table are:
 	 * 
 	 * 		years - table = season, alias = s
-	 * 		weekNumbers - table = week, alias = w
+	 * 		weekSequenceNumbers - table = week, alias = w
 	 * 		players - table = player, alias = pl
 	 * 
 	 * If "onlyFinishedGames" is true, it'll add a "criteria" that says the game's winning team id can't be null (using the alias "g"
@@ -5679,12 +5754,12 @@ public class NFLPicksDataService {
 	 * Each criteria is optional and will only be added if it's given.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param players
 	 * @param onlyFinishedGames
 	 * @return
 	 */
-	protected String createWeekRecordsCriteria(List<String> years, List<String> weekNumbers, List<String> players, boolean onlyFinishedGames){
+	protected String createWeekRecordsCriteria(List<String> years, List<String> weekKeys, List<String> players, boolean onlyFinishedGames){
 		
 		//Steps to do:
 		//	1. Go through each thing we were given and add it if it's got something in it.
@@ -5708,7 +5783,7 @@ public class NFLPicksDataService {
 		}
 		
 		boolean hasYears = years != null && years.size() > 0;
-		boolean hasWeeks = weekNumbers != null && weekNumbers.size() > 0;
+		boolean hasWeeks = weekKeys != null && weekKeys.size() > 0;
 		
 		if (hasYears || hasWeeks){
 			
@@ -5721,8 +5796,8 @@ public class NFLPicksDataService {
 			}
 			
 			if (hasWeeks){
-				whereClause.append("w.week_number in (");
-				for (int index = 0; index < weekNumbers.size(); index++){
+				whereClause.append("w.key in (");
+				for (int index = 0; index < weekKeys.size(); index++){
 					if (index > 0){
 						whereClause.append(", ");
 					}
@@ -5769,7 +5844,7 @@ public class NFLPicksDataService {
 	/**
 	 * 
 	 * This function will map a result from a "player week record" query.  It expects the result
-	 * to have these columns: season_id, year, week_id, week_number, week_label, player_id,
+	 * to have these columns: season_id, year, week_id, sequence_number, week_label, player_id,
 	 * player_name, wins, losses, ties
 	 * 
 	 * @param results
@@ -5787,9 +5862,9 @@ public class NFLPicksDataService {
 		Season season = new Season(seasonId, year);
 
 		int weekId = results.getInt("week_id");
-		int weekNumber = results.getInt("week_number");
+		int weekSequenceNumber = results.getInt("sequence_number");
 		String weekLabel = results.getString("week_label");
-		Week week = new Week(weekId, seasonId, weekNumber, weekLabel);
+		Week week = new Week(weekId, seasonId, weekSequenceNumber, weekLabel);
 		
 		int playerId = results.getInt("player_id");
 		String playerName = results.getString("player_name");
@@ -5812,11 +5887,11 @@ public class NFLPicksDataService {
 	 * of wins) come first.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param players
 	 * @return
 	 */
-	public List<WeekRecordForPlayer> getWeekStandings(List<String> years, List<String> weekNumbers, List<String> players){
+	public List<WeekRecordForPlayer> getWeekStandings(List<String> years, List<String> weekKeys, List<String> players){
 		
 		//Steps to do:
 		//	1. Make the "where" clause out of what we were given.
@@ -5832,7 +5907,7 @@ public class NFLPicksDataService {
 		try {
 			connection = dataSource.getConnection();
 			
-			String recordsCriteria = createRecordsCriteria(years, weekNumbers, players);
+			String recordsCriteria = createRecordsCriteria(years, weekKeys, players);
 			
 			String query = String.format(SELECT_BEST_WEEKS, recordsCriteria);
 			
@@ -5849,11 +5924,10 @@ public class NFLPicksDataService {
 			}
 			
 			//Then weeks
-			if (weekNumbers != null && weekNumbers.size() > 0){
-				for (int index = 0; index < weekNumbers.size(); index++){
-					String weekNumber = weekNumbers.get(index);
-					int weekNumberInt = Integer.parseInt(weekNumber);
-					statement.setInt(parameterIndex, weekNumberInt);
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -5875,7 +5949,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting records! years = " + years + ", weekNumbers = " + weekNumbers + ", players = " + players, e);
+			log.error("Error getting records! years = " + years + ", weekSequenceNumbers = " + weekKeys + ", players = " + players, e);
 			rollback(connection);
 		}
 		finally {
@@ -6011,7 +6085,7 @@ public class NFLPicksDataService {
 						   "from season s " + 
 						   "where s.id in (select w.season_id " + 
 						   				  "from week w " + 
-						   				  "where w.week_number = 21 " + 
+						   				  "where w.sequence_number = 21 " + 
 						   				  	    "and w.id in (select g.week_id " + 
 						   				  	    			 "from game g " + 
 						   				  	    			 "where g.winning_team_id is not null)) ";
@@ -6265,12 +6339,12 @@ public class NFLPicksDataService {
 	 * and will only be included if they're given.
 	 * 
 	 * @param years
-	 * @param weeks
+	 * @param weekKeys
 	 * @param players
 	 * @param teamAbbreviations
 	 * @return
 	 */
-	public List<PickAccuracySummary> getPickAccuracySummaries(List<String> years, List<String> weeks, List<String> players, List<String> teamAbbreviations){
+	public List<PickAccuracySummary> getPickAccuracySummaries(List<String> years, List<String> weekKeys, List<String> players, List<String> teamAbbreviations){
 
 		//Steps to do:
 		//	1. Add in each "criteria" that we have to the query.
@@ -6321,8 +6395,8 @@ public class NFLPicksDataService {
 			}
 			
 			int numberOfWeeks = 0;
-			if (weeks != null){
-				numberOfWeeks = weeks.size();
+			if (weekKeys != null){
+				numberOfWeeks = weekKeys.size();
 			}
 
 			int numberOfTeams = 0;
@@ -6370,9 +6444,9 @@ public class NFLPicksDataService {
 			if (numberOfWeeks > 0){
 				String weekInClauseString = DatabaseUtil.createInClauseParameterString(numberOfWeeks);
 
-				weeksWhereClause = " and w.week_number in " + weekInClauseString;
+				weeksWhereClause = " and w.key in " + weekInClauseString;
 				
-				whereClauseStringBuilder.append(" w.week_number in ").append(weekInClauseString);
+				whereClauseStringBuilder.append(" wkey in ").append(weekInClauseString);
 			}
 
 			String pickAccuracyQuery = String.format(SELECT_PICK_ACCURACY_SUMMARY, 
@@ -6390,8 +6464,8 @@ public class NFLPicksDataService {
 			if (numberOfWeeks > 0){
 				for (int i = 0; i < 11; i++){
 					for (int index = 0; index < numberOfWeeks; index++){
-						String week = weeks.get(index);
-						statement.setInt(parameterIndex, Integer.parseInt(week));
+						String weekKey = weekKeys.get(index);
+						statement.setString(parameterIndex, weekKey);
 						parameterIndex++;
 					}
 				}
@@ -6482,12 +6556,12 @@ public class NFLPicksDataService {
 	 * into "home" and "away" picks and puts the players in the groups that they chose.
 	 * 
 	 * @param years
-	 * @param weekNumbers
+	 * @param weekKeys
 	 * @param playerNames
 	 * @param teams
 	 * @return
 	 */
-	public List<PickSplit> getPickSplits(List<String> years, List<String> weekNumbers, List<String> playerNames, List<String> teams){
+	public List<PickSplit> getPickSplits(List<String> years, List<String> weekKeys, List<String> playerNames, List<String> teams){
 		
 		//Steps to do:
 		//	1. Make the query and add in the where clause criteria.
@@ -6510,7 +6584,7 @@ public class NFLPicksDataService {
 			boolean addedWhere = false;
 			boolean hasPlayers = Util.hasSomething(playerNames);
 			boolean hasYears = Util.hasSomething(years);
-			boolean hasWeeks = Util.hasSomething(weekNumbers);
+			boolean hasWeeks = Util.hasSomething(weekKeys);
 			boolean hasTeams = Util.hasSomething(teams);
 			
 			if (hasPlayers){
@@ -6549,8 +6623,8 @@ public class NFLPicksDataService {
 					addedWhere = true;
 				}
 				
-				String inParameterString = DatabaseUtil.createInClauseParameterString(weekNumbers.size());
-				whereBase = whereBase + " w.week_number in " + inParameterString;
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weekKeys.size());
+				whereBase = whereBase + " w.key in " + inParameterString;
 			}
 			
 			if (hasTeams){
@@ -6570,7 +6644,7 @@ public class NFLPicksDataService {
 			
 			stringBuilder.append(whereBase);
 			
-			String orderBy = "order by year asc, week_number asc, game_id asc, player_id asc ";
+			String orderBy = "order by year asc, sequence_number asc, game_id asc, player_id asc ";
 			
 			stringBuilder.append(orderBy);
 			
@@ -6597,9 +6671,9 @@ public class NFLPicksDataService {
 			}
 			
 			if (hasWeeks){
-				for (int index = 0; index < weekNumbers.size(); index++){
-					String weekNumber = weekNumbers.get(index);
-					statement.setInt(parameterIndex, Integer.parseInt(weekNumber));
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -6623,7 +6697,7 @@ public class NFLPicksDataService {
 			int currentGameId = -1;
 			int winningTeamId = -1;
 			String year = null;
-			int weekNumber = -1;
+			int weekSequenceNumber = -1;
 			String weekLabel = null;
 			String homeTeam = null;
 			String awayTeam = null;
@@ -6653,7 +6727,7 @@ public class NFLPicksDataService {
 					
 					winningTeamId = results.getInt("winning_team_id");
 					year = results.getString("year");
-					weekNumber = results.getInt("week_number");
+					weekSequenceNumber = results.getInt("sequence_number");
 					weekLabel = results.getString("week_label");
 					homeTeam = results.getString("home_team");
 					awayTeam = results.getString("away_team");
@@ -6661,7 +6735,7 @@ public class NFLPicksDataService {
 					
 					currentPickSplit = new PickSplit();
 					currentPickSplit.setYear(year);
-					currentPickSplit.setWeekNumber(weekNumber);
+					currentPickSplit.setWeekSequenceNumber(weekSequenceNumber);
 					currentPickSplit.setWeekLabel(weekLabel);
 					currentPickSplit.setHomeTeamAbbreviation(homeTeam);
 					currentPickSplit.setAwayTeamAbbreviation(awayTeam);
@@ -6698,7 +6772,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting pick splits!  years = " + years + ", weekNumbers = " + weekNumbers + ", playerNames = " + playerNames + ", teams = " + teams, e);
+			log.error("Error getting pick splits!  years = " + years + ", weekSequenceNumbers = " + weekKeys + ", playerNames = " + playerNames + ", teams = " + teams, e);
 		}
 		finally {
 			close(results, statement, connection);
@@ -6766,6 +6840,9 @@ public class NFLPicksDataService {
 				whereClause = whereClause + " s.year in " + inParameterString;
 			}
 			
+			//will this have to be smarter?
+			//no i don't think that's a good idea ... it'll just have to target something other than week number
+			//it needs to be a "compact representation" of the week
 			boolean hasWeeks = Util.hasSomething(weeks);
 			if (hasWeeks){
 				if (addedWhere){
@@ -6777,7 +6854,7 @@ public class NFLPicksDataService {
 				}
 				
 				String inParameterString = DatabaseUtil.createInClauseParameterString(weeks.size());
-				whereClause = whereClause + " w.week_number in " + inParameterString;
+				whereClause = whereClause + " w.key in " + inParameterString;
 			}
 			
 			boolean hasPlayers = Util.hasSomething(players);

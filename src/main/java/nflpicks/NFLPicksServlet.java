@@ -110,11 +110,9 @@ public class NFLPicksServlet extends HttpServlet {
 		}
 		else if (TARGET_GAMES.equals(target)){
 			String year = getParameter(request, PARAMETER_NAME_YEAR);
-			String week = getParameter(request, PARAMETER_NAME_WEEK);
+			String weekKey = getParameter(request, PARAMETER_NAME_WEEK);
 			
-			int weekInt = Util.parseInt(week, 0);
-			
-			List<Game> games = dataService.getGames(year, weekInt);
+			List<Game> games = dataService.getGames(year, weekKey);
 			json = JSONUtil.gamesToJSONString(games);
 		}
 		else if (TARGET_PLAYERS.equals(target)){
@@ -124,15 +122,14 @@ public class NFLPicksServlet extends HttpServlet {
 		else if (TARGET_PICKS.equals(target)){
 			String playerName = getParameter(request, PARAMETER_NAME_PLAYER);
 			String year = getParameter(request, PARAMETER_NAME_YEAR);
-			String weekString = getParameter(request, PARAMETER_NAME_WEEK);
-			int week = Util.parseInt(weekString, 0);
+			String weekKey = getParameter(request, PARAMETER_NAME_WEEK);
 			
 			List<Pick> picks = null;
 			if (PARAMETER_VALUE_ALL.equals(playerName)){
-				picks = dataService.getPicks(year, week);
+				picks = dataService.getPicks(year, weekKey);
 			}
 			else {
-				picks = dataService.getPicks(playerName, year, week);
+				picks = dataService.getPicks(playerName, year, weekKey);
 			}
 			
 			json = JSONUtil.picksToJSONString(picks);
@@ -141,17 +138,17 @@ public class NFLPicksServlet extends HttpServlet {
 			long start = System.currentTimeMillis();
 			
 			String yearParameter = getParameter(request, PARAMETER_NAME_YEAR);
-			String weekParameter = getParameter(request, PARAMETER_NAME_WEEK);
+			String weekKeyParameter = getParameter(request, PARAMETER_NAME_WEEK);
 			String playerParameter = Util.replaceUrlCharacters(request.getParameter(PARAMETER_NAME_PLAYER));
 			String teamParameter = getParameter(request, PARAMETER_NAME_TEAM);
 			
 			List<String> years = Util.delimitedStringToList(yearParameter, ",");
-			List<String> weeks = Util.delimitedStringToList(weekParameter, ",");
+			List<String> weekKeys = Util.delimitedStringToList(weekKeyParameter, ",");
 			List<String> teams = Util.delimitedStringToList(teamParameter, ",");
 			List<String> playerNames = Util.delimitedStringToList(playerParameter, ",");
 			
 			boolean isAllYears = isAllParameterValue(years);
-			boolean isAllWeeks = isAllParameterValue(weeks);
+			boolean isAllWeeks = isAllParameterValue(weekKeys);
 			boolean isAllPlayers = isAllParameterValue(playerNames);
 			boolean isAllTeams = isAllParameterValue(teams);
 			
@@ -160,7 +157,7 @@ public class NFLPicksServlet extends HttpServlet {
 			}
 			
 			if (isAllWeeks){
-				weeks = null;
+				weekKeys = null;
 			}
 			
 			if (isAllPlayers){
@@ -196,7 +193,7 @@ public class NFLPicksServlet extends HttpServlet {
 				players = dataService.getPlayers(playerNames);
 			}
 
-			List<CompactPick> picks = dataService.getCompactPicks(years, weeks, playerNames, teams);
+			List<CompactPick> picks = dataService.getCompactPicks(years, weekKeys, playerNames, teams);
 			
 			JSONObject gridJSONObject = new JSONObject();
 			gridJSONObject.put(NFLPicksConstants.JSON_COMPACT_PICK_GRID_PLAYERS, playerNames);
@@ -212,17 +209,17 @@ public class NFLPicksServlet extends HttpServlet {
 		//Still used by the edit...
 		else if (TARGET_PICKS_GRID.equals(target)){
 			String yearParameter = getParameter(request, PARAMETER_NAME_YEAR);
-			String weekParameter = getParameter(request, PARAMETER_NAME_WEEK);
+			String weekKeyParameter = getParameter(request, PARAMETER_NAME_WEEK);
 			String playerParameter = Util.replaceUrlCharacters(request.getParameter(PARAMETER_NAME_PLAYER));
 			String teamParameter = getParameter(request, PARAMETER_NAME_TEAM);
 			
 			List<String> years = Util.delimitedStringToList(yearParameter, ",");
-			List<String> weeks = Util.delimitedStringToList(weekParameter, ",");
+			List<String> weekKeys = Util.delimitedStringToList(weekKeyParameter, ",");
 			List<String> teams = Util.delimitedStringToList(teamParameter, ",");
 			List<String> playerNames = Util.delimitedStringToList(playerParameter, ",");
 			
 			boolean isAllYears = isAllParameterValue(years);
-			boolean isAllWeeks = isAllParameterValue(weeks);
+			boolean isAllWeeks = isAllParameterValue(weekKeys);
 			boolean isAllPlayers = isAllParameterValue(playerNames);
 			boolean isAllTeams = isAllParameterValue(teams);
 			
@@ -231,7 +228,7 @@ public class NFLPicksServlet extends HttpServlet {
 			}
 			
 			if (isAllWeeks){
-				weeks = null;
+				weekKeys = null;
 			}
 			
 			if (isAllPlayers){
@@ -250,9 +247,9 @@ public class NFLPicksServlet extends HttpServlet {
 				players = dataService.getPlayers(playerNames);
 			}
 			
-			List<Game> games = dataService.getGames(years, weeks, teams);
+			List<Game> games = dataService.getGames(years, weekKeys, teams);
 			
-			List<Pick> picks = dataService.getPicks(years, weeks, playerNames, teams);
+			List<Pick> picks = dataService.getPicks(years, weekKeys, playerNames, teams);
 			
 			JSONObject gridJSONObject = new JSONObject();
 
@@ -271,10 +268,10 @@ public class NFLPicksServlet extends HttpServlet {
 				players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 			}
 
-			String weeksString = request.getParameter(PARAMETER_NAME_WEEK);
-			List<String> weeks = null;
-			if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-				weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+			String weekKeysString = request.getParameter(PARAMETER_NAME_WEEK);
+			List<String> weekKeys = null;
+			if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+				weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 			}
 			
 			String yearsString = request.getParameter(PARAMETER_NAME_YEAR);
@@ -283,7 +280,7 @@ public class NFLPicksServlet extends HttpServlet {
 				years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 			}
 
-			List<Record> records = dataService.getRecords(years, weeks, players);
+			List<Record> records = dataService.getRecords(years, weekKeys, players);
 			
 			JSONObject recordsJSONObject = new JSONObject();
 			recordsJSONObject.put(NFLPicksConstants.JSON_STANDINGS_RECORDS, JSONUtil.recordsToJSONArray(records));
@@ -313,8 +310,8 @@ public class NFLPicksServlet extends HttpServlet {
 			List<Team> teams = dataService.getTeams();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_TEAMS, teams);
 			
-			int currentWeekNumber = dataService.getCurrentWeekNumber();
-			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_WEEK_NUMBER, currentWeekNumber);
+			String currentWeekKey = dataService.getCurrentWeekKey();
+			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_WEEK_KEY, currentWeekKey);
 			
 			String currentYear = dataService.getCurrentYear();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_YEAR, currentYear);
@@ -377,10 +374,10 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			if (STAT_NAME_WEEKS_WON_STANDINGS.equals(statName)){
 				
-				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
-				List<String> weeks = null;
-				if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
@@ -395,15 +392,15 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordsForPlayer> weeksWon = dataService.getWeeksWon(years, weeks, players, true);
+				List<WeekRecordsForPlayer> weeksWon = dataService.getWeeksWon(years, weekKeys, players, true);
 				
 				json = JSONUtil.weekRecordsForPlayerListToJSONString(weeksWon);
 			}
 			else if (STAT_NAME_WEEKS_WON_BY_WEEK.equals(statName)){
-				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
-				List<String> weeks = null;
-				if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
@@ -418,7 +415,7 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayers> weekRecordForPlayersList = dataService.getWeeksWonByWeek(years, weeks, players, true);
+				List<WeekRecordForPlayers> weekRecordForPlayersList = dataService.getWeeksWonByWeek(years, weekKeys, players, true);
 				
 				json = JSONUtil.weekRecordForPlayersListToJSONString(weekRecordForPlayersList);
 			}
@@ -436,13 +433,13 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<String> weeks = null;
-				String week = getParameter(request, PARAMETER_NAME_WEEK);
-				if (!PARAMETER_VALUE_ALL.equals(week)){
-					weeks = Util.delimitedStringToList(week, PARAMETER_VALUE_DELIMITER);
+				List<String> weekKeys = null;
+				String weekKey = getParameter(request, PARAMETER_NAME_WEEK);
+				if (!PARAMETER_VALUE_ALL.equals(weekKey)){
+					weekKeys = Util.delimitedStringToList(weekKey, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weeks, players, true);
+				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weekKeys, players, true);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(playerWeekRecords);
 			}
@@ -454,10 +451,10 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 
-				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
-				List<String> weeks = null;
-				if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
@@ -466,7 +463,7 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> bestWeeks = dataService.getWeekStandings(years, weeks, players);
+				List<WeekRecordForPlayer> bestWeeks = dataService.getWeekStandings(years, weekKeys, players);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(bestWeeks);
 			}
@@ -478,10 +475,10 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
-				List<String> weeks = null;
-				if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
@@ -490,7 +487,7 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<SeasonRecordForPlayer> seasonRecords = dataService.getSeasonRecords(years, weeks, players);
+				List<SeasonRecordForPlayer> seasonRecords = dataService.getSeasonRecords(years, weekKeys, players);
 				
 				json = JSONUtil.seasonRecordsForPlayersToJSONString(seasonRecords);
 			}
@@ -539,10 +536,10 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
-				List<String> weeks = null;
-				if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
 				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
@@ -557,7 +554,7 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummaries(years, weeks, players, teams);
+				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummaries(years, weekKeys, players, teams);
 				
 				json = JSONUtil.pickAccuracySummariesListToJSONString(pickAccuracySummaries);
 			}
@@ -569,20 +566,22 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 
-				String weeksString = getParameter(request, PARAMETER_NAME_WEEK);
-				List<String> weeks = null;
-				if (PARAMETER_VALUE_CURRENT.equals(weeksString)){
-					int currentWeekNumber = dataService.getCurrentWeekNumber();
-					weeks = new ArrayList<String>();
-					weeks.add(String.valueOf(currentWeekNumber));
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (PARAMETER_VALUE_CURRENT.equals(weekKeysString)){
+					int currentWeekSequenceNumber = dataService.getCurrentWeekSequenceNumber();
+					String weekKey = ModelUtil.createWeekKey(currentWeekSequenceNumber);
+					weekKeys = new ArrayList<String>();
+					weekKeys.add(weekKey);
 				}
-				else if (PARAMETER_VALUE_NEXT.equals(weeksString)){
-					int nextWeekNumber = dataService.getNextWeekNumber();
-					weeks = new ArrayList<String>();
-					weeks.add(String.valueOf(nextWeekNumber));
+				else if (PARAMETER_VALUE_NEXT.equals(weekKeysString)){
+					int nextWeekSequenceNumber = dataService.getNextWeekSequenceNumber();
+					String weekKey = ModelUtil.createWeekKey(nextWeekSequenceNumber);
+					weekKeys = new ArrayList<String>();
+					weekKeys.add(weekKey);
 				}
-				else if (!PARAMETER_VALUE_ALL.equals(weeksString)){
-					weeks = Util.delimitedStringToList(weeksString, PARAMETER_VALUE_DELIMITER);
+				else if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
@@ -597,7 +596,7 @@ public class NFLPicksServlet extends HttpServlet {
 					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<PickSplit> pickSplits = dataService.getPickSplits(years, weeks, players, teams);
+				List<PickSplit> pickSplits = dataService.getPickSplits(years, weekKeys, players, teams);
 				
 				json = JSONUtil.pickSplitsToJSONString(pickSplits);
 			}
@@ -614,13 +613,13 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<String> weeks = null;
-				String week = getParameter(request, PARAMETER_NAME_WEEK);
-				if (!PARAMETER_VALUE_ALL.equals(week)){
-					weeks = Util.delimitedStringToList(week, PARAMETER_VALUE_DELIMITER);
+				List<String> weekKeys = null;
+				String weekKey = getParameter(request, PARAMETER_NAME_WEEK);
+				if (!PARAMETER_VALUE_ALL.equals(weekKey)){
+					weekKeys = Util.delimitedStringToList(weekKey, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weeks, players, true);
+				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weekKeys, players, true);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(playerWeekRecords);
 			}
@@ -637,13 +636,13 @@ public class NFLPicksServlet extends HttpServlet {
 					players = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<String> weeks = null;
-				String week = getParameter(request, PARAMETER_NAME_WEEK);
-				if (!PARAMETER_VALUE_ALL.equals(week)){
-					weeks = Util.delimitedStringToList(week, PARAMETER_VALUE_DELIMITER);
+				List<String> weekKeys = null;
+				String weekKey = getParameter(request, PARAMETER_NAME_WEEK);
+				if (!PARAMETER_VALUE_ALL.equals(weekKey)){
+					weekKeys = Util.delimitedStringToList(weekKey, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weeks, players, true);
+				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weekKeys, players, true);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(playerWeekRecords);
 			}

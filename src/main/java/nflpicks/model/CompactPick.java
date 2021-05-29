@@ -18,7 +18,9 @@ public class CompactPick {
 
 	protected String year;
 	
-	protected int weekNumber;
+	protected int weekSequenceNumber;
+	
+	protected String weekKey;
 	
 	protected String weekLabel;
 	
@@ -42,12 +44,20 @@ public class CompactPick {
 		this.year = year;
 	}
 
-	public int getWeekNumber() {
-		return weekNumber;
+	public int getWeekSequenceNumber() {
+		return weekSequenceNumber;
 	}
 
-	public void setWeekNumber(int weekNumber) {
-		this.weekNumber = weekNumber;
+	public void setWeekSequenceNumber(int weekSequenceNumber) {
+		this.weekSequenceNumber = weekSequenceNumber;
+	}
+
+	public String getWeekKey() {
+		return weekKey;
+	}
+
+	public void setWeekKey(String weekKey) {
+		this.weekKey = weekKey;
 	}
 
 	public String getWeekLabel() {
@@ -130,12 +140,24 @@ public class CompactPick {
 			}
 		}
 		
-		int otherWeekNumber = otherCompactPick.getWeekNumber();
+		int otherWeekNumber = otherCompactPick.getWeekSequenceNumber();
 		
-		if (weekNumber != otherWeekNumber){
+		if (weekSequenceNumber != otherWeekNumber){
 			return false;
 		}
 		
+		String otherWeekKey = otherCompactPick.getWeekKey();
+		
+		if (weekKey != null){
+			if (!weekKey.equals(otherWeekKey)){
+				return false;
+			}
+		}
+		else {
+			if (otherWeekKey != null){
+				return false;
+			}
+		}
 		
 		String otherHomeTeamAbbreviation = otherCompactPick.getHomeTeamAbbreviation();
 		
@@ -212,7 +234,8 @@ public class CompactPick {
 		int result = 1;
 		
 		result = primeNumber * result + (year == null ? 0 : year.hashCode());
-		result = primeNumber * result + Integer.valueOf(weekNumber).hashCode();
+		result = primeNumber * result + Integer.valueOf(weekSequenceNumber).hashCode();
+		result = primeNumber * result + (weekKey == null ? 0 : weekKey.hashCode());
 		result = primeNumber * result + (weekLabel == null ? 0 : weekLabel.hashCode());
 		result = primeNumber * result + (homeTeamAbbreviation == null ? 0 : homeTeamAbbreviation.hashCode());
 		result = primeNumber * result + (awayTeamAbbreviation == null ? 0 : awayTeamAbbreviation.hashCode());
@@ -225,7 +248,8 @@ public class CompactPick {
 	public String toString(){
 		
 		String thisObjectAsAString = "year = " + year + 
-								  	 ", weekNumber = " + weekNumber + 
+								  	 ", weekSequenceNumber = " + weekSequenceNumber + 
+								  	 ", weekKey = " + weekKey +
 								  	 ", weekLabel = " + weekLabel +
 								  	 ", homeTeamAbbreviation = " + homeTeamAbbreviation + 
 								  	 ", awayTeamAbbreviation = " + awayTeamAbbreviation + 

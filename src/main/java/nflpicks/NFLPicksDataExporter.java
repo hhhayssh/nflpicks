@@ -426,7 +426,7 @@ public class NFLPicksDataExporter {
 		//	3. Write it out.
 		
 		String year = compactPick.getYear();
-		int weekNumber = compactPick.getWeekNumber();
+		int weekSequenceNumber = compactPick.getWeekSequenceNumber();
 		String awayTeamAbbreviation = compactPick.getAwayTeamAbbreviation();
 		String homeTeamAbbreviation = compactPick.getHomeTeamAbbreviation();
 		String winningTeamAbbreviation = compactPick.getWinningTeamAbbreviation();
@@ -446,7 +446,7 @@ public class NFLPicksDataExporter {
 			}
 		}
 		
-		writeLine(writer, year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, picks);
+		writeLine(writer, year, weekSequenceNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, picks);
 	}
 	
 	/**
@@ -456,14 +456,14 @@ public class NFLPicksDataExporter {
 	 * 
 	 * @param writer
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @param awayTeamAbbreviation
 	 * @param homeTeamAbbreviation
 	 * @param winningTeamAbbreviation
 	 * @param playerPicks
 	 * @throws Exception
 	 */
-	protected void writeLine(Writer writer, String year, int weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, 
+	protected void writeLine(Writer writer, String year, int weekSequenceNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, 
 							 String winningTeamAbbreviation, List<String> playerPicks) throws Exception {
 		
 		//Steps to do:
@@ -473,7 +473,7 @@ public class NFLPicksDataExporter {
 		//unNull because I'm a moron.
 		writer.write(Util.unNull(year));
 		writer.write(',');
-		writer.write(String.valueOf(weekNumber));
+		writer.write(String.valueOf(weekSequenceNumber));
 		writer.write(',');
 		writer.write(Util.unNull(awayTeamAbbreviation));
 		writer.write(',');

@@ -23,9 +23,22 @@ public class Week {
 	protected int seasonId;
 	
 	/**
-	 * The number of the week, starting from 1 and going through the superbowl (which is week 21).
+	 * The sequence number of the week within the season, starting from 1 and going through the superbowl (which was week 21 ... and now week 22).
 	 */
-	protected int weekNumber;
+	protected int sequenceNumber;
+	
+	/**
+	 * What kind of week it is (REGULAR_SEASON or PLAYOFFS).
+	 */
+	protected String type;
+	
+	/**
+	 * The "key" for the week.  This should be something like "WEEK_1" or "DIVISIONAL" or "SUPERBOWL".  Here so we can
+	 * get a week based on its "key" no matter what its sequence number is.  Didn't need this before Goodell and the owners
+	 * got greedy and made a week 18, screwing everything up.  This way we'll be able to query for a week in the playoffs
+	 * like the "WILDCARD" whether it happened in week 18 (before 2021) or week 19 (2021 and after).
+	 */
+	protected String key;
 	
 	/**
 	 * The label (like Week 1 or AFC Championship) of the week.  Here because the week number doesn't
@@ -41,12 +54,23 @@ public class Week {
 	public Week(){
 	}
 	
-	public Week(int seasonId, int weekNumber, String label){
-		this(-1, seasonId, weekNumber, label, null);
+	/**
+	 * 
+	 * A convenience constructor for when you have everything but the week id (you're making a week object
+	 * from other stuff).
+	 * 
+	 * @param seasonId
+	 * @param sequenceNumber
+	 * @param type
+	 * @param key
+	 * @param label
+	 */
+	public Week(int seasonId, int sequenceNumber, String type, String key, String label){
+		this(-1, seasonId, sequenceNumber, type, key, label, null);
 	}
 	
-	public Week(int weekId, int seasonId, int weekNumber, String label){
-		this(weekId, seasonId, weekNumber, label, null);
+	public Week(int id, int seasonId, int sequenceNumber, String label){
+		this(id, seasonId, sequenceNumber, null, null, label, null);
 	}
 	
 	/**
@@ -55,14 +79,18 @@ public class Week {
 	 * 
 	 * @param id
 	 * @param seasonId
-	 * @param week
+	 * @param sequenceNumber
+	 * @param type
+	 * @param key
 	 * @param label
 	 * @param games
 	 */
-	public Week(int id, int seasonId, int weekNumber, String label, List<Game> games){
+	public Week(int id, int seasonId, int sequenceNumber, String type, String key, String label, List<Game> games){
 		this.id = id;
 		this.seasonId = seasonId;
-		this.weekNumber = weekNumber;
+		this.sequenceNumber = sequenceNumber;
+		this.type = type;
+		this.key = key;
 		this.label = label;
 		this.games = games;
 	}
@@ -83,13 +111,28 @@ public class Week {
 		this.seasonId = seasonId;
 	}
 
-
-	public int getWeekNumber() {
-		return weekNumber;
+	public int getSequenceNumber() {
+		return sequenceNumber;
 	}
 
-	public void setWeekNumber(int weekNumber) {
-		this.weekNumber = weekNumber;
+	public void setSequenceNumber(int sequenceNumber) {
+		this.sequenceNumber = sequenceNumber;
+	}
+
+	public String getType() {
+		return type;
+	}
+
+	public void setType(String type) {
+		this.type = type;
+	}
+
+	public String getKey() {
+		return key;
+	}
+
+	public void setKey(String key) {
+		this.key = key;
 	}
 
 	public String getLabel() {
@@ -129,7 +172,9 @@ public class Week {
 		
 		result = primeNumber * result + Integer.valueOf(id).hashCode();
 		result = primeNumber * result + Integer.valueOf(seasonId).hashCode();
-		result = primeNumber * result + Integer.valueOf(weekNumber).hashCode();
+		result = primeNumber * result + Integer.valueOf(sequenceNumber).hashCode();
+		result = primeNumber * result + (type == null ? 0 : type.hashCode());
+		result = primeNumber * result + (key == null ? 0 : key.hashCode());
 		result = primeNumber * result + (label == null ? 0 : label.hashCode());
 		result = primeNumber * result + (games == null ? 0 : games.hashCode());
 		
@@ -175,10 +220,36 @@ public class Week {
 			return false;
 		}
 		
-		int otherNumber = otherWeek.getWeekNumber();
+		int otherSequenceNumber = otherWeek.getSequenceNumber();
 		
-		if (weekNumber != otherNumber){
+		if (sequenceNumber != otherSequenceNumber){
 			return false;
+		}
+		
+		String otherType = otherWeek.getType();
+		
+		if (type != null){
+			if (!type.equals(otherType)){
+				return false;
+			}
+		}
+		else {
+			if (otherType != null){
+				return false;
+			}
+		}
+		
+		String otherKey = otherWeek.getKey();
+		
+		if (key != null){
+			if (!key.equals(otherKey)){
+				return false;
+			}
+		}
+		else {
+			if (otherKey != null){
+				return false;
+			}
 		}
 		
 		String otherLabel = otherWeek.getLabel();
@@ -220,7 +291,9 @@ public class Week {
 		
 		String thisObjectAsAString = "id = " + id + 
 									 ", seasonId = " + seasonId +
-									 ", number = " + weekNumber +
+									 ", sequenceNumber = " + sequenceNumber +
+									 ", type = " + type + 
+									 ", key = " + key + 
 									 ", label = " + label +
 									 ", games = " + games;
 		

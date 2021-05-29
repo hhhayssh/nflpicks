@@ -44,15 +44,27 @@ create table season (
 create index on season (year);
 
 create sequence week_id_sequence;
+--create table week (
+--	id integer primary key default nextval('week_id_sequence'),
+--	season_id integer references season(id) not null,
+--	week_number integer not null,
+--	label varchar(255) not null
+--);
+--sequence_number			key							label						type
 create table week (
 	id integer primary key default nextval('week_id_sequence'),
 	season_id integer references season(id) not null,
-	week_number integer not null,
+	sequence_number integer not null,
+	type varchar(255) not null,
+	key varchar(255) not null,
 	label varchar(255) not null
 );
 create index on week (season_id);
-create index on week (week_number);
+create index on week (sequence_number);
+create index on week (type);
+create index on week (key);
 create index on week (label);
+create index on week (season_id, key);
 
 create sequence game_id_sequence;
 create table game (

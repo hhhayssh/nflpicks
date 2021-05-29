@@ -184,7 +184,7 @@ public class JSONUtil {
 		JSONObject jsonObject = new JSONObject();
 		
 		jsonObject.put(NFLPicksConstants.JSON_WEEK_ID, week.getId());
-		jsonObject.put(NFLPicksConstants.JSON_WEEK_WEEK_NUMBER, week.getWeekNumber());
+		jsonObject.put(NFLPicksConstants.JSON_WEEK_WEEK_NUMBER, week.getSequenceNumber());
 		jsonObject.put(NFLPicksConstants.JSON_WEEK_LABEL, week.getLabel());
 
 		List<Game> games = week.getGames();
@@ -1187,7 +1187,8 @@ public class JSONUtil {
 		JSONObject jsonObject = new JSONObject();
 		
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_YEAR, pick.getYear());
-		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WEEK_NUMBER, pick.getWeekNumber());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WEEK_NUMBER, pick.getWeekSequenceNumber());
+		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WEEK_KEY, pick.getWeekKey());
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_WEEK_LABEL, pick.getWeekLabel());
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_HOME_TEAM_ABBREVIATION, pick.getHomeTeamAbbreviation());
 		jsonObject.put(NFLPicksConstants.JSON_COMPACT_PICK_AWAY_TEAM_ABBREVIATION, pick.getAwayTeamAbbreviation());
@@ -1340,7 +1341,7 @@ public class JSONUtil {
 		JSONObject jsonObject = new JSONObject();
 		
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_YEAR, pickSplit.getYear());
-		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WEEK_NUMBER, pickSplit.getWeekNumber());
+		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WEEK_NUMBER, pickSplit.getWeekSequenceNumber());
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_WEEK_LABEL, pickSplit.getWeekLabel());
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_HOME_TEAM_ABBREVIATION, pickSplit.getHomeTeamAbbreviation());
 		jsonObject.put(NFLPicksConstants.JSON_PICK_SPLIT_AWAY_TEAM_ABBREVIATION, pickSplit.getAwayTeamAbbreviation());

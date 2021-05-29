@@ -6,7 +6,7 @@ public class PickSplit {
 	
 	protected String year;
 	
-	protected int weekNumber;
+	protected int weekSequenceNumber;
 	
 	protected String weekLabel;
 	
@@ -31,12 +31,12 @@ public class PickSplit {
 		this.year = year;
 	}
 
-	public int getWeekNumber() {
-		return weekNumber;
+	public int getWeekSequenceNumber() {
+		return weekSequenceNumber;
 	}
 
-	public void setWeekNumber(int weekNumber) {
-		this.weekNumber = weekNumber;
+	public void setWeekSequenceNumber(int weekSequenceNumber) {
+		this.weekSequenceNumber = weekSequenceNumber;
 	}
 
 	public String getWeekLabel() {
@@ -127,9 +127,9 @@ public class PickSplit {
 			}
 		}
 		
-		int otherWeekNumber = otherPickSplit.getWeekNumber();
+		int otherWeekNumber = otherPickSplit.getWeekSequenceNumber();
 		
-		if (weekNumber != otherWeekNumber){
+		if (weekSequenceNumber != otherWeekNumber){
 			return false;
 		}
 		
@@ -234,7 +234,7 @@ public class PickSplit {
 		int result = 1;
 		
 		result = primeNumber * result + (year == null ? 0 : year.hashCode());
-		result = primeNumber * result + Integer.valueOf(weekNumber).hashCode();
+		result = primeNumber * result + Integer.valueOf(weekSequenceNumber).hashCode();
 		result = primeNumber * result + (weekLabel == null ? 0 : weekLabel.hashCode());
 		result = primeNumber * result + (homeTeamAbbreviation == null ? 0 : homeTeamAbbreviation.hashCode());
 		result = primeNumber * result + (awayTeamAbbreviation == null ? 0 : awayTeamAbbreviation.hashCode());
@@ -248,7 +248,7 @@ public class PickSplit {
 	public String toString(){
 		
 		String thisObjectAsAString = "year = " + year + 
-									 ", weekNumber = " + weekNumber + 
+									 ", weekNumber = " + weekSequenceNumber + 
 									 ", weekLabel = " + weekLabel + 
 									 ", homeTeamAbbreviation = " + homeTeamAbbreviation + 
 									 ", awayTeamAbbreviation = " + awayTeamAbbreviation + 

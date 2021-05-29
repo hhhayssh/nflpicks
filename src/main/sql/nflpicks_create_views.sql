@@ -56,7 +56,7 @@ from pick pi join player pl on pi.player_id = pl.id
      
 create or replace view week_pick_view as
 select w.id as week_id,
-	   w.week_number as week_number,
+	   w.sequence_number as sequence_number,
 	   w.label as label,
 	   pi.id as pick_id,
 	   pl.id as player_id,

@@ -383,11 +383,15 @@ public class NFLPicksDataImporter {
 				//We know we'll have at least the year, week, away team, and home team, so pull those
 				//values out.
 				String year = values.get(0);
-				String weekNumber = values.get(1);
+				String weekSequenceNumber = values.get(1);
 				String awayTeamAbbreviation = values.get(2);
 				String homeTeamAbbreviation = values.get(3);
 				String winningTeamAbbreviation = null;
 				List<String> playerPicks = null;
+				
+				if ("2021".equals(year)){
+					System.out.println("x");
+				}
 				
 				//Add in the winning team and players if we have them.
 				if (numberOfValues >= 5){
@@ -399,7 +403,7 @@ public class NFLPicksDataImporter {
 				}
 				
 				//Now we're ready to import the line.
-				importData(year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, playerNames, playerPicks);
+				importData(year, weekSequenceNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, playerNames, playerPicks);
 				
 				lineNumber++;
 				
@@ -432,14 +436,14 @@ public class NFLPicksDataImporter {
 	 * Same thing with the week, game, and picks.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @param awayTeamAbbreviation
 	 * @param homeTeamAbbreviation
 	 * @param winningTeamAbbreviation
 	 * @param playerNames
 	 * @param playerPicks
 	 */
-	protected void importData(String year, String weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, String winningTeamAbbreviation,
+	protected void importData(String year, String weekSequenceNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, String winningTeamAbbreviation,
 							  List<String> playerNames, List<String> playerPicks){
 		
 		//Steps to do:
@@ -453,9 +457,9 @@ public class NFLPicksDataImporter {
 			season = createSeason(year);
 		}
 		
-		Week week = getWeek(year, weekNumber);
+		Week week = getWeek(year, weekSequenceNumber);
 		if (week == null){
-			week = createWeek(year, weekNumber);
+			week = createWeek(year, weekSequenceNumber);
 		}
 		
 		//If there's a winning team, figure out if there's a tie and pass that in too.
@@ -467,9 +471,9 @@ public class NFLPicksDataImporter {
 			}
 		}
 
-		Game game = getGame(year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation);
+		Game game = getGame(year, weekSequenceNumber, awayTeamAbbreviation, homeTeamAbbreviation);
 		if (game == null){
-			game = createGame(year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, tie);
+			game = createGame(year, weekSequenceNumber, awayTeamAbbreviation, homeTeamAbbreviation, winningTeamAbbreviation, tie);
 		}
 		else {
 			Team winningTeam = getTeam(winningTeamAbbreviation);
@@ -497,7 +501,7 @@ public class NFLPicksDataImporter {
 			
 			Player player = getPlayer(playerName);
 			Team pickedTeam = getTeam(pickAbbreviation);
-			Pick pick = getPick(year, weekNumber, awayTeamAbbreviation, homeTeamAbbreviation, playerName);
+			Pick pick = getPick(year, weekSequenceNumber, awayTeamAbbreviation, homeTeamAbbreviation, playerName);
 			
 			if (pick == null){
 				pick = new Pick();
@@ -634,17 +638,17 @@ public class NFLPicksDataImporter {
 	 * the cache.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @return
 	 */
-	protected Week getWeek(String year, String weekNumber){
+	protected Week getWeek(String year, String weekSequenceNumber){
 		
-		String seasonAndWeekKey = getSeasonAndWeekKey(year, weekNumber);
+		String seasonAndWeekKey = getSeasonAndWeekKey(year, weekSequenceNumber);
 		
 		Week week = weekCache.get(seasonAndWeekKey);
 		
 		if (week == null){
-			week = dataService.getWeek(year, weekNumber);
+			week = dataService.getWeek(year, weekSequenceNumber);
 			weekCache.put(seasonAndWeekKey, week);
 		}
 		
@@ -653,22 +657,29 @@ public class NFLPicksDataImporter {
 	
 	/**
 	 * 
-	 * Creates a week record for the given year and week number.  It will make
-	 * the "label" for the week based off the given week number and handle
-	 * things like calling week 18 "Playoffs - Wild Card" too.
+	 * Creates a week record for the given year and week number.  It will make the
+	 * type, key, and label based off the year and week number and it'll handle
+	 * the change in week 18 from 2020 to 2021.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @return
 	 */
-	protected Week createWeek(String year, String weekNumber){
+	protected Week createWeek(String year, String weekSequenceNumber){
 		
-		int weekNumberInt = Util.toInteger(weekNumber);
+		int yearNumberInt = Util.toInteger(year);
+		int weekSequenceNumberInt = Util.toInteger(weekSequenceNumber);
+
 		//The label to use for the week is usually just like "Week" and then the number.
 		//If the week number is 18 or over, though, it's like "Playoffs - Divisional".
-		String label = ModelUtil.getWeekLabelForWeekNumber(weekNumberInt);
+		//this needs the year now too.
+		
+		String type = ModelUtil.getWeekType(yearNumberInt, weekSequenceNumberInt);
+		String key = ModelUtil.getWeekKey(yearNumberInt, weekSequenceNumberInt);
+		String label = ModelUtil.getWeekLabel(yearNumberInt, weekSequenceNumberInt);
+		
 		Season season = getSeason(year);
-		Week week = new Week(season.getId(), weekNumberInt, label);
+		Week week = new Week(season.getId(), weekSequenceNumberInt, type, key, label);
 		week = dataService.saveWeek(week);
 		
 		return week;
@@ -791,17 +802,17 @@ public class NFLPicksDataImporter {
 	 * Creates a game record for the given year and week for the given two teams and with the given result.
 	 * 
 	 * @param year
-	 * @param weekNumber
+	 * @param weekSequenceNumber
 	 * @param awayTeamAbbreviation
 	 * @param homeTeamAbbreviation
 	 * @param winningTeamAbbreviation
 	 * @param tie
 	 * @return
 	 */
-	protected Game createGame(String year, String weekNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, 
+	protected Game createGame(String year, String weekSequenceNumber, String awayTeamAbbreviation, String homeTeamAbbreviation, 
 							  String winningTeamAbbreviation, boolean tie){
 		
-		Week week = getWeek(year, weekNumber);
+		Week week = getWeek(year, weekSequenceNumber);
 		Team homeTeam = getTeam(homeTeamAbbreviation);
 		Team awayTeam = getTeam(awayTeamAbbreviation);
 		Team winningTeam = getTeam(winningTeamAbbreviation);
