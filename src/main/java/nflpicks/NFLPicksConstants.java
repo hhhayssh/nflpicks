@@ -66,32 +66,32 @@ public interface NFLPicksConstants {
 	/**
 	 * This says the week is in the regular season.
 	 */
-	public static final String WEEK_TYPE_REGULAR_SEASON = "REGULAR_SEASON";
+	public static final String WEEK_TYPE_REGULAR_SEASON = "regular_season";
 	
 	/**
 	 * This says the week is in the playoffs.
 	 */
-	public static final String WEEK_TYPE_PLAYOFFS = "PLAYOFFS";
+	public static final String WEEK_TYPE_PLAYOFFS = "playoffs";
 	
 	/**
 	 * This says the week is part of the wildcard round of the playoffs.
 	 */
-	public static final String WEEK_KEY_WILDCARD = "WILDCARD";
+	public static final String WEEK_KEY_WILDCARD = "wildcard";
 	
 	/**
 	 * This says the week is part of the divisional round of the playoffs.
 	 */
-	public static final String WEEK_KEY_DIVISIONAL = "DIVISIONAL";
+	public static final String WEEK_KEY_DIVISIONAL = "divisional";
 	
 	/**
 	 * This says the week is part of the conference championships blah.
 	 */
-	public static final String WEEK_KEY_CONFERENCE_CHAMPIONSHIP = "CONFERENCE_CHAMPIONSHIP";
+	public static final String WEEK_KEY_CONFERENCE_CHAMPIONSHIP = "conference_championship";
 	
 	/**
 	 * This says it's the superbowl.
 	 */
-	public static final String WEEK_KEY_SUPERBOWL = "SUPERBOWL";
+	public static final String WEEK_KEY_SUPERBOWL = "superbowl";
 	
 	// Constants for the names of json fields.  They're here because I'm not doing any of that
 	// auto crap and I wanted to use constants.
@@ -102,7 +102,9 @@ public interface NFLPicksConstants {
 	
 	public static final String JSON_WEEK_ID = "id";
 	public static final String JSON_WEEK_SEASON_ID = "season_id";
-	public static final String JSON_WEEK_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_WEEK_WEEK_SEQUENCE_NUMBER = "weekSequenceNumber";
+	public static final String JSON_WEEK_TYPE = "weekType";
+	public static final String JSON_WEEK_KEY = "weekKey";
 	public static final String JSON_WEEK_LABEL = "label";
 	public static final String JSON_WEEK_GAMES = "games";
 	
@@ -192,7 +194,8 @@ public interface NFLPicksConstants {
 	public static final String JSON_COMPACT_PICK_GRID_PICKS = "picks";
 	
 	public static final String JSON_COMPACT_PICK_YEAR = "year";
-	public static final String JSON_COMPACT_PICK_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_COMPACT_PICK_WEEK_SEQUENCE_NUMBER = "weekSequenceNumber";
+	public static final String JSON_COMPACT_PICK_WEEK_TYPE = "weekType";
 	public static final String JSON_COMPACT_PICK_WEEK_KEY = "weekKey";
 	public static final String JSON_COMPACT_PICK_WEEK_LABEL = "weekLabel";
 	public static final String JSON_COMPACT_PICK_HOME_TEAM_ABBREVIATION = "homeTeamAbbreviation";
@@ -204,7 +207,9 @@ public interface NFLPicksConstants {
 	public static final String JSON_COMPACT_PLAYER_PICK_PICK = "pick";
 	
 	public static final String JSON_PICK_SPLIT_YEAR = "year";
-	public static final String JSON_PICK_SPLIT_WEEK_NUMBER = "weekNumber";
+	public static final String JSON_PICK_SPLIT_WEEK_SEQUENCE_NUMBER = "weekSequenceNumber";
+	public static final String JSON_PICK_SPLIT_WEEK_TYPE = "weekType";
+	public static final String JSON_PICK_SPLIT_WEEK_KEY = "weekKey";
 	public static final String JSON_PICK_SPLIT_WEEK_LABEL = "weekLabel";
 	public static final String JSON_PICK_SPLIT_HOME_TEAM_ABBREVIATION = "homeTeamAbbreviation";
 	public static final String JSON_PICK_SPLIT_AWAY_TEAM_ABBREVIATION = "awayTeamAbbreviation";

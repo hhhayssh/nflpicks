@@ -400,3 +400,22 @@ function getValuesAsIntegers(values){
 	
 	return valuesAsIntegers;
 }
+
+/**
+ * 
+ * This function will copy the given text to the clipboard.  I stole
+ * it off stackoverflow.
+ * 
+ * @param text
+ * @returns
+ */
+function copyToClipboard(text) {
+    var textarea = document.createElement('textarea');
+    textarea.innerHTML = text;
+    textarea.style.position = 'fixed';
+    document.body.appendChild(textarea);
+    textarea.select();
+    var result = document.execCommand('copy');
+    document.body.removeChild(textarea);
+    return result;
+}

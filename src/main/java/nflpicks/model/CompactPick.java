@@ -24,6 +24,8 @@ public class CompactPick {
 	
 	protected String weekLabel;
 	
+	protected String weekType;
+	
 	protected String homeTeamAbbreviation;
 	
 	protected String awayTeamAbbreviation;
@@ -50,6 +52,14 @@ public class CompactPick {
 
 	public void setWeekSequenceNumber(int weekSequenceNumber) {
 		this.weekSequenceNumber = weekSequenceNumber;
+	}
+
+	public String getWeekType() {
+		return weekType;
+	}
+
+	public void setWeekType(String weekType) {
+		this.weekType = weekType;
 	}
 
 	public String getWeekKey() {
@@ -146,6 +156,19 @@ public class CompactPick {
 			return false;
 		}
 		
+		String otherWeekType = otherCompactPick.getWeekType();
+		
+		if (weekType != null){
+			if (!weekType.equals(otherWeekType)){
+				return false;
+			}
+		}
+		else {
+			if (otherWeekType != null){
+				return false;
+			}
+		}
+		
 		String otherWeekKey = otherCompactPick.getWeekKey();
 		
 		if (weekKey != null){
@@ -235,6 +258,7 @@ public class CompactPick {
 		
 		result = primeNumber * result + (year == null ? 0 : year.hashCode());
 		result = primeNumber * result + Integer.valueOf(weekSequenceNumber).hashCode();
+		result = primeNumber * result + (weekType == null ? 0 : weekType.hashCode());
 		result = primeNumber * result + (weekKey == null ? 0 : weekKey.hashCode());
 		result = primeNumber * result + (weekLabel == null ? 0 : weekLabel.hashCode());
 		result = primeNumber * result + (homeTeamAbbreviation == null ? 0 : homeTeamAbbreviation.hashCode());
@@ -249,6 +273,7 @@ public class CompactPick {
 		
 		String thisObjectAsAString = "year = " + year + 
 								  	 ", weekSequenceNumber = " + weekSequenceNumber + 
+								  	 ", weekType = " + weekType +
 								  	 ", weekKey = " + weekKey +
 								  	 ", weekLabel = " + weekLabel +
 								  	 ", homeTeamAbbreviation = " + homeTeamAbbreviation + 

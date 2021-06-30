@@ -335,7 +335,7 @@ public class ModelUtil {
 	
 	/**
 	 * 
-	 * This function will just get the week type, either "REGULAR_SEASON" or "PLAYOFFS", for
+	 * This function will just get the week type, either "regular_season" or "playoffs", for
 	 * the week with the given "sequence number" in the given year.  Freakin' goodell...
 	 * 
 	 * @param year
@@ -370,12 +370,12 @@ public class ModelUtil {
 	 * 
 	 * This function will get the "week key" for the week in the given year.
 	 * The "week key" is basically the same kind of deal as the label, but more
-	 * like a "value".  Like, the "week key" for week 1 is "WEEK_1".  Week 2 is "WEEK_2", and so on.
-	 * It's "WILDCARD" for the wildcard round, "DIVISIONAL", for the divisional round, and so on.
+	 * like a "value".  Like, the "week key" for week 1 is "1".  Week 2 is "2", and so on.
+	 * It's "wildcard" for the wildcard round, "divisional", for the divisional round, and so on.
 	 * 
 	 * It's here so that we can handle the fact that week 18 became a regular season week starting in
-	 * 2021.  For example, if the input to this function is "2018, 18", it'll return "WILDCARD" because
-	 * week 18 was the wildcard week in 2021.  If it's "2021, 18", it'll return "WEEK_18" because that
+	 * 2021.  For example, if the input to this function is "2018, 18", it'll return "wildcard" because
+	 * week 18 was the wildcard week in 2021.  If it's "2021, 18", it'll return "18" because that
 	 * was a regular week in 2021.
 	 * 
 	 * Basically, it's here so we can put the logic that says "if it's before 2021, do this ... if it's after
@@ -495,7 +495,7 @@ public class ModelUtil {
 	 */
 	public static String createWeekKey(int weekSequenceNumber){
 		
-		String weekKey = "WEEK_" + weekSequenceNumber;
+		String weekKey = String.valueOf(weekSequenceNumber);
 		
 		return weekKey;
 	}
@@ -509,16 +509,18 @@ public class ModelUtil {
 	 */
 	public static boolean isNumericWeekKey(String weekKey){
 		
-		if (weekKey.startsWith("WEEK_")){
-			return true;
+		int value = Util.parseInt(weekKey, -1);
+
+		if (value == -1){
+			return false;
 		}
 		
-		return false;
+		return true;
 	}
 	
 	/**
 	 * 
-	 * This gets the sequence number when the key is like "WEEK_12".  It'll
+	 * This gets the sequence number when the key is like "12".  It'll
 	 * return 12 in that case.  If it can't find it, it'll return -1.
 	 * 
 	 * @param weekKey
@@ -526,15 +528,7 @@ public class ModelUtil {
 	 */
 	public static int getWeekSequenceNumberFromWeekKey(String weekKey){
 		
-		int indexOfUnderscore = weekKey.indexOf("_");
-		
-		if (indexOfUnderscore == -1){
-			return -1;
-		}
-		
-		String weekKeyValueString = weekKey.substring(indexOfUnderscore + 1);
-		
-		int weekSequenceNumber = Util.toInteger(weekKeyValueString);
+		int weekSequenceNumber = Util.toInteger(weekKey);
 		
 		return weekSequenceNumber;
 	}

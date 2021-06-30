@@ -389,10 +389,6 @@ public class NFLPicksDataImporter {
 				String winningTeamAbbreviation = null;
 				List<String> playerPicks = null;
 				
-				if ("2021".equals(year)){
-					System.out.println("x");
-				}
-				
 				//Add in the winning team and players if we have them.
 				if (numberOfValues >= 5){
 					winningTeamAbbreviation = values.get(4);
@@ -648,7 +644,8 @@ public class NFLPicksDataImporter {
 		Week week = weekCache.get(seasonAndWeekKey);
 		
 		if (week == null){
-			week = dataService.getWeek(year, weekSequenceNumber);
+			int weekSequenceNumberInteger = Util.toInteger(weekSequenceNumber);
+			week = dataService.getWeekBySequenceNumber(year, weekSequenceNumberInteger);
 			weekCache.put(seasonAndWeekKey, week);
 		}
 		
@@ -669,7 +666,7 @@ public class NFLPicksDataImporter {
 		
 		int yearNumberInt = Util.toInteger(year);
 		int weekSequenceNumberInt = Util.toInteger(weekSequenceNumber);
-
+		
 		//The label to use for the week is usually just like "Week" and then the number.
 		//If the week number is 18 or over, though, it's like "Playoffs - Divisional".
 		//this needs the year now too.
@@ -816,6 +813,7 @@ public class NFLPicksDataImporter {
 		Team homeTeam = getTeam(homeTeamAbbreviation);
 		Team awayTeam = getTeam(awayTeamAbbreviation);
 		Team winningTeam = getTeam(winningTeamAbbreviation);
+
 		Game game = new Game(-1, week.getId(), homeTeam, awayTeam, tie, winningTeam);
 		
 		game = dataService.saveGame(game);

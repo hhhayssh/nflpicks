@@ -8,6 +8,10 @@ public class PickSplit {
 	
 	protected int weekSequenceNumber;
 	
+	protected String weekType;
+	
+	protected String weekKey;
+	
 	protected String weekLabel;
 	
 	protected String homeTeamAbbreviation;
@@ -37,6 +41,22 @@ public class PickSplit {
 
 	public void setWeekSequenceNumber(int weekSequenceNumber) {
 		this.weekSequenceNumber = weekSequenceNumber;
+	}
+
+	public String getWeekType() {
+		return weekType;
+	}
+
+	public void setWeekType(String weekType) {
+		this.weekType = weekType;
+	}
+
+	public String getWeekKey() {
+		return weekKey;
+	}
+
+	public void setWeekKey(String weekKey) {
+		this.weekKey = weekKey;
 	}
 
 	public String getWeekLabel() {
@@ -131,6 +151,32 @@ public class PickSplit {
 		
 		if (weekSequenceNumber != otherWeekNumber){
 			return false;
+		}
+		
+		String otherWeekType = otherPickSplit.getWeekType();
+
+		if (weekType != null){
+			if (!weekType.equals(otherWeekType)){
+				return false;
+			}
+		}
+		else {
+			if (otherWeekType != null){
+				return false;
+			}
+		}
+		
+		String otherWeekKey = otherPickSplit.getWeekKey();
+
+		if (weekKey != null){
+			if (!weekKey.equals(otherWeekKey)){
+				return false;
+			}
+		}
+		else {
+			if (otherWeekKey != null){
+				return false;
+			}
 		}
 		
 		String otherWeekLabel = otherPickSplit.getWeekLabel();
@@ -236,6 +282,8 @@ public class PickSplit {
 		result = primeNumber * result + (year == null ? 0 : year.hashCode());
 		result = primeNumber * result + Integer.valueOf(weekSequenceNumber).hashCode();
 		result = primeNumber * result + (weekLabel == null ? 0 : weekLabel.hashCode());
+		result = primeNumber * result + (weekType == null ? 0 : weekType.hashCode());
+		result = primeNumber * result + (weekKey == null ? 0 : weekKey.hashCode());
 		result = primeNumber * result + (homeTeamAbbreviation == null ? 0 : homeTeamAbbreviation.hashCode());
 		result = primeNumber * result + (awayTeamAbbreviation == null ? 0 : awayTeamAbbreviation.hashCode());
 		result = primeNumber * result + (winningTeamAbbreviation == null ? 0 : winningTeamAbbreviation.hashCode());
@@ -248,7 +296,9 @@ public class PickSplit {
 	public String toString(){
 		
 		String thisObjectAsAString = "year = " + year + 
-									 ", weekNumber = " + weekSequenceNumber + 
+									 ", weekSequenceNumber = " + weekSequenceNumber +
+									 ", weekType = " + weekType + 
+									 ", weekKey = " + weekKey +
 									 ", weekLabel = " + weekLabel + 
 									 ", homeTeamAbbreviation = " + homeTeamAbbreviation + 
 									 ", awayTeamAbbreviation = " + awayTeamAbbreviation + 

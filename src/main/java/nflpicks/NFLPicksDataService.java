@@ -251,6 +251,7 @@ public class NFLPicksDataService {
 													 		   "pick_totals.player_name, " + 
 													 		   "pick_totals.week_id, " + 
 													 		   "pick_totals.sequence_number, " +
+													 		   "pick_totals.week_type, " +
 													 		   "pick_totals.week_key, " +
 													 		   "pick_totals.week_label, " + 
 													 		   "sum(pick_totals.wins) as wins, " + 
@@ -262,6 +263,7 @@ public class NFLPicksDataService {
 													 		 	  	 "s.year as year, " + 
 													 		 	  	 "w.id as week_id, " + 
 													 		 	  	 "w.sequence_number as sequence_number, " +
+													 		 	  	 "w.type as week_type, " + 
 													 		 	  	 "w.key as week_key, " + 
 													 		 	  	 "w.label as week_label, " + 
 													 		 	  	 "(case when p.team_id = g.winning_team_id " + 
@@ -282,7 +284,7 @@ public class NFLPicksDataService {
 													 	           "join season s on w.season_id = s.id " + 
 													 	           " %s " + 
 													 	     ") pick_totals " + 
-													    "group by pick_totals.season_id, year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_key, pick_totals.week_label " + 
+													    "group by pick_totals.season_id, year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_type, pick_totals.week_key, pick_totals.week_label " + 
 													    "order by year, sequence_number, player_name ";
 	
 	/**
@@ -296,6 +298,7 @@ public class NFLPicksDataService {
 															 		"pick_totals.player_name, " + 
 															 		"pick_totals.week_id, " + 
 															 		"pick_totals.sequence_number, " +
+															 		"pick_totals.week_type, " + 
 															 		"pick_totals.week_key, " +
 															 		"pick_totals.week_label, " + 
 															 		"sum(pick_totals.wins) as wins, " + 
@@ -306,7 +309,8 @@ public class NFLPicksDataService {
 															 		 	  "s.id as season_id, " + 
 															 		 	  "s.year as year, " + 
 															 		 	  "w.id as week_id, " + 
-															 		 	  "w.sequence_number as sequence_number, " + 
+															 		 	  "w.sequence_number as sequence_number, " +
+															 		 	  "w.type as week_type, " + 
 															 		 	  "w.key as week_key, " +
 															 		 	  "w.label as week_label, " + 
 															 		 	  "(case when p.team_id = g.winning_team_id " + 
@@ -327,7 +331,7 @@ public class NFLPicksDataService {
 															 	        "join season s on w.season_id = s.id " + 
 															 	        " %s " + 
 															 	   ") pick_totals " + 
-															"group by pick_totals.season_id, pick_totals.year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_key, pick_totals.week_label ";
+															"group by pick_totals.season_id, pick_totals.year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_type, pick_totals.week_key, pick_totals.week_label ";
 	
 	/**
 	 * 
@@ -353,6 +357,7 @@ public class NFLPicksDataService {
 															 "best_weeks.player_name, " + 
 															 "best_weeks.week_id, " +
 															 "best_weeks.sequence_number, " +
+															 "best_weeks.week_type, " + 
 															 "best_weeks.week_key, " + 
 															 "best_weeks.week_label, " + 
 															 "best_weeks.wins, " + 
@@ -370,7 +375,8 @@ public class NFLPicksDataService {
 																	     "pick_totals.player_id, " + 
 																	     "pick_totals.player_name, " + 
 																	     "pick_totals.week_id, " + 
-																	     "pick_totals.sequence_number, " + 
+																	     "pick_totals.sequence_number, " +
+																	     "pick_totals.week_type, " + 
 																	     "pick_totals.week_key, " +
 																	     "pick_totals.week_label, " + 
 																	     "sum(pick_totals.wins) as wins, " + 
@@ -387,8 +393,9 @@ public class NFLPicksDataService {
 																 	 		  "s.id as season_id, " + 
 																 	 		  "s.year as year, " + 
 																 	 		  "w.id as week_id, " + 
-																 	 		  "w.sequence_number as sequence_number, " + 
-																 	 		  "w.key as sequence_number, " +
+																 	 		  "w.sequence_number as sequence_number, " +
+																 	 		  "w.type as week_type, " +
+																 	 		  "w.key as week_key, " +
 																 	 		  "w.label as week_label, " + 
 																 	 		  "(case when p.team_id = g.winning_team_id " + 
 																 	 		  "then 1 " + 
@@ -408,7 +415,7 @@ public class NFLPicksDataService {
 																 	  	   "join season s on w.season_id = s.id " +
 																 	  	   " %s " + 
 																 	  ") pick_totals " + 
-																"group by pick_totals.season_id, pick_totals.year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_key, pick_totals.week_label " + 
+																"group by pick_totals.season_id, pick_totals.year, pick_totals.player_id, pick_totals.player_name, pick_totals.week_id, pick_totals.sequence_number, pick_totals.week_type, pick_totals.week_key, pick_totals.week_label " + 
 													") best_weeks " + 
 													"order by xrank desc, wins desc, losses desc, player_name asc ";
 	
@@ -579,7 +586,7 @@ public class NFLPicksDataService {
 																 			   "from game g " + 
 																 			   "where (g.home_team_id = t.id or " + 
 																 			    	  "g.away_team_id = t.id) " + 
-																 			    	  "and g.winning_team_id = t.id " + 
+																 			    	  "and (g.winning_team_id = t.id and g.winning_team_id != -1) " + 
 																 			    	  "and g.week_id in (select w.id " + 
 																 			    	  					"from week w " + 
 																 			    	  					"where w.season_id = s.id %s ) " + 
@@ -612,10 +619,13 @@ public class NFLPicksDataService {
 																 			  //We have 3 "coordinates" at this point: team id, player id, season id.
 																 			  //We just have to go and do a normal query to see how many times the player
 																 			  //picked the team to win in the season.
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
 																 			   		 "and p.team_id = t.id " + 
+																 			   		 "and g.winning_team_id != -1 " +
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id %s ) " + 
@@ -623,23 +633,29 @@ public class NFLPicksDataService {
 																 			  //With losses, they didn't pick the team, so we can't use the team id to go
 																 			  //directly into the pick table.  Instead, we have to go through the game
 																 			  //table and get the game that involves the team they picked (whether they're the
-																 			  //home or away team), and then go to the pick table with that game. 
+																 			  //home or away team), and then go to the pick table with that game.
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
 																 			   		 "and p.team_id != t.id " + 
-																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " +
+																 			   		 "and g.winning_team_id != -1 " +
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id %s ) " + 
 																 			  ") as predicted_losses, " +
 																 			  //The number of times they were right is the number of times the game involved the team
 																 			  //we're on, they picked that team, and the week is in the season we're on.
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
 																 			   		 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-																 			   		 "and g.winning_team_id = p.team_id " + 
+																 			   		 "and g.winning_team_id = p.team_id " +
+																 			   		 "and g.winning_team_id != -1 " +
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id %s ) " + 
@@ -647,6 +663,8 @@ public class NFLPicksDataService {
 																 			  //The number of times they were wrong is the number of times the game involved the 
 																 			  //team we're on, the winning team isn't the team they picked, and the game is in
 																 			  //a week that's in the season we're on.
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -659,10 +677,13 @@ public class NFLPicksDataService {
 																 			  ") as times_wrong, " + 
 																 			  //The number of times they picked a team to win and they were right is when
 																 			  //they picked the team, the team won the game, and the week is in the season we're on.
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
-																 			   		 "and p.team_id = t.id " + 
+																 			   		 "and p.team_id = t.id " +
+																 			   		 "and g.winning_team_id != -1 " +
 																 			   		 "and g.week_id in (select w.id " + 
 																 			   		 				   "from week w " + 
 																 			   		 				   "where w.season_id = s.id %s ) " + 
@@ -671,10 +692,12 @@ public class NFLPicksDataService {
 																 			  //The number of times they picked a team to win and they were wrong is when they
 																 			  //picked the team, the team didn't win the game, it wasn't a tie, and the game 
 																 			  //is in the season we're on.
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
-																 			   	     "and p.team_id = t.id " + 
+																 			   	     "and p.team_id = t.id " +
 																 			   	     "and g.week_id in (select w.id " + 
 																 			   	     				   "from week w " + 
 																 			   	     				   "where w.season_id = s.id %s ) " + 
@@ -684,6 +707,8 @@ public class NFLPicksDataService {
 																 			  //The number of times they picked a team to lose and were right is when the game
 																 			  //involves the team we're on, their pick for the game wasn't the team we're on,
 																 			  //and the winning team isn't the team we're on (and it wasn't a tie).
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
@@ -698,10 +723,13 @@ public class NFLPicksDataService {
 																 			  //The number of times they picked a team to lose and were wrong is when the game
 																 			  //involves the team we're on, they didn't pick that team to win, the team won anyway,
 																 			  //and the week is in the season we're on.
+																 			  //If the game ended in a tie, we don't want to count that since that doesn't go
+																 			  //as a win or loss.
 																 			  "(select count(*)  " + 
 																 			   "from pick p join game g on p.game_id = g.id " + 
 																 			   "where p.player_id = pl.id " + 
 																 			   	 	 "and p.team_id != t.id " + 
+																 			   	 	 "and g.winning_team_id != -1 " +
 																 			   	 	 "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
 																 			   	 	 "and g.week_id in (select w.id " + 
 																 			   	 	 				   "from week w " + 
@@ -717,7 +745,7 @@ public class NFLPicksDataService {
 																 	    //This is so we can add in a filter for only a certain teams, players, or seasons.
 																 	    " %s " + 
 																		") pick_accuracy_summary " +
-																 //And we want to filter out teams on a by week (we can do that by requiring them to have at least 1 
+																 //And we want to filter out teams on a bye week (we can do that by requiring them to have at least 1 
 																 //win or loss.
 																 "where (pick_accuracy_summary.actual_wins > 0 or pick_accuracy_summary.actual_losses > 0) " + 
 																 //We want everything per player and team, so make sure we group by that so that we get counts
@@ -761,6 +789,7 @@ public class NFLPicksDataService {
 	 */
 	protected static final String SELECT_COMPACT_PICK_BASE = "select s.year as year, " + 
 																	"w.sequence_number as sequence_number, " +
+																	"w.type as week_type, " +
 																	"w.key as week_key, " +
 																	"w.label as week_label, " +
 																	"home_team.abbreviation as home_team_abbreviation, " + 
@@ -2782,6 +2811,55 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
+	 * This function will get the week for the given year and sequence number.
+	 * 
+	 * @param year
+	 * @param weekSequenceNumber
+	 * @return
+	 */
+	public Week getWeekBySequenceNumber(String year, int weekSequenceNumber){
+		
+		//Steps to do:
+		//	1. Make the query.
+		//	2. Return the results.
+
+		Week retrievedWeek = null;
+
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			connection = getConnection();
+			
+			String query = SELECT_WEEK + 
+					"where season_id in (select id " +
+					"from season " +
+					"where year = ? )" +
+					"and sequence_number = ? ";
+			
+			statement = connection.prepareStatement(query);
+			statement.setString(1, year);
+			statement.setInt(2, weekSequenceNumber);
+			results = statement.executeQuery();
+
+			if (results.next()){
+				retrievedWeek = mapWeek(results);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting week! year = " + year + ", weekSequenceNumber = " + weekSequenceNumber, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+
+		return retrievedWeek;
+	}
+	
+	/**
+	 * 
 	 * This function will get the week in the given year with the given key.
 	 * It'll do a full retrieval of the week and include the games in it.
 	 * 
@@ -2946,8 +3024,7 @@ public class NFLPicksDataService {
 			}
 			//If we don't find a week that has results, that means we're on week number 1.
 			else {
-				int currentYearInt = Util.toInteger(currentYear);
-				currentWeek = getWeek(currentYearInt, 1);
+				currentWeek = getWeekBySequenceNumber(currentYear, 1);
 			}
 		}
 		catch (Exception e){
@@ -5225,6 +5302,8 @@ public class NFLPicksDataService {
 		
 		String year = results.getString("year");
 		int weekSequenceNumber = results.getInt("sequence_number");
+		String weekType = results.getString("week_type");
+		String weekKey = results.getString("week_key");
 		String weekLabel = results.getString("week_label");
 		String homeTeamAbbreviation = results.getString("home_team_abbreviation");
 		String awayTeamAbbreviation = results.getString("away_team_abbreviation");
@@ -5243,6 +5322,8 @@ public class NFLPicksDataService {
 		
 		compactPick.setYear(year);
 		compactPick.setWeekSequenceNumber(weekSequenceNumber);
+		compactPick.setWeekType(weekType);
+		compactPick.setWeekKey(weekKey);
 		compactPick.setWeekLabel(weekLabel);
 		compactPick.setHomeTeamAbbreviation(homeTeamAbbreviation);
 		compactPick.setAwayTeamAbbreviation(awayTeamAbbreviation);
@@ -5863,8 +5944,10 @@ public class NFLPicksDataService {
 
 		int weekId = results.getInt("week_id");
 		int weekSequenceNumber = results.getInt("sequence_number");
+		String weekType = results.getString("week_type");
+		String weekKey = results.getString("week_key");
 		String weekLabel = results.getString("week_label");
-		Week week = new Week(weekId, seasonId, weekSequenceNumber, weekLabel);
+		Week week = new Week(weekId, seasonId, weekSequenceNumber, weekType, weekKey, weekLabel);
 		
 		int playerId = results.getInt("player_id");
 		String playerName = results.getString("player_name");
@@ -6488,14 +6571,19 @@ public class NFLPicksDataService {
 				statement.setString(parameterIndex, teamAbbreviation);
 				parameterIndex++;
 			}
+
+			long queryStart = System.currentTimeMillis();
 			
 			results = statement.executeQuery();
+
+			long queryElapsed = System.currentTimeMillis() - queryStart;
+			
+			log.info("Getting pick summaries took " + queryElapsed + " ms");
 			
 			while (results.next()){
 				PickAccuracySummary pickAccuracySummary = mapPickAccuracySummary(results);
 				pickAccuracySummaries.add(pickAccuracySummary);
 			}
-
 		}
 		catch (Exception e){
 			log.error("Error getting pick accuracy summary!  players = " + players + ", years = " + years + ", teamAbbreviations = " + teamAbbreviations, e);
@@ -6786,11 +6874,11 @@ public class NFLPicksDataService {
 	 * This function will get the season long records for the given years and players.  Not much to it.
 	 * 
 	 * @param years
-	 * @param weeks
+	 * @param weekKeys
 	 * @param players
 	 * @return
 	 */
-	public List<SeasonRecordForPlayer> getSeasonRecords(List<String> years, List<String> weeks, List<String> players){
+	public List<SeasonRecordForPlayer> getSeasonRecords(List<String> years, List<String> weekKeys, List<String> players){
 		
 		//Steps to do:
 		//	1. Get all the championships since we want to mark them if somebody won
@@ -6843,7 +6931,7 @@ public class NFLPicksDataService {
 			//will this have to be smarter?
 			//no i don't think that's a good idea ... it'll just have to target something other than week number
 			//it needs to be a "compact representation" of the week
-			boolean hasWeeks = Util.hasSomething(weeks);
+			boolean hasWeeks = Util.hasSomething(weekKeys);
 			if (hasWeeks){
 				if (addedWhere){
 					whereClause = whereClause + " and ";
@@ -6853,7 +6941,7 @@ public class NFLPicksDataService {
 					addedWhere = true;
 				}
 				
-				String inParameterString = DatabaseUtil.createInClauseParameterString(weeks.size());
+				String inParameterString = DatabaseUtil.createInClauseParameterString(weekKeys.size());
 				whereClause = whereClause + " w.key in " + inParameterString;
 			}
 			
@@ -6884,9 +6972,9 @@ public class NFLPicksDataService {
 			}
 			
 			if (hasWeeks){
-				for (int index = 0; index < weeks.size(); index++){
-					String week = weeks.get(index);
-					statement.setInt(parameterIndex, Integer.parseInt(week));
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
 					parameterIndex++;
 				}
 			}
@@ -6909,7 +6997,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting season records!  years = " + years + ", weeks = " + weeks + ", players = " + players, e);
+			log.error("Error getting season records!  years = " + years + ", weeks = " + weekKeys + ", players = " + players, e);
 		}
 		finally {
 			close(results, statement, connection);

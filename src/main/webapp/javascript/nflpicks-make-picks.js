@@ -33,6 +33,17 @@ function updateMakePicks(){
 	
 }
 
+function onClickCopyPicks(){
+
+	var pickedPicksText = $('#picked-picks').val();
+
+	var successful = copyToClipboard(pickedPicksText);
+	
+	if (successful){
+		$('#picked-picks-copied-container').show();
+	}
+}
+
 /**
  * 
  * This function will update the picks that they made by adding them to the

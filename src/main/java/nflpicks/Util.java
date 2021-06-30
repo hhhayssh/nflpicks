@@ -10,6 +10,7 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
@@ -368,6 +369,10 @@ public class Util {
 	}
 	
 	public static int parseInt(String intString, int defaultValue){
+		
+		if (intString == null){
+			return defaultValue;
+		}
 		
 		int parsedInt = defaultValue;
 		

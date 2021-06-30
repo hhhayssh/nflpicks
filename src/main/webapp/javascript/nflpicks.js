@@ -442,36 +442,43 @@ function getSelectionCriteriaAndInitialize(){
 		$('#selectorContainer').append(yearSelectorHtml);
 		
 		var weekOptions = [{label: 'All', value: 'all'},
-		                   {label: 'Regular season', value: 'REGULAR_SEASON'},
-		                   {label: 'Playoffs', value: 'PLAYOFFS'},
-		                   {label: 'Week 1', value: 'WEEK_1'}, {label: 'Week 2', value: 'WEEK_2'},
-		                   {label: 'Week 3', value: 'WEEK_3'}, {label: 'Week 4', value: 'WEEK_4'},
-		                   {label: 'Week 5', value: 'WEEK_5'}, {label: 'Week 6', value: 'WEEK_6'},
-		                   {label: 'Week 7', value: 'WEEK_7'}, {label: 'Week 8', value: 'WEEK_8'},
-		                   {label: 'Week 9', value: 'WEEK_9'}, {label: 'Week 10', value: 'WEEK_10'},
-		                   {label: 'Week 11', value: 'WEEK_11'}, {label: 'Week 12', value: 'WEEK_12'},
-		                   {label: 'Week 13', value: 'WEEK_13'}, {label: 'Week 14', value: 'WEEK_14'},
-		                   {label: 'Week 15', value: 'WEEK_15'}, {label: 'Week 16', value: 'WEEK_16'},
-		                   {label: 'Week 17', value: 'WEEK_17'}, {label: 'Week 18', value: 'WEEK_18'}, 
-		                   {label: 'Wild Card', value: 'WILDCARD'},
-		                   {label: 'Divisional', value: 'DIVISIONAL'}, 
-		                   {label: 'Conference Championship', value: 'CONFERENCE_CHAMPIONSHIP'}, 
-		                   {label: 'Superbowl', value: 'SUPERBOWL'}
+		                   {label: 'Regular season', value: 'regular_season'},
+		                   {label: 'Playoffs', value: 'playoffs'},
+		                   {label: 'Week 1', value: '1'}, {label: 'Week 2', value: '2'},
+		                   {label: 'Week 3', value: '3'}, {label: 'Week 4', value: '4'},
+		                   {label: 'Week 5', value: '5'}, {label: 'Week 6', value: '6'},
+		                   {label: 'Week 7', value: '7'}, {label: 'Week 8', value: '8'},
+		                   {label: 'Week 9', value: '9'}, {label: 'Week 10', value: '10'},
+		                   {label: 'Week 11', value: '11'}, {label: 'Week 12', value: '12'},
+		                   {label: 'Week 13', value: '13'}, {label: 'Week 14', value: '14'},
+		                   {label: 'Week 15', value: '15'}, {label: 'Week 16', value: '16'},
+		                   {label: 'Week 17', value: '17'}, {label: 'Week 18', value: '18'}, 
+		                   {label: 'Wild Card', value: 'wildcard'},
+		                   {label: 'Divisional', value: 'divisional'}, 
+		                   {label: 'Conference Championship', value: 'conference_championship'}, 
+		                   {label: 'Superbowl', value: 'superbowl'}
 		                   ];
 		
-		var realWeeks = [{label: 'Week 1', value: 'WEEK_1'}, {label: 'Week 2', value: 'WEEK_2'},
-				            {label: 'Week 3', value: 'WEEK_3'}, {label: 'Week 4', value: 'WEEK_4'},
-				            {label: 'Week 5', value: 'WEEK_5'}, {label: 'Week 6', value: 'WEEK_6'},
-				            {label: 'Week 7', value: 'WEEK_7'}, {label: 'Week 8', value: 'WEEK_8'},
-				            {label: 'Week 9', value: 'WEEK_9'}, {label: 'Week 10', value: 'WEEK_10'},
-				            {label: 'Week 11', value: 'WEEK_11'}, {label: 'Week 12', value: 'WEEK_12'},
-				            {label: 'Week 13', value: 'WEEK_13'}, {label: 'Week 14', value: 'WEEK_14'},
-				            {label: 'Week 15', value: 'WEEK_15'}, {label: 'Week 16', value: 'WEEK_16'},
-				            {label: 'Week 17', value: 'WEEK_17'}, {label: 'Week 18', value: 'WEEK_18'}, 
-				            {label: 'Wild Card', value: 'WILDCARD'},
-				            {label: 'Divisional', value: 'DIVISIONAL'}, 
-				            {label: 'Conference Championship', value: 'CONFERENCE_CHAMPIONSHIP'}, 
-				            {label: 'Superbowl', value: 'SUPERBOWL'}
+		//could these be 1, 2, 3, 4, ... again and just change the playoffs?
+		//yeah i think so
+		//week=1,2,3,4,wildcard,divisional,superbowl
+		//yeah that's better than
+		//week=1,2,3,wildcard,divisional
+		//need to change .... importer ... the model util function ... this
+		//and that should be it.
+		var realWeeks = [{label: 'Week 1', value: '1'}, {label: 'Week 2', value: '2'},
+				            {label: 'Week 3', value: '3'}, {label: 'Week 4', value: '4'},
+				            {label: 'Week 5', value: '5'}, {label: 'Week 6', value: '6'},
+				            {label: 'Week 7', value: '7'}, {label: 'Week 8', value: '8'},
+				            {label: 'Week 9', value: '9'}, {label: 'Week 10', value: '10'},
+				            {label: 'Week 11', value: '11'}, {label: 'Week 12', value: '12'},
+				            {label: 'Week 13', value: '13'}, {label: 'Week 14', value: '14'},
+				            {label: 'Week 15', value: '15'}, {label: 'Week 16', value: '16'},
+				            {label: 'Week 17', value: '17'}, {label: 'Week 18', value: '18'}, 
+				            {label: 'Wild Card', value: 'wildcard'},
+				            {label: 'Divisional', value: 'divisional'}, 
+				            {label: 'Conference Championship', value: 'conference_championship'}, 
+				            {label: 'Superbowl', value: 'superbowl'}
 				            ];
 		
 		//need to refactor the NFL_PICKS_GLOBAL so that it has all the options
@@ -873,15 +880,15 @@ function getAvailableWeeksForYears(yearValues){
 	
 	var integerYearValues = getValuesAsIntegers(currentSelectedYearValues);
 	
-	var availableWeeksBefore2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-								    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-								    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-								    'SUPERBOWL'];
+	var availableWeeksBefore2021 = ['1', '2', '3', '4', '5', '6', '7',
+								    '8', '9', '10', '11', '12', '13', '14',
+								    '15', '16', '17', 'wildcard', 'divisional', 'conference_championship',
+								    'superbowl'];
 	
-	var availableWeeksAfter2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-	    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-	    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WEEK_18', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-	    'SUPERBOWL'];
+	var availableWeeksAfter2021 = ['1', '2', '3', '4', '5', '6', '7',
+	    '8', '9', '10', '11', '12', '13', '14',
+	    '15', '16', '17', '18', 'wildcard', 'divisional', 'conference_championship',
+	    'superbowl'];
 	
 	for (var index = 0; index < integerYearValues.length; index++){
 		var integerYearValue = integerYearValues[index];
@@ -899,22 +906,20 @@ function updateAvailableWeekOptions(){
 	
 	var currentSelectedYearValues = getYearValuesForSelectedYears();
 	
-//	var availableWeekValues = getAllWeekValuesForSelectedYears();
-	
-	var weeksToShow = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-	    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-	    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-	    'SUPERBOWL'];
-	var weeksToHide = ['WEEK_18'];
+	var weeksToShow = ['1', '2', '3', '4', '5', '6', '7',
+	    '8', '9', '10', '11', '12', '13', '14',
+	    '15', '16', '17', 'wildcard', 'divisional', 'conference_championship',
+	    'superbowl'];
+	var weeksToHide = ['18'];
 	
 	for (var index = 0; index < currentSelectedYearValues.length; index++){
 		var yearValue = currentSelectedYearValues[index];
 		
 		if (yearValue >= 2021){
-			weeksToShow = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-			    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-			    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WEEK_18', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-			    'SUPERBOWL'];
+			weeksToShow = ['1', '2', '3', '4', '5', '6', '7',
+			    '8', '9', '10', '11', '12', '13', '14',
+			    '15', '16', '17', '18', 'wildcard', 'divisional', 'conference_championship',
+			    'superbowl'];
 			
 			weeksToHide = [];
 		}
@@ -930,115 +935,6 @@ function updateAvailableWeekOptions(){
 		var weekToHide = weeksToHide[index];
 		unselectWeekFull(weekToHide);
 	}
-	
-//	showTeamItems(teamsToShow);
-	
-	//Hide the teams that should be hidden in the selector.
-//	hideTeamItems(teamsToHide);
-	
-	//if
-	
-	//if the years have 2021 or greater, show the 
-	//
-	//	if somebody picks years 2020 and 2021
-	//	and then picks...
-	//		1. wild card
-	//			that will be week 19
-	//				it would bring back divisional games in 2020 and wildcard in 2021
-	//
-	//			probably need to redo the weeks table
-	//			make a column called week_sequence_number
-	//			need a column called "week_type" (playoff or regular season)
-	//			if there's an option called "wild card", should the week say "wild_card" in its table?
-	//			it should probably be "playoffs, round 1" or something because they'll probably change the playoffs at some point
-	//			what if they reduce the weeks in the regular season?
-	//			what if week 15 becomes the first round of the playoffs?
-	//			there should probably be a separate csv file that controls that
-	//
-	//			there should be some kind of "marker" so that, if 15 becomes part of the playoffs, its marker is
-	//			15-P, and the other years have 15-R
-	//			then it can do a search for both in a single column without having to do an "and".
-	//			otherwise, it would have to do something like this:
-	//			where (week_label, week_type) in (('15', 'PLAYOFFS), ('16', 'REGULAR_SEASON'))
-	//
-	//			year	sequence_number			key							label						type
-	//			2020	5						WEEK_5						Week 5						REGULAR_SEASON
-	//			2020	18						WILDCARD					Wildcard					PLAYOFFS
-	//			2020	19						DIVISIONAL					Divisional					PLAYOFFS
-	//			2020	20						CONFERENCE_CHAMPIONSHIP		Conference Championship		PLAYOFFS
-	//			2021	18						WEEK_18						Week 18						REGULAR_SEASON
-	//			2021	19						WILDCARD					Wildcard					PLAYOFFS
-	//			2021	20						CONFERENCE_CHAMPIONSHIP		Conference Championship		PLAYOFFS
-	//
-	//		now, if somebody picks 2020 and 2021, and then picks "Wildcard", this gets sent:
-	//			years=2020,2021&weeks=WILDCARD
-	//
-	//		and the sql query is like "where year in ('2020', '2021') and marker in ('WILDCARD')
-	//
-	//		there needs to be a week_data csv.  it would have
-	//		Year,Week,Week type
-	//		2020,Week 5,Regular season
-	//		2020,Week 18,Playoffs
-	//		2020,Wildcard,Playoffs
-	//		2021,Week 18,Regular season
-	//		2021,Wildcard,Playoffs
-	//
-	//		would be nice if it "auto built" the menu off of what was there
-	//		should it keep building the week and games off of the picks csv or should there be a separate "seasons" csv that has the seasons
-	//		and weeks in it?
-	//		either way, the picks csv needs to change and not use the week number in the week column ... it should "derive" the sequence from
-	//		the ... sequence ... then it should use the "Week" as the label
-	//		... it should be in the picks csv
-	//		and the team data csv needs to change to
-	//		conference,division,city,nickname,abbreviation,start_date,end_date,current_abbreviation
-	//			
-	//			we'll need to sort on "week sequence" usually
-	//		
-	//	with this design, if somebody picks 2020 and 2021, then picks wild card, what happens?
-	//	it ... works
-	//	need to rebuild from the bottom up:
-	//		1. remake the week table - done
-	//		2. remake the import process - it'll have to have some smarts and look at the year when deciding what to put in the week
-	//		   it needs to fill in the key, type, and label ... the week can become the sequence number and the label will
-	//		   - done ... i think
-	//		4. remake the views - done
-	//		5. update the functions to use the key instead of the week sequence number - done
-	//		3. remake the menus - need to 
-	//		4. hide week 18 if it's less than 2021 and show it if it's more ... filter like it does on the teams
-	//			4a. could also have a season to week map ... the menu would have to be a distinct set of the weeks, sorted by sequence number...
-	//			   but that could be a problem if the sequence number for WILDCARD in 2020 came before the sequence number for WILDCARD IN 2021
-	//			   or that week 18 should be before the wildcard option ... it could sort and say "regular season is always first" and then
-	//			   take the shortest sequence there
-	//			   there need to be special options for all, regular season, and playoffs though, so the UI has to have some smarts
-	//
-	//				1. add default weeks (all, regular season, playoffs)
-	//				2. get weeks from the data ... the weeks have a start and end season? ... but then that would have to be stored somewhere
-	//				3. it could happen when loading the data ... seasons: [{year: 2020, weeks: [{week 1, week 2, ...}], 2021
-	//				   or just weeks: [{label: week 18, marker: WEEK_18, startYear: 2021
-	//				   i think that might work
-	//				
-	//				   select week, min(year), max(year) from week ....
-	//		5. remake the urls for the playoffs and regular season ... regular season should add WEEK_18 if it was available 
-	//		   there should be a "getAvailableWeeks(years)" that returns the values to use
-	/*
-	 var weekOptions = [{label: 'All', value: 'ALL'},
-		                   {label: 'Regular season', value: 'REGULAR_SEASON'},
-		                   {label: 'Playoffs', value: 'PLAYOFFS'},
-		                   {label: 'Week 1', value: 'WEEK_1'}, {label: 'Week 2', value: 'REGULAR_SEASON-2'},
-		                   {label: 'Week 3', value: 'WEEK_3'}, {label: 'Week 4', value: 'REGULAR_SEASON-4'},
-		                   {label: 'Week 5', value: 'REGULAR_SEASON-5'}, {label: 'Week 6', value: 'REGULAR_SEASON-6'},
-		                   {label: 'Week 7', value: 'REGULAR_SEASON-7'}, {label: 'Week 8', value: 'REGULAR_SEASON-8'},
-		                   {label: 'Week 9', value: 'REGULAR_SEASON-9'}, {label: 'Week 10', value: 'REGULAR_SEASON-10'},
-		                   {label: 'Week 11', value: 'REGULAR_SEASON-11'}, {label: 'Week 12', value: 'REGULAR_SEASON-12'},
-		                   {label: 'Week 13', value: 'REGULAR_SEASON-13'}, {label: 'Week 14', value: 'REGULAR_SEASON-14'},
-		                   {label: 'Week 15', value: 'REGULAR_SEASON-15'}, {label: 'Week 16', value: 'REGULAR_SEASON-16'},
-		                   {label: 'Week 17', value: 'REGULAR_SEASON-17'}, {label: 'Week 18', value: 'WEEK_18'}, 
-		                   {label: 'Wild Card', value: 'WILDCARD'},
-		                   {label: 'Divisional', value: 'DIVISIONAL'}, 
-		                   {label: 'Conference Championship', value: 'CONFERENCE_CHAMPIONSHIP'}, 
-		                   {label: 'Superbowl', value: 'SUPERBOWL'}
-		                   ];
-	 */
 }
 
 
@@ -1540,6 +1436,9 @@ function setSelectedTeams(teams){
 		teamsArray.push(team);
 	}
 	
+	//this was the key ... had to refresh the current selections before hiding the teams
+	updateCurrentWeekSelections();
+	
 	NFL_PICKS_GLOBAL.selections.teams = teamsArray;
 }
 
@@ -1821,7 +1720,7 @@ function updateStats(){
 	)
 	.done(function(data) {
 		var statsHtml = '';
-
+		
 		//Make the html for the kind of stat they wanted to see.
 		if ('champions' == statName){
 			var championships = $.parseJSON(data);
@@ -1857,8 +1756,12 @@ function updateStats(){
 			statsHtml = createWeekStandingsHtml(playerWeekRecords);
 		}
 		else if ('pickAccuracy' == statName){
+			var start = Date.now();
 			var pickAccuracySummaries = $.parseJSON(data);
+			var jsonElapsed = Date.now() - start;
+			var htmlStart = Date.now();
 			statsHtml = createPickAccuracySummariesHtml(pickAccuracySummaries);
+			var htmlElapsed = Date.now() - htmlStart;
 		}
 		else if ('pickSplits' == statName){
 			var pickSplits = $.parseJSON(data);
@@ -2199,8 +2102,8 @@ function sortWeekRecordsBySeasonAndWeek(weekRecords){
 		}
 		else {
 			//Otherwise, compare on the weeks.
-			var week1 = weekRecord1.week.weekNumber;
-			var week2 = weekRecord2.week.weekNumber;
+			var week1 = weekRecord1.week.weekSequenceNumber;
+			var week2 = weekRecord2.week.weekSequenceNumber;
 			
 			//With the earlier week first.
 			if (week1 < week2){
@@ -2245,8 +2148,8 @@ function sortWeekRecordsBySeasonWeekAndRecord(weekRecords){
 		//If it's the same year...
 		else {
 			//Compare on the weeks.
-			var week1 = weekRecord1.week.weekNumber;
-			var week2 = weekRecord2.week.weekNumber;
+			var week1 = weekRecord1.week.weekSequenceNumber;
+			var week2 = weekRecord2.week.weekSequenceNumber;
 			
 			//With the earlier week first.
 			if (week1 < week2){
@@ -2350,13 +2253,13 @@ function isSpecificWeekSelected(){
 
 	var selectedWeeks = getSelectedWeeks();
 	
-	if (selectedWeeks.length > 1){
+	if (isEmpty(selectedWeeks)){
 		return false;
 	}
 	
 	var selectedWeek = selectedWeeks[0].value;
 	
-	if ('all' == selectedWeek || 'regular-season' == selectedWeek || 'playoffs' == selectedWeek){
+	if ('all' == selectedWeek || 'regular_season' == selectedWeek || 'playoffs' == selectedWeek){
 		return false;
 	}
 	

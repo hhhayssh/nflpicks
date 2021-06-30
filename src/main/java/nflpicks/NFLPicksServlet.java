@@ -554,7 +554,11 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
+				log.info("Getting pick accuracy summaries...");
+				long start = System.currentTimeMillis();
 				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummaries(years, weekKeys, players, teams);
+				long elapsed = System.currentTimeMillis() - start;
+				log.info("Done getting pick accuracy summaries. elapsed = " + elapsed);
 				
 				json = JSONUtil.pickAccuracySummariesListToJSONString(pickAccuracySummaries);
 			}

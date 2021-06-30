@@ -2040,15 +2040,15 @@ function getRegularSeasonWeeksForSelectedYears(){
 	var selectedYearValues = getSelectedYearValues();
 	var integerYearValues = getValuesAsIntegers(selectedYearValues);
 	
-	var regularSeasonWeeksBefore2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-								    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-								    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-								    'SUPERBOWL'];
+	var regularSeasonWeeksBefore2021 = ['1', '2', '3', '4', '5', '6', '7',
+								    '8', '9', '10', '11', '12', '13', '14',
+								    '15', '16', '17', 'wildcard', 'divisional', 'conference_championship',
+								    'superbowl'];
 	
-	var regularSeasonWeeksAfter2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-	    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-	    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WEEK_18', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-	    'SUPERBOWL'];
+	var regularSeasonWeeksAfter2021 = ['1', '2', '3', '4', '5', '6', '7',
+	    '8', '9', '10', '11', '12', '13', '14',
+	    '15', '16', '17', '18', 'wildcard', 'divisional', 'conference_championship',
+	    'superbowl'];
 	
 	for (var index = 0; index < integerYearValues.length; index++){
 		var integerYearValue = integerYearValues[index];
@@ -2066,15 +2066,15 @@ function getAllWeekValuesForSelectedYears(){
 	var selectedYearValues = getSelectedYearValues();
 	var integerYearValues = getValuesAsIntegers(selectedYearValues);
 	
-	var availableWeeksBefore2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-								    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-								    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-								    'SUPERBOWL'];
+	var availableWeeksBefore2021 = ['1', '2', '3', '4', '5', '6', '7',
+								    '8', '9', '10', '11', '12', '13', '14',
+								    '15', '16', '17', 'wildcard', 'divisional', 'conference_championship',
+								    'superbowl'];
 	
-	var availableWeeksAfter2021 = ['WEEK_1', 'WEEK_2', 'WEEK_3', 'WEEK_4', 'WEEK_5', 'WEEK_6', 'WEEK_7',
-	    'WEEK_8', 'WEEK_9', 'WEEK_10', 'WEEK_11', 'WEEK_12', 'WEEK_13', 'WEEK_14',
-	    'WEEK_15', 'WEEK_16', 'WEEK_17', 'WEEK_18', 'WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP',
-	    'SUPERBOWL'];
+	var availableWeeksAfter2021 = ['1', '2', '3', '4', '5', '6', '7',
+	    '8', '9', '10', '11', '12', '13', '14',
+	    '15', '16', '17', '18', 'wildcard', 'divisional', 'conference_championship',
+	    'superbowl'];
 	
 	for (var index = 0; index < integerYearValues.length; index++){
 		var integerYearValue = integerYearValues[index];
@@ -2087,29 +2087,45 @@ function getAllWeekValuesForSelectedYears(){
 	return availableWeeksBefore2021;
 }
 
+function getPlayoffWeeksForSelectedYears(){
+	
+	var playoffWeeks = ['wildcard', 'divisional', 'conference_championship', 'superbowl'];
+	
+	return playoffWeeks;
+}
+
 function getWeekValuesForRequest(){
 	
 	var selectedValues = getSelectedWeekValues();
 	
 	var valuesToSend = [];
 	
-	var realWeeks = getAllWeekValuesForSelectedYears();
+	
+	//Get all the weeks that are available for the selected years ahead of time.
+//	var allWeeksForSelectedYears = getAllWeekValuesForSelectedYears();
 	
 	for (var index = 0; index < selectedValues.length; index++){
 		var selectedValue = selectedValues[index];
-		
+
+		//If all is a selected value, then we want to send all the
+		//possible weeks.		
 		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realWeeks.length; index2++){
-				var realWeek = realWeeks[index2];
-				valuesToSend.push(realWeek);
-			}
+			var allWeeks = getAllWeekValuesForSelectedYears();
+			valuesToSend = valuesToSend.concat(allWeeks);
+//			for (var index2 = 0; index2 < allWeeksForSelectedYears.length; index2++){
+//				var week = allWeeksForSelectedYears[index2];
+//				valuesToSend.push(week);
+//			}
 		}
-		//needs to change....
-		else if ('regular-season' == selectedValue){
-			valuesToSend = getRegularSeasonWeeksForSelectedYears();
+		//If they picked the regular season, get the regular season weeks for
+		//the selected years.
+		else if ('regular_season' == selectedValue){
+			var regularSeasonWeeks = getRegularSeasonWeeksForSelectedYears();
+			valuesToSend = valuesToSend.concat(regularSeasonWeeks);
 		}
 		else if ('playoffs' == selectedValue){
-			valuesToSend = valuesToSend.concat(['WILDCARD', 'DIVISIONAL', 'CONFERENCE_CHAMPIONSHIP', 'SUPERBOWL']);
+			var playoffWeeks = getPlayoffWeeksForSelectedYears();
+			valuesToSend = valuesToSend.concat(playoffWeeks);
 		}
 		else {
 			valuesToSend.push(selectedValue);
@@ -2159,4 +2175,8 @@ function hideWeekItems(weeks){
 		var week = weeks[index];
 		hideWeekItem(week);
 	}
+}
+
+function updateCurrentWeekSelections(){
+	currentWeekSelections = getSelectedWeekValues();
 }

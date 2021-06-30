@@ -33,10 +33,10 @@ public class Week {
 	protected String type;
 	
 	/**
-	 * The "key" for the week.  This should be something like "WEEK_1" or "DIVISIONAL" or "SUPERBOWL".  Here so we can
+	 * The "key" for the week.  This should be something like "1" or "divisional" or "superbowl".  Here so we can
 	 * get a week based on its "key" no matter what its sequence number is.  Didn't need this before Goodell and the owners
 	 * got greedy and made a week 18, screwing everything up.  This way we'll be able to query for a week in the playoffs
-	 * like the "WILDCARD" whether it happened in week 18 (before 2021) or week 19 (2021 and after).
+	 * like the "wildcard" whether it happened in week 18 (before 2021) or week 19 (2021 and after).
 	 */
 	protected String key;
 	
@@ -69,8 +69,19 @@ public class Week {
 		this(-1, seasonId, sequenceNumber, type, key, label, null);
 	}
 	
-	public Week(int id, int seasonId, int sequenceNumber, String label){
-		this(id, seasonId, sequenceNumber, null, null, label, null);
+	/**
+	 * 
+	 * More convenience...
+	 * 
+	 * @param id
+	 * @param seasonId
+	 * @param sequenceNumber
+	 * @param type
+	 * @param key
+	 * @param label
+	 */
+	public Week(int id, int seasonId, int sequenceNumber, String type, String key, String label){
+		this(id, seasonId, sequenceNumber, type, key, label, null);
 	}
 	
 	/**
