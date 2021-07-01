@@ -2241,6 +2241,41 @@ function isSpecificTeamSelected(){
 	return true;
 }
 
+/**
+ * 
+ * A convenience function for checking whether a single week is selected or not.
+ * 
+ * It'll return false if:
+ * 		1. There are no selected weeks.
+ * 		2. There's more than one selected week.
+ * 		3. There's one selected week, but it's the regular season, playoffs, or all.
+ * 
+ * If all of those 3 things are false, it'll return true because that means there's a single
+ * week selected and it's not one of the ones that represents multiple weeks.
+ * 
+ * @returns
+ */
+function isASingleWeekSelected(){
+	
+	var selectedWeeks = getSelectedWeekValues();
+	
+	if (isEmpty(selectedWeeks)){
+		return false;
+	}
+	
+	if (selectedWeeks.length > 1){
+		return false;
+	}
+	
+	var selectedWeek = selectedWeeks[0];
+	
+	if ('all' == selectedWeek || 'regular_season' == selectedWeek || 'playoffs' == selectedWeek){
+		return false;
+	}
+	
+	return true;
+}
+
 /** 
  * 
  * This function will say whether a "specific" week was selected.

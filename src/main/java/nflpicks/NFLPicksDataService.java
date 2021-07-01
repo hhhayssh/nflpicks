@@ -6142,8 +6142,40 @@ public class NFLPicksDataService {
 	 * If they are, it'll return them in the list it returns.  It will basically filter out
 	 * non-completed years from the given list.
 	 * 
-	 * A "completed year" is a year where there's a winning team in the game
-	 * for week 21 (the superbowl).
+	 * It says a "completed year" is one where the superbowl has a winner or when there's a season
+	 * with a higher id.  So, it's a little bootleg, but there are contradictions in the data.
+	 * 
+	 * I tried to make it say "a completed season is one where there are no weeks with games without
+	 * winners".  That seemed right, but would have ran into the problem that a completed regular season
+	 * would qualify.  So, for the current year, when I filled in the last game for the regular season,
+	 * it would have declared the person with the best record to be the champion, when there were still
+	 * games left to be played.
+	 * 
+	 * I couldn't have it rely just on the fact that a superbowl exists because some years we didn't pick
+	 * the playoffs.  
+	 * 
+	 * So, the only way I could figure to do it and make it so:
+	 * 
+	 * 		1. It showed the champions for years without superbowls.
+	 * 		2. It didn't show the champions at the end of the regular season.
+	 * 
+	 * Was to have it look for either a superbowl winner or for a season after the current one.  This
+	 * assumes two things:
+	 * 
+	 * 		1. From here on, we'll always have a winner for the superbowl and won't stop at the end
+	 * 		   of the regular season.
+	 * 		2. Each season will have an id that's greater than the last.
+	 * 
+	 * If either of those change, this code will have to change.  I thought about making it look at the year
+	 * and that's probably the way to go.
+	 * 
+	 * The only other way I could think of would be to find a way to make it easy to add a game from the UI.
+	 * Then, before the regular season ended, I could add a playoff game and, before each playoff game ended,
+	 * I could add at least one next round game.  If I could do that, then this would work:
+	 * 
+	 * 		A completed season is one where there are no weeks that have a game without a winner.
+	 * 
+	 * But, until then, this will have to work.
 	 * 
 	 * @param years
 	 * @return
@@ -6166,12 +6198,17 @@ public class NFLPicksDataService {
 			
 			String query = "select s.year " +
 						   "from season s " + 
-						   "where s.id in (select w.season_id " + 
-						   				  "from week w " + 
-						   				  "where w.sequence_number = 21 " + 
-						   				  	    "and w.id in (select g.week_id " + 
-						   				  	    			 "from game g " + 
-						   				  	    			 "where g.winning_team_id is not null)) ";
+						   //Either a superbowl exists
+						   "where (s.id in (select w.season_id " + 
+						   				   "from week w " + 
+						   				   "where w.key = 'superbowl' " + 
+						   				  	     "and w.id in (select g.week_id " + 
+						   				  	    			  "from game g " + 
+						   				  	    			  "where g.winning_team_id is not null)) " +
+						   	     //Or there's another season after the current.
+						   		 " or s.id < (select max(id) " + 
+						   				  	 "from season) " +
+						   		 " ) ";
 			
 			boolean addedYears = false;
 			

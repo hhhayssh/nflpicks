@@ -471,7 +471,7 @@ function createPicksGridHtml(picksGrid){
 	//do, then we don't.
 	var weekHeader = '';
 //	var selectedWeek = getSelectedWeek();
-	var weekSelected = isSpecificWeekSelected();
+	var weekSelected = isASingleWeekSelected();
 	if (!weekSelected){
 		weekHeader = '<th align="left" class="table-header">Week</th>';
 	}
@@ -1930,7 +1930,7 @@ function createPickSplitsGridHtml(pickSplits){
 	//	4. That's it.  Most of the rest of the stuff is css stuff.
 	
 	var yearSelected = isSpecificYearSelected();
-	var weekSelected = isSpecificWeekSelected();
+	var weekSelected = isASingleWeekSelected();
 	
 	var yearHeader = '';
 	if (!yearSelected){
@@ -1946,8 +1946,8 @@ function createPickSplitsGridHtml(pickSplits){
 								 yearHeader + 
 								 weekHeader + 
 							 	 '<th class="table-header">Game</th>' + 
-							 	 '<th class="table-header">Picked Home</th>' + 
-							 	 '<th class="table-header">Picked Away</th>' +
+							 	 '<th class="table-header">Picked Away</th>' + 
+							 	 '<th class="table-header">Picked Home</th>' +
 							 '</thead>';
 	
 	var rowsHtml = '';
@@ -2109,8 +2109,8 @@ function createPickSplitsGridHtml(pickSplits){
 		
 		//And just add the columns in for the picks and that's it.
 		gameRow = gameRow + 
-				  '<td class="' + pickResultClass + '"><span class="' + homePlayersClass + '">' + pickSplit.homeTeamAbbreviation + ' (' + numberOfHomePlayers + ')<br/> ' + homePlayersString + '</span></td>' + 
-				  '<td class="' + pickResultClass + '"><span class="' + awayPlayersClass + '">' + pickSplit.awayTeamAbbreviation + ' (' + numberOfAwayPlayers + ')<br/> ' + awayPlayersString + '</span></td>' + 
+				  '<td class="' + pickResultClass + '"><span class="' + awayPlayersClass + '">' + pickSplit.awayTeamAbbreviation + ' (' + numberOfAwayPlayers + ')<br/> ' + awayPlayersString + '</span></td>' +
+				  '<td class="' + pickResultClass + '"><span class="' + homePlayersClass + '">' + pickSplit.homeTeamAbbreviation + ' (' + numberOfHomePlayers + ')<br/> ' + homePlayersString + '</span></td>' +
 				  '</tr>';
 		
 		rowsHtml = rowsHtml + gameRow;
@@ -2159,7 +2159,7 @@ function createWeekComparisonHtml(weekRecords){
 	}
 	
 	var weekHeader = '';
-	var aWeekIsSelected = isSpecificWeekSelected();
+	var aWeekIsSelected = isASingleWeekSelected();
 	if (!aWeekIsSelected){
 		weekHeader = '<th class="common-table-header">Week</th>';
 	}
@@ -2353,7 +2353,7 @@ function createSeasonProgressionHtml(weekRecords){
 	}
 	
 	var weekHeader = '';
-	var aWeekIsSelected = isSpecificWeekSelected();
+	var aWeekIsSelected = isASingleWeekSelected();
 	if (!aWeekIsSelected){
 		weekHeader = '<th class="common-table-header">Week</th>';
 	}
