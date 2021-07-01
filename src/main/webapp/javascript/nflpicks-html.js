@@ -1074,7 +1074,7 @@ function createWeekStandingsHtml(playerWeekRecords){
 		yearHeader = '<th class="standings-table-header">Year</th>';
 	}
 	
-	var isWeekSelected = isSpecificWeekSelected();
+	var isWeekSelected = isASingleWeekSelected();
 	var weekHeader = '';
 	if (!isWeekSelected){
 		isWeekSelected = false;
