@@ -556,7 +556,7 @@ public class NFLPicksServlet extends HttpServlet {
 				
 				log.info("Getting pick accuracy summaries...");
 				long start = System.currentTimeMillis();
-				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummaries(years, weekKeys, players, teams);
+				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummariesB2(years, weekKeys, players, teams);
 				long elapsed = System.currentTimeMillis() - start;
 				log.info("Done getting pick accuracy summaries. elapsed = " + elapsed);
 				

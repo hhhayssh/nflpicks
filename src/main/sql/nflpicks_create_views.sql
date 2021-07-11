@@ -348,3 +348,17 @@ select w.label as week,
 	    end) as scott_pick_result
 from season s join week w on s.id = w.season_id 
 	 join game g on w.id = g.week_id;
+	 
+-- Used by the pick accuracy query to make it faster.
+create materialized view all_team_all_player_view as 
+select pl.id as player_id,
+       pl.name as player_name,
+       t.id as team_id,
+       t.division_id as division_id,
+       t.city as city,
+       t.nickname as nickname,
+       t.abbreviation as abbreviation,
+       t.start_year as start_year,
+       t.end_year as end_year,
+       t.current_abbreviation
+FROM player pl CROSS JOIN team t;	 

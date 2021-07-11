@@ -379,3 +379,8 @@ html, body {
 .common-table-cell {
 	padding-right: 10px;
 }
+
+.champion-promos-link-container {
+	text-align: center; 
+	padding: 15px;
+}

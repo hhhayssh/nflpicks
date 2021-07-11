@@ -1305,7 +1305,8 @@ function createChampionsHtml(championships){
 	
 	championshipsBodyHtml = championshipsBodyHtml + '</tbody>';
 	
-	var championshipsHtml = '<table class="standings-table">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>';
+	var championshipsHtml = '<table class="standings-table">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>' + 
+						    '<div class="champion-promos-link-container"><a href="champions.html">Don\'t you forget about me...</a></div>';
 	
 	return championshipsHtml;
 }
@@ -1789,15 +1790,30 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 		//with each.
 		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
 						    '<td class="standings-table-cell" colspan="5">' + 
-							    '<table style="width: 100%;">' +
+							    '<table style="width: 100%; border-collapse: collapse;">' +
 							 		'<tr><td>Actual record</td><td style="text-align: right;">' + pickAccuracySummary.actualWins + ' - ' + pickAccuracySummary.actualLosses + tiesRecord + '</td></tr>' +
-							 		'<tr><td>Predicted record</td><td style="text-align: right;">' + pickAccuracySummary.predictedWins + ' - ' + pickAccuracySummary.predictedLosses + '</td></tr>' +
-							 		'<tr><td>Times picked to win (record)</td><td style="text-align: right;">' + timesPickedToWin + ' (' + pickAccuracySummary.timesPickedToWinRight + ' - ' + pickAccuracySummary.timesPickedToWinWrong + ')</td></tr>' +
-							 		'<tr><td>Times picked to lose (record)</td><td style="text-align: right;">' + timesPickedToLose + ' (' + pickAccuracySummary.timesPickedToLoseRight + ' - ' + pickAccuracySummary.timesPickedToLoseWrong + ')</td></tr>' +
+							 		'<tr><td style="border-bottom: thin solid black;">Predicted record</td><td style="text-align: right; border-bottom:thin solid black;">' + pickAccuracySummary.predictedWins + ' - ' + pickAccuracySummary.predictedLosses + '</td></tr>' +
+							 		'<tr><td>When picking to win</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToWinRight + ' - ' + pickAccuracySummary.timesPickedToWinWrong + '</td></tr>' +
+							 		'<tr><td style="border-bottom: thin solid black;">When picking to lose</td><td style="text-align: right; border-bottom: thin solid black;"">' + pickAccuracySummary.timesPickedToLoseRight + ' - ' + pickAccuracySummary.timesPickedToLoseWrong + '</td></tr>' +
+							 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + pickAccuracySummary.timesRight + ' - ' + pickAccuracySummary.timesWrong + '</td></tr>' +
 							 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + recordPicksLink + '</tr></td>' +
 							 	'</table>' + 
 						 	'</td>' + 
 						 '</tr>';
+		
+//		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
+//	    '<td class="standings-table-cell" colspan="5">' + 
+//		    '<table style="width: 100%;">' +
+//		 		'<tr><td>Times right</td><td style="text-align: right;">' + pickAccuracySummary.timesRight + '</td></tr>' +
+//		 		'<tr><td><span style="margin-left: 15px;">Times picked to win</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToWinRight + '</td></tr>' +
+//		 		'<tr><td><span style="margin-left: 15px;">Times picked to lose</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToLoseRight + '</td></tr>' +
+//		 		'<tr><td>Times wrong</td><td style="text-align: right;">' + pickAccuracySummary.timesWrong + '</td></tr>' +
+//		 		'<tr><td><span style="margin-left: 15px;">When picking to win</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToWinWrong + '</td></tr>' +
+//		 		'<tr><td><span style="margin-left: 15px;">When picking to lose</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToLoseWrong + '</td></tr>' +
+//		 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + recordPicksLink + '</tr></td>' +
+//		 	'</table>' + 
+//	 	'</td>' + 
+//	 '</tr>';
 		
 		var pickAccuracySummaryRowHtml = '<tr>' +
 											playerCell +
@@ -1806,7 +1822,7 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 											'<td class="standings-table-cell">' + pickAccuracySummary.timesWrong + '</td>' +
 											'<td class="standings-table-cell">' + percentage + '</td>' +
 											'<td class="standings-table-cell">' + 
-												'<a id="pick-accuracy-details-link-' + index + '" href="javascript:" onClick="toggleShowPickAccuracyDetails(' + index + ')" style="margin-left: 20px; float:right;">show details</a>' + 
+												'<a id="pick-accuracy-details-link-' + index + '" href="javascript:" onClick="toggleShowPickAccuracyDetails(' + index + ')" style="margin-left: 20px;">Details</a>' + 
 											'</td>' +
 										 '</tr>' + 
 										 detailHtml;

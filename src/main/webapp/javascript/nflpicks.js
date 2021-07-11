@@ -2490,11 +2490,11 @@ function toggleShowPickAccuracyDetails(index){
 	
 	if (isVisible){
 		$('#pick-accuracy-details-' + index).hide();
-		$('#pick-accuracy-details-link-' + index).text('show details');
+		$('#pick-accuracy-details-link-' + index).text('Details');
 	}
 	else {
 		$('#pick-accuracy-details-' + index).show();
-		$('#pick-accuracy-details-link-' + index).text('hide details');
+		$('#pick-accuracy-details-link-' + index).text('Hide');
 	}
 }
 
