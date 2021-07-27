@@ -279,8 +279,14 @@ public class NFLPicksServlet extends HttpServlet {
 			if (!PARAMETER_VALUE_ALL.equals(yearsString)){
 				years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 			}
+			
+			String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+			List<String> teams = null;
+			if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+				teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+			}
 
-			List<Record> records = dataService.getRecords(years, weekKeys, players);
+			List<Record> records = dataService.getRecords(years, weekKeys, players, teams);
 			
 			JSONObject recordsJSONObject = new JSONObject();
 			recordsJSONObject.put(NFLPicksConstants.JSON_STANDINGS_RECORDS, JSONUtil.recordsToJSONArray(records));

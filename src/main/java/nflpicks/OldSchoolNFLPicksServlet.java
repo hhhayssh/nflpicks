@@ -139,7 +139,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 			List<String> years = year == null ? null : Arrays.asList(year);
 			List<String> weeks = week == null ? null : Arrays.asList(week);
 			
-			List<Record> records = dataService.getRecords(years, weeks, playerNames);
+			List<Record> records = dataService.getRecords(years, weeks, playerNames, null);
 			
 			writePicks(output, players, records, picks, games);
 			
@@ -180,7 +180,7 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 				playerNames.add(currentPlayer.getName());
 			}
 			
-			List<Record> records = dataService.getRecords(years, weeks, playerNames);
+			List<Record> records = dataService.getRecords(years, weeks, playerNames, null);
 			
 			Collections.sort(records, new RecordComparator());
 			

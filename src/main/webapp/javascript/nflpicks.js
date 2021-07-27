@@ -1008,9 +1008,9 @@ function updatePicksSelectors(type){
  * Updates the selectors so that they're right for browsing the "standings".
  * 
  * Shows:
- * 		player, year, week
+ * 		player, year, week, team
  * Hides:
- * 		team, stat name
+ * 		stat name
  * 
  * Only shows or hides something if the given type isn't the previous selected type.
  * 
@@ -1033,7 +1033,7 @@ function updateStandingsSelectors(type){
 	showPlayersLink();
 	showWeeksLink();
 	showYearsLink();
-	hideTeamsLink();
+	showTeamsLink();
 	hideStatNameLink();
 	
 	setPreviousType(type);
@@ -1378,6 +1378,9 @@ function setSelectedWeeks(weeks){
 		weeksArray.push(week);
 	}
 	
+	//THIS was the key ... update the current week selections... geez this is too complicated
+	setCurrentWeekSelections(weekValuesArray);
+	
 	NFL_PICKS_GLOBAL.selections.weeks = weeksArray;
 }
 
@@ -1436,8 +1439,8 @@ function setSelectedTeams(teams){
 		teamsArray.push(team);
 	}
 	
-	//this was the key ... had to refresh the current selections before hiding the teams
-	updateCurrentWeekSelections();
+	//THIS was the key ... update the current team selections... geez this is too complicated
+	setCurrentTeamSelections(teamValuesArray);
 	
 	NFL_PICKS_GLOBAL.selections.teams = teamsArray;
 }
@@ -1497,10 +1500,11 @@ function updateStandings(){
 	var playerValuesForRequest = getPlayerValuesForRequest();
 	var yearValuesForRequest = getYearValuesForRequest();
 	var weekValuesForRequest = getWeekValuesForRequest();
+	var teamValuesForRequest = getTeamValuesForRequest();
 	
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
-	$.ajax({url: 'nflpicks?target=standings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest,
+	$.ajax({url: 'nflpicks?target=standings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {

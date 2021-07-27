@@ -1795,25 +1795,11 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 							 		'<tr><td style="border-bottom: thin solid black;">Predicted record</td><td style="text-align: right; border-bottom:thin solid black;">' + pickAccuracySummary.predictedWins + ' - ' + pickAccuracySummary.predictedLosses + '</td></tr>' +
 							 		'<tr><td>When picking to win</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToWinRight + ' - ' + pickAccuracySummary.timesPickedToWinWrong + '</td></tr>' +
 							 		'<tr><td style="border-bottom: thin solid black;">When picking to lose</td><td style="text-align: right; border-bottom: thin solid black;"">' + pickAccuracySummary.timesPickedToLoseRight + ' - ' + pickAccuracySummary.timesPickedToLoseWrong + '</td></tr>' +
-							 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + pickAccuracySummary.timesRight + ' - ' + pickAccuracySummary.timesWrong + '</td></tr>' +
+							 		'<tr><td>Picks record</td><td style="text-align: right;">' + pickAccuracySummary.timesRight + ' - ' + pickAccuracySummary.timesWrong + '</td></tr>' +
 							 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + recordPicksLink + '</tr></td>' +
 							 	'</table>' + 
 						 	'</td>' + 
 						 '</tr>';
-		
-//		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
-//	    '<td class="standings-table-cell" colspan="5">' + 
-//		    '<table style="width: 100%;">' +
-//		 		'<tr><td>Times right</td><td style="text-align: right;">' + pickAccuracySummary.timesRight + '</td></tr>' +
-//		 		'<tr><td><span style="margin-left: 15px;">Times picked to win</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToWinRight + '</td></tr>' +
-//		 		'<tr><td><span style="margin-left: 15px;">Times picked to lose</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToLoseRight + '</td></tr>' +
-//		 		'<tr><td>Times wrong</td><td style="text-align: right;">' + pickAccuracySummary.timesWrong + '</td></tr>' +
-//		 		'<tr><td><span style="margin-left: 15px;">When picking to win</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToWinWrong + '</td></tr>' +
-//		 		'<tr><td><span style="margin-left: 15px;">When picking to lose</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToLoseWrong + '</td></tr>' +
-//		 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + recordPicksLink + '</tr></td>' +
-//		 	'</table>' + 
-//	 	'</td>' + 
-//	 '</tr>';
 		
 		var pickAccuracySummaryRowHtml = '<tr>' +
 											playerCell +
@@ -1921,7 +1907,7 @@ function createMakePicksGrid(games){
 							'</div>' +
 						'</div>';
 	
-	picksGridHtml = '<div style="text-align: center;"><p>The teams you pick will go in a box at the bottom.  Copy and paste it into a text to pick the games.</p><p style="font-weight:bold;">Just picking them without sending them to me doesn\'t do jack squat.</p><p>Happy now, Jerry and Benny boy?</p></div>' + picksGridHtml;
+	picksGridHtml = '<div style="text-align: center;"><p><a href="javascript:" onClick="updateView();">Back to the regular stuff</a></p><p>The teams you pick will go in a box at the bottom.  Copy and paste it into a text to pick the games.</p><p style="font-weight:bold;">Just picking them without sending them to me doesn\'t do jack squat.</p><p>Happy now, Jerry and Benny boy?</p></div>' + picksGridHtml;
 	
 	return picksGridHtml;
 }

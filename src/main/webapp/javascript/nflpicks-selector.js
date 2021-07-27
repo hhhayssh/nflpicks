@@ -662,7 +662,8 @@ function onClickTeamSelectionOk(event){
 		removeTeamFromCurrentSelection('all');
 	}
 	hideTeamSelector();
-	setSelectedTeams(currentTeamSelections);
+	var currentTeams = getCurrentTeamSelections();
+	setSelectedTeams(currentTeams);
 	updateTeamsLink();
 	updateView();
 }
@@ -674,8 +675,10 @@ function onClickTeamSelectionCancel(event){
 
 function resetTeamSelections(){
 	unselectAllTeamsByValue();
-	currentTeamSelections = getSelectedTeamValues();
-	selectTeamsByValue(currentTeamSelections);
+	var selectedTeamValues = getSelectedTeamValues();
+	setCurrentTeamSelections(selectedTeamValues);
+	var currentTeams = getCurrentTeamSelections();
+	selectTeamsByValue(currentTeams);
 }
 
 function resetAndHideTeamSelections(){
@@ -693,6 +696,18 @@ function hideTeamSelector(){
 
 var currentTeamSelections = [];
 
+function getCurrentTeamSelections(){
+	return currentTeamSelections;
+}
+
+function setCurrentTeamSelections(updatedSelections){
+	currentTeamSelections = updatedSelections;
+}
+
+function clearCurrentTeamSelections(){
+	currentTeamSelections = [];
+}
+
 
 function onClickSelectAllTeams(event){
 	
@@ -700,7 +715,7 @@ function onClickSelectAllTeams(event){
 	
 	var teams = getAllTeams();
 	
-	currentTeamSelections = [];
+	clearCurrentTeamSelections();
 	
 	for (var index = 0; index < teams.length; index++){
 		var team = teams[index];
@@ -715,7 +730,7 @@ function onClickClearTeams(event){
 	
 	var realTeams = getRealTeams();
 	
-	currentTeamSelections = [];
+	clearCurrentTeamSelections();
 	
 	for (var index = 0; index < realTeams.length; index++){
 		var team = realTeams[index];
@@ -741,7 +756,7 @@ function onClickTeam(event, value){
 		}
 	}
 	else {
-		currentTeamSelections = [];
+		clearCurrentTeamSelections();
 		selectTeam(value);
 		addTeamToCurrentSelection(value);
 		onClickTeamSelectionOk(event);
@@ -856,9 +871,13 @@ function removeTeamFromCurrentSelection(value){
  * @returns
  */
 function selectSingleTeamFull(value){
-	currentTeamSelections = [];
+	clearCurrentTeamSelections();
+	//just does the ui
 	selectTeam(value);
+	//just does the current selections
 	addTeamToCurrentSelection(value);
+	var currentTeams = getCurrentTeamSelections();
+	setSelectedTeams(currentTeams);
 }
 
 /**
@@ -874,7 +893,8 @@ function selectSingleTeamFull(value){
 function unselectTeamFull(value){
 	unselectTeam(value);
 	removeTeamFromCurrentSelection(value);
-	setSelectedTeams(currentTeamSelections);
+	var currentTeams = getCurrentTeamSelections();
+	setSelectedTeams(currentTeams);
 }
 
 function getAllTeams(){
@@ -1012,6 +1032,11 @@ function hideTeamItems(teams){
 		var team = teams[index];
 		hideTeamItem(team);
 	}
+}
+
+function updateCurrentTeamSelections(){
+	var selectedTeamValues = getSelectedTeamValues();
+	setCurrentTeamSelections(selectedTeamValues);
 }
 
 
@@ -1770,7 +1795,8 @@ function onClickWeekSelectionOk(event){
 		removeWeekFromCurrentSelection('all');
 	}
 	hideWeekSelector();
-	setSelectedWeeks(currentWeekSelections);
+	var currentWeeks = getCurrentWeekSelections();
+	setSelectedWeeks(currentWeeks);
 	updateWeeksLink();
 	updateView();
 }
@@ -1782,8 +1808,9 @@ function onClickWeekSelectionCancel(event){
 
 function resetWeekSelections(){
 	unselectAllWeeksByValue();
-	currentWeekSelections = getSelectedWeekValues();
-	selectWeeksByValue(currentWeekSelections);
+	var selectedWeekValues = getSelectedWeekValues();
+	setCurrentWeekSelections(selectedWeekValues);
+	selectWeeksByValue(selectedWeekValues);
 }
 
 function resetAndHideWeekSelections(){
@@ -1801,6 +1828,18 @@ function hideWeekSelector(){
 
 var currentWeekSelections = [];
 
+function getCurrentWeekSelections(){
+	return currentWeekSelections;
+}
+
+function setCurrentWeekSelections(updatedSelections){
+	currentWeekSelections = updatedSelections;
+}
+
+function clearCurrentWeekSelections(){
+	currentWeekSelections = [];
+}
+
 
 /*
  '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearWeeks(event);">Clear</a></div>' +
@@ -1813,7 +1852,7 @@ function onClickSelectAllWeeks(event){
 	
 	var weeks = getAllWeeks();
 	
-	currentWeekSelections = [];
+	clearCurrentWeekSelections();
 	
 	for (var index = 0; index < weeks.length; index++){
 		var week = weeks[index];
@@ -1828,7 +1867,7 @@ function onClickClearWeeks(event){
 	
 	var weeks = getAllWeeks();
 	
-	currentWeekSelections = [];
+	clearCurrentWeekSelections();
 	
 	for (var index = 0; index < weeks.length; index++){
 		var week = weeks[index];
@@ -1854,7 +1893,7 @@ function onClickWeek(event, value){
 		}
 	}
 	else {
-		currentWeekSelections = [];
+		clearCurrentWeekSelections();
 		selectWeek(value);
 		addWeekToCurrentSelection(value);
 		onClickWeekSelectionOk(event);
@@ -1952,7 +1991,8 @@ function addWeekToCurrentSelection(value){
 function unselectWeekFull(value){
 	unselectWeek(value);
 	removeWeekFromCurrentSelection(value);
-	setSelectedWeeks(currentWeekSelections);
+	var currentWeeks = getCurrentWeekSelections();
+	setSelectedWeeks(currentWeeks);
 }
 
 function unselectWeeksByValue(weeks){
@@ -2064,8 +2104,13 @@ function getRegularSeasonWeeksForSelectedYears(){
 function getAllWeekValuesForSelectedYears(){
 	
 	var selectedYearValues = getSelectedYearValues();
+	
 	var integerYearValues = getValuesAsIntegers(selectedYearValues);
 	
+	//this needs to be redone
+	//there needs to be a map or something
+	//the weeks for a year maybe could be loaded from the database and turned
+	//into a map ... but then the ... yeah it needs to be like that
 	var availableWeeksBefore2021 = ['1', '2', '3', '4', '5', '6', '7',
 								    '8', '9', '10', '11', '12', '13', '14',
 								    '15', '16', '17', 'wildcard', 'divisional', 'conference_championship',
@@ -2076,8 +2121,14 @@ function getAllWeekValuesForSelectedYears(){
 	    '15', '16', '17', '18', 'wildcard', 'divisional', 'conference_championship',
 	    'superbowl'];
 	
-	for (var index = 0; index < integerYearValues.length; index++){
-		var integerYearValue = integerYearValues[index];
+	for (var index = 0; index < selectedYearValues.length; index++){
+		var selectedYearValue = selectedYearValues[index];
+		
+		if ('all' == selectedYearValue){
+			return availableWeeksAfter2021;
+		}
+		
+		var integerYearValue = parseInt(selectedYearValue);
 		
 		if (integerYearValue >= 2021){
 			return availableWeeksAfter2021;
@@ -2099,10 +2150,6 @@ function getWeekValuesForRequest(){
 	var selectedValues = getSelectedWeekValues();
 	
 	var valuesToSend = [];
-	
-	
-	//Get all the weeks that are available for the selected years ahead of time.
-//	var allWeeksForSelectedYears = getAllWeekValuesForSelectedYears();
 	
 	for (var index = 0; index < selectedValues.length; index++){
 		var selectedValue = selectedValues[index];
@@ -2178,5 +2225,6 @@ function hideWeekItems(weeks){
 }
 
 function updateCurrentWeekSelections(){
-	currentWeekSelections = getSelectedWeekValues();
+	var selectedWeekValues = getSelectedWeekValues();
+	setCurrentWeekSelections(selectedWeekValues);
 }
