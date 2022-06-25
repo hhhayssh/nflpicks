@@ -40,11 +40,18 @@ public class NFLPicksDataImporter {
 	private static final Logger log = Logger.getLogger(NFLPicksDataImporter.class);
 	
 	/**
+	 *
+	 * The service that lets it connect to the database and pull stuff out.
+	 *
+	 */
+	protected NFLPicksModelDataService modelDataService;
+	
+	/**
 	 * 
-	 * The thing that lets us get stuff from the database and save it.
+	 * Because we need to use functions defined in the stats data service too.
 	 * 
 	 */
-	protected NFLPicksDataService dataService;
+	protected NFLPicksStatsDataService statsDataService;
 	
 	/**
 	 * 
@@ -165,9 +172,11 @@ public class NFLPicksDataImporter {
 		
 		ApplicationContext.getContext().initialize(propertiesFilename);
 		
-		NFLPicksDataService dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
+		NFLPicksModelDataService modelDataService = new NFLPicksModelDataService(ApplicationContext.getContext().getDataSource());
 		
-		NFLPicksDataImporter importer = new NFLPicksDataImporter(dataService);
+		NFLPicksStatsDataService statsDataService = new NFLPicksStatsDataService(ApplicationContext.getContext().getDataSource(), modelDataService);
+		
+		NFLPicksDataImporter importer = new NFLPicksDataImporter(modelDataService, statsDataService);
 		
 		importer.importPicksData(importFilename);
 	}
@@ -178,7 +187,7 @@ public class NFLPicksDataImporter {
 	 * 
 	 * @param dataService
 	 */
-	public NFLPicksDataImporter(NFLPicksDataService dataService){
+	public NFLPicksDataImporter(NFLPicksModelDataService modelDataService, NFLPicksStatsDataService statsDataService){
 		this.teamConferenceCache = new HashMap<String, TeamConference>();
 		this.teamDivisionCache = new HashMap<String, TeamDivision>();
 		this.teamCache = new HashMap<String, Team>();
@@ -189,7 +198,8 @@ public class NFLPicksDataImporter {
 		this.playerDivisionCache = new HashMap<String, PlayerDivision>();
 		this.gameCache = new HashMap<String, Game>();
 		this.pickCache = new HashMap<String, Pick>();
-		this.dataService = dataService;
+		this.modelDataService = modelDataService;
+		this.statsDataService = statsDataService;
 	}
 	
 	/**
@@ -647,7 +657,7 @@ public class NFLPicksDataImporter {
 					game.setTie(true);
 				}
 			}
-			dataService.saveGame(game);
+			modelDataService.saveGame(game);
 		}
 		
 		for (int index = 0; index < playerNames.size(); index++){
@@ -674,7 +684,7 @@ public class NFLPicksDataImporter {
 			pick.setPlayer(player);
 			pick.setTeam(pickedTeam);
 
-			dataService.savePick(pick);
+			modelDataService.savePick(pick);
 		}
 	}
 	
@@ -691,7 +701,7 @@ public class NFLPicksDataImporter {
 		TeamConference conference = teamConferenceCache.get(name);
 		
 		if (conference == null){
-			conference = dataService.getTeamConference(name, true);
+			conference = modelDataService.getTeamConference(name, true);
 			teamConferenceCache.put(name, conference);
 		}
 		
@@ -711,7 +721,7 @@ public class NFLPicksDataImporter {
 	protected TeamConference createTeamConference(String name, String startYear, String endYear, String currentName){
 		
 		TeamConference conference = new TeamConference(-1, name, null, startYear, endYear, currentName);
-		TeamConference savedConference = dataService.saveTeamConference(conference);
+		TeamConference savedConference = modelDataService.saveTeamConference(conference);
 		
 		return savedConference;
 	}
@@ -730,7 +740,7 @@ public class NFLPicksDataImporter {
 		TeamDivision division = teamDivisionCache.get(name);
 		
 		if (division == null){
-			division = dataService.getTeamDivision(conferenceName, name, true);
+			division = modelDataService.getTeamDivision(conferenceName, name, true);
 			teamDivisionCache.put(name, division);
 		}
 		
@@ -751,11 +761,10 @@ public class NFLPicksDataImporter {
 	protected TeamDivision createTeamDivision(TeamConference conference, String name, String startYear, String endYear, String currentName){
 		
 		TeamDivision division = new TeamDivision(-1, conference.getId(), name, null, startYear, endYear, currentName);
-		TeamDivision savedDivision = dataService.saveTeamDivision(division);
+		TeamDivision savedDivision = modelDataService.saveTeamDivision(division);
 		
 		return savedDivision;
 	}
-	
 	
 	/**
 	 * 
@@ -770,7 +779,7 @@ public class NFLPicksDataImporter {
 		Season season = seasonCache.get(year);
 		
 		if (season == null){
-			season = dataService.getSeasonByYear(year, true);
+			season = modelDataService.getSeasonByYear(year, true);
 			seasonCache.put(year, season);
 		}
 		
@@ -787,7 +796,7 @@ public class NFLPicksDataImporter {
 	protected Season createSeason(String year){
 		
 		Season season = new Season(year);
-		season = dataService.saveSeason(season);
+		season = modelDataService.saveSeason(season);
 		
 		return season;
 	}
@@ -810,7 +819,7 @@ public class NFLPicksDataImporter {
 		
 		if (week == null){
 			int weekSequenceNumberInteger = Util.toInteger(weekSequenceNumber);
-			week = dataService.getWeekBySequenceNumber(year, weekSequenceNumberInteger);
+			week = modelDataService.getWeekBySequenceNumber(year, weekSequenceNumberInteger);
 			weekCache.put(seasonAndWeekKey, week);
 		}
 		
@@ -842,7 +851,7 @@ public class NFLPicksDataImporter {
 		
 		Season season = getSeason(year);
 		Week week = new Week(season.getId(), weekSequenceNumberInt, type, key, label);
-		week = dataService.saveWeek(week);
+		week = modelDataService.saveWeek(week);
 		
 		return week;
 	}
@@ -872,7 +881,7 @@ public class NFLPicksDataImporter {
 		Team team = teamCache.get(teamAbbreviation);
 		
 		if (team == null){
-			team = dataService.getTeamByAbbreviation(teamAbbreviation);
+			team = modelDataService.getTeamByAbbreviation(teamAbbreviation);
 			teamCache.put(teamAbbreviation, team);
 		}
 		
@@ -895,7 +904,7 @@ public class NFLPicksDataImporter {
 	protected Team createTeam(TeamDivision division, String city, String nickname, String abbreviation, String startYear, String endYear, String currentAbbreviation){
 		
 		Team team = new Team(-1, division.getId(), city, nickname, abbreviation, startYear, endYear, currentAbbreviation);
-		Team savedTeam = dataService.saveTeam(team);
+		Team savedTeam = modelDataService.saveTeam(team);
 		
 		return savedTeam;
 	}
@@ -915,7 +924,7 @@ public class NFLPicksDataImporter {
 		Division division = divisionCache.get(name);
 		
 		if (division == null){
-			division = dataService.getDivisionByName(name, true);
+			division = modelDataService.getDivisionByName(name, true);
 			divisionCache.put(name, division);
 		}
 		
@@ -933,7 +942,7 @@ public class NFLPicksDataImporter {
 	protected Division createDivision(String name, String abbreviation){
 		
 		Division division = new Division(-1, name, abbreviation, null);
-		Division savedDivision = dataService.saveDivision(division);
+		Division savedDivision = modelDataService.saveDivision(division);
 		
 		return savedDivision;
 	}
@@ -953,7 +962,7 @@ public class NFLPicksDataImporter {
 		PlayerDivision playerDivision = playerDivisionCache.get(playerDivisionKey);
 		
 		if (playerDivision == null){
-			playerDivision = dataService.getPlayerDivision(divisionName, playerName, year);
+			playerDivision = modelDataService.getPlayerDivision(divisionName, playerName, year);
 			playerDivisionCache.put(playerDivisionKey, playerDivision);
 		}
 		
@@ -972,7 +981,7 @@ public class NFLPicksDataImporter {
 	protected PlayerDivision createPlayerDivision(Division division, Player player, Season season){
 		
 		PlayerDivision playerDivision = new PlayerDivision(-1, division, player, season);
-		PlayerDivision savedPlayerDivision = dataService.savePlayerDivision(playerDivision);
+		PlayerDivision savedPlayerDivision = modelDataService.savePlayerDivision(playerDivision);
 		
 		return savedPlayerDivision;
 	}
@@ -990,7 +999,7 @@ public class NFLPicksDataImporter {
 		Player player = playerCache.get(playerName);
 		
 		if (player == null){
-			player = dataService.getPlayer(playerName);
+			player = modelDataService.getPlayer(playerName);
 			playerCache.put(playerName, player);
 		}
 		
@@ -1015,7 +1024,7 @@ public class NFLPicksDataImporter {
 		Game game = gameCache.get(gameKey);
 		
 		if (game == null){
-			game = dataService.getGame(year, week, awayTeamAbbreviation, homeTeamAbbreviation);
+			game = modelDataService.getGame(year, week, awayTeamAbbreviation, homeTeamAbbreviation);
 			gameCache.put(gameKey, game);
 		}
 		
@@ -1058,7 +1067,7 @@ public class NFLPicksDataImporter {
 
 		Game game = new Game(-1, week.getId(), homeTeam, awayTeam, tie, winningTeam);
 		
-		game = dataService.saveGame(game);
+		game = modelDataService.saveGame(game);
 		
 		return game;
 	}
@@ -1081,7 +1090,7 @@ public class NFLPicksDataImporter {
 		Pick pick = pickCache.get(pickKey);
 		
 		if (pick == null){
-			pick = dataService.getPick(playerName, year, Integer.parseInt(week), homeTeamAbbreviation, awayTeamAbbreviation);
+			pick = modelDataService.getPick(playerName, year, Integer.parseInt(week), homeTeamAbbreviation, awayTeamAbbreviation);
 		}
 		
 		return pick;
@@ -1129,12 +1138,12 @@ public class NFLPicksDataImporter {
 		for (int index = 0; index < playerNames.size(); index++){
 			String playerName = playerNames.get(index);
 			
-			Player player = dataService.getPlayer(playerName);
+			Player player = modelDataService.getPlayer(playerName);
 			
 			if (player == null){
 				log.info("Saving new player for " + playerName);
 				player = new Player(-1, playerName);
-				Player savedPlayer = dataService.savePlayer(player);
+				Player savedPlayer = modelDataService.savePlayer(player);
 				
 				if (savedPlayer == null){
 					log.error("Error updating player!  playerName = " + playerName + ", playerNames = " + playerNames);

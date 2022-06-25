@@ -178,6 +178,12 @@ function updateDivisionStandingsSelectors(type){
  * 		championship standings
  * 			shows: Nothing
  * 			hides: player, year, week, team
+ * 		division titles
+ * 			shows: Nothing
+ * 			hides: player, year, week, team
+ * 		division title standings
+ * 			shows: Nothing
+ * 			hides: player, year, week, team
  * 		week standings
  * 			shows: player, year, week
  * 			hides: team
@@ -219,6 +225,18 @@ function updateStatsSelectors(type){
 		hideTeamsLink();
 	}
 	else if ('championshipStandings' == statName){
+		showPlayersLink();
+		showYearsLink();
+		hideWeeksLink();
+		hideTeamsLink();
+	}
+	else if ('divisionTitles' == statName){
+		showPlayersLink();
+		showYearsLink();
+		hideWeeksLink();
+		hideTeamsLink();
+	}
+	else if ('divisionTitleStandings' == statName){
 		showPlayersLink();
 		showYearsLink();
 		hideWeeksLink();

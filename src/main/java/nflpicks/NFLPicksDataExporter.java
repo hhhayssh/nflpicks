@@ -44,7 +44,14 @@ public class NFLPicksDataExporter {
 	 * The service that lets it connect to the database and pull stuff out.
 	 *
 	 */
-	protected NFLPicksDataService dataService;
+	protected NFLPicksModelDataService modelDataService;
+	
+	/**
+	 * 
+	 * Because we need to use functions defined in the stats data service too.
+	 * 
+	 */
+	protected NFLPicksStatsDataService statsDataService;
 
 	/**
 	 * 
@@ -115,9 +122,11 @@ public class NFLPicksDataExporter {
 
 		ApplicationContext.getContext().initialize(propertiesFilename);
 		
-		NFLPicksDataService dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
+		NFLPicksModelDataService modelDataService = new NFLPicksModelDataService(ApplicationContext.getContext().getDataSource());
 		
-		NFLPicksDataExporter exporter = new NFLPicksDataExporter(dataService);
+		NFLPicksStatsDataService statsDataService = new NFLPicksStatsDataService(ApplicationContext.getContext().getDataSource(), modelDataService);
+		
+		NFLPicksDataExporter exporter = new NFLPicksDataExporter(modelDataService, statsDataService);
 		
 		exporter.exportPicksData(outputFilename);
 	}
@@ -127,10 +136,12 @@ public class NFLPicksDataExporter {
 	 * Creates an exporter that'll pull the data using the given service.  This is the only
 	 * constructor because this class doesn't make sense without a data service right now.
 	 * 
-	 * @param dataService
+	 * @param modelDataService
+	 * @param statsDataService
 	 */
-	public NFLPicksDataExporter(NFLPicksDataService dataService){
-		this.dataService = dataService;
+	public NFLPicksDataExporter(NFLPicksModelDataService modelDataService, NFLPicksStatsDataService statsDataService){
+		this.modelDataService = modelDataService;
+		this.statsDataService = statsDataService;
 	}
 	
 	/**
@@ -161,7 +172,7 @@ public class NFLPicksDataExporter {
 			writer.print(header);
 			writer.print('\n');
 			
-			List<TeamConference> conferences = dataService.getTeamConferences(false);
+			List<TeamConference> conferences = modelDataService.getTeamConferences(false);
 
 			for (int conferenceIndex = 0; conferenceIndex < conferences.size(); conferenceIndex++){
 				TeamConference conference = conferences.get(conferenceIndex);
@@ -247,13 +258,13 @@ public class NFLPicksDataExporter {
 		
 		try {
 			log.info("Getting players...");
-			List<Player> players = dataService.getPlayers();
+			List<Player> players = modelDataService.getPlayers();
 			List<String> playerNames = ModelUtil.getPlayerNames(players);
 			log.info("Got " + playerNames.size() + " players.");
 			
 			log.info("Getting picks...");
 			long picksStart = System.currentTimeMillis();
-			List<CompactPick> compactPicks = dataService.getCompactPicks();
+			List<CompactPick> compactPicks = statsDataService.getCompactPicks();
 			long picksElapsed = System.currentTimeMillis() - picksStart;
 			log.info("Got " + compactPicks.size() + " picks.  Took " + picksElapsed + " ms.");
 			
@@ -297,14 +308,14 @@ public class NFLPicksDataExporter {
 		
 		log.info("Getting players...");
 		long playersStart = System.currentTimeMillis();
-		List<Player> players = dataService.getPlayers();
+		List<Player> players = modelDataService.getPlayers();
 		long playersElapsed = System.currentTimeMillis() - playersStart;
 		log.info("Got " + players.size() + " players in " + playersElapsed + " ms.");
 		List<String> playerNames = ModelUtil.getPlayerNames(players);
 
 		log.info("Getting picks...");
 		long picksStart = System.currentTimeMillis();
-		List<CompactPick> compactPicks = dataService.getCompactPicks();
+		List<CompactPick> compactPicks = statsDataService.getCompactPicks();
 		long picksElapsed = System.currentTimeMillis() - picksStart;
 		log.info("Got " + compactPicks.size() + " in " + picksElapsed + " ms.");
 
@@ -521,7 +532,7 @@ public class NFLPicksDataExporter {
 			writer.print(header);
 			writer.print('\n');
 			
-			List<Division> divisions = dataService.getDivisions();
+			List<Division> divisions = modelDataService.getDivisions();
 
 			for (int index = 0; index < divisions.size(); index++){
 				Division division = divisions.get(index);
@@ -580,7 +591,7 @@ public class NFLPicksDataExporter {
 			writer.print(header);
 			writer.print('\n');
 			
-			List<PlayerDivision> playerDivisions = dataService.getPlayerDivisions();
+			List<PlayerDivision> playerDivisions = modelDataService.getPlayerDivisions();
 
 			for (int index = 0; index < playerDivisions.size(); index++){
 				PlayerDivision playerDivision = playerDivisions.get(index);

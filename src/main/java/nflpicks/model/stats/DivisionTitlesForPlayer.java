@@ -4,6 +4,14 @@ import java.util.List;
 
 import nflpicks.model.Player;
 
+/**
+ * 
+ * Holds the division titles a player has so it's easy to show them.  Just like the
+ * championships for player class.
+ * 
+ * @author albundy
+ *
+ */
 public class DivisionTitlesForPlayer {
 
 	protected Player player;

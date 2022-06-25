@@ -1344,21 +1344,6 @@ function createChampionshipStandingsHtml(playerChampionshipsList){
 	return championshipsStandingsHtml;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * 
  * This one will create the html for showing all the division titles and when they won them.
@@ -1472,7 +1457,7 @@ function createDivisionTitleStandingsHtml(playerDivisionTitlesList){
 	var divisionTitlesStandingsHeaderHtml = '<thead class="standings-table-head">' +
 										  	'<tr class="standings-table-row">' +
 										  		'<th class="standings-table-player-header"></th>' +
-										  		'<th class="standings-table-header">Division Titles</th>' +
+										  		'<th class="standings-table-header">Titles</th>' +
 										  		'<th class="standings-table-header">Years</th>' +
 										  	'</tr>' +
 										  '</thead>';
@@ -1582,31 +1567,6 @@ function createDivisionTitleStandingsHtml(playerDivisionTitlesList){
 	
 	return divisionTitlesStandingsHtml;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /**
  * 

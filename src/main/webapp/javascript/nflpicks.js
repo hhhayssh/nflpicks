@@ -352,8 +352,6 @@ function getSelectionCriteriaAndInitialize(){
 		
 		var statNameOptions = [{label: 'Champions', value: 'champions'},
 		                       {label: 'Championship Standings', value: 'championshipStandings'},
-		                       {label: 'Division Titles', value: 'divisionTitles'},
-		                       {label: 'Division Title Standings', value: 'divisionTitleStandings'},
 		                       {label: 'Season Standings', value: 'seasonStandings'},
 		                       {label: 'Week Standings', value: 'weekStandings'},
 		                       {label: 'Weeks Won Standings', value: 'weeksWonStandings'},
@@ -363,6 +361,12 @@ function getSelectionCriteriaAndInitialize(){
 		                       {label: 'Pick Splits', value: 'pickSplits'},
 		                       {label: 'Week Comparison', value: 'weekComparison'},
 		                       {label: 'Season Progression', value: 'seasonProgression'}];
+		
+		//Only add in the division title options if divisions are enabled.
+		if (NFL_PICKS_GLOBAL.divisionsEnabled){
+			statNameOptions.splice(2, 0, {label: 'Division Titles', value: 'divisionTitles'});
+			statNameOptions.splice(3, 0, {label: 'Division Title Standings', value: 'divisionTitleStandings'});
+		}
 
 		var statNameSelectorHtml = createStatNameSelectorHtml(statNameOptions);
 		$('#selectorContainer').append(statNameSelectorHtml);

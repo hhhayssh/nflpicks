@@ -208,7 +208,7 @@ where g.week_id in (select w.id
 	
 	protected DataSource dataSource;
 	
-	protected NFLPicksDataService dataService;
+	protected OldNFLPicksDataService dataService;
 	
 	public static void main(String[] args){
 		//ask for year
@@ -271,7 +271,7 @@ where g.week_id in (select w.id
 	
 	public OldNFLPicksDataImporter(DataSource dataSource){
 		this.dataSource = dataSource;
-		this.dataService = new NFLPicksDataService(dataSource);
+		this.dataService = new OldNFLPicksDataService(dataSource);
 	}
 	
 	public void importResults(String targetYear, String targetWeek, String filename){

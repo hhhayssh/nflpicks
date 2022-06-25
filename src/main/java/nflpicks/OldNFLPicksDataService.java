@@ -59,9 +59,9 @@ import nflpicks.model.stats.WeekRecordsForPlayer;
  * @author albundy
  *
  */
-public class NFLPicksDataService {
+public class OldNFLPicksDataService {
 	
-	private static final Logger log = Logger.getLogger(NFLPicksDataService.class);
+	private static final Logger log = Logger.getLogger(OldNFLPicksDataService.class);
 
 	/**
 	 * 
@@ -530,51 +530,10 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	
 	
 	
-	/*
-	 select pick_totals.season_id,   
-	   pick_totals.year,   
-	   pick_totals.division_id as division_id, 
-	   pick_totals.division_name as division_name, 
-	   pick_totals.division_abbreviation as division_abbreviation, 
-	   pick_totals.player_id,   
-	   pick_totals.player_name,   
-	   sum(pick_totals.wins) as wins,   
-	   sum(pick_totals.losses) as losses,   
-	   sum(pick_totals.ties) as ties   
-from (select d.id as division_id, 
-	 		 d.name as division_name, 
-	 		 d.abbreviation as division_abbreviation, 
-	 		 pl.id as player_id,   
-	 		 pl.name as player_name,   
-	 		 s.id as season_id,   
-	 		 s.year as year,   
-	 		 w.id as week_id,   
-	 		 w.sequence_number as sequence_number,   
-	 		 w.key as week_key,  
-	 		 w.label as week_label,   
-	 		 (case when p.team_id = g.winning_team_id   
-	 		       then 1   
-	 		       else 0   
-	 		 end) as wins,   
-	 		 (case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)   
-	 		 	   then 1   
-	 		 	   else 0   
-	 		 end) as losses,   
-	 		 (case when g.winning_team_id = -1   
-	 		       then 1   
-	 		       else 0   
-	 		 end) as ties   
-	 from pick p join game g on p.game_id = g.id   
-	      join player pl on p.player_id = pl.id   
-	      join week w on g.week_id = w.id   
-	      join season s on w.season_id = s.id   
-	      join player_division pd on pl.id = pd.player_id and s.id = pd.season_id 
-	      join division d on pd.division_id = d.id
-     ) pick_totals   
-group by season_id, year, pick_totals.division_id, pick_totals.division_name, pick_totals.division_abbreviation, 
-	     pick_totals.player_id, pick_totals.player_name   
-order by year asc, pick_totals.division_id, wins desc, player_id ;
-
+	/**
+	 * 
+	 * The same thing as getting the championships, but with the divisions included.
+	 * 
 	 */
 	protected static final String SELECT_ORDERED_BEST_DIVISION_RECORDS = 
 			"select pick_totals.season_id,  " + 
@@ -1206,7 +1165,7 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 	 * set the data source before doing anything.
 	 * 
 	 */
-	public NFLPicksDataService(){
+	public OldNFLPicksDataService(){
 	}
 	
 	/**
@@ -1216,7 +1175,7 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 	 * 
 	 * @param dataSource
 	 */
-	public NFLPicksDataService(DataSource dataSource){
+	public OldNFLPicksDataService(DataSource dataSource){
 		setDataSource(dataSource);
 	}
 	
@@ -6963,50 +6922,10 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 		}
 	}
 
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	/**
 	 * 
-	 * This function will get the championships for the given years and players.  In order for there
-	 * to be a championship, the year has to have been completed (there has to be a result in the superbowl).
+	 * This function will get the division titles for the given years and players.  In order for there
+	 * to be a division titles, the year has to have been completed (there has to be a result in the superbowl).
 	 * 
 	 * @param years
 	 * @param players
@@ -7019,8 +6938,8 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 		//	2. Use those years to filter out years that we were given that haven't been
 		//	   completed.
 		//	3. Run the query that will get the ordered records for the season.
-		//	4. Go through those results and keep the best records from each year.  Those
-		//	   are the records of the champions.
+		//	4. Go through those results and keep the best records from each year for each division.  Those
+		//	   are the records of the division titles.
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -7074,7 +6993,7 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 			results = statement.executeQuery();
 
 			//Now that we have the records for each season and they're ordered by wins, we just have
-			//to go through and pick out the best ones for each season.
+			//to go through and pick out the best ones for each season and division.
 			String currentYear = null;
 			String currentDivisionName = null;
 			int currentDivisionTitleWins = -1;
@@ -7089,7 +7008,7 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 				String divisionName = results.getString("division_name");
 				
 				//If we haven't picked anything out yet, this is the best record for the most current year, so 
-				//it's the record of a championship.
+				//it's the record of a division title.
 				if (currentYear == null){
 					divisionTitle = mapDivisionTitle(results);
 					divisionTitles.add(divisionTitle);
@@ -7101,11 +7020,11 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 					continue;
 				}
 				
-				//Otherwise, if it's the same year that we're on, the only way it could be a championship
-				//is if there's the exact same number of wins and losses.
+				//Otherwise, if it's the same year that we're on, the only way it could be a division title
+				//is if there's the exact same number of wins and losses in the same division.
 				if (currentYear.equals(year) && currentDivisionName.equals(divisionName)){
 
-					//If we've already got the best record for the year, this switch will be flipped and that tells
+					//If we've already got the best record for the year and division, this switch will be flipped and that tells
 					//us to just keep going to the next year.
 					if (skipToNextYear){
 						continue;
@@ -7115,19 +7034,19 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 					int currentWins = results.getInt("wins");
 					int currentLosses = results.getInt("losses");
 					
-					//If it's the same as the current wins and losses of the current championship, there was a tie, so they're
-					//both champions.
+					//If it's the same as the current wins and losses of the current division title, there was a tie, so they're
+					//both division title holders.
 					if (currentWins == currentDivisionTitleWins && currentLosses == currentDivisionTitleLosses){
 						divisionTitle = mapDivisionTitle(results);
 						divisionTitles.add(divisionTitle);
 					}
-					//Otherwise, it wasn't a championship year for that guy, so just flip the switch that will make it so we just
-					//skip to the record where the year changes.
+					//Otherwise, it wasn't a division title year for that guy, so just flip the switch that will make it so we just
+					//skip to the record where the year or division changes.
 					else {
 						skipToNextYear = true;
 					}
 				}
-				//If we're on a new year or new division, then the best record should be at the top, so it should be a championship.
+				//If we're on a new year or new division, then the best record should be at the top, so it should be a division title.
 				else {
 					divisionTitle = mapDivisionTitle(results);
 					divisionTitles.add(divisionTitle);
@@ -7138,8 +7057,8 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 				}
 			}
 			
-			//Now that we have all the championships, we want to go through and filter them so that we only
-			//include championships that were won by a player that was given in the function call.
+			//Now that we have all the division titles, we want to go through and filter them so that we only
+			//include division titles that were won by a player that was given in the function call.
 			if (players != null && players.size() > 0){
 				List<DivisionTitle> filteredDivisionTitles = new ArrayList<DivisionTitle>();
 				
@@ -7171,9 +7090,9 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 	
 	/**
 	 * 
-	 * This function will map a championship from the given result.  It expects the result
-	 * to have these columns: season_id, year, player_id, player_name, wins, losses, ties.
-	 * It just plops those in a record object and plops that in a championship object.
+	 * This function will map a division title from the given result.  It expects the result
+	 * to have these columns: division_id, division_name, division_abbreviation, season_id, year, player_id, player_name, wins, losses, ties.
+	 * It just plops those in a record object and plops that in a division title object.
 	 * 
 	 * @param results
 	 * @return
@@ -7204,18 +7123,14 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 		return divisionTitle;
 	}
 	
-	
-	
-	
-	
 	/**
 	 * 
-	 * This function will get the championships that the given players have won in the given years.
-	 * It will group them by player and have each player associated with the championships they've
-	 * won in the returned list.  If a player didn't win a championship in any of the given years, they
+	 * This function will get the division titles that the given players have won in the given years.
+	 * It will group them by player and have each player associated with the division titles they've
+	 * won in the returned list.  If a player didn't win a division title in any of the given years, they
 	 * won't be returned in the given list.
 	 * 
-	 * It will sort them so that the player who has the most championships comes first.
+	 * It will sort them so that the player who has the most division titles comes first.
 	 * 
 	 * @param years
 	 * @param players
@@ -7224,9 +7139,9 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 	public List<DivisionTitlesForPlayer> getPlayerDivisionTitles(List<String> years, List<String> players){
 		
 		//Steps to do:
-		//	1. Get the championships for the given years and players.
+		//	1. Get the division titles for the given years and players.
 		//	2. Group them by player.
-		//	3. Sort them so that the player with the most championships comes first.
+		//	3. Sort them so that the player with the most division titles comes first.
 		
 		List<DivisionTitle> divisionTitles = getDivisionTitles(years, players);
 		
@@ -7287,48 +7202,6 @@ order by year asc, pick_totals.division_id, wins desc, player_id ;
 			return 0;
 		}
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 
 	/**
 	 * 

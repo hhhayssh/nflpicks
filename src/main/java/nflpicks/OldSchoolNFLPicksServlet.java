@@ -26,12 +26,12 @@ public class OldSchoolNFLPicksServlet extends HttpServlet {
 
 	private static final Logger log = Logger.getLogger(NFLPicksServlet.class);
 	
-	protected NFLPicksDataService dataService;
+	protected OldNFLPicksDataService dataService;
 	
 	public void init() throws ServletException {
 		log.info("Initializing old school servlet...");
 		ApplicationContext.getContext().initialize();
-		dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
+		dataService = new OldNFLPicksDataService(ApplicationContext.getContext().getDataSource());
 		log.info("Done initializing old school servlet.");
     }
 	

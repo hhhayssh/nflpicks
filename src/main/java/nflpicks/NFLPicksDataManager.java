@@ -79,9 +79,12 @@ public class NFLPicksDataManager {
 			filename = args[3];
 			
 			ApplicationContext.getContext().initialize(propertiesFilename);
-			NFLPicksDataService dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
 			
-			dataManager.process(type, importType, exportType, filename, dataService);
+			NFLPicksModelDataService modelDataService = new NFLPicksModelDataService(ApplicationContext.getContext().getDataSource());
+			
+			NFLPicksStatsDataService statsDataService = new NFLPicksStatsDataService(ApplicationContext.getContext().getDataSource(), modelDataService);
+			
+			dataManager.process(type, importType, exportType, filename, modelDataService, statsDataService);
 		}
 		else {
 			System.out.println("Bad input!");
@@ -109,7 +112,10 @@ public class NFLPicksDataManager {
 		String propertiesFilename = scanner.nextLine();
 		
 		ApplicationContext.getContext().initialize(propertiesFilename);
-		NFLPicksDataService dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
+		
+		NFLPicksModelDataService modelDataService = new NFLPicksModelDataService(ApplicationContext.getContext().getDataSource());
+		
+		NFLPicksStatsDataService statsDataService = new NFLPicksStatsDataService(ApplicationContext.getContext().getDataSource(), modelDataService);
 		
 		boolean keepGoing = true;
 		
@@ -138,7 +144,7 @@ public class NFLPicksDataManager {
 				filename = scanner.nextLine();
 			}
 			
-			process(type, importType, exportType, filename, dataService);
+			process(type, importType, exportType, filename, modelDataService, statsDataService);
 			
 			System.out.println("Keep going (yes or no)?");
 			
@@ -160,12 +166,14 @@ public class NFLPicksDataManager {
 	 * @param importType
 	 * @param exportType
 	 * @param filename
-	 * @param dataService
+	 * @param modelDataService
+	 * @param statsDataService
 	 */
-	protected void process(String type, String importType, String exportType, String filename, NFLPicksDataService dataService){
+	protected void process(String type, String importType, String exportType, String filename, NFLPicksModelDataService modelDataService,
+			NFLPicksStatsDataService statsDataService){
 		
 		if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equalsIgnoreCase(type)){
-			NFLPicksDataImporter dataImporter = new NFLPicksDataImporter(dataService);
+			NFLPicksDataImporter dataImporter = new NFLPicksDataImporter(modelDataService, statsDataService);
 			
 			if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_PICKS.equalsIgnoreCase(importType)){
 				dataImporter.importPicksData(filename);
@@ -184,7 +192,7 @@ public class NFLPicksDataManager {
 			}
 		}
 		else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equalsIgnoreCase(type)){
-			NFLPicksDataExporter dataExporter = new NFLPicksDataExporter(dataService);
+			NFLPicksDataExporter dataExporter = new NFLPicksDataExporter(modelDataService, statsDataService);
 			
 			if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_PICKS.equalsIgnoreCase(exportType)){
 				dataExporter.exportPicksData(filename);

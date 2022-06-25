@@ -96,7 +96,11 @@ public class NFLPicksServlet extends HttpServlet {
 	
 	protected static final String ERROR_JSON_RESPONSE = "{\"error\": true}";
 	
-	protected NFLPicksDataService dataService;
+	//protected NFLPicksDataService dataService;
+	
+	protected NFLPicksModelDataService modelDataService;
+	
+	protected NFLPicksStatsDataService statsDataService;
 	
 	protected NFLPicksDataExporter dataExporter;
 	
@@ -105,9 +109,13 @@ public class NFLPicksServlet extends HttpServlet {
 		
 		ApplicationContext.getContext().initialize();
 		
-		dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
+		//dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
 		
-		dataExporter = new NFLPicksDataExporter(dataService);
+		modelDataService = new NFLPicksModelDataService(ApplicationContext.getContext().getDataSource());
+		
+		statsDataService = new NFLPicksStatsDataService(ApplicationContext.getContext().getDataSource(), modelDataService);
+		
+		dataExporter = new NFLPicksDataExporter(modelDataService, statsDataService);
 		
 		log.info("Done initializing servlet.");
     }
@@ -120,22 +128,22 @@ public class NFLPicksServlet extends HttpServlet {
 		String json = "";
 		
 		if (TARGET_TEAMS.equals(target)){
-			List<Team> teams = dataService.getTeams();
+			List<Team> teams = modelDataService.getTeams();
 			json = JSONUtil.teamsToJSONString(teams);
 		}
 		else if (TARGET_GAMES.equals(target)){
 			String year = getParameter(request, PARAMETER_NAME_YEAR);
 			String weekKey = getParameter(request, PARAMETER_NAME_WEEK);
 			
-			List<Game> games = dataService.getGames(year, weekKey);
+			List<Game> games = modelDataService.getGames(year, weekKey);
 			json = JSONUtil.gamesToJSONString(games);
 		}
 		else if (TARGET_PLAYERS.equals(target)){
-			List<Player> players = dataService.getPlayers();
+			List<Player> players = modelDataService.getPlayers();
 			json = JSONUtil.playersToJSONString(players);
 		}
 		else if (TARGET_DIVISIONS.equals(target)){
-			List<Division> divisions = dataService.getDivisions();
+			List<Division> divisions = modelDataService.getDivisions();
 			json = JSONUtil.divisionsToJSONString(divisions);
 		}
 		else if (TARGET_PICKS.equals(target)){
@@ -143,7 +151,7 @@ public class NFLPicksServlet extends HttpServlet {
 			String year = getParameter(request, PARAMETER_NAME_YEAR);
 			String weekKey = getParameter(request, PARAMETER_NAME_WEEK);
 			
-			List<Pick> picks = dataService.getPicks(playerName, year, weekKey);
+			List<Pick> picks = modelDataService.getPicks(playerName, year, weekKey);
 			
 			json = JSONUtil.picksToJSONString(picks);
 		}
@@ -186,13 +194,13 @@ public class NFLPicksServlet extends HttpServlet {
 			if (isAllPlayers){
 
 				if (isAllYears){
-					players = dataService.getPlayers();
+					players = modelDataService.getPlayers();
 				}
 				else {
-					players = dataService.getActivePlayers(years);
+					players = modelDataService.getActivePlayers(years);
 					
 					if (players == null || players.size() == 0){
-						players = dataService.getPlayers();
+						players = modelDataService.getPlayers();
 					}
 				}
 				
@@ -204,10 +212,10 @@ public class NFLPicksServlet extends HttpServlet {
 				}
 			}
 			else {
-				players = dataService.getPlayers(playerNames);
+				players = modelDataService.getPlayers(playerNames);
 			}
 			
-			List<CompactPick> picks = dataService.getCompactPicks(years, weekKeys, playerNames, teams);
+			List<CompactPick> picks = statsDataService.getCompactPicks(years, weekKeys, playerNames, teams);
 			
 			JSONObject gridJSONObject = new JSONObject();
 			gridJSONObject.put(NFLPicksConstants.JSON_COMPACT_PICK_GRID_PLAYERS, playerNames);
@@ -255,15 +263,15 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			List<Player> players = null;
 			if (isAllPlayers){
-				players = dataService.getPlayers();
+				players = modelDataService.getPlayers();
 			}
 			else {
-				players = dataService.getPlayers(playerNames);
+				players = modelDataService.getPlayers(playerNames);
 			}
 			
-			List<Game> games = dataService.getGames(years, weekKeys, teams);
+			List<Game> games = modelDataService.getGames(years, weekKeys, teams);
 			
-			List<Pick> picks = dataService.getPicks(years, weekKeys, playerNames, teams);
+			List<Pick> picks = modelDataService.getPicks(years, weekKeys, playerNames, teams);
 			
 			JSONObject gridJSONObject = new JSONObject();
 
@@ -299,7 +307,7 @@ public class NFLPicksServlet extends HttpServlet {
 				teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
 			}
 			
-			List<Record> records = dataService.getRecords(years, weekKeys, playerNames, teams);
+			List<Record> records = statsDataService.getRecords(years, weekKeys, playerNames, teams);
 			
 			JSONObject recordsJSONObject = new JSONObject();
 			recordsJSONObject.put(NFLPicksConstants.JSON_STANDINGS_RECORDS, JSONUtil.recordsToJSONArray(records));
@@ -339,7 +347,7 @@ public class NFLPicksServlet extends HttpServlet {
 				divisionAbbreviations = Util.delimitedStringToList(divisionsString, PARAMETER_VALUE_DELIMITER);
 			}
 			
-			List<DivisionRecord> divisionRecords = dataService.getDivisionRecords(divisionAbbreviations, years, weekKeys, playerNames, teams);
+			List<DivisionRecord> divisionRecords = statsDataService.getDivisionRecords(divisionAbbreviations, years, weekKeys, playerNames, teams);
 			
 			JSONObject recordsJSONObject = new JSONObject();
 			recordsJSONObject.put(NFLPicksConstants.JSON_STANDINGS_DIVISION_RECORDS, JSONUtil.divisionRecordsToJSONArray(divisionRecords));
@@ -350,10 +358,10 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			JSONObject selectionCriteriaJSONObject = new JSONObject();
 			
-			List<String> years = dataService.getYearsForCriteria();
+			List<String> years = modelDataService.getYearsForCriteria();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_YEARS, years);
 			
-			List<Player> players = dataService.getPlayers();
+			List<Player> players = modelDataService.getPlayers();
 			List<String> playerNames = new ArrayList<String>();
 			
 			for (int index = 0; index < players.size(); index++){
@@ -366,15 +374,15 @@ public class NFLPicksServlet extends HttpServlet {
 			//this should be players, not just the names....
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_PLAYERS, playerNames);
 			
-			List<Team> teams = dataService.getTeams();
+			List<Team> teams = modelDataService.getTeams();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_TEAMS, teams);
 			
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_DIVISIONS_ENABLED, ApplicationContext.getContext().getDivisionsEnabled());
 			
-			String currentWeekKey = dataService.getCurrentWeekKey();
+			String currentWeekKey = statsDataService.getCurrentWeekKey();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_WEEK_KEY, currentWeekKey);
 			
-			String currentYear = dataService.getCurrentYear();
+			String currentYear = statsDataService.getCurrentYear();
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_YEAR, currentYear);
 			
 			json = selectionCriteriaJSONObject.toString();
@@ -391,13 +399,13 @@ public class NFLPicksServlet extends HttpServlet {
 				return;
 			}
 			
-			List<String> years = dataService.getYearsForCriteria();
+			List<String> years = modelDataService.getYearsForCriteria();
 			
 			JSONObject selectionCriteriaJSONObject = new JSONObject();
 			
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_YEARS, years);
 			
-			List<Player> players = dataService.getPlayers();
+			List<Player> players = modelDataService.getPlayers();
 			List<String> playerNames = new ArrayList<String>();
 			
 			for (int index = 0; index < players.size(); index++){
@@ -409,8 +417,8 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_SELECTION_CRITERIA_PLAYERS, playerNames);
 			
-			String currentWeekKey = dataService.getCurrentWeekKey();
-			String currentYear = dataService.getCurrentYear();
+			String currentWeekKey = statsDataService.getCurrentWeekKey();
+			String currentYear = statsDataService.getCurrentYear();
 			
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_WEEK_KEY, currentWeekKey);
 			selectionCriteriaJSONObject.put(NFLPicksConstants.JSON_CURRENT_YEAR, currentYear);
@@ -459,7 +467,7 @@ public class NFLPicksServlet extends HttpServlet {
 					playerNames = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordsForPlayer> weeksWon = dataService.getWeeksWon(years, weekKeys, playerNames, true);
+				List<WeekRecordsForPlayer> weeksWon = statsDataService.getWeeksWon(years, weekKeys, playerNames, true);
 				
 				json = JSONUtil.weekRecordsForPlayerListToJSONString(weeksWon);
 			}
@@ -482,7 +490,7 @@ public class NFLPicksServlet extends HttpServlet {
 					playerNames = Util.delimitedStringToList(player, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayers> weekRecordForPlayersList = dataService.getWeeksWonByWeek(years, weekKeys, playerNames, true);
+				List<WeekRecordForPlayers> weekRecordForPlayersList = statsDataService.getWeeksWonByWeek(years, weekKeys, playerNames, true);
 				
 				json = JSONUtil.weekRecordForPlayersListToJSONString(weekRecordForPlayersList);
 			}
@@ -506,7 +514,7 @@ public class NFLPicksServlet extends HttpServlet {
 					weekKeys = Util.delimitedStringToList(weekKey, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weekKeys, playerNames, true);
+				List<WeekRecordForPlayer> playerWeekRecords = statsDataService.getPlayerWeekRecords(years, weekKeys, playerNames, true);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(playerWeekRecords);
 			}
@@ -530,7 +538,7 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> bestWeeks = dataService.getWeekStandings(years, weekKeys, playerNames);
+				List<WeekRecordForPlayer> bestWeeks = statsDataService.getWeekStandings(years, weekKeys, playerNames);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(bestWeeks);
 			}
@@ -554,7 +562,7 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<SeasonRecordForPlayer> seasonRecords = dataService.getSeasonRecords(years, weekKeys, playerNames);
+				List<SeasonRecordForPlayer> seasonRecords = statsDataService.getSeasonRecords(years, weekKeys, playerNames);
 				
 				json = JSONUtil.seasonRecordsForPlayersToJSONString(seasonRecords);
 			}
@@ -572,7 +580,7 @@ public class NFLPicksServlet extends HttpServlet {
 					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<Championship> championships = dataService.getChampionships(years, playerNames);
+				List<Championship> championships = statsDataService.getChampionships(years, playerNames);
 				
 				json = JSONUtil.championshipsToJSONString(championships);
 			}
@@ -591,7 +599,7 @@ public class NFLPicksServlet extends HttpServlet {
 					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<ChampionshipsForPlayer> playerChampionships = dataService.getPlayerChampionships(years, playerNames);
+				List<ChampionshipsForPlayer> playerChampionships = statsDataService.getPlayerChampionships(years, playerNames);
 				
 				json = JSONUtil.championshipsForPlayerListToJSONString(playerChampionships);
 			}
@@ -609,7 +617,7 @@ public class NFLPicksServlet extends HttpServlet {
 					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<DivisionTitle> divisionTitles = dataService.getDivisionTitles(years, playerNames);
+				List<DivisionTitle> divisionTitles = statsDataService.getDivisionTitles(years, playerNames);
 				
 				json = JSONUtil.divisionTitlesToJSONString(divisionTitles);
 			}
@@ -628,7 +636,7 @@ public class NFLPicksServlet extends HttpServlet {
 					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<DivisionTitlesForPlayer> playerChampionships = dataService.getPlayerDivisionTitles(years, playerNames);
+				List<DivisionTitlesForPlayer> playerChampionships = statsDataService.getPlayerDivisionTitles(years, playerNames);
 					
 				json = JSONUtil.divisionTitlesForPlayerListToJSONString(playerChampionships);
 			}
@@ -660,7 +668,7 @@ public class NFLPicksServlet extends HttpServlet {
 				
 				log.info("Getting pick accuracy summaries...");
 				long start = System.currentTimeMillis();
-				List<PickAccuracySummary> pickAccuracySummaries = dataService.getPickAccuracySummariesB2(years, weekKeys, playerNames, teams);
+				List<PickAccuracySummary> pickAccuracySummaries = statsDataService.getPickAccuracySummariesB2(years, weekKeys, playerNames, teams);
 				long elapsed = System.currentTimeMillis() - start;
 				log.info("Done getting pick accuracy summaries. elapsed = " + elapsed);
 				
@@ -677,13 +685,13 @@ public class NFLPicksServlet extends HttpServlet {
 				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
 				List<String> weekKeys = null;
 				if (PARAMETER_VALUE_CURRENT.equals(weekKeysString)){
-					int currentWeekSequenceNumber = dataService.getCurrentWeekSequenceNumber();
+					int currentWeekSequenceNumber = statsDataService.getCurrentWeekSequenceNumber();
 					String weekKey = ModelUtil.createWeekKey(currentWeekSequenceNumber);
 					weekKeys = new ArrayList<String>();
 					weekKeys.add(weekKey);
 				}
 				else if (PARAMETER_VALUE_NEXT.equals(weekKeysString)){
-					int nextWeekSequenceNumber = dataService.getNextWeekSequenceNumber();
+					int nextWeekSequenceNumber = statsDataService.getNextWeekSequenceNumber();
 					String weekKey = ModelUtil.createWeekKey(nextWeekSequenceNumber);
 					weekKeys = new ArrayList<String>();
 					weekKeys.add(weekKey);
@@ -704,7 +712,7 @@ public class NFLPicksServlet extends HttpServlet {
 					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<PickSplit> pickSplits = dataService.getPickSplits(years, weekKeys, playerNames, teams);
+				List<PickSplit> pickSplits = statsDataService.getPickSplits(years, weekKeys, playerNames, teams);
 				
 				json = JSONUtil.pickSplitsToJSONString(pickSplits);
 			}
@@ -727,7 +735,7 @@ public class NFLPicksServlet extends HttpServlet {
 					weekKeys = Util.delimitedStringToList(weekKey, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weekKeys, playerNames, true);
+				List<WeekRecordForPlayer> playerWeekRecords = statsDataService.getPlayerWeekRecords(years, weekKeys, playerNames, true);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(playerWeekRecords);
 			}
@@ -750,14 +758,14 @@ public class NFLPicksServlet extends HttpServlet {
 					weekKeys = Util.delimitedStringToList(weekKey, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<WeekRecordForPlayer> playerWeekRecords = dataService.getPlayerWeekRecords(years, weekKeys, playerNames, true);
+				List<WeekRecordForPlayer> playerWeekRecords = statsDataService.getPlayerWeekRecords(years, weekKeys, playerNames, true);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(playerWeekRecords);
 			}
 		}
 		else if (TARGET_MAKE_PICKS.equals(target)){
 			
-			List<Game> gamesForNextWeek = dataService.getGamesForCurrentWeek();
+			List<Game> gamesForNextWeek = statsDataService.getGamesForCurrentWeek();
 			
 			json = JSONUtil.gamesToJSONString(gamesForNextWeek);
 		}
@@ -839,8 +847,8 @@ public class NFLPicksServlet extends HttpServlet {
 				int gameId = Util.parseInt(gameIdString, 0);
 				int winningTeamId = Util.parseInt(winningTeamIdString, 0);
 				
-				Game existingGame = dataService.getGame(gameId);
-				Team winningTeam = dataService.getTeam(winningTeamId);
+				Game existingGame = modelDataService.getGame(gameId);
+				Team winningTeam = modelDataService.getTeam(winningTeamId);
 				
 				if (existingGame == null){
 					log.error("Error saving games!  Could not get game with id = " + gameIdString);
@@ -854,7 +862,7 @@ public class NFLPicksServlet extends HttpServlet {
 					existingGame.setTie(true);
 				}
 				
-				dataService.saveGame(existingGame);
+				modelDataService.saveGame(existingGame);
 			}
 		}
 		else if (TARGET_PICKS.equals(target)){
@@ -876,7 +884,7 @@ public class NFLPicksServlet extends HttpServlet {
 			String playerString = picksToSave.optString(PARAMETER_NAME_PLAYER);
 			JSONArray picks = picksToSave.optJSONArray(PARAMETER_NAME_PICKS);
 			
-			Player player = dataService.getPlayer(playerString);
+			Player player = modelDataService.getPlayer(playerString);
 			
 			if (player == null){
 				log.error("Error finding player to update picks!  player = " + playerString + ", body = " + body);
@@ -896,21 +904,21 @@ public class NFLPicksServlet extends HttpServlet {
 				//If no team was given, that means they didn't make a pick, so we should delete
 				//one if it's already there.
 				if (Util.isBlank(teamId) || teamIdInt == 0){
-					Pick pickToDelete = dataService.getPick(gameIdInt, player.getId());
+					Pick pickToDelete = modelDataService.getPick(gameIdInt, player.getId());
 					
 					//If they made a pick before, delete it.  If they didn't, there's nothing to do, so we should just
 					//go to the next game and pick.
 					if (pickToDelete != null){
-						dataService.deletePick(pickToDelete);
+						modelDataService.deletePick(pickToDelete);
 					}
 					
 					continue;
 				}
 				
-				Game game = dataService.getGame(gameIdInt);
-				Team team = dataService.getTeam(teamIdInt);
+				Game game = modelDataService.getGame(gameIdInt);
+				Team team = modelDataService.getTeam(teamIdInt);
 
-				Pick pickToSave = dataService.getPick(gameIdInt, player.getId());
+				Pick pickToSave = modelDataService.getPick(gameIdInt, player.getId());
 				//If there is no pick, we'll be doing an insert.  Otherwise, it'll be an update.
 				if (pickToSave == null){
 					pickToSave = new Pick();
@@ -919,7 +927,7 @@ public class NFLPicksServlet extends HttpServlet {
 				pickToSave.setGame(game);
 				pickToSave.setPlayer(player);
 				pickToSave.setTeam(team);
-				dataService.savePick(pickToSave);
+				modelDataService.savePick(pickToSave);
 			}
 		}
 	}
