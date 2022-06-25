@@ -3,6 +3,7 @@ package nflpicks;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -100,11 +101,27 @@ public class ApplicationContext {
 	
 	/**
 	 * 
-	 * The property nname that has the password we use to connect to the database.
+	 * The property name that has the password we use to connect to the database.
 	 * 
 	 */
 	protected static final String JDBC_PASSWORD_KEY = "nflpicks.jdbc.password";
 	
+	/**
+	 * 
+	 * The partial part of the key that's used to make sure not everybody can edit
+	 * stuff.
+	 * 
+	 */
+	protected static final String EDIT_KEY = "nflpicks.edit.key";
+	
+	/**
+	 * 
+	 * The key that will say whether divisions are enabled or not (so I can turn it off pretty quickly
+	 * if I want to).
+	 * 
+	 */
+	protected static final String DIVISIONS_ENABLED_KEY = "nflpicks.divisions.enabled";
+
 	/**
 	 * 
 	 * The name of the driver we use to connect to the database.
@@ -132,6 +149,16 @@ public class ApplicationContext {
 	 * 
 	 */
 	protected String jdbcPassword;
+	
+	/**
+	 * 
+	 * This lets it put different players in different context paths so we
+	 * can kind of have multiple picks things going on at the same time.
+	 * The keys are the context paths and the values are the player names that
+	 * should be associated with the context. 
+	 * 
+	 */
+	protected Map<String, List<String>> contextPathPlayerMapping; 
 	
 	/**
 	 * 
@@ -182,6 +209,7 @@ public class ApplicationContext {
 		//	2. Otherwise, load all the properties from the file with the given name.
 		//	3. Pull out the values of the properties that let us connect to the
 		//	   database and connect to it.
+		//	4. Initialize the context to player name mapping.
 		
 		log.info("Initializing application context...");
 		
@@ -196,14 +224,14 @@ public class ApplicationContext {
 		
 		loadProperties(propertiesFilename);
 		
-		jdbcDriverClassName = getProperty(JDBC_DRIVER_CLASS_NAME);
-		jdbcUrl = getProperty(JDBC_URL_KEY);
-		jdbcUsername = getProperty(JDBC_USERNAME_KEY);
-		jdbcPassword = getProperty(JDBC_PASSWORD_KEY);
+		this.jdbcDriverClassName = getProperty(JDBC_DRIVER_CLASS_NAME);
+		this.jdbcUrl = getProperty(JDBC_URL_KEY);
+		this.jdbcUsername = getProperty(JDBC_USERNAME_KEY);
+		this.jdbcPassword = getProperty(JDBC_PASSWORD_KEY);
 		
 		initializeDataSource();
 		
-		initialized = true;
+		this.initialized = true;
 		
 		log.info("Application context initialized.");
 	}
@@ -323,6 +351,52 @@ public class ApplicationContext {
 	 */
 	public void set(String key, Object value){
 		context.put(key, value);
+	}
+
+	/**
+	 * 
+	 * Gets the property that's used to see whether somebody can edit something.
+	 * 
+	 * @return
+	 */
+	public String getEditKey(){
+		
+		String editKey = getProperty(EDIT_KEY);
+		
+		return editKey;
+	}
+	
+	/**
+	 * 
+	 * Sets the property that's used to see whether somebody can edit something.
+	 * 
+	 * @param editKey
+	 */
+	public void setEditKey(String editKey){
+		setProperty(EDIT_KEY, editKey);
+	}
+	
+	/**
+	 * 
+	 * Gets the property that says whether divisions are enabled or not.
+	 * 
+	 * @return
+	 */
+	public String getDivisionsEnabled(){
+		
+		String divisionsEnabled = getProperty(DIVISIONS_ENABLED_KEY);
+		
+		return divisionsEnabled;
+	}
+	
+	/**
+	 * 
+	 * Sets the property that says whether divisions are enabled or not.
+	 * 
+	 * @param divisionsEnabled
+	 */
+	public void setDivisionsEnabled(String divisionsEnabled){
+		setProperty(DIVISIONS_ENABLED_KEY, divisionsEnabled);
 	}
 
 	/**

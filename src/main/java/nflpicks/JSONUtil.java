@@ -8,6 +8,8 @@ import org.json.JSONObject;
 
 import nflpicks.model.CompactPick;
 import nflpicks.model.CompactPlayerPick;
+import nflpicks.model.Division;
+import nflpicks.model.DivisionRecord;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.PickSplit;
@@ -18,6 +20,8 @@ import nflpicks.model.Team;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
+import nflpicks.model.stats.DivisionTitle;
+import nflpicks.model.stats.DivisionTitlesForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
 import nflpicks.model.stats.SeasonRecordForPlayer;
 import nflpicks.model.stats.WeekRecord;
@@ -421,6 +425,142 @@ public class JSONUtil {
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put(NFLPicksConstants.JSON_PLAYER_ID, player.getId());
 		jsonObject.put(NFLPicksConstants.JSON_PLAYER_NAME, player.getName());
+		
+		return jsonObject;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of divisions into a json formatted string.
+	 * 
+	 * @param divisions
+	 * @return
+	 */
+	public static String divisionsToJSONString(List<Division> divisions){
+		
+		JSONArray jsonArray = divisionsToJSONArray(divisions);
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of divisions into an array of json objects.
+	 * 
+	 * @param divisions
+	 * @return
+	 */
+	public static JSONArray divisionsToJSONArray(List<Division> divisions){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < divisions.size(); index++){
+			Division division = divisions.get(index);
+			JSONObject jsonObject = divisionToJSONObject(division);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
+	
+	/**
+	 * 
+	 * Converts the given division object into a json formatted string.
+	 * 
+	 * @param division
+	 * @return
+	 */
+	public static String divisionToJSONString(Division division){
+		
+		JSONObject jsonObject = divisionToJSONObject(division);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given division into a json object.
+	 * 
+	 * @param player
+	 * @return
+	 */
+	public static JSONObject divisionToJSONObject(Division division){
+		
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_ID, division.getId());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_NAME, division.getName());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_ABBREVIATION, division.getAbbreviation());
+		
+		List<Player> players = division.getPlayers();
+		if (players != null){
+			JSONArray playersJSONArray = playersToJSONArray(players);
+			jsonObject.put(NFLPicksConstants.JSON_DIVISION_PLAYERS, playersJSONArray);
+		}
+		
+		return jsonObject;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of division records to a json array.
+	 * 
+	 * @param divisionRecords
+	 * @return
+	 */
+	public static JSONArray divisionRecordsToJSONArray(List<DivisionRecord> divisionRecords){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < divisionRecords.size(); index++){
+			DivisionRecord divisionRecord = divisionRecords.get(index);
+			JSONObject jsonObject = divisionRecordToJSONObject(divisionRecord);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
+	
+	/**
+	 * 
+	 * Converts the given division record to a json formatted string.
+	 * 
+	 * @param record
+	 * @return
+	 */
+	public static String divisionRecordToJSONString(DivisionRecord divisionRecord){
+		
+		JSONObject jsonObject = divisionRecordToJSONObject(divisionRecord);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given division record to a json object.
+	 * 
+	 * @param divisionRecord
+	 * @return
+	 */
+	public static JSONObject divisionRecordToJSONObject(DivisionRecord divisionRecord){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		Division division = divisionRecord.getDivision();
+		JSONObject divisionJSONObject = divisionToJSONObject(division);
+		
+		List<Record> records = divisionRecord.getRecords();
+		JSONArray recordsJSONArray = null;
+		if (records != null){
+			recordsJSONArray = recordsToJSONArray(records);
+		}
+		
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_RECORD_DIVISION, divisionJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_RECORD_RECORDS, recordsJSONArray);
 		
 		return jsonObject;
 	}
@@ -957,7 +1097,6 @@ public class JSONUtil {
 		return jsonObject;
 	}
 	
-	
 	/**
 	 * 
 	 * This function converts the given championships for player list into a json formatted
@@ -1032,6 +1171,200 @@ public class JSONUtil {
 		
 		return jsonObject;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * This function converts the given division title objects into a json formatted
+	 * string.
+	 * 
+	 * @param weeksWon
+	 * @return
+	 */
+	public static String divisionTitlesToJSONString(List<DivisionTitle> divisionTitles){
+		
+		JSONArray jsonArray = divisionTitlesToJSONArray(divisionTitles);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given division titles into a json array.
+	 * 
+	 * @param seasons
+	 * @return
+	 */
+	public static JSONArray divisionTitlesToJSONArray(List<DivisionTitle> divisionTitles){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < divisionTitles.size(); index++){
+			DivisionTitle divisionTitle = divisionTitles.get(index);
+			JSONObject jsonObject = divisionTitleToJSONObject(divisionTitle);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
+	
+	/**
+	 * 
+	 * This function converts the given division title to a json formatted string.
+	 * 
+	 * @param season
+	 * @return
+	 */
+	public static String divisionTitleToJSONString(DivisionTitle divisionTitle){
+		
+		JSONObject jsonObject = divisionTitleToJSONObject(divisionTitle);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given division title into a json object.
+	 * 
+	 * @param weekWon
+	 * @return
+	 */
+	public static JSONObject divisionTitleToJSONObject(DivisionTitle divisionTitle){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject divisionJSONObject = divisionToJSONObject(divisionTitle.getDivision());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_TITLE_DIVISION, divisionJSONObject);
+		
+		JSONObject playerJSONObject = playerToJSONObject(divisionTitle.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_TITLE_PLAYER, playerJSONObject);
+		
+		JSONObject seasonJSONObject = seasonToJSONObject(divisionTitle.getSeason());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_TITLE_SEASON, seasonJSONObject);
+		
+		JSONObject recordJSONObject = recordToJSONObject(divisionTitle.getRecord());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_TITLE_RECORD, recordJSONObject);
+		
+		return jsonObject;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given championships for player list into a json formatted
+	 * string.
+	 * 
+	 * @param weeksWon
+	 * @return
+	 */
+	public static String divisionTitlesForPlayerListToJSONString(List<DivisionTitlesForPlayer> divisionTitlesForPlayerList){
+		
+		JSONArray jsonArray = divisionTitlesForPlayerListToJSONArray(divisionTitlesForPlayerList);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given division titles for player list into a json array.
+	 * 
+	 * @param seasons
+	 * @return
+	 */
+	public static JSONArray divisionTitlesForPlayerListToJSONArray(List<DivisionTitlesForPlayer> divisionTitlesForPlayerList){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < divisionTitlesForPlayerList.size(); index++){
+			DivisionTitlesForPlayer divisionTitlesForPlayer = divisionTitlesForPlayerList.get(index);
+			JSONObject jsonObject = divisionTitlesForPlayerToJSONObject(divisionTitlesForPlayer);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
+	
+	/**
+	 * 
+	 * This function converts the given division titles for player to a json formatted string.
+	 * 
+	 * @param season
+	 * @return
+	 */
+	public static String divisionTitlesForPlayerToJSONString(DivisionTitlesForPlayer divisionTitlesForPlayer){
+		
+		JSONObject jsonObject = divisionTitlesForPlayerToJSONObject(divisionTitlesForPlayer);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given division titles for player into a json object.
+	 * 
+	 * @param divisionTitlesForPlayer
+	 * @return
+	 */
+	public static JSONObject divisionTitlesForPlayerToJSONObject(DivisionTitlesForPlayer divisionTitlesForPlayer){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject playerJSONObject = playerToJSONObject(divisionTitlesForPlayer.getPlayer());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_TITLES_FOR_PLAYER_PLAYER, playerJSONObject);
+		
+		JSONArray divisionTitlesJSONArray = divisionTitlesToJSONArray(divisionTitlesForPlayer.getDivisionTitles());
+		jsonObject.put(NFLPicksConstants.JSON_DIVISION_TITLES_FOR_PLAYER_DIVISION_TITLES, divisionTitlesJSONArray);
+		
+		
+		return jsonObject;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	
 	

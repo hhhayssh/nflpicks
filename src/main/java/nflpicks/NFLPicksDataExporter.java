@@ -13,10 +13,13 @@ import org.apache.log4j.Logger;
 
 import nflpicks.model.CompactPick;
 import nflpicks.model.CompactPlayerPick;
-import nflpicks.model.Conference;
 import nflpicks.model.Division;
 import nflpicks.model.Player;
+import nflpicks.model.PlayerDivision;
+import nflpicks.model.Season;
 import nflpicks.model.Team;
+import nflpicks.model.TeamConference;
+import nflpicks.model.TeamDivision;
 
 /**
  * 
@@ -158,20 +161,20 @@ public class NFLPicksDataExporter {
 			writer.print(header);
 			writer.print('\n');
 			
-			List<Conference> conferences = dataService.getConferences(false);
+			List<TeamConference> conferences = dataService.getTeamConferences(false);
 
 			for (int conferenceIndex = 0; conferenceIndex < conferences.size(); conferenceIndex++){
-				Conference conference = conferences.get(conferenceIndex);
+				TeamConference conference = conferences.get(conferenceIndex);
 
 				String conferenceName = conference.getName();
 				String currentConferenceName = conference.getCurrentName();
 				String conferenceStartYear = conference.getStartYear();
 				String conferenceEndYear = conference.getEndYear();
 				
-				List<Division> divisions = conference.getDivisions();
+				List<TeamDivision> divisions = conference.getDivisions();
 				
 				for (int divisionIndex = 0; divisionIndex < divisions.size(); divisionIndex++){
-					Division division = divisions.get(divisionIndex);
+					TeamDivision division = divisions.get(divisionIndex);
 
 					String divisionName = division.getName();
 					String currentDivisionName = division.getCurrentName();
@@ -471,22 +474,145 @@ public class NFLPicksDataExporter {
 		//	2. Write the player picks in the order we got them.
 		
 		//unNull because I'm a moron.
-		writer.write(Util.unNull(year));
+		writer.write(Util.toEmptyStringIfNull(year));
 		writer.write(',');
 		writer.write(String.valueOf(weekSequenceNumber));
 		writer.write(',');
-		writer.write(Util.unNull(awayTeamAbbreviation));
+		writer.write(Util.toEmptyStringIfNull(awayTeamAbbreviation));
 		writer.write(',');
-		writer.write(Util.unNull(homeTeamAbbreviation));
+		writer.write(Util.toEmptyStringIfNull(homeTeamAbbreviation));
 		writer.write(',');
-		writer.write(Util.unNull(winningTeamAbbreviation));
+		writer.write(Util.toEmptyStringIfNull(winningTeamAbbreviation));
 		
 		for (int index = 0; index < playerPicks.size(); index++){
 			String playerPick = playerPicks.get(index);
 			writer.write(',');
-			writer.write(Util.unNull(playerPick));
+			writer.write(Util.toEmptyStringIfNull(playerPick));
 		}
 		
 		writer.write('\n');
+	}
+	
+	/**
+	 * 
+	 * This function will export the division data to the given file.
+	 * The exported file will have all the data it needs to rebuild all the stuff again.
+	 * 
+	 * @param filename
+	 */
+	public void exportDivisionData(String filename){
+		
+		//Steps to do:
+		//	1. To export the team data, we should just be able to do a "deep" retrieve
+		//	   on the conferences and they should have everything in them.
+		//	2. Each line should be a team and so that's the level where we'll print at.
+		
+		log.info("Exporting division data to " + filename + " ...");
+		long start = System.currentTimeMillis();
+		
+		PrintWriter writer = null;
+		int lineNumber = 0;
+		
+		try {
+			writer = new PrintWriter(filename);
+			
+			String header = "division,abbreviation";
+
+			writer.print(header);
+			writer.print('\n');
+			
+			List<Division> divisions = dataService.getDivisions();
+
+			for (int index = 0; index < divisions.size(); index++){
+				Division division = divisions.get(index);
+
+				String divisionName = division.getName();
+				String abbreviation = division.getAbbreviation();
+
+				List<String> values = Arrays.asList(new String[]{divisionName, abbreviation});
+
+				String line = Util.toCsvString(values);
+				writer.print(line);
+				writer.print('\n');
+				lineNumber++;
+
+				writer.flush();
+			}
+			
+			writer.flush();
+		}
+		catch (Exception e){
+			log.error("Error exporting division data!  lineNumber = " + lineNumber + ", filename = " + filename, e);
+		}
+		finally {
+			Util.closeWriter(writer);
+		}
+		
+		long elapsed = System.currentTimeMillis() - start;
+		log.info("Done exporting division data.  Took " + elapsed + " ms to export to " + filename);
+	}
+	
+	/**
+	 * 
+	 * This function will export the player division data to the given file.
+	 * The exported file will have all the data it needs to rebuild all the stuff again.
+	 * 
+	 * @param filename
+	 */
+	public void exportPlayerDivisionData(String filename){
+		
+		//Steps to do:
+		//	1. To export the team data, we should just be able to do a "deep" retrieve
+		//	   on the conferences and they should have everything in them.
+		//	2. Each line should be a team and so that's the level where we'll print at.
+		
+		log.info("Exporting player division data to " + filename + " ...");
+		long start = System.currentTimeMillis();
+		
+		PrintWriter writer = null;
+		int lineNumber = 0;
+		
+		try {
+			writer = new PrintWriter(filename);
+			
+			String header = "division,player,year";
+
+			writer.print(header);
+			writer.print('\n');
+			
+			List<PlayerDivision> playerDivisions = dataService.getPlayerDivisions();
+
+			for (int index = 0; index < playerDivisions.size(); index++){
+				PlayerDivision playerDivision = playerDivisions.get(index);
+
+				Division division = playerDivision.getDivision();
+				Player player = playerDivision.getPlayer();
+				Season season = playerDivision.getSeason();
+				
+				String divisionName = division.getName();
+				String playerName = player.getName();
+				String year = season.getYear();
+
+				List<String> values = Arrays.asList(new String[]{divisionName, playerName, year});
+
+				String line = Util.toCsvString(values);
+				writer.print(line);
+				writer.print('\n');
+				lineNumber++;
+
+				writer.flush();
+			}
+			
+			writer.flush();
+		}
+		catch (Exception e){
+			log.error("Error exporting player division data!  lineNumber = " + lineNumber + ", filename = " + filename, e);
+		}
+		finally {
+			Util.closeWriter(writer);
+		}
+		
+		long elapsed = System.currentTimeMillis() - start;
+		log.info("Done exporting player division data.  Took " + elapsed + " ms to export to " + filename);
 	}
 }

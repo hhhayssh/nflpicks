@@ -21,19 +21,24 @@ import org.apache.log4j.Logger;
 
 import nflpicks.model.CompactPick;
 import nflpicks.model.CompactPlayerPick;
-import nflpicks.model.Conference;
 import nflpicks.model.Division;
+import nflpicks.model.DivisionRecord;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.PickSplit;
 import nflpicks.model.Player;
+import nflpicks.model.PlayerDivision;
 import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
+import nflpicks.model.TeamConference;
+import nflpicks.model.TeamDivision;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.CompactPickAccuracyContainer;
+import nflpicks.model.stats.DivisionTitle;
+import nflpicks.model.stats.DivisionTitlesForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
 import nflpicks.model.stats.SeasonRecordForPlayer;
 import nflpicks.model.stats.WeekRecord;
@@ -65,36 +70,36 @@ public class NFLPicksDataService {
 	 */
 	protected DataSource dataSource;
 	
-	//Statements for dealing with the conference table.
-	protected static final String SELECT_CONFERENCE = "select id, " +
+	//Statements for dealing with the team_conference table.
+	protected static final String SELECT_TEAM_CONFERENCE = "select id, " +
 													  "name, " +
 													  "start_year, " + 
 													  "end_year, " + 
 													  "current_name " +
-													  "from conference ";
+													  "from team_conference ";
 	
-	protected static final String INSERT_CONFERENCE = "insert into conference (name, start_year, end_year, current_name) values (?, ?, ?, ?) ";
+	protected static final String INSERT_TEAM_CONFERENCE = "insert into team_conference (name, start_year, end_year, current_name) values (?, ?, ?, ?) ";
 	
-	protected static final String UPDATE_CONFERENCE = "update conference " + 
+	protected static final String UPDATE_TEAM_CONFERENCE = "update team_conference " + 
 													  "set name = ?, " + 
 													  	  "start_year = ?, " + 
 													  	  "end_year = ?, " + 
 													  	  "current_name = ? " + 
 													  "where id = ? ";
 
-	//Statements for working with the division table.
-	protected static final String SELECT_DIVISION = "select id, " +
-													"conference_id, " + 
+	//Statements for working with the team_division table.
+	protected static final String SELECT_TEAM_DIVISION = "select id, " +
+													"team_conference_id, " + 
 													"name, " +
 													"start_year, " + 
 													"end_year, " + 
 													"current_name " +
-													"from division ";
+													"from team_division ";
 	
-	protected static final String INSERT_DIVISION = "insert into division (conference_id, name, start_year, end_year, current_name) values (?, ?, ?, ?, ?) ";
+	protected static final String INSERT_TEAM_DIVISION = "insert into team_division (team_conference_id, name, start_year, end_year, current_name) values (?, ?, ?, ?, ?) ";
 	
-	protected static final String UPDATE_DIVISION = "update division " + 
-												 	"set conference_id = ?, " + 
+	protected static final String UPDATE_TEAM_DIVISION = "update team_division " + 
+												 	"set team_conference_id = ?, " + 
 												 		"name = ?, " + 
 												 		"start_year = ?, " + 
 												 		"end_year = ?, " + 
@@ -102,7 +107,7 @@ public class NFLPicksDataService {
 												 	"where id = ? ";
 	
 	//Statements for dealing with the team table.
-	protected static final String SELECT_TEAM = "select division_id, " +
+	protected static final String SELECT_TEAM = "select team_division_id, " +
 												"id, " +
 												"city, " + 
 												"nickname, " +
@@ -112,10 +117,10 @@ public class NFLPicksDataService {
 												"current_abbreviation " + 
 												"from team ";
 	
-	protected static final String INSERT_TEAM = "insert into team (division_id, city, nickname, abbreviation, start_year, end_year, current_abbreviation) values (?, ?, ?, ?, ?, ?, ?) ";
+	protected static final String INSERT_TEAM = "insert into team (team_division_id, city, nickname, abbreviation, start_year, end_year, current_abbreviation) values (?, ?, ?, ?, ?, ?, ?) ";
 	
 	protected static final String UPDATE_TEAM = "update team " + 
-												"set division_id = ?, " + 
+												"set team_division_id = ?, " + 
 													"city = ?, " + 
 													"nickname = ?, " + 
 													"abbreviation = ?, " + 
@@ -204,7 +209,56 @@ public class NFLPicksDataService {
 	protected static final String UPDATE_PLAYER = "update player " +
 											  	  "set name = ? " + 
 											  	  "where id = ? ";
+	
+	
+	protected static final String SELECT_DIVISION = "select id, name, abbreviation from division ";
+	
+	protected static final String INSERT_DIVISION = "insert into division (name, abbreviation) values (?, ?) ";
+	
+	protected static final String UPDATE_DIVISION = "update division " +
+											  	  	"set name = ?, " +
+											  	  	    "abbreviation = ? " + 
+											  	  	"where id = ? ";
+	
+	protected static final String SELECT_PLAYER_DIVISION = "select id, division_id, player_id, season_id from player_division ";
+	
+	protected static final String INSERT_PLAYER_DIVISION = "insert into player_division (division_id, player_id, season_id) values (?, ?, ?) ";
+	
+	protected static final String UPDATE_PLAYER_DIVISION = "update player_division " +
+											  	  		   "set division_id = ?, " +
+											  	  		       "player_id = ?, " +
+											  	  		       "season_id = ? " +
+											  	  		   "where id = ? ";
 
+	/*
+	
+	select pick_totals.player_id,  
+     pick_totals.player_name,  
+     sum(pick_totals.wins) as wins,  
+     sum(pick_totals.losses) as losses, 
+     sum(pick_totals.ties) as ties 
+from (select pl.id as player_id,  
+		   pl.name as player_name, 
+		  (case when p.team_id = g.winning_team_id  
+		 	    then 1  
+		 	    else 0  
+		   end) as wins,  
+		  (case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)  
+		 	    then 1  
+		 	    else 0  
+		   end) as losses,  
+		  (case when g.winning_team_id = -1  
+		 	    then 1  
+		 	    else 0 
+		   end) as ties 
+    from pick p join game g on p.game_id = g.id  
+		 join player pl on p.player_id = pl.id 
+         join team home_team on g.home_team_id = home_team.id  
+		 join team away_team on g.away_team_id = away_team.id 
+	) pick_totals  
+group by pick_totals.player_id, pick_totals.player_name ;
+	
+	 */
 	//A statement that gets the records for people so that we do it all in one query instead of doing a lot of 
 	//queries to pull that info out.  Here because it's faster to do that work on the database side than to
 	//pull all the crap out and do it in java.
@@ -472,7 +526,101 @@ public class NFLPicksDataService {
 																 	  " %s " +
 																      ") pick_totals " + 
 															    "group by season_id, year, pick_totals.player_id, pick_totals.player_name " + 
-															    "order by year asc, wins desc, player_id ";
+															    "order by year desc, wins desc, player_id ";
+	
+	
+	
+	/*
+	 select pick_totals.season_id,   
+	   pick_totals.year,   
+	   pick_totals.division_id as division_id, 
+	   pick_totals.division_name as division_name, 
+	   pick_totals.division_abbreviation as division_abbreviation, 
+	   pick_totals.player_id,   
+	   pick_totals.player_name,   
+	   sum(pick_totals.wins) as wins,   
+	   sum(pick_totals.losses) as losses,   
+	   sum(pick_totals.ties) as ties   
+from (select d.id as division_id, 
+	 		 d.name as division_name, 
+	 		 d.abbreviation as division_abbreviation, 
+	 		 pl.id as player_id,   
+	 		 pl.name as player_name,   
+	 		 s.id as season_id,   
+	 		 s.year as year,   
+	 		 w.id as week_id,   
+	 		 w.sequence_number as sequence_number,   
+	 		 w.key as week_key,  
+	 		 w.label as week_label,   
+	 		 (case when p.team_id = g.winning_team_id   
+	 		       then 1   
+	 		       else 0   
+	 		 end) as wins,   
+	 		 (case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)   
+	 		 	   then 1   
+	 		 	   else 0   
+	 		 end) as losses,   
+	 		 (case when g.winning_team_id = -1   
+	 		       then 1   
+	 		       else 0   
+	 		 end) as ties   
+	 from pick p join game g on p.game_id = g.id   
+	      join player pl on p.player_id = pl.id   
+	      join week w on g.week_id = w.id   
+	      join season s on w.season_id = s.id   
+	      join player_division pd on pl.id = pd.player_id and s.id = pd.season_id 
+	      join division d on pd.division_id = d.id
+     ) pick_totals   
+group by season_id, year, pick_totals.division_id, pick_totals.division_name, pick_totals.division_abbreviation, 
+	     pick_totals.player_id, pick_totals.player_name   
+order by year asc, pick_totals.division_id, wins desc, player_id ;
+
+	 */
+	protected static final String SELECT_ORDERED_BEST_DIVISION_RECORDS = 
+			"select pick_totals.season_id,  " + 
+				   "pick_totals.year,  " + 
+				   "pick_totals.division_id as division_id," + 
+				   "pick_totals.division_name as division_name," + 
+				   "pick_totals.division_abbreviation as division_abbreviation," + 
+				   "pick_totals.player_id,  " + 
+				   "pick_totals.player_name,  " + 
+				   "sum(pick_totals.wins) as wins,  " + 
+				   "sum(pick_totals.losses) as losses,  " + 
+				   "sum(pick_totals.ties) as ties  " + 
+			"from (select d.id as division_id," + 
+				 		 "d.name as division_name," + 
+				 		 "d.abbreviation as division_abbreviation," + 
+				 		 "pl.id as player_id,  " + 
+				 		 "pl.name as player_name,  " + 
+				 		 "s.id as season_id,  " + 
+				 		 "s.year as year,  " + 
+				 		 "w.id as week_id,  " + 
+				 		 "w.sequence_number as sequence_number,  " + 
+				 		 "w.key as week_key, " + 
+				 		 "w.label as week_label,  " + 
+				 		 "(case when p.team_id = g.winning_team_id  " + 
+				 		       "then 1  " + 
+				 		       "else 0  " + 
+				 		 "end) as wins,  " + 
+				 		 "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)  " + 
+				 		 	   "then 1  " + 
+				 		 	   "else 0  " + 
+				 		 "end) as losses,  " + 
+				 		 "(case when g.winning_team_id = -1  " + 
+				 		       "then 1  " + 
+				 		       "else 0  " + 
+				 		 "end) as ties  " + 
+				 "from pick p join game g on p.game_id = g.id  " + 
+				      "join player pl on p.player_id = pl.id  " + 
+				      "join week w on g.week_id = w.id  " + 
+				      "join season s on w.season_id = s.id  " + 
+				      "join player_division pd on pl.id = pd.player_id and s.id = pd.season_id " + 
+				      "join division d on pd.division_id = d.id " +
+				      " %s " +
+			     ") pick_totals  " + 
+			"group by season_id, year, pick_totals.division_id, pick_totals.division_name, pick_totals.division_abbreviation, " + 
+				     "pick_totals.player_id, pick_totals.player_name  " + 
+			"order by year desc, pick_totals.division_id, wins desc, player_id ";
 	
 	/**
 	 * 
@@ -559,7 +707,7 @@ public class NFLPicksDataService {
 	protected static final String OLD_AND_SLOW_SELECT_PICK_ACCURACY_SUMMARY = "select pick_accuracy_summary.player_id as player_id, " + 
 																 	    "pick_accuracy_summary.player_name as player_name, " + 
 																 	    "pick_accuracy_summary.team_id as team_id, " +
-																 	    "pick_accuracy_summary.division_id as division_id, " +
+																 	    "pick_accuracy_summary.team_division_id as team_division_id, " +
 																 	    "pick_accuracy_summary.team_city as team_city, " +
 																 	    "pick_accuracy_summary.team_nickname as team_nickname, " +
 																 	    "pick_accuracy_summary.team_abbreviation as team_abbreviation, " +
@@ -578,7 +726,7 @@ public class NFLPicksDataService {
 																 			  "pl.id as player_id, " + 
 																 			  "pl.name as player_name, " + 
 																 			  "t.id as team_id, " + 
-																 			  "t.division_id as division_id, " +
+																 			  "t.team_division_id as team_division_id, " +
 																 			  "t.city as team_city, " + 
 																 			  "t.nickname as team_nickname, " +
 																 			  "t.abbreviation as team_abbreviation, " + 
@@ -752,7 +900,7 @@ public class NFLPicksDataService {
 																 "where (pick_accuracy_summary.actual_wins > 0 or pick_accuracy_summary.actual_losses > 0) " + 
 																 //We want everything per player and team, so make sure we group by that so that we get counts
 															     //for a player's picks for a particular team.
-															     "group by player_id, player_name, team_id, team_city, team_nickname, team_abbreviation, division_id ";
+															     "group by player_id, player_name, team_id, team_city, team_nickname, team_abbreviation, team_division_id ";
 
 	/**
 	 * 
@@ -794,7 +942,7 @@ public class NFLPicksDataService {
 			"select pick_accuracy_summary.player_id as player_id, " + 
 				  " pick_accuracy_summary.player_name as player_name, " + 
 				  " pick_accuracy_summary.team_id as team_id, " + 
-				  " pick_accuracy_summary.division_id as division_id, " + 
+				  " pick_accuracy_summary.team_division_id as team_division_id, " + 
 				  " pick_accuracy_summary.team_name as team_city, " + 
 				  " pick_accuracy_summary.team_nickname as team_nickname, " + 
 				  " pick_accuracy_summary.team_abbreviation as team_abbreviation, " +
@@ -814,7 +962,7 @@ public class NFLPicksDataService {
 			"from (select atapv.player_id as player_id, " + 
 					    " atapv.player_name as player_name, " + 
 					    " atapv.team_id as team_id, " + 
-					    " atapv.division_id as division_id, " + 
+					    " atapv.team_division_id as team_division_id, " + 
 					    " atapv.city as team_name, " + 
 					    " atapv.nickname as team_nickname, " + 
 					    " atapv.abbreviation as team_abbreviation, " +
@@ -963,7 +1111,7 @@ public class NFLPicksDataService {
 					" ${PLAYER_AND_TEAM_WHERE_CLAUSE} " + 
 					" ) pick_accuracy_summary " +
 					//And we want the totals by player and team, so group by all the columns we want to show for them.
-					"group by player_id, player_name, team_id, team_name, team_nickname, team_abbreviation, division_id ";
+					"group by player_id, player_name, team_id, team_name, team_nickname, team_abbreviation, team_division_id ";
 	
 	/**
 	 * 
@@ -1011,6 +1159,46 @@ public class NFLPicksDataService {
 																	"(case when g.winning_team_id = -1 then 'TIE' " +
 																		  "else winning_team.abbreviation " +
 																    "end) as winning_team_abbreviation ";
+	
+	/**
+	 * 
+	 * Gets the record for the players by division.
+	 * 
+	 */
+	protected static final String SELECT_DIVISION_RECORD = "select pick_totals.division_id, " + 
+																  "pick_totals.division, " + 
+																  "pick_totals.player_id, " + 
+																  "pick_totals.player_name, " + 
+																  "sum(pick_totals.wins) as wins, " + 
+																  "sum(pick_totals.losses) as losses, " + 
+																  "sum(pick_totals.ties) as ties " + 
+														   "from (select d.id as division_id, " + 
+																	    "d.abbreviation as division, " + 
+																	    "pl.id as player_id, " + 
+																	    "pl.name as player_name, " + 
+																	    "(case when p.team_id = g.winning_team_id " + 
+																	          "then 1  " + 
+																	          "else 0 " + 
+																	    "end) as wins, " + 
+																	    "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+																	          "then 1 " + 
+																	          "else 0 " + 
+																	    "end) as losses, " + 
+																	    "(case when g.winning_team_id = -1 " + 
+																	          "then 1 " + 
+																	          "else 0 " + 
+																	    "end) as ties " + 
+																"from pick p join game g on p.game_id = g.id " + 
+																     "join player pl on p.player_id = pl.id " + 
+																     "join team home_team on g.home_team_id = home_team.id  " + 
+																     "join team away_team on g.away_team_id = away_team.id " + 
+																     "join week w on g.week_id = w.id " + 
+																     "join season s on w.season_id = s.id " + 
+																     "join player_division pd on pl.id = pd.player_id and pd.season_id = s.id " + 
+																     "join division d on pd.division_id = d.id " +
+															    " %s " +
+															    ") pick_totals " + 
+													       "group by pick_totals.player_id, pick_totals.player_name, pick_totals.division_id, pick_totals.division ";
 	
 	/**
 	 * 
@@ -1158,9 +1346,9 @@ public class NFLPicksDataService {
 	 * @param name
 	 * @return
 	 */
-	public Conference getConference(String name){
+	public TeamConference getTeamConference(String name){
 		
-		Conference conference = getConference(name, false);
+		TeamConference conference = getTeamConference(name, false);
 		
 		return conference;
 	}
@@ -1174,20 +1362,20 @@ public class NFLPicksDataService {
 	 * @param shallow
 	 * @return
 	 */
-	public Conference getConference(String name, boolean shallow){
+	public TeamConference getTeamConference(String name, boolean shallow){
 		
-		Conference conference = null;
+		TeamConference conference = null;
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
 		try {
 			connection = getConnection();
-			statement = connection.prepareStatement(SELECT_CONFERENCE);
+			statement = connection.prepareStatement(SELECT_TEAM_CONFERENCE);
 			results = statement.executeQuery();
 			
 			if (results.next()){
-				conference = mapConferenceResult(results, shallow);
+				conference = mapTeamConferenceResult(results, shallow);
 			}
 		}
 		catch (Exception e){
@@ -1214,7 +1402,7 @@ public class NFLPicksDataService {
 	 * @param conference
 	 * @return
 	 */
-	public Conference saveConference(Conference conference){
+	public TeamConference saveTeamConference(TeamConference conference){
 		
 		//Steps to do:
 		//	1. Pull out the id.
@@ -1227,16 +1415,16 @@ public class NFLPicksDataService {
 		int numberOfAffectedRows = 0;
 		
 		if (id <= 0){
-			numberOfAffectedRows = insertConference(conference);
+			numberOfAffectedRows = insertTeamConference(conference);
 		}
 		else {
-			numberOfAffectedRows = updateConference(conference);
+			numberOfAffectedRows = updateTeamConference(conference);
 		}
 		
-		Conference savedConference = null;
+		TeamConference savedConference = null;
 		
 		if (numberOfAffectedRows == 1){
-			savedConference = getConference(conference.getName(), true);
+			savedConference = getTeamConference(conference.getName(), true);
 		}
 		
 		return savedConference;
@@ -1250,7 +1438,7 @@ public class NFLPicksDataService {
 	 * @param conference
 	 * @return
 	 */
-	protected int insertConference(Conference conference){
+	protected int insertTeamConference(TeamConference conference){
 		
 		int numberOfAffectedRows = 0;
 		
@@ -1260,7 +1448,7 @@ public class NFLPicksDataService {
 		try {
 			connection = getConnection();
 
-			statement = connection.prepareStatement(INSERT_CONFERENCE);
+			statement = connection.prepareStatement(INSERT_TEAM_CONFERENCE);
 			statement.setString(1, conference.getName());
 			statement.setString(2, conference.getStartYear());
 			statement.setString(3, conference.getEndYear());
@@ -1290,7 +1478,7 @@ public class NFLPicksDataService {
 	 * @param conference
 	 * @return
 	 */
-	protected int updateConference(Conference conference){
+	protected int updateTeamConference(TeamConference conference){
 		
 		int numberOfAffectedRows = 0;
 		
@@ -1299,7 +1487,7 @@ public class NFLPicksDataService {
 		
 		try {
 			connection = getConnection();
-			statement = connection.prepareStatement(UPDATE_CONFERENCE);
+			statement = connection.prepareStatement(UPDATE_TEAM_CONFERENCE);
 			statement.setString(1, conference.getName());
 			statement.setString(2, conference.getStartYear());
 			statement.setString(3, conference.getEndYear());
@@ -1329,9 +1517,9 @@ public class NFLPicksDataService {
 	 * 
 	 * @return
 	 */
-	public List<Conference> getConferences(){
+	public List<TeamConference> getTeamConferences(){
 		
-		List<Conference> conferences = getConferences(false);
+		List<TeamConference> conferences = getTeamConferences(false);
 		
 		return conferences;
 	}
@@ -1345,24 +1533,24 @@ public class NFLPicksDataService {
 	 * @param shallow
 	 * @return
 	 */
-	public List<Conference> getConferences(boolean shallow){
+	public List<TeamConference> getTeamConferences(boolean shallow){
 		
 		//Steps to do:
 		//	1. Run the query.
 		//	2. Map the results.
 		
-		List<Conference> conferences = new ArrayList<Conference>();
+		List<TeamConference> conferences = new ArrayList<TeamConference>();
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
 		try {
 			connection = getConnection();
-			statement = connection.prepareStatement(SELECT_CONFERENCE);
+			statement = connection.prepareStatement(SELECT_TEAM_CONFERENCE);
 			results = statement.executeQuery();
 			
 			while (results.next()){
-				Conference conference = mapConferenceResult(results, shallow);
+				TeamConference conference = mapTeamConferenceResult(results, shallow);
 				conferences.add(conference);
 			}
 		}
@@ -1388,13 +1576,13 @@ public class NFLPicksDataService {
 	 * @return
 	 * @throws SQLException
 	 */
-	protected Conference mapConferenceResult(ResultSet results, boolean shallow) throws SQLException {
+	protected TeamConference mapTeamConferenceResult(ResultSet results, boolean shallow) throws SQLException {
 		
 		//Steps to do:
 		//	1. Make the conference object.
 		//	2. Add in the divisions if it's not supposed to be shallow.
 		
-		Conference conference = new Conference();
+		TeamConference conference = new TeamConference();
 		conference.setId(results.getInt("id"));
 		conference.setName(results.getString("name"));
 		conference.setCurrentName(results.getString("current_name"));
@@ -1403,7 +1591,7 @@ public class NFLPicksDataService {
 		
 		if (!shallow){
 			int conferenceId = results.getInt("id");
-			List<Division> divisions = getDivisionsInConference(conferenceId, shallow);
+			List<TeamDivision> divisions = getTeamDivisionsInTeamConference(conferenceId, shallow);
 			conference.setDivisions(divisions);
 		}
 		
@@ -1419,9 +1607,9 @@ public class NFLPicksDataService {
 	 * @param name
 	 * @return
 	 */
-	public Division getDivision(int conferenceId, String name){
+	public TeamDivision getTeamDivision(int conferenceId, String name){
 		
-		Division division = getDivision(conferenceId, name, false);
+		TeamDivision division = getTeamDivision(conferenceId, name, false);
 		
 		return division;
 	}
@@ -1436,17 +1624,17 @@ public class NFLPicksDataService {
 	 * @param shallow
 	 * @return
 	 */
-	public Division getDivision(int conferenceId, String name, boolean shallow){
+	public TeamDivision getTeamDivision(int conferenceId, String name, boolean shallow){
 		
-		Division division = null;
+		TeamDivision division = null;
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
 		
-		String query = SELECT_DIVISION + 
+		String query = SELECT_TEAM_DIVISION + 
 					   "where name = ? " + 
-					         "and conference_id = ? ";
+					         "and team_conference_id = ? ";
 		
 		try {
 			connection = getConnection();
@@ -1457,7 +1645,7 @@ public class NFLPicksDataService {
 			results = statement.executeQuery();
 			
 			if (results.next()){
-				division = mapDivisionResult(results, shallow);
+				division = mapTeamDivisionResult(results, shallow);
 			}
 		}
 		catch (Exception e){
@@ -1480,9 +1668,9 @@ public class NFLPicksDataService {
 	 * @param name
 	 * @return
 	 */
-	public Division getDivision(String conferenceName, String name){
+	public TeamDivision getTeamDivision(String conferenceName, String name){
 		
-		Division division = getDivision(conferenceName, name, false);
+		TeamDivision division = getTeamDivision(conferenceName, name, false);
 		
 		return division;
 	}
@@ -1497,18 +1685,18 @@ public class NFLPicksDataService {
 	 * @param shallow
 	 * @return
 	 */
-	public Division getDivision(String conferenceName, String name, boolean shallow){
+	public TeamDivision getTeamDivision(String conferenceName, String name, boolean shallow){
 		
-		Division division = null;
+		TeamDivision division = null;
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
 		
-		String query = SELECT_DIVISION + 
+		String query = SELECT_TEAM_DIVISION + 
 					   "where name = ? " + 
-					         "and conference_id in (select id " + 
-					         					   "from conference " + 
+					         "and team_conference_id in (select id " + 
+					         					   "from team_conference " + 
 					         					   "where name = ? ) ";
 		
 		try {
@@ -1520,7 +1708,7 @@ public class NFLPicksDataService {
 			results = statement.executeQuery();
 			
 			if (results.next()){
-				division = mapDivisionResult(results, shallow);
+				division = mapTeamDivisionResult(results, shallow);
 			}
 		}
 		catch (Exception e){
@@ -1545,25 +1733,25 @@ public class NFLPicksDataService {
 	 * @param division
 	 * @return
 	 */
-	public Division saveDivision(Division division){
+	public TeamDivision saveTeamDivision(TeamDivision division){
 		
 		int id = division.getId();
 		
 		int numberOfAffectedRows = 0;
 		
 		if (id <= 0){
-			numberOfAffectedRows = insertDivision(division);
+			numberOfAffectedRows = insertTeamDivision(division);
 		}
 		else {
-			numberOfAffectedRows = updateDivision(division);
+			numberOfAffectedRows = updateTeamDivision(division);
 		}
 		
-		Division savedDivision = null;
+		TeamDivision savedDivision = null;
 
 		//If everything was ok, we can get the saved division by the conference and name since
 		//the name is unique within the conference.
 		if (numberOfAffectedRows == 1){
-			savedDivision = getDivision(division.getConferenceId(), division.getName(), true);
+			savedDivision = getTeamDivision(division.getConferenceId(), division.getName(), true);
 		}
 		
 		return savedDivision;
@@ -1576,7 +1764,7 @@ public class NFLPicksDataService {
 	 * @param division
 	 * @return
 	 */
-	protected int insertDivision(Division division){
+	protected int insertTeamDivision(TeamDivision division){
 		
 		int numberOfAffectedRows = 0;
 		
@@ -1586,7 +1774,7 @@ public class NFLPicksDataService {
 		try {
 			connection = getConnection();
 
-			statement = connection.prepareStatement(INSERT_DIVISION);
+			statement = connection.prepareStatement(INSERT_TEAM_DIVISION);
 			statement.setInt(1, division.getConferenceId());
 			statement.setString(2, division.getName());
 			statement.setString(3, division.getStartYear());
@@ -1617,7 +1805,7 @@ public class NFLPicksDataService {
 	 * @param division
 	 * @return
 	 */
-	protected int updateDivision(Division division){
+	protected int updateTeamDivision(TeamDivision division){
 		
 		int numberOfAffectedRows = 0;
 		
@@ -1626,7 +1814,7 @@ public class NFLPicksDataService {
 		
 		try {
 			connection = getConnection();
-			statement = connection.prepareStatement(UPDATE_DIVISION);
+			statement = connection.prepareStatement(UPDATE_TEAM_DIVISION);
 			statement.setInt(1, division.getConferenceId());
 			statement.setString(2, division.getName());
 			statement.setString(3, division.getStartYear());
@@ -1657,9 +1845,9 @@ public class NFLPicksDataService {
 	 * 
 	 * @return
 	 */
-	public List<Division> getDivisions(){
+	public List<TeamDivision> getTeamDivisions(){
 		
-		List<Division> divisions = getDivisions(false);
+		List<TeamDivision> divisions = getTeamDivisions(false);
 		
 		return divisions;
 	}
@@ -1672,13 +1860,13 @@ public class NFLPicksDataService {
 	 * @param shallow
 	 * @return
 	 */
-	public List<Division> getDivisions(boolean shallow){
+	public List<TeamDivision> getTeamDivisions(boolean shallow){
 		
 		//Steps to do:
 		//	1. Run the query for the division and then map it.
 		//	2. That's it.
 		
-		List<Division> divisions = new ArrayList<Division>();
+		List<TeamDivision> divisions = new ArrayList<TeamDivision>();
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
@@ -1686,11 +1874,11 @@ public class NFLPicksDataService {
 		
 		try {
 			connection = getConnection();
-			statement = connection.prepareStatement(SELECT_DIVISION);
+			statement = connection.prepareStatement(SELECT_TEAM_DIVISION);
 			results = statement.executeQuery();
 			
 			while (results.next()){
-				Division division = mapDivisionResult(results, shallow);
+				TeamDivision division = mapTeamDivisionResult(results, shallow);
 				divisions.add(division);
 			}
 		}
@@ -1714,27 +1902,27 @@ public class NFLPicksDataService {
 	 * @param shallow
 	 * @return
 	 */
-	public List<Division> getDivisionsInConference(int conferenceId, boolean shallow){
+	public List<TeamDivision> getTeamDivisionsInTeamConference(int conferenceId, boolean shallow){
 		
 		//Steps to do:
 		//	1. Run the query and map the results.
 		//	2. That's it.
 		
-		List<Division> divisions = new ArrayList<Division>();
+		List<TeamDivision> divisions = new ArrayList<TeamDivision>();
 		
 		Connection connection = null;
 		PreparedStatement statement = null;
 		ResultSet results = null;
 		
 		try {
-			String query = SELECT_DIVISION + " where conference_id = ? ";
+			String query = SELECT_TEAM_DIVISION + " where team_conference_id = ? ";
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, conferenceId);
 			results = statement.executeQuery();
 			
 			while (results.next()){
-				Division division = mapDivisionResult(results, shallow);
+				TeamDivision division = mapTeamDivisionResult(results, shallow);
 				divisions.add(division);
 			}
 		}
@@ -1760,11 +1948,11 @@ public class NFLPicksDataService {
 	 * @return
 	 * @throws SQLException
 	 */
-	protected Division mapDivisionResult(ResultSet results, boolean shallow) throws SQLException {
+	protected TeamDivision mapTeamDivisionResult(ResultSet results, boolean shallow) throws SQLException {
 		
-		Division division = new Division();
+		TeamDivision division = new TeamDivision();
 		division.setId(results.getInt("id"));
-		division.setConferenceId(results.getInt("conference_id"));
+		division.setConferenceId(results.getInt("team_conference_id"));
 		division.setName(results.getString("name"));
 		division.setCurrentName(results.getString("current_name"));
 		division.setStartYear(results.getString("start_year"));
@@ -1836,7 +2024,7 @@ public class NFLPicksDataService {
 		
 		try {
 			String query = SELECT_TEAM + 
-						   " where division_id = ? ";
+						   " where team_division_id = ? ";
 		
 			connection = getConnection();
 			statement = connection.prepareStatement(query);
@@ -2076,7 +2264,7 @@ public class NFLPicksDataService {
 		
 		Team team = new Team();
 		team.setId(result.getInt("id"));
-		team.setDivisionId(result.getInt("division_id"));
+		team.setDivisionId(result.getInt("team_division_id"));
 		team.setCity(result.getString("city"));
 		team.setNickname(result.getString("nickname"));
 		team.setAbbreviation(result.getString("abbreviation"));
@@ -2169,7 +2357,7 @@ public class NFLPicksDataService {
 	 * @param year
 	 * @return
 	 */
-	public Season getSeasonByYear(String year){
+	public Season getSeasonByYear(String year, boolean shallow){
 		
 		//Steps to do:
 		//	1. Run the query and map the results.
@@ -2191,7 +2379,7 @@ public class NFLPicksDataService {
 			results = statement.executeQuery();
 			
 			if (results.next()){
-				season = mapSeason(results, false);
+				season = mapSeason(results, shallow);
 			}
 		}
 		catch (Exception e){
@@ -2631,7 +2819,7 @@ public class NFLPicksDataService {
 		Season savedSeason = null;
 		
 		if (numberOfAffectedRows == 1){
-			savedSeason = getSeasonByYear(season.getYear());
+			savedSeason = getSeasonByYear(season.getYear(), true);
 		}
 		
 		return savedSeason;
@@ -4156,6 +4344,25 @@ public class NFLPicksDataService {
 		
 		return picks;
 	}
+	
+	/**
+	 * 
+	 * A convenience function to get picks for multiple players for the same year and week.
+	 * 
+	 * @param players
+	 * @param year
+	 * @param weekKey
+	 * @return
+	 */
+	public List<Pick> getPicks(List<String> players, String year, String weekKey){
+		
+		List<String> years = Arrays.asList(year);
+		List<String> weekSequenceNumbers = Arrays.asList(weekKey);
+		
+		List<Pick> picks = getPicks(years, weekSequenceNumbers, players, null);
+		
+		return picks;
+	}
 
 	/**
 	 * 
@@ -4850,6 +5057,50 @@ public class NFLPicksDataService {
 		playersForYear = getPlayersForYears(years);
 		
 		return playersForYear;
+	}
+
+	/**
+	 * 
+	 * This will get the players for the given division id.  Not much to it.
+	 * 
+	 * @param divisionId
+	 * @return
+	 */
+	public List<Player> getPlayersForDivision(int divisionId){
+		
+		//need a way to say like "current" or "all"
+		
+		List<Player> players = new ArrayList<Player>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		try {
+			String query = SELECT_PLAYER + 
+						   "where id in (select player_id " + 
+						   				"from player_division " +
+						   				"where division_id = ?)";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, divisionId);
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Player player = mapPlayer(results);
+				players.add(player);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting players!", e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return players;
 	}
 	
 	/**
@@ -6303,86 +6554,6 @@ public class NFLPicksDataService {
 	
 	/**
 	 * 
-	 * This function will get the championships that the given players have won in the given years.
-	 * It will group them by player and have each player associated with the championships they've
-	 * won in the returned list.  If a player didn't win a championship in any of the given years, they
-	 * won't be returned in the given list.
-	 * 
-	 * It will sort them so that the player who has the most championships comes first.
-	 * 
-	 * @param years
-	 * @param players
-	 * @return
-	 */
-	public List<ChampionshipsForPlayer> getPlayerChampionships(List<String> years, List<String> players){
-		
-		//Steps to do:
-		//	1. Get the championships for the given years and players.
-		//	2. Group them by player.
-		//	3. Sort them so that the player with the most championships comes first.
-		
-		List<Championship> championships = getChampionships(years, players);
-		
-		Map<Integer, ChampionshipsForPlayer> playerToChampionshipsMap = new HashMap<Integer, ChampionshipsForPlayer>();
-		
-		for (int index = 0; index < championships.size(); index++){
-			Championship championship = championships.get(index);
-			
-			Player player = championship.getPlayer();
-			
-			Integer playerId = Integer.valueOf(player.getId());
-			
-			ChampionshipsForPlayer playerChampionships = playerToChampionshipsMap.get(playerId);
-			
-			if (playerChampionships == null){
-				playerChampionships = new ChampionshipsForPlayer(player, new ArrayList<Championship>());
-			}
-			
-			List<Championship> championshipsForPlayer = playerChampionships.getChampionships();
-			championshipsForPlayer.add(championship);
-			playerChampionships.setChampionships(championshipsForPlayer);
-			
-			playerToChampionshipsMap.put(playerId, playerChampionships);
-		}
-		
-		List<ChampionshipsForPlayer> playerChampionshipsList = new ArrayList<ChampionshipsForPlayer>(playerToChampionshipsMap.values());
-		
-		Collections.sort(playerChampionshipsList, new PlayerChampionshipsComparator());
-		
-		return playerChampionshipsList;
-	}
-	
-	/**
-	 * 
-	 * A dumb class that will sort a list of "championships for players" so that the one with the most
-	 * championships come first.
-	 * 
-	 * @author albundy
-	 *
-	 */
-	protected class PlayerChampionshipsComparator implements Comparator<ChampionshipsForPlayer> {
-
-		public int compare(ChampionshipsForPlayer playerChampionships1, ChampionshipsForPlayer playerChampionships2) {
-			
-			List<Championship> championships1 = playerChampionships1.getChampionships();
-			List<Championship> championships2 = playerChampionships2.getChampionships();
-			
-			int numberOfChampionships1 = championships1.size();
-			int numberOfChampionships2 = championships2.size();
-			
-			if (numberOfChampionships1 > numberOfChampionships2){
-				return -1;
-			}
-			else if (numberOfChampionships1 < numberOfChampionships2){
-				return 1;
-			}
-			
-			return 0;
-		}
-	}
-	
-	/**
-	 * 
 	 * This function will get all the years that have been completed.  It's here so we can know
 	 * what years there are championships for (so we don't include the current year in that).
 	 * 
@@ -6672,7 +6843,7 @@ public class NFLPicksDataService {
 			}
 		}
 		catch (Exception e){
-			log.error("Error getting championships! years = " + years, e);
+			log.error("Error getting championships! years = " + years + ", players = " + players, e);
 			rollback(connection);
 		}
 		finally {
@@ -6711,6 +6882,453 @@ public class NFLPicksDataService {
 		
 		return championship;
 	}
+	
+	/**
+	 * 
+	 * This function will get the championships that the given players have won in the given years.
+	 * It will group them by player and have each player associated with the championships they've
+	 * won in the returned list.  If a player didn't win a championship in any of the given years, they
+	 * won't be returned in the given list.
+	 * 
+	 * It will sort them so that the player who has the most championships comes first.
+	 * 
+	 * @param years
+	 * @param players
+	 * @return
+	 */
+	public List<ChampionshipsForPlayer> getPlayerChampionships(List<String> years, List<String> players){
+		
+		//Steps to do:
+		//	1. Get the championships for the given years and players.
+		//	2. Group them by player.
+		//	3. Sort them so that the player with the most championships comes first.
+		
+		List<Championship> championships = getChampionships(years, players);
+		
+		Map<Integer, ChampionshipsForPlayer> playerToChampionshipsMap = new HashMap<Integer, ChampionshipsForPlayer>();
+		
+		for (int index = 0; index < championships.size(); index++){
+			Championship championship = championships.get(index);
+			
+			Player player = championship.getPlayer();
+			
+			Integer playerId = Integer.valueOf(player.getId());
+			
+			ChampionshipsForPlayer playerChampionships = playerToChampionshipsMap.get(playerId);
+			
+			if (playerChampionships == null){
+				playerChampionships = new ChampionshipsForPlayer(player, new ArrayList<Championship>());
+			}
+			
+			List<Championship> championshipsForPlayer = playerChampionships.getChampionships();
+			championshipsForPlayer.add(championship);
+			playerChampionships.setChampionships(championshipsForPlayer);
+			
+			playerToChampionshipsMap.put(playerId, playerChampionships);
+		}
+		
+		List<ChampionshipsForPlayer> playerChampionshipsList = new ArrayList<ChampionshipsForPlayer>(playerToChampionshipsMap.values());
+		
+		Collections.sort(playerChampionshipsList, new PlayerChampionshipsComparator());
+		
+		return playerChampionshipsList;
+	}
+	
+	/**
+	 * 
+	 * A dumb class that will sort a list of "championships for players" so that the one with the most
+	 * championships come first.
+	 * 
+	 * @author albundy
+	 *
+	 */
+	protected class PlayerChampionshipsComparator implements Comparator<ChampionshipsForPlayer> {
+
+		public int compare(ChampionshipsForPlayer playerChampionships1, ChampionshipsForPlayer playerChampionships2) {
+			
+			List<Championship> championships1 = playerChampionships1.getChampionships();
+			List<Championship> championships2 = playerChampionships2.getChampionships();
+			
+			int numberOfChampionships1 = championships1.size();
+			int numberOfChampionships2 = championships2.size();
+			
+			if (numberOfChampionships1 > numberOfChampionships2){
+				return -1;
+			}
+			else if (numberOfChampionships1 < numberOfChampionships2){
+				return 1;
+			}
+			
+			return 0;
+		}
+	}
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * This function will get the championships for the given years and players.  In order for there
+	 * to be a championship, the year has to have been completed (there has to be a result in the superbowl).
+	 * 
+	 * @param years
+	 * @param players
+	 * @return
+	 */
+	public List<DivisionTitle> getDivisionTitles(List<String> years, List<String> players){
+
+		//Steps to do:
+		//	1. Get all the completed years.
+		//	2. Use those years to filter out years that we were given that haven't been
+		//	   completed.
+		//	3. Run the query that will get the ordered records for the season.
+		//	4. Go through those results and keep the best records from each year.  Those
+		//	   are the records of the champions.
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<DivisionTitle> divisionTitles = new ArrayList<DivisionTitle>();
+		
+		try {
+			connection = dataSource.getConnection();
+			
+			String recordsForYearCriteria = "";
+			
+			List<String> allCompletedYears = getAllCompletedYears();
+			
+			List<String> yearsToUse = new ArrayList<String>();
+			
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					if (allCompletedYears.contains(year)){
+						yearsToUse.add(year);
+					}
+				}
+			}
+			else {
+				yearsToUse = allCompletedYears;
+			}
+			
+			if (yearsToUse.size() == 0){
+				return divisionTitles;
+			}
+			
+			if (yearsToUse != null && yearsToUse.size() > 0){
+				recordsForYearCriteria = " where s.year in " + DatabaseUtil.createInClauseParameterString(yearsToUse.size());
+			}
+			
+			String query = String.format(SELECT_ORDERED_BEST_DIVISION_RECORDS, recordsForYearCriteria);
+			
+			statement = connection.prepareStatement(query);
+			
+			int parameterIndex = 1;
+			
+			if (yearsToUse != null && yearsToUse.size() > 0){
+				for (int index = 0; index < yearsToUse.size(); index++){
+					String year = yearsToUse.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+						
+			results = statement.executeQuery();
+
+			//Now that we have the records for each season and they're ordered by wins, we just have
+			//to go through and pick out the best ones for each season.
+			String currentYear = null;
+			String currentDivisionName = null;
+			int currentDivisionTitleWins = -1;
+			int currentDivisionTitleLosses = -1;
+			
+			boolean skipToNextYear = false;
+			
+			DivisionTitle divisionTitle = null;
+			
+			while (results.next()){
+				String year = results.getString("year");
+				String divisionName = results.getString("division_name");
+				
+				//If we haven't picked anything out yet, this is the best record for the most current year, so 
+				//it's the record of a championship.
+				if (currentYear == null){
+					divisionTitle = mapDivisionTitle(results);
+					divisionTitles.add(divisionTitle);
+					currentYear = year;
+					currentDivisionName = divisionName;
+					currentDivisionTitleWins = divisionTitle.getRecord().getWins();
+					currentDivisionTitleLosses = divisionTitle.getRecord().getLosses();
+					
+					continue;
+				}
+				
+				//Otherwise, if it's the same year that we're on, the only way it could be a championship
+				//is if there's the exact same number of wins and losses.
+				if (currentYear.equals(year) && currentDivisionName.equals(divisionName)){
+
+					//If we've already got the best record for the year, this switch will be flipped and that tells
+					//us to just keep going to the next year.
+					if (skipToNextYear){
+						continue;
+					}
+				
+					//Otherwise, get the wins and losses of the record we're on.
+					int currentWins = results.getInt("wins");
+					int currentLosses = results.getInt("losses");
+					
+					//If it's the same as the current wins and losses of the current championship, there was a tie, so they're
+					//both champions.
+					if (currentWins == currentDivisionTitleWins && currentLosses == currentDivisionTitleLosses){
+						divisionTitle = mapDivisionTitle(results);
+						divisionTitles.add(divisionTitle);
+					}
+					//Otherwise, it wasn't a championship year for that guy, so just flip the switch that will make it so we just
+					//skip to the record where the year changes.
+					else {
+						skipToNextYear = true;
+					}
+				}
+				//If we're on a new year or new division, then the best record should be at the top, so it should be a championship.
+				else {
+					divisionTitle = mapDivisionTitle(results);
+					divisionTitles.add(divisionTitle);
+					currentYear = year;
+					currentDivisionName = divisionName;
+					currentDivisionTitleWins = divisionTitle.getRecord().getWins();
+					currentDivisionTitleLosses = divisionTitle.getRecord().getLosses();
+				}
+			}
+			
+			//Now that we have all the championships, we want to go through and filter them so that we only
+			//include championships that were won by a player that was given in the function call.
+			if (players != null && players.size() > 0){
+				List<DivisionTitle> filteredDivisionTitles = new ArrayList<DivisionTitle>();
+				
+				for (int index = 0; index < divisionTitles.size(); index++){
+					DivisionTitle currentDivisionTitle = divisionTitles.get(index);
+					
+					for (int playerIndex = 0; playerIndex < players.size(); playerIndex++){
+						String player = players.get(playerIndex);
+						
+						if (player.equals(currentDivisionTitle.getPlayer().getName())){
+							filteredDivisionTitles.add(currentDivisionTitle);
+						}
+					}
+				}
+				
+				divisionTitles = filteredDivisionTitles;
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting division titles! years = " + years + ", players = " + players, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return divisionTitles;
+	}
+	
+	/**
+	 * 
+	 * This function will map a championship from the given result.  It expects the result
+	 * to have these columns: season_id, year, player_id, player_name, wins, losses, ties.
+	 * It just plops those in a record object and plops that in a championship object.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
+	protected DivisionTitle mapDivisionTitle(ResultSet results) throws SQLException {
+		
+		int divisionId = results.getInt("division_id");
+		String divisionName = results.getString("division_name");
+		String divisionAbbreviation = results.getString("division_abbreviation");
+		Division division = new Division(divisionId, divisionName, divisionAbbreviation);
+		
+		int seasonId = results.getInt("season_id");
+		String year = results.getString("year");
+		Season season = new Season(seasonId, year);
+
+		int playerId = results.getInt("player_id");
+		String playerName = results.getString("player_name");
+		Player player = new Player(playerId, playerName);
+		
+		int wins = results.getInt("wins");
+		int losses = results.getInt("losses");
+ 		int ties = results.getInt("ties");
+		Record record = new Record(player, wins, losses, ties);
+		
+		DivisionTitle divisionTitle = new DivisionTitle(division, player, season, record);
+		
+		return divisionTitle;
+	}
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * This function will get the championships that the given players have won in the given years.
+	 * It will group them by player and have each player associated with the championships they've
+	 * won in the returned list.  If a player didn't win a championship in any of the given years, they
+	 * won't be returned in the given list.
+	 * 
+	 * It will sort them so that the player who has the most championships comes first.
+	 * 
+	 * @param years
+	 * @param players
+	 * @return
+	 */
+	public List<DivisionTitlesForPlayer> getPlayerDivisionTitles(List<String> years, List<String> players){
+		
+		//Steps to do:
+		//	1. Get the championships for the given years and players.
+		//	2. Group them by player.
+		//	3. Sort them so that the player with the most championships comes first.
+		
+		List<DivisionTitle> divisionTitles = getDivisionTitles(years, players);
+		
+		Map<Integer, DivisionTitlesForPlayer> playerToDivisionTitleMap = new HashMap<Integer, DivisionTitlesForPlayer>();
+		
+		for (int index = 0; index < divisionTitles.size(); index++){
+			DivisionTitle divisionTitle = divisionTitles.get(index);
+			
+			Player player = divisionTitle.getPlayer();
+			
+			Integer playerId = Integer.valueOf(player.getId());
+			
+			DivisionTitlesForPlayer playerDivisionTitles = playerToDivisionTitleMap.get(playerId);
+			
+			if (playerDivisionTitles == null){
+				playerDivisionTitles = new DivisionTitlesForPlayer(player, new ArrayList<DivisionTitle>());
+			}
+			
+			List<DivisionTitle> divisionTitlesForPlayer = playerDivisionTitles.getDivisionTitles();
+			divisionTitlesForPlayer.add(divisionTitle);
+			playerDivisionTitles.setDivisionTitles(divisionTitlesForPlayer);
+			
+			playerToDivisionTitleMap.put(playerId, playerDivisionTitles);
+		}
+		
+		List<DivisionTitlesForPlayer> playerDivisionTitlesList = new ArrayList<DivisionTitlesForPlayer>(playerToDivisionTitleMap.values());
+		
+		Collections.sort(playerDivisionTitlesList, new PlayerDivisionTitlesComparator());
+		
+		return playerDivisionTitlesList;
+	}
+	
+	/**
+	 * 
+	 * A dumb class that will sort a list of "division titles for players" so that the one with the most
+	 * division titles comes first.
+	 * 
+	 * @author albundy
+	 *
+	 */
+	protected class PlayerDivisionTitlesComparator implements Comparator<DivisionTitlesForPlayer> {
+
+		public int compare(DivisionTitlesForPlayer playerChampionships1, DivisionTitlesForPlayer playerChampionships2) {
+			
+			List<DivisionTitle> divisionTitles1 = playerChampionships1.getDivisionTitles();
+			List<DivisionTitle> divisionTitles2 = playerChampionships2.getDivisionTitles();
+			
+			int numberOfDivisionTitles1 = divisionTitles1.size();
+			int numberOfDivisionTitles2 = divisionTitles2.size();
+			
+			if (numberOfDivisionTitles1 > numberOfDivisionTitles2){
+				return -1;
+			}
+			else if (numberOfDivisionTitles1 < numberOfDivisionTitles2){
+				return 1;
+			}
+			
+			return 0;
+		}
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	/**
 	 * 
@@ -7170,7 +7788,7 @@ public class NFLPicksDataService {
 		Player player = new Player(playerId, playerName);
 		
 		int teamId = results.getInt("team_id");
-		int divisionId = results.getInt("division_id");
+		int divisionId = results.getInt("team_division_id");
 		String teamCity = results.getString("team_city");
 		String teamNickname = results.getString("team_nickname");
 		String teamAbbreviation = results.getString("team_abbreviation");
@@ -7601,6 +8219,1054 @@ public class NFLPicksDataService {
 		
 		return seasonRecordForPlayer;
 	}
+
+	/**
+	 * 
+	 * This gets all the divisions with all the players in them.
+	 * 
+	 * @return
+	 */
+	public List<Division> getDivisions(){
+		
+		List<Division> divisions = getDivisions(false);
+		
+		return divisions;
+	}
+	
+	//this whole thing needs to be redone
+	//for every object, there should be one "get" function and all the others should call that
+	//then, there should be special functions for running the queries that get the stats
+	//and stuff like that.
+	
+	/**
+	 * 
+	 * This function gets all the divisions.  If shallow is true, it'll just get them and not get
+	 * the nested stuff.
+	 * 
+	 * @param shallow
+	 * @return
+	 */
+	public List<Division> getDivisions(boolean shallow){
+		
+		List<Division> divisions = new ArrayList<Division>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_DIVISION;
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				Division division = mapDivision(results, shallow);
+				divisions.add(division);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting divisions! shallow = " + shallow, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return divisions;
+	}
+	
+	/**
+	 * 
+	 * Gets a division with the given id.  If shallow is true, it'll get the players in each
+	 * division too.
+	 * 
+	 * @param id
+	 * @param shallow
+	 * @return
+	 */
+	public Division getDivision(int id, boolean shallow){
+		
+		Division division = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_DIVISION + 
+						   "where id = ? ";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, id);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				division = mapDivision(results, shallow);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting division! id = " + id + ", shallow = " + shallow, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return division;
+	}
+	
+	/**
+	 * 
+	 * Gets the division with the give name.  If shallow is false, it'll get the players
+	 * in the division too.
+	 * 
+	 * @param name
+	 * @param shallow
+	 * @return
+	 */
+	public Division getDivisionByName(String name, boolean shallow){
+		
+		Division division = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_DIVISION + 
+						   "where name = ? ";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setString(1, name);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				division = mapDivision(results, shallow);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting division by name! name = " + name + ", shallow = " + shallow, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return division;
+	}
+	
+	/**
+	 * 
+	 * This function will get the divisions with the given abbreviations.  If shallow is false, it'll
+	 * get the nested stuff too.
+	 * 
+	 * @param abbreviations
+	 * @param shallow
+	 * @return
+	 */
+	public List<Division> getDivisionsByAbbreviation(List<String> abbreviations, boolean shallow){
+		
+		List<Division> divisions = new ArrayList<Division>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String inClause = DatabaseUtil.createInClauseParameterString(abbreviations.size());
+			
+			String query = SELECT_DIVISION + 
+					   "where abbreviation in " + inClause;
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			for (int index = 0; index < abbreviations.size(); index++){
+				String abbreviation = abbreviations.get(index);
+				int parameterNumber = index + 1;
+				statement.setString(parameterNumber, abbreviation);
+			}
+			
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				Division division = mapDivision(results, shallow);
+				divisions.add(division);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting divisions by abbreviation! abbreviations = " + abbreviations + ", shallow = " + shallow, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return divisions;
+	}
+	
+	/**
+	 * 
+	 * This function will get the division by the given abbreviation.  If shallow is false,
+	 * it'll get all the nested stuff too.
+	 * 
+	 * @param abbreviation
+	 * @param shallow
+	 * @return
+	 */
+	public Division getDivisionByAbbreviation(String abbreviation, boolean shallow){
+		
+		Division division = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_DIVISION + 
+						   "where abbreviation = ? ";
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setString(1, abbreviation);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				division = mapDivision(results, shallow);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting division by abbreviation! abbreviation = " + abbreviation + ", shallow = " + shallow, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return division;
+	}
+	
+	/**
+	 * 
+	 * This function will save the given division object.  If it has an id, it'll do an update.
+	 * If it doesn't, it'll do an insert.
+	 * 
+	 * @param division
+	 * @return
+	 */
+	public Division saveDivision(Division division){
+		
+		//Steps to do:
+		//	1. Pull out their id.
+		//	2. If they don't have one, insert them.
+		//	3. Otherwise, update them.
+		//	4. Pull out what was saved using their name.
+		
+		int id = division.getId();
+		
+		int numberOfRowsAffected = 0;
+		
+		if (id <= 0){
+			numberOfRowsAffected = insertDivision(division);
+		}
+		else {
+			numberOfRowsAffected = updateDivision(division);
+		}
+		
+		Division savedDivision = null;
+		
+		if (numberOfRowsAffected == 1){
+			savedDivision = getDivisionByName(division.getName(), true);
+		}
+		
+		return savedDivision;
+	}
+	
+	/**
+	 * 
+	 * This function will insert the given player in the database.
+	 * Not much to it.
+	 * 
+	 * @param division
+	 * @return
+	 */
+	protected int insertDivision(Division division){
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(INSERT_DIVISION);
+			statement.setString(1, division.getName());
+			statement.setString(2, division.getAbbreviation());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting division! division = " + division, e);
+			rollback(connection);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	/**
+	 * 
+	 * This function will update the given player in the database.  Not much to it.
+	 * 
+	 * @param division
+	 * @return
+	 */
+	protected int updateDivision(Division division){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(UPDATE_DIVISION);
+			statement.setString(1, division.getName());
+			statement.setString(2, division.getAbbreviation());
+			statement.setInt(3, division.getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error updating division! division = " + division, e);
+			rollback(connection);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	/**
+	 * 
+	 * This function will map the results of the query to the division table to an object.
+	 * If shallow is false, it'll get the nested stuff and include it too.
+	 * 
+	 * @param results
+	 * @param shallow
+	 * @return
+	 * @throws SQLException
+	 */
+	protected Division mapDivision(ResultSet results, boolean shallow) throws SQLException {
+		
+		Division division = new Division();
+		division.setId(results.getInt("id"));
+		division.setName(results.getString("name"));
+		division.setAbbreviation(results.getString("abbreviation"));
+		
+		if (!shallow){
+			int divisionId = division.getId();
+			List<Player> players = getPlayersForDivision(divisionId);
+			division.setPlayers(players);
+		}
+		
+		return division;
+	}
+	
+	/**
+	 * 
+	 * This function will get the records for the given players in the given years and weeks.  All the arguments
+	 * are optional and will only be included if they're given.
+	 * 
+	 * The abbreviations should be used for the divisions.
+	 * 
+	 * @param divisions
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @return
+	 */
+	public List<DivisionRecord> getDivisionRecords(List<String> divisions, List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+		
+		//Steps to do:
+		//	1. Add in the arguments we were given to the query if they're there.
+		//	2. Run the query.
+		//	3. Send back what it found.
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<DivisionRecord> divisionRecords = new ArrayList<DivisionRecord>();
+		
+		try {
+			List<Division> divisionList = new ArrayList<Division>();
+			if (divisions != null && divisions.size() > 0){
+				divisionList = getDivisionsByAbbreviation(divisions, true);
+			}
+			else {
+				divisionList = getDivisions(true);
+			}
+			
+			Map<String, DivisionRecord> divisionMap = new HashMap<String, DivisionRecord>();
+			
+			for (int index = 0; index < divisionList.size(); index++){
+				Division division = divisionList.get(index);
+				DivisionRecord divisionRecord = new DivisionRecord();
+				divisionRecord.setDivision(division);
+				divisionMap.put(division.getAbbreviation(), divisionRecord);
+				divisionRecords.add(divisionRecord);
+			}
+			
+			connection = dataSource.getConnection();
+			
+			String recordsCriteria = createDivisionRecordsCriteria(divisions, years, weekKeys, players, teams);
+			
+			String query = String.format(SELECT_DIVISION_RECORD, recordsCriteria);
+			
+			statement = connection.prepareStatement(query);
+			
+			//Players go first...
+			int parameterIndex = 1;
+			if (players != null && players.size() > 0){
+				for (int index = 0; index < players.size(); index++){
+					String player = players.get(index);
+					statement.setString(parameterIndex, player);
+					parameterIndex++;
+				}
+			}
+			
+			//then divisions...
+			if (divisions != null && divisions.size() > 0){
+				for (int index = 0; index < divisions.size(); index++){
+					String division = divisions.get(index);
+					statement.setString(parameterIndex, division);
+					parameterIndex++;
+				}
+			}
+			
+			//Then weeks
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
+					parameterIndex++;
+				}
+			}
+			
+			//Then years
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			//Then teams ... twice
+			if (teams != null && teams.size() > 0){
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				String division = results.getString("division");
+				DivisionRecord divisionRecord = divisionMap.get(division);
+				
+				Record record = mapRecord(results);
+				List<Record> recordsInDivision = divisionRecord.getRecords();
+				if (recordsInDivision == null){
+					recordsInDivision = new ArrayList<Record>();
+				}
+				recordsInDivision.add(record);
+				divisionRecord.setRecords(recordsInDivision);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting records! years = " + years + ", weekSequenceNumbers = " + weekKeys + ", players = " + players, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return divisionRecords;
+	}
+	
+	/**
+	 * 
+	 * This function will create the "criteria" part for the records query (basically, the "where" part).
+	 * It's here because we need to do this in a few places and I figured it would be a good idea to just
+	 * do it once and reuse it.  It will add in each argument that it's given and will skip
+	 * the arguments that aren't given.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @return
+	 */
+	protected String createDivisionRecordsCriteria(List<String> divisions, List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+		
+		//Steps to do:
+		//	1. Add in the where clauses for the arguments that were given.
+		//	2. That's it.
+		
+		StringBuilder whereClause = new StringBuilder();
+
+		boolean addedWhere = false;
+
+		//First goes player name
+		if (players != null && players.size() > 0){
+			addedWhere = true;
+			whereClause.append("where pl.name in (");
+			for (int index = 0; index < players.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			whereClause.append(") ");
+		}
+		
+		//Then division?
+		if (divisions != null && divisions.size() > 0){
+			if (!addedWhere){
+				whereClause.append("where ");
+				addedWhere = true;
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			String divisionsInParameterString = DatabaseUtil.createInClauseParameterString(divisions.size());
+			whereClause.append("d.abbreviation in ").append(divisionsInParameterString);
+		}
+		
+		boolean hasYears = years != null && years.size() > 0;
+		boolean hasWeeks = weekKeys != null && weekKeys.size() > 0;
+		
+		if (hasYears || hasWeeks){
+			
+			if (!addedWhere){
+				whereClause.append("where ");
+				addedWhere = true;
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			whereClause.append("g.week_id in (select w.id from week w where ");
+		
+			if (hasWeeks){
+				whereClause.append("w.key in (");
+				for (int index = 0; index < weekKeys.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+				whereClause.append(") ");
+			}
+			
+			if (hasYears){
+				
+				if (hasWeeks){
+					whereClause.append(" and ");
+				}
+				
+				whereClause.append("w.season_id in (select s.id from season s where s.year in (");
+				
+				for (int index = 0; index < years.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					
+					whereClause.append("?");
+				}
+				
+				whereClause.append("))");
+			}
+			
+			whereClause.append(")");
+		}
+		
+		if (teams != null && teams.size() > 0){
+			
+			if (!addedWhere){
+				whereClause.append("where ");
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			whereClause.append("(").append("home_team.abbreviation in (");
+			
+			for (int index = 0; index < teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(") or away_team.abbreviation in (");
+			
+			for (int index = 0; index < teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(")").append(")");
+		}
+		
+		return whereClause.toString();
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * This gets all the player divisions with everything in them.
+	 * 
+	 * @return
+	 */
+	public List<PlayerDivision> getPlayerDivisions(){
+		
+		List<PlayerDivision> divisions = getPlayerDivisions(null, null, null);
+		
+		return divisions;
+	}
+	
+	//this whole thing needs to be redone
+	//for every object, there should be one "get" function and all the others should call that
+	//then, there should be special functions for running the queries that get the stats
+	//and stuff like that.
+	
+	/**
+	 * 
+	 * Gets a player division with the given id.  If shallow is true, it'll get all the nested
+	 * stuff too (it should normally be true).
+	 * 
+	 * @param id
+	 * @param shallow
+	 * @return
+	 */
+	public PlayerDivision getPlayerDivision(int id, boolean shallow){
+		
+		PlayerDivision division = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_PLAYER_DIVISION + 
+						   "where id = ? ";
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, id);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				division = mapPlayerDivision(results, shallow);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting playerDivision! id = " + id + ", shallow = " + shallow, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return division;
+	}
+	
+	/**
+	 * 
+	 * This function will get the all the player divisions that match the given values.  They're all optional, so
+	 * it'll get all the records if none are given.
+	 * 
+	 * @param abbreviations
+	 * @param shallow
+	 * @return
+	 */
+	public List<PlayerDivision> getPlayerDivisions(Integer divisionId, Integer playerId, Integer seasonId){
+		
+		List<PlayerDivision> playerDivisions = new ArrayList<PlayerDivision>();
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_PLAYER_DIVISION;
+			
+			boolean addedWhere = false;
+			
+			if (divisionId != null){
+				if (!addedWhere){
+					query = query + " where ";
+					addedWhere = true;
+				}
+				else {
+					query = query + " and ";
+				}
+				
+				query = query + " division_id = ? ";
+			}
+			
+			if (playerId != null){
+				if (!addedWhere){
+					query = query + " where ";
+					addedWhere = true;
+				}
+				else {
+					query = query + " and ";
+				}
+				
+				query = query + " player_id = ? ";
+			}
+			
+			if (seasonId != null){
+				if (!addedWhere){
+					query = query + " where ";
+					addedWhere = true;
+				}
+				else {
+					query = query + " and ";
+				}
+				
+				query = query + " season_id = ? ";
+			}
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			
+			int parameterIndex = 1;
+			
+			if (divisionId != null){
+				statement.setInt(parameterIndex, divisionId);
+				parameterIndex++;
+			}
+			
+			if (playerId != null){
+				statement.setInt(parameterIndex, playerId);
+				parameterIndex++;
+			}
+			
+			if (seasonId != null){
+				statement.setInt(parameterIndex, seasonId);
+				parameterIndex++;
+			}
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				PlayerDivision playerDivision = mapPlayerDivision(results, false);
+				playerDivisions.add(playerDivision);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting player divisions! divisionId = " + divisionId + ", playerId = " + playerId + 
+					  ", seasonId = " + seasonId, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return playerDivisions;
+	}
+	
+	/**
+	 * 
+	 * This will get the player division record for the given names and year.  Just here because sometimes
+	 * we don't have the ids.
+	 * 
+	 * @param divisionName
+	 * @param playerName
+	 * @param year
+	 * @return
+	 */
+	public PlayerDivision getPlayerDivision(String divisionName, String playerName, String year){
+		
+		PlayerDivision playerDivision = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_PLAYER_DIVISION + 
+						   "where division_id in (select id from division where name = ?) " +
+						   	     "and player_id in (select id from player where name = ?) " +
+						   	     "and season_id in (select id from season where year = ?) ";
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setString(1, divisionName);
+			statement.setString(2, playerName);
+			statement.setString(3, year);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				playerDivision = mapPlayerDivision(results, false);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting playerDivision! divisionName = " + divisionName + ", playerName = " + playerName + ", year = " + year, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return playerDivision;
+	}
+	
+	/**
+	 * 
+	 * This function will get the player division record for the given division, player, and season id.
+	 * 
+	 * @param divisionId
+	 * @param playerId
+	 * @param seasonId
+	 * @param shallow
+	 * @return
+	 */
+	public PlayerDivision getPlayerDivision(int divisionId, int playerId, int seasonId, boolean shallow){
+		
+		PlayerDivision playerDivision = null;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		try {
+			String query = SELECT_PLAYER_DIVISION + 
+						   "where division_id = ? " +
+						   	     "and player_id = ? " +
+						   	     "and season_id = ? ";
+			
+			connection = getConnection();
+			statement = connection.prepareStatement(query);
+			statement.setInt(1, divisionId);
+			statement.setInt(2, playerId);
+			statement.setInt(3, seasonId);
+			results = statement.executeQuery();
+			
+			if (results.next()){
+				playerDivision = mapPlayerDivision(results, shallow);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting playerDivision! divisionId = " + divisionId + ", playerId = " + playerId + ", seasonId = " + seasonId, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return playerDivision;
+	}
+	
+	/**
+	 * 
+	 * This function will save the given division object.  If it has an id, it'll do an update.
+	 * If it doesn't, it'll do an insert.
+	 * 
+	 * @param playerDivision
+	 * @return
+	 */
+	public PlayerDivision savePlayerDivision(PlayerDivision playerDivision){
+		
+		//Steps to do:
+		//	1. Pull out their id.
+		//	2. If they don't have one, insert them.
+		//	3. Otherwise, update them.
+		//	4. Pull out what was saved using their name.
+		
+		int id = playerDivision.getId();
+		
+		int numberOfRowsAffected = 0;
+		
+		if (id <= 0){
+			numberOfRowsAffected = insertPlayerDivision(playerDivision);
+		}
+		else {
+			numberOfRowsAffected = updatePlayerDivision(playerDivision);
+		}
+		
+		PlayerDivision savedPlayerDivision = null;
+		
+		if (numberOfRowsAffected == 1){
+			savedPlayerDivision = getPlayerDivision(playerDivision.getDivision().getId(), playerDivision.getPlayer().getId(), playerDivision.getSeason().getId(), true);
+		}
+		
+		return savedPlayerDivision;
+	}
+	
+	/**
+	 * 
+	 * This function will insert the given player division in the database.
+	 * Not much to it.
+	 * 
+	 * @param division
+	 * @return
+	 */
+	protected int insertPlayerDivision(PlayerDivision playerDivision){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(INSERT_PLAYER_DIVISION);
+			statement.setInt(1, playerDivision.getDivision().getId());
+			statement.setInt(2, playerDivision.getPlayer().getId());
+			statement.setInt(3, playerDivision.getSeason().getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error inserting playerDivision! playerDivision = " + playerDivision, e);
+			rollback(connection);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	/**
+	 * 
+	 * This function will update the given player division in the database.  Not much to it.
+	 * 
+	 * @param division
+	 * @return
+	 */
+	protected int updatePlayerDivision(PlayerDivision playerDivision){
+		
+		int numberOfAffectedRows = 0;
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		
+		try {
+			connection = getConnection();
+			statement = connection.prepareStatement(UPDATE_PLAYER_DIVISION);
+			statement.setInt(1, playerDivision.getDivision().getId());
+			statement.setInt(2, playerDivision.getPlayer().getId());
+			statement.setInt(3, playerDivision.getSeason().getId());
+			statement.setInt(4, playerDivision.getId());
+			
+			numberOfAffectedRows = statement.executeUpdate();
+			
+			connection.commit();
+		}
+		catch (Exception e){
+			numberOfAffectedRows = -1;
+			log.error("Error updating player division! playerDivision = " + playerDivision, e);
+			rollback(connection);
+		}
+		finally {
+			close(null, statement, connection);
+		}
+		
+		return numberOfAffectedRows;
+	}
+	
+	/**
+	 * 
+	 * This function will map the results of the query to the player_division table to an object.
+	 * It will get the division, player, and season objects no matter what "shallow" is.  Shallow will control
+	 * whether it gets what's in those objects though (players in the division, games in the season, ...).
+	 * 
+	 * @param results
+	 * @param shallow
+	 * @return
+	 * @throws SQLException
+	 */
+	protected PlayerDivision mapPlayerDivision(ResultSet results, boolean shallow) throws SQLException {
+		
+		PlayerDivision playerDivision = new PlayerDivision();
+		playerDivision.setId(results.getInt("id"));
+		
+		int divisionId = results.getInt("division_id");
+		Division division = getDivision(divisionId, shallow);
+
+		int playerId = results.getInt("player_id");
+		Player player = getPlayer(playerId);
+
+		int seasonId = results.getInt("season_id");
+		Season season = getSeason(seasonId, shallow);
+
+		playerDivision.setDivision(division);
+		playerDivision.setPlayer(player);
+		playerDivision.setSeason(season);
+		
+		return playerDivision;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * 

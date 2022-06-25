@@ -1,14 +1,14 @@
 create or replace view team_view as
-select c.id as conference_id,
-	   c.name as conference,
-	   d.id as division_id,
-	   d.name as division,
+select c.id as team_conference_id,
+	   c.name as conference_name,
+	   d.id as team_division_id,
+	   d.name as division_name,
 	   t.id as team_id,
 	   t.city as team_name,
 	   t.nickname as nickname,
 	   t.abbreviation as team_abbreviation
-from team t join division d on t.division_id = d.id
-     join conference c on d.conference_id = c.id;
+from team t join team_division d on t.team_division_id = d.id
+     join team_conference c on d.team_conference_id = c.id;
 	   
 create or replace view game_view as
 select s.year as year,
@@ -82,283 +82,31 @@ from week w join game g on w.id = g.week_id
      join team home_t on g.home_team_id = home_t.id
      join team away_t on g.away_team_id = away_t.id
      join team pick_t on pi.team_id = pick_t.id;     
-	   
-create or replace view pick_grid_view as
-select w.label as week,
-	   (select home_t.abbreviation
-	    from team home_t
-	    where home_t.id = g.home_team_id) || ' @ ' ||
-	   (select away_t.abbreviation
-	    from team away_t
-	    where away_t.id = g.away_team_id) as game,
-	   (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Benny boy')) as benny_boy,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Benny boy'))
-	         then 'W'
-	         else 'L'
-	    end) as ben_pick_result,
-	   (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Bruce')) as bruce,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Bruce'))
-	         then 'W'
-	         else 'L'
-	    end) as bruce_pick_result,
-	   (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Chance')) as chance,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Chance'))
-	         then 'W'
-	         else 'L'
-	    end) as chance_pick_result,
-	   (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Jonathan')) as jonathan,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Jonathan'))
-	         then 'W'
-	         else 'L'
-	    end) as jonathan_pick_result,
-	   (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Mark')) as mark,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Mark'))
-	         then 'W'
-	         else 'L'
-	    end) as mark_pick_result,
-	   (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Teddy')) as teddy,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Teddy'))
-	         then 'W'
-	         else 'L'
-	    end) as teddy_pick_result,
-	   (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Tim')) as tim,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Tim'))
-	         then 'W'
-	         else 'L'
-	    end) as tim_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Bookey')) as bookey,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Bookey'))
-	         then 'W'
-	         else 'L'
-	    end) as bookey_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Jerry')) as jerry,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Jerry'))
-	         then 'W'
-	         else 'L'
-	    end) as jerry_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Josh')) as josh,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Josh'))
-	         then 'W'
-	         else 'L'
-	    end) as josh_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Doodle')) as doodle,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Doodle'))
-	         then 'W'
-	         else 'L'
-	    end) as doodle_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Boo')) as boo,
-	   (case when g.winning_team_id is null then null
-	   		 when g.winning_team_id = -1 then 'T'
-	   		 when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Boo'))
-	         then 'W'
-	         else 'L'
-	    end) as boo_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Moe')) as moe,
-	    (case when g.winning_team_id is null then null
-	    	  when g.winning_team_id = -1 then 'T'
-	   		  when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Moe'))
-	         then 'W'
-	         else 'L'
-	    end) as moe_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Var')) as var,
-	    (case when g.winning_team_id is null then null
-	    	  when g.winning_team_id = -1 then 'T'
-	   		  when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Var'))
-	         then 'W'
-	         else 'L'
-	    end) as var_pick_result,
-	    (select pick_t.abbreviation
-	    from pick p join team pick_t on p.team_id = pick_t.id
-	    where p.game_id = g.id
-	          and p.player_id in (select pl.id
-	          					  from player pl
-	          					  where name = 'Scott')) as scott,
-	    (case when g.winning_team_id is null then null
-	    	  when g.winning_team_id = -1 then 'T'
-	   		  when g.winning_team_id in (select p.team_id
-	   								    from pick p
-	   								    where p.game_id = g.id
-	   								          and p.player_id in (select pl.id
-	   								          					  from player pl
-	   								          					  where pl.name = 'Scott'))
-	         then 'W'
-	         else 'L'
-	    end) as scott_pick_result
-from season s join week w on s.id = w.season_id 
-	 join game g on w.id = g.week_id;
-	 
--- Used by the pick accuracy query to make it faster.
-create materialized view all_team_all_player_view as 
-select pl.id as player_id,
-       pl.name as player_name,
-       t.id as team_id,
-       t.division_id as division_id,
-       t.city as city,
-       t.nickname as nickname,
-       t.abbreviation as abbreviation,
-       t.start_year as start_year,
-       t.end_year as end_year,
-       t.current_abbreviation
-FROM player pl CROSS JOIN team t;	 
+
+     
+create or replace view record_view as
+select pick_totals.player_id,  
+     pick_totals.player_name,  
+     sum(pick_totals.wins) as wins,  
+     sum(pick_totals.losses) as losses, 
+     sum(pick_totals.ties) as ties 
+from (select pl.id as player_id,  
+		   pl.name as player_name, 
+		  (case when p.team_id = g.winning_team_id  
+		 	    then 1  
+		 	    else 0  
+		   end) as wins,  
+		  (case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)  
+		 	    then 1  
+		 	    else 0  
+		   end) as losses,  
+		  (case when g.winning_team_id = -1  
+		 	    then 1  
+		 	    else 0 
+		   end) as ties 
+    from pick p join game g on p.game_id = g.id  
+		 join player pl on p.player_id = pl.id 
+         join team home_team on g.home_team_id = home_team.id  
+		 join team away_team on g.away_team_id = away_team.id 
+	) pick_totals  
+group by pick_totals.player_id, pick_totals.player_name;

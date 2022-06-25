@@ -10,7 +10,6 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 
@@ -329,7 +328,7 @@ public class Util {
 		return fillArray;
 	}
 	
-	public static String unNull(String value){
+	public static String toEmptyStringIfNull(String value){
 		
 		if (value == null){
 			return "";
@@ -508,5 +507,24 @@ public class Util {
 		}
 		
 		return lineCount;
+	}
+	
+	public static List<String> filterListWithOtherList(List<String> values1, List<String> values2){
+		
+		if (values1 == null || values2 == null){
+			return null;
+		}
+		
+		List<String> filteredValues = new ArrayList<String>();
+		
+		for (int index = 0; index < values1.size(); index++){
+			String value1 = values1.get(index);
+			
+			if (values2.contains(value1)){
+				filteredValues.add(value1);
+			}
+		}
+		
+		return filteredValues;
 	}
 }

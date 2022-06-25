@@ -4,64 +4,70 @@ import java.util.List;
 
 /**
  * 
- * Represents the conferences teams are in.  Hey nerds, a conference is made up
- * of divisions and divisions are made up of teams.
+ * Represents the division that a team is in.  Each division
+ * is in a conference.
  * 
  * @author albundy
  *
  */
-public class Conference {
-
+public class TeamDivision {
+	
 	/**
-	 * The conference's id.
+	 * The division's id.
 	 */
 	protected int id;
 	
 	/**
-	 * AFC or NFC
+	 * The conference the division is in.
+	 */
+	protected int conferenceId;
+	
+	/**
+	 * The name of the division.
 	 */
 	protected String name;
 	
 	/**
-	 * The divisions the conference has.
+	 * The teams in the division.
 	 */
-	protected List<Division> divisions;
+	protected List<Team> teams;
 	
 	/**
-	 * The year the conference started.
+	 * The year the division started.
 	 */
 	protected String startYear;
 	
 	/**
-	 * If the conference was changed, this is the year it ended.
+	 * If the division was changed, this is the year it ended.
 	 */
 	protected String endYear;
 	
 	/**
-	 * The current name of the conference, if it's changed and is linked to a current
-	 * one.
+	 * If the division has ended, this is the name of the active division it's
+	 * linked to.
 	 */
 	protected String currentName;
 	
-	public Conference(){
+	public TeamDivision(){
 	}
-
+	
 	/**
 	 * 
-	 * A convenience constructor for making a conference without
-	 * calling all the setters.
+	 * A convenience constructor for making a division without using all the setters.
 	 * 
 	 * @param id
+	 * @param conferenceId
 	 * @param name
-	 * @param divisions
+	 * @param teams
 	 * @param startYear
 	 * @param endYear
 	 * @param currentName
 	 */
-	public Conference(int id, String name, List<Division> divisions, String startYear, String endYear, String currentName){
+	public TeamDivision(int id, int conferenceId, String name, List<Team> teams, String startYear, String endYear, String currentName){
 		this.id = id;
+		this.conferenceId = conferenceId;
 		this.name = name;
-		this.divisions = divisions;
+		this.teams = teams;
 		this.startYear = startYear;
 		this.endYear = endYear;
 		this.currentName = currentName;
@@ -74,6 +80,14 @@ public class Conference {
 	public void setId(int id) {
 		this.id = id;
 	}
+	
+	public int getConferenceId() {
+		return conferenceId;
+	}
+
+	public void setConferenceId(int conferenceId) {
+		this.conferenceId = conferenceId;
+	}
 
 	public String getName() {
 		return name;
@@ -83,14 +97,14 @@ public class Conference {
 		this.name = name;
 	}
 	
-	public List<Division> getDivisions() {
-		return divisions;
+	public List<Team> getTeams(){
+		return teams;
 	}
-
-	public void setDivisions(List<Division> divisions) {
-		this.divisions = divisions;
+	
+	public void setTeams(List<Team> teams){
+		this.teams = teams;
 	}
-
+	
 	public String getStartYear() {
 		return startYear;
 	}
@@ -117,7 +131,7 @@ public class Conference {
 
 	/**
 	 * 
-	 * A convenience function for figuring out whether this conference is active or not
+	 * A convenience function for figuring out whether this division is active or not
 	 * without having to do "endYear != null".
 	 * 
 	 * @return
@@ -146,14 +160,14 @@ public class Conference {
 	@Override
 	public int hashCode(){
 		
-		
 		int primeNumber = 31;
 		
 		int result = 1;
 		
 		result = primeNumber * result + Integer.valueOf(id).hashCode();
+		result = primeNumber * result + Integer.valueOf(conferenceId).hashCode();
 		result = primeNumber * result + (name == null ? 0 : name.hashCode());
-		result = primeNumber * result + (divisions == null ? 0 : divisions.hashCode());
+		result = primeNumber * result + (teams == null ? 0 : teams.hashCode());
 		result = primeNumber * result + (startYear == null ? 0 : startYear.hashCode());
 		result = primeNumber * result + (endYear == null ? 0 : endYear.hashCode());
 		result = primeNumber * result + (currentName == null ? 0 : currentName.hashCode());
@@ -182,19 +196,25 @@ public class Conference {
 			return true;
 		}
 		
-		if (object == null || !(object instanceof Conference)){
+		if (object == null || !(object instanceof TeamDivision)){
 			return false;
 		}
 		
-		Conference otherConference = (Conference)object;
+		TeamDivision otherDivision = (TeamDivision)object;
 		
-		int otherId = otherConference.getId();
+		int otherId = otherDivision.getId();
 		
 		if (id != otherId){
 			return false;
 		}
 		
-		String otherName = otherConference.getName();
+		int otherConferenceId = otherDivision.getConferenceId();
+		
+		if (conferenceId != otherConferenceId){
+			return false;
+		}
+		
+		String otherName = otherDivision.getName();
 		
 		if (name != null){
 			if (!name.equals(otherName)){
@@ -207,20 +227,20 @@ public class Conference {
 			}
 		}
 		
-		List<Division> otherDivisions = otherConference.getDivisions();
+		List<Team> otherTeams = otherDivision.getTeams();
 		
-		if (divisions != null){
-			if (!divisions.equals(otherDivisions)){
+		if (teams != null){
+			if (!teams.equals(otherTeams)){
 				return false;
 			}
 		}
 		else {
-			if (otherDivisions != null){
+			if (otherTeams != null){
 				return false;
 			}
 		}
 		
-		String otherStartYear = otherConference.getStartYear();
+		String otherStartYear = otherDivision.getStartYear();
 		
 		if (startYear != null){
 			if (!startYear.equals(otherStartYear)){
@@ -233,7 +253,7 @@ public class Conference {
 			}
 		}
 		
-		String otherEndYear = otherConference.getEndYear();
+		String otherEndYear = otherDivision.getEndYear();
 		
 		if (endYear != null){
 			if (!endYear.equals(otherEndYear)){
@@ -246,7 +266,7 @@ public class Conference {
 			}
 		}
 		
-		String otherCurrentName = otherConference.getCurrentName();
+		String otherCurrentName = otherDivision.getCurrentName();
 		
 		if (currentName != null){
 			if (!currentName.equals(otherCurrentName)){
@@ -271,11 +291,11 @@ public class Conference {
 	public String toString(){
 		
 		String thisObjectAsAString = "id = " + id + 
+									 ", conferenceId = " + conferenceId +
 									 ", name = " + name + 
-									 ", divisions = " + divisions + 
+									 ", teams = " + teams + 
 									 ", startYear = " + startYear + 
-									 ", endYear = " + endYear + 
-									 ", currentName = " + currentName;
+									 ", endYear = " + endYear;
 		
 		return thisObjectAsAString;
 	}

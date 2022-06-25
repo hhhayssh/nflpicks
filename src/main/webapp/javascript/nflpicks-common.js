@@ -419,3 +419,121 @@ function copyToClipboard(text) {
     document.body.removeChild(textarea);
     return result;
 }
+
+
+/**
+ * 
+ * This function switches the element with the given id from visibile to 
+ * hidden or back (with the jquery "hide" and "show" functions).
+ * 
+ * It decides whether something is visible by using the ":visible" property
+ * in jquery.  If it's visible, it hides it.  Otherwise, it shows it.
+ * 
+ * @param id
+ * @returns
+ */
+function toggleVisibilty(id){
+	
+	//Steps to do:
+	//	1. Get whether the element is visible.
+	//	2. Hide it if it is and show it if it's not.
+	
+	var isElementVisible = isVisible(id);
+	
+	if (isVisible){
+		$('#' + id).hide();
+	}
+	else {
+		$('#' + id).show();
+	}
+}
+
+/**
+ * 
+ * A really dumb function for checking whether an element with the given
+ * id is visible or not.  Just calls jquery to do the work.
+ * 
+ * @param id
+ * @returns
+ */
+function isVisible(id){
+	
+	var isElementVisible = $('#' + id).is(':visible');
+	
+	return isElementVisible;
+}
+
+/**
+ * 
+ * This function will get the parameters in a map from the url in the browser.  If there
+ * aren't any parameters, it'll return null.  Otherwise, it'll return a map with the parameter
+ * names as the keys and the values as the url.
+ * 
+ * @returns
+ */
+function getUrlParameters() {
+	
+	//Steps to do:
+	//	1. If there aren't any parameters, there's nothing to do.
+	//	2. Otherwise, each parameter should be separated by an ampersand, so break them apart on that.
+	//	3. Go through each parameter and get the key and value and that's a parameter.
+	//	4. That's it.
+	
+	if (isBlank(location.search)){
+		return null;
+	}
+	
+    var parameterNamesAndValues = location.search.substring(1, location.search.length).split('&');
+    
+    var urlParameters = {};
+    
+    for (var index = 0; index < parameterNamesAndValues.length; index++) {
+        var parameterNameAndValue = parameterNamesAndValues[index].split('=');
+        //Make sure to decode both the name and value in case there are weird values in them.
+        var name = decodeURIComponent(parameterNameAndValue[0]);
+        var value = decodeURIComponent(parameterNameAndValue[1]);
+        urlParameters[name] = value;
+    }
+    
+    return urlParameters;
+}
+
+/**
+ * 
+ * Here for when we're sorting something alphabetically and we don't
+ * care what kind of string it is.
+ * 
+ * @param values
+ * @returns
+ */
+function sortAlphabetically(values){
+	
+	values.sort(function (value1, value2){
+		if (value1 < value2){
+			return -1;
+		}
+		else if (value1 > value2){
+			return 1;
+		}
+		return 0;
+	});
+}
+
+/**
+ * 
+ * This function will check whether the given value has multiple values
+ * in it or not.  Basically, it'll return true if the given value is defined
+ * and it has a comma in it.  It assumes the given value is a string and multiple
+ * values are separated by commas in that string.
+ * 
+ * @param value
+ * @returns
+ */
+function doesValueHaveMultipleValues(value){
+	
+	if (isDefined(value) && value.indexOf(',') != -1){
+		return true;
+	}
+	
+	return false;
+}

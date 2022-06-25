@@ -54,6 +54,20 @@ public class DateUtil {
 	
 	/**
 	 * 
+	 * This function will format the given date with dashes in between every part, like 'yyyy-mm-dd-hh24-mi-ss".
+	 * 
+	 * @param date
+	 * @return
+	 */
+	public static String formatDateAsDefaultDateWithTime(Date date){
+		
+		String formattedDate = formatDate(date, DEFAULT_DATE_FORMAT_WITH_TIME);
+		
+		return formattedDate;
+	}
+	
+	/**
+	 * 
 	 * Formats the given date using the default date format.
 	 * 
 	 * @param date

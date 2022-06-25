@@ -1,2230 +1,251 @@
+/**
+ * 
+ * Sets the initial selections for the type, year, week...
+ * They're all set like this:
+ * 
+ * 		1. The initial value comes from NFL_PICKS_GLOBAL.
+ * 		2. If there's a url parameter for the selection, it's used instead.
+ * 
+ * This way, we...
+ * 
+ * 		1. Set the initial values when loading the data from the server (for stuff like
+ * 		   week and year).
+ * 		2. Allow the overriding of the values by url parameters.
+ * 
+ * Number 2 makes it so people can send direct urls and get the view they want the first
+ * time the page shows up.
+ * 
+ * @returns
+ */
+function initializeSelections(){
 
-function onClickTypeSelector(event){
-	event.stopPropagation();
-	var wasSelectorVisible = isVisible('typeSelectorContainer'); 
-	hideSelectorContainers();
-	if (!wasSelectorVisible){
-		showTypeSelector();
-	}
-}
-
-function showTypeSelector(){
-	$('#typeSelectorContainer').show();
-}
-
-function hideTypeSelector(){
-	$('#typeSelectorContainer').hide();
-}
-
-function onClickType(event, value){
-	event.stopPropagation();
-	setSelectedType(value);
-	hideTypeSelector();
-	NFL_PICKS_GLOBAL.selections.type = getSelectedType();
-	updateTypeLink();
-	updateView();
-}
-
-function getType(value){
-	for (var index = 0; index < NFL_PICKS_GLOBAL.types.length; index++){
-		var type = NFL_PICKS_GLOBAL.types[index];
-		if (type.value == value){
-			return type;
-		}
-	}
-	return null;
-}
-
-function updateTypeLink(){
-	var selectedType = getSelectedType();
-	var type = getType(selectedType);
-	if (type != null){
-		$('#typesLink').text(type.label);
-	}
-}
-
-function showTypeLink(){
-	$('#typesLink').show();
-}
-
-function hideTypeLink(){
-	$('#typesLink').hide();
-}
-
-
-
-
-
-function onClickPlayerSelector(event){
-	event.stopPropagation();
+	//Steps to do:
+	//	1. Get the parameters that were sent in the url.
+	//	2. Initialize each selection with its global initial value.
+	//	3. If there's a value for it in the url, use that instead so the url
+	//	   overrides what we assume initially.
 	
-	var wasSelectorVisible = isVisible('playerSelectorContainer'); 
+	var parameters = getUrlParameters();
 	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetPlayerSelections();
-		showPlayerSelector();
+	var type = NFL_PICKS_GLOBAL.initialType;
+	if (isDefined(parameters) && isDefined(parameters.type)){
+		type = parameters.type;
 	}
-}
-
-function onClickMultiselectPlayerContainer(event){
-	event.stopPropagation();
+	setSelectedType(type);
 	
-	var multiselectPlayer = getMultiselectPlayer();
-	
-	if (multiselectPlayer){
-		setMultiselectPlayerValue(false);
+	var year = NFL_PICKS_GLOBAL.initialYear;
+	if (isDefined(parameters) && isDefined(parameters.year)){
+		year = parameters.year;
 	}
-	else {
-		setMultiselectPlayerValue(true);
-	}
+	setSelectedYears(year);
 	
-	onClickMultiselectPlayer(event);
-}
-
-function onClickMultiselectPlayer(event){
-	event.stopPropagation();
-	
-	var multiselectPlayerChecked = $('#multiselectPlayer').prop('checked');
-	
-	setMultiselectPlayer(multiselectPlayerChecked);
-	
-	if (multiselectPlayerChecked){
-		showMultiselectPlayerContainer();
-		showPlayerCheckboxes();
-		hideAllPlayerSelectorContainer();
-		hidePlayerRadioButtons();
-		showPlayerSelectorFooterContainer();
+	var week = NFL_PICKS_GLOBAL.initialWeek;
+	if (isDefined(parameters) && isDefined(parameters.week)){
+		week = parameters.week;
 	}
-	else {
-		hideMultiselectPlayerContainer();
-		showAllPlayerSelectorContainer();
-		showPlayerRadioButtons();
-		hidePlayerCheckboxes();
-		hidePlayerSelectorFooterContainer();
-	}
-}
-
-function setMultiselectPlayerValue(value){
-	if (value){
-		$('#multiselectPlayer').prop('checked', true);
-	}
-	else {
-		$('#multiselectPlayer').prop('checked', false);
-	}
-}
-
-function showAllPlayerSelectorContainer(){
-	$('#player-selector-container-all').show();
-}
-
-function hideAllPlayerSelectorContainer(){
-	$('#player-selector-container-all').hide();
-}
-
-function showMultiselectPlayerContainer(){
-	$('#multiselectPlayerContainer').show();
-}
-
-function hideMultiselectPlayerContainer(){
-	$('#multiselectPlayerContainer').hide();
-}
-
-function showPlayerSelectorFooterContainer(){
-	$('#player-selector-footer-container').show();
-}
-
-function hidePlayerSelectorFooterContainer(){
-	$('#player-selector-footer-container').hide();
-}
-
-//player-checkbox-input-
-function showPlayerCheckboxes(){
-	var playerValues = getAllPlayerValues();
+	setSelectedWeeks(week);
 	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		showPlayerCheckbox(playerValue);
+	var player = NFL_PICKS_GLOBAL.initialPlayer;
+	if (isDefined(parameters) && isDefined(parameters.player)){
+		player = parameters.player;
 	}
-}
-
-function showPlayerCheckbox(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-checkbox-input-' + normalizedValue).show();
-}
-
-function hidePlayerCheckboxes(){
+	setSelectedPlayers(player);
 	
-	var playerValues = getAllPlayerValues();
-	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		hidePlayerCheckbox(playerValue);
+	var statName = NFL_PICKS_GLOBAL.initialStatName;
+	if (isDefined(parameters) && isDefined(parameters.statName)){
+		statName = parameters.statName;
 	}
-}
-
-function hidePlayerCheckbox(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-checkbox-input-' + normalizedValue).hide();
-}
-
-//player-radio-input-
-function showPlayerRadioButtons(){
-	var playerValues = getAllPlayerValues();
+	setSelectedStatName(statName);
 	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		showPlayerRadioButton(playerValue);
+	var team = NFL_PICKS_GLOBAL.initialTeam;
+	if (isDefined(parameters) && isDefined(parameters.team)){
+		team = parameters.team;
 	}
-}
-
-function showPlayerRadioButton(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-radio-input-' + normalizedValue).show();
-}
-
-function hidePlayerRadioButtons(){
+	setSelectedTeams(team);
 	
-	var playerValues = getAllPlayerValues();
-	
-	for (var index = 0; index < playerValues.length; index++){
-		var playerValue = playerValues[index];
-		hidePlayerRadioButton(playerValue);
-	}
-}
-
-function hidePlayerRadioButton(playerValue){
-	var normalizedValue = normalizePlayerValue(playerValue);
-	$('#player-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectPlayer(value){
-	NFL_PICKS_GLOBAL.multiselectPlayer = value;
-}
-
-function getMultiselectPlayer(){
-	return NFL_PICKS_GLOBAL.multiselectPlayer;
-}
-
-function onClickPlayerSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectPlayer = getMultiselectPlayer();
-	if (multiselectPlayer){
-		removePlayerFromCurrentSelection('all');
-	}
-	hidePlayerSelector();
-	setSelectedPlayers(currentPlayerSelections);
-	updatePlayersLink();
-	updateView();
-}
-
-function onClickPlayerSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHidePlayerSelections();
-}
-
-function resetPlayerSelections(){
-	unselectAllPlayersByValue();
-	currentPlayerSelections = getSelectedPlayerValues();
-	selectPlayersByValue(currentPlayerSelections);
-}
-
-function resetAndHidePlayerSelections(){
 	resetPlayerSelections();
-	hidePlayerSelector();
-}
-
-function showPlayerSelector(){
-	$('#playerSelectorContainer').show();
-}
-
-function hidePlayerSelector(){
-	$('#playerSelectorContainer').hide();
-}
-
-var currentPlayerSelections = [];
-
-
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearPlayers(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllPlayers(event);>Select all</a></div>' +
- */
-
-function onClickSelectAllPlayers(event){
-	
-	event.stopPropagation();
-	
-	var players = getAllPlayers();
-	
-	currentPlayerSelections = [];
-	
-	for (var index = 0; index < players.length; index++){
-		var player = players[index];
-		selectPlayer(player.value)
-		addPlayerToCurrentSelection(player.value);
-	}
-}
-
-function onClickClearPlayers(event){
-	
-	event.stopPropagation();
-	
-	var realPlayers = getRealPlayers();
-	
-	currentPlayerSelections = [];
-	
-	for (var index = 0; index < realPlayers.length; index++){
-		var player = realPlayers[index];
-		unselectPlayer(player.value);
-		removePlayerFromCurrentSelection(player.value);
-	}
-}
-
-function onClickPlayer(event, value){
-	event.stopPropagation();
-	
-	var multiselectPlayer = getMultiselectPlayer();
-	
-	if (multiselectPlayer){
-		var indexOfValue = currentPlayerSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectPlayer(value);
-			removePlayerFromCurrentSelection(value);
-		}
-		else {
-			selectPlayer(value);
-			addPlayerToCurrentSelection(value);
-		}
-	}
-	else {
-		currentPlayerSelections = [];
-		selectPlayer(value);
-		addPlayerToCurrentSelection(value);
-		onClickPlayerSelectionOk(event);
-	}
-}
-
-function updatePlayersLink(){
-	
-	var selectedPlayers = getSelectedPlayers();
-	
-	//If there aren't any selected players, it should be "none"
-	if (isEmpty(selectedPlayers)){
-		$('#playersLink').text('Nobody');
-		return;
-	}
-	
-	sortOptionsByLabel(selectedPlayers);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedPlayers.length; index++){
-		var player = selectedPlayers[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + player.label;
-	}
-	
-	$('#playersLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#playersLink').text(linkText);
-}
-
-function showPlayersLink(){
-	$('#playersLink').show();
-}
-
-function hidePlayersLink(){
-	$('#playersLink').hide();
-}
-
-function selectAllPlayersByValue(){
-	var playerValues = getAllPlayerValues();
-	selectPlayersByValue(playerValues);
-}
-
-function unselectAllPlayersByValue(){
-	var playerValues = getAllPlayerValues();
-	unselectPlayersByValue(playerValues);
-}
-
-function selectPlayersByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectPlayer(value);
-	}
-}
-
-function normalizePlayerValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectPlayer(value){
-	var normalizedValue = normalizePlayerValue(value);
-	$('#player-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#player-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addPlayerToCurrentSelection(value){
-	currentPlayerSelections.push(value);
-}
-
-function unselectPlayersByValue(players){
-	for (var index = 0; index < players.length; index++){
-		var player = players[index];
-		unselectPlayer(player);
-	}
-}
-
-function unselectPlayer(player){
-	var normalizedValue = normalizePlayerValue(player);
-	$('#player-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#player-radio-input-' + normalizedValue).prop('checked', false);
-}
-
-function removePlayerFromCurrentSelection(value){
-	var indexOfValue = currentPlayerSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentPlayerSelections.splice(indexOfValue, 1);
-	}
-}
-
-function getAllPlayers(){
-	return NFL_PICKS_GLOBAL.players;
-}
-
-function getRealPlayers(){
-	return NFL_PICKS_GLOBAL.realPlayers;
-}
-
-function getAllPlayerValues(){
-	var playerValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.players.length; index++){
-		var player = NFL_PICKS_GLOBAL.players[index];
-		playerValues.push(player.value);
-	}
-	
-	return playerValues;
-}
-
-function getPlayers(values){
-	
-	var players = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var player = getPlayer(value);
-		if (player != null){
-			players.push(player);
-		}
-	}
-	
-	return players;
-}
-
-function getPlayer(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.players.length; index++){
-		var player = NFL_PICKS_GLOBAL.players[index];
-		if (value == player.value){
-			return player;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedPlayerValues(){
-	
-	var playerValues = [];
-	
-	var selectedPlayers = getSelectedPlayers();
-	
-	for (var index = 0; index < selectedPlayers.length; index++){
-		var selectedPlayer = selectedPlayers[index];
-		playerValues.push(selectedPlayer.value);
-	}
-	
-	return playerValues;
-}
-
-function getPlayerValuesForRequest(){
-	
-	var selectedValues = getSelectedPlayerValues();
-	
-	var valuesToSend = [];
-	
-	var realPlayers = getRealPlayers();
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realPlayers.length; index2++){
-				var realPlayer = realPlayers[index2];
-				valuesToSend.push(realPlayer.value);
-			}
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var playerValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return playerValuesForRequest;
-}
-
-function getSelectedPlayers(){
-	return NFL_PICKS_GLOBAL.selections.players;
-}
-
-
-
-
-
-
-
-
-
-
-
-function onClickTeamSelector(event){
-	event.stopPropagation();
-	
-	var wasSelectorVisible = isVisible('teamSelectorContainer'); 
-	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetTeamSelections();
-		showTeamSelector();
-	}
-}
-
-function onClickMultiselectTeamContainer(event){
-	event.stopPropagation();
-	
-	var multiselectTeam = getMultiselectTeam();
-	
-	if (multiselectTeam){
-		setMultiselectTeamValue(false);
-	}
-	else {
-		setMultiselectTeamValue(true);
-	}
-	
-	onClickMultiselectTeam(event);
-}
-
-function onClickMultiselectTeam(event){
-	event.stopPropagation();
-	
-	var multiselectTeamChecked = $('#multiselectTeam').prop('checked');
-	
-	setMultiselectTeam(multiselectTeamChecked);
-	
-	if (multiselectTeamChecked){
-		showMultiselectTeamContainer();
-		showTeamCheckboxes();
-		hideAllTeamSelectorContainer();
-		hideTeamRadioButtons();
-	}
-	else {
-		hideMultiselectTeamContainer();
-		showAllTeamSelectorContainer();
-		showTeamRadioButtons();
-		hideTeamCheckboxes();
-	}
-}
-
-function setMultiselectTeamValue(value){
-	if (value){
-		$('#multiselectTeam').prop('checked', true);
-	}
-	else {
-		$('#multiselectTeam').prop('checked', false);
-	}
-}
-
-function showAllTeamSelectorContainer(){
-	$('#team-selector-container-all').show();
-}
-
-function hideAllTeamSelectorContainer(){
-	$('#team-selector-container-all').hide();
-}
-
-function showMultiselectTeamContainer(){
-	$('#multiselectTeamContainer').show();
-}
-
-function hideMultiselectTeamContainer(){
-	$('#multiselectTeamContainer').hide();
-}
-
-function showTeamSelectorFooterContainer(){
-	$('#team-selector-footer-container').show();
-}
-
-function hideTeamSelectorFooterContainer(){
-	$('#team-selector-footer-container').hide();
-}
-
-//team-checkbox-input-
-function showTeamCheckboxes(){
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		showTeamCheckbox(teamValue);
-	}
-}
-
-function showTeamCheckbox(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-checkbox-input-' + normalizedValue).show();
-}
-
-function hideTeamCheckboxes(){
-	
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		hideTeamCheckbox(teamValue);
-	}
-}
-
-function hideTeamCheckbox(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-checkbox-input-' + normalizedValue).hide();
-}
-
-//team-radio-input-
-function showTeamRadioButtons(){
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		showTeamRadioButton(teamValue);
-	}
-}
-
-function showTeamRadioButton(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-radio-input-' + normalizedValue).show();
-}
-
-function hideTeamRadioButtons(){
-	
-	var teamValues = getAllTeamValues();
-	
-	for (var index = 0; index < teamValues.length; index++){
-		var teamValue = teamValues[index];
-		hideTeamRadioButton(teamValue);
-	}
-}
-
-function hideTeamRadioButton(teamValue){
-	var normalizedValue = normalizeTeamValue(teamValue);
-	$('#team-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectTeam(value){
-	NFL_PICKS_GLOBAL.multiselectTeam = value;
-}
-
-function getMultiselectTeam(){
-	return NFL_PICKS_GLOBAL.multiselectTeam;
-}
-
-function onClickTeamSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectTeam = getMultiselectTeam();
-	if (multiselectTeam){
-		removeTeamFromCurrentSelection('all');
-	}
-	hideTeamSelector();
-	var currentTeams = getCurrentTeamSelections();
-	setSelectedTeams(currentTeams);
-	updateTeamsLink();
-	updateView();
-}
-
-function onClickTeamSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHideTeamSelections();
-}
-
-function resetTeamSelections(){
-	unselectAllTeamsByValue();
-	var selectedTeamValues = getSelectedTeamValues();
-	setCurrentTeamSelections(selectedTeamValues);
-	var currentTeams = getCurrentTeamSelections();
-	selectTeamsByValue(currentTeams);
-}
-
-function resetAndHideTeamSelections(){
-	resetTeamSelections();
-	hideTeamSelector();
-}
-
-function showTeamSelector(){
-	$('#teamSelectorContainer').show();
-}
-
-function hideTeamSelector(){
-	$('#teamSelectorContainer').hide();
-}
-
-var currentTeamSelections = [];
-
-function getCurrentTeamSelections(){
-	return currentTeamSelections;
-}
-
-function setCurrentTeamSelections(updatedSelections){
-	currentTeamSelections = updatedSelections;
-}
-
-function clearCurrentTeamSelections(){
-	currentTeamSelections = [];
-}
-
-
-function onClickSelectAllTeams(event){
-	
-	event.stopPropagation();
-	
-	var teams = getAllTeams();
-	
-	clearCurrentTeamSelections();
-	
-	for (var index = 0; index < teams.length; index++){
-		var team = teams[index];
-		selectTeam(team.value);
-		addTeamToCurrentSelection(team.value);
-	}
-}
-
-function onClickClearTeams(event){
-	
-	event.stopPropagation();
-	
-	var realTeams = getRealTeams();
-	
-	clearCurrentTeamSelections();
-	
-	for (var index = 0; index < realTeams.length; index++){
-		var team = realTeams[index];
-		unselectTeam(team.value);
-		removeTeamFromCurrentSelection(team.value);
-	}
-}
-
-function onClickTeam(event, value){
-	event.stopPropagation();
-	
-	var multiselectTeam = getMultiselectTeam();
-	
-	if (multiselectTeam){
-		var indexOfValue = currentTeamSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectTeam(value);
-			removeTeamFromCurrentSelection(value);
-		}
-		else {
-			selectTeam(value);
-			addTeamToCurrentSelection(value);
-		}
-	}
-	else {
-		clearCurrentTeamSelections();
-		selectTeam(value);
-		addTeamToCurrentSelection(value);
-		onClickTeamSelectionOk(event);
-	}
-}
-
-function updateTeamsLink(){
-	
-	var selectedTeams = getSelectedTeams();
-	
-	//If there aren't any selected teams, it should be "none"
-	if (isEmpty(selectedTeams)){
-		$('#teamsLink').text('No teams');
-		return;
-	}
-	
-	if (selectedTeams.length == 1 && 'all' == selectedTeams[0].value){
-		$('#teamsLink').text('All teams');
-		return;
-	}
-	
-	sortOptionsByLabel(selectedTeams);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedTeams.length; index++){
-		var team = selectedTeams[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + team.label;
-	}
-	
-	$('#teamsLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#teamsLink').text(linkText);
-}
-
-function showTeamsLink(){
-	$('#teamsLink').show();
-}
-
-function hideTeamsLink(){
-	$('#teamsLink').hide();
-}
-
-function selectAllTeamsByValue(){
-	var teamValues = getAllTeamValues();
-	selectTeamsByValue(teamValues);
-}
-
-function unselectAllTeamsByValue(){
-	var teamValues = getAllTeamValues();
-	unselectTeamsByValue(teamValues);
-}
-
-function selectTeamsByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectTeam(value);
-	}
-}
-
-
-function normalizeTeamValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectTeam(value){
-	var normalizedValue = normalizeTeamValue(value);
-	$('#team-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#team-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addTeamToCurrentSelection(value){
-	currentTeamSelections.push(value);
-}
-
-function unselectTeamsByValue(teams){
-	for (var index = 0; index < teams.length; index++){
-		var team = teams[index];
-		unselectTeam(team);
-	}
-}
-
-function unselectTeam(team){
-	var normalizedValue = normalizeTeamValue(team);
-	$('#team-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#team-radio-input-' + normalizedValue).prop('checked', false);
-}
-
-function removeTeamFromCurrentSelection(value){
-	var indexOfValue = currentTeamSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentTeamSelections.splice(indexOfValue, 1);
-	}
-}
-
-/**
- * 
- * This function will cause the given team (the value should be the abbreviation)
- * to be the only team selected.
- * 
- * @param value
- * @returns
- */
-function selectSingleTeamFull(value){
-	clearCurrentTeamSelections();
-	//just does the ui
-	selectTeam(value);
-	//just does the current selections
-	addTeamToCurrentSelection(value);
-	var currentTeams = getCurrentTeamSelections();
-	setSelectedTeams(currentTeams);
-}
-
-/**
- * 
- * This function will completely unselect the team by its value.
- * It will make the team unselected on the ui, remove it from
- * the "current selections" array, and update the selected teams
- * in the NFL_PICKS_GLOBAL variable.
- * 
- * @param value
- * @returns
- */
-function unselectTeamFull(value){
-	unselectTeam(value);
-	removeTeamFromCurrentSelection(value);
-	var currentTeams = getCurrentTeamSelections();
-	setSelectedTeams(currentTeams);
-}
-
-function getAllTeams(){
-	return NFL_PICKS_GLOBAL.teams;
-}
-
-function getRealTeams(){
-	return NFL_PICKS_GLOBAL.teams;
-}
-
-function getAllTeamValues(){
-	var teamValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.teams.length; index++){
-		var team = NFL_PICKS_GLOBAL.teams[index];
-		teamValues.push(team.value);
-	}
-	
-	return teamValues;
-}
-
-function getTeams(values){
-	
-	var teams = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var team = getTeam(value);
-		if (team != null){
-			teams.push(team);
-		}
-	}
-	
-	return teams;
-}
-
-function getTeam(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.teams.length; index++){
-		var team = NFL_PICKS_GLOBAL.teams[index];
-		if (value == team.value){
-			return team;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedTeamValues(){
-	
-	var teamValues = [];
-	
-	var selectedTeams = getSelectedTeams();
-	
-	for (var index = 0; index < selectedTeams.length; index++){
-		var selectedTeam = selectedTeams[index];
-		teamValues.push(selectedTeam.value);
-	}
-	
-	return teamValues;
-}
-
-function getTeamValuesForRequest(){
-	
-	var selectedValues = getSelectedTeamValues();
-	
-	var valuesToSend = [];
-	
-	var realTeams = getRealTeams();
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		if ('all' == selectedValue){
-			for (var index2 = 0; index2 < realTeams.length; index2++){
-				var realTeam = realTeams[index2];
-				valuesToSend.push(realTeam.value);
-			}
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var teamValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return teamValuesForRequest;
-}
-
-function getSelectedTeams(){
-	return NFL_PICKS_GLOBAL.selections.teams;
-}
-
-/*
- var normalizedValue = normalizeTeamValue(team.value);
-		
-		var divHtmlCssClass = 'selection-item-container';
-		if (index + 1 == teams.length){
-			divHtmlCssClass = 'selection-item-container-last';
-		}
-
-		var teamHtml = '<div id="team-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickTeam(event, \'' + team.value + '\');">' +
- */
-
-function getTeamSelectorContainerId(team){
-	
-	var normalizedTeamAbbreviation = normalizeTeamValue(team);
-	
-	var teamSelectorContainerId = 'team-selector-container-' + normalizedTeamAbbreviation;
-	
-	return teamSelectorContainerId;
-}
-
-function showTeamItem(team){
-	var teamSelectorContainerId = getTeamSelectorContainerId(team);
-	$('#' + teamSelectorContainerId).show();
-}
-
-function hideTeamItem(team){
-	var teamSelectorContainerId = getTeamSelectorContainerId(team);
-	$('#' + teamSelectorContainerId).hide();
-}
-
-function showTeamItems(teams){
-	for (var index = 0; index < teams.length; index++){
-		var team = teams[index];
-		showTeamItem(team);
-	}
-}
-
-function hideTeamItems(teams){
-	for (var index = 0; index < teams.length; index++){
-		var team = teams[index];
-		hideTeamItem(team);
-	}
-}
-
-function updateCurrentTeamSelections(){
-	var selectedTeamValues = getSelectedTeamValues();
-	setCurrentTeamSelections(selectedTeamValues);
-}
-
-
-
-
-
-
-
-
-
-function onClickStatNameSelector(event){
-	event.stopPropagation();
-	var wasSelectorVisible = isVisible('statNameSelectorContainer'); 
-	hideSelectorContainers();
-	if (!wasSelectorVisible){
-		showStatNameSelector();
-	}
-}
-
-function showStatNameSelector(){
-	$('#statNameSelectorContainer').show();
-}
-
-function hideStatNameSelector(){
-	$('#statNameSelectorContainer').hide();
-}
-
-function onClickStatName(event, value){
-	event.stopPropagation();
-	setSelectedStatName(value);
-	hideStatNameSelector();
-	NFL_PICKS_GLOBAL.selections.statName = getSelectedStatName();
-	updateStatNameLink();
-	updateView();
-}
-
-function getStatName(value){
-	for (var index = 0; index < NFL_PICKS_GLOBAL.statNames.length; index++){
-		var statName = NFL_PICKS_GLOBAL.statNames[index];
-		if (statName.value == value){
-			return statName;
-		}
-	}
-	return null;
-}
-
-function updateStatNameLink(){
-	var selectedStatName = getSelectedStatName();
-	var statName = getStatName(selectedStatName);
-	if (statName != null){
-		$('#statNamesLink').text(statName.label);
-	}
-}
-
-function showStatNameLink(){
-	$('#statNamesLink').show();
-}
-
-function hideStatNameLink(){
-	$('#statNamesLink').hide();
-}
-
-
-
-
-
-
-
-
-
-function setMultiselectWeek(value){
-	NFL_PICKS_GLOBAL.multiselectWeek = value;
-}
-
-function getMultiselectWeek(){
-	return NFL_PICKS_GLOBAL.multiselectWeek;
-}
-
-function setMultiselectYear(value){
-	NFL_PICKS_GLOBAL.multiselectYear = value;
-}
-
-function getMultiselectYear(){
-	return NFL_PICKS_GLOBAL.multiselectYear;
-}
-
-
-
-
-
-function onClickYearSelector(event){
-	event.stopPropagation();
-	
-	var wasSelectorVisible = isVisible('yearSelectorContainer'); 
-	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetYearSelections();
-		showYearSelector();
-	}
-}
-
-function onClickMultiselectYearContainer(event){
-	event.stopPropagation();
-	
-	var multiselectYear = getMultiselectYear();
-	
-	if (multiselectYear){
-		setMultiselectYearValue(false);
-	}
-	else {
-		setMultiselectYearValue(true);
-	}
-	
-	onClickMultiselectYear(event);
-}
-
-function onClickMultiselectYear(event){
-	event.stopPropagation();
-	
-	var multiselectYearChecked = $('#multiselectYear').prop('checked');
-	
-	setMultiselectYear(multiselectYearChecked);
-	
-	if (multiselectYearChecked){
-		showMultiselectYearContainer();
-		showYearCheckboxes();
-		hideAllYearSelectorContainer();
-		hideYearRadioButtons();
-		showYearSelectorFooterContainer();
-	}
-	else {
-		hideMultiselectYearContainer();
-		showAllYearSelectorContainer();
-		showYearRadioButtons();
-		hideYearCheckboxes();
-		hideYearSelectorFooterContainer();
-	}
-}
-
-function setMultiselectYearValue(value){
-	if (value){
-		$('#multiselectYear').prop('checked', true);
-	}
-	else {
-		$('#multiselectYear').prop('checked', false);
-	}
-}
-
-function showAllYearSelectorContainer(){
-	$('#year-selector-container-all').show();
-}
-
-function hideAllYearSelectorContainer(){
-	$('#year-selector-container-all').hide();
-}
-
-function showMultiselectYearContainer(){
-	$('#multiselectYearContainer').show();
-}
-
-function hideMultiselectYearContainer(){
-	$('#multiselectYearContainer').hide();
-}
-
-function showYearSelectorFooterContainer(){
-	$('#year-selector-footer-container').show();
-}
-
-function hideYearSelectorFooterContainer(){
-	$('#year-selector-footer-container').hide();
-}
-
-//year-checkbox-input-
-function showYearCheckboxes(){
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		showYearCheckbox(yearValue);
-	}
-}
-
-function showYearCheckbox(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-checkbox-input-' + normalizedValue).show();
-}
-
-function hideYearCheckboxes(){
-	
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		hideYearCheckbox(yearValue);
-	}
-}
-
-function hideYearCheckbox(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-checkbox-input-' + normalizedValue).hide();
-}
-
-//year-radio-input-
-function showYearRadioButtons(){
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		showYearRadioButton(yearValue);
-	}
-}
-
-function showYearRadioButton(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-radio-input-' + normalizedValue).show();
-}
-
-function hideYearRadioButtons(){
-	
-	var yearValues = getAllYearValues();
-	
-	for (var index = 0; index < yearValues.length; index++){
-		var yearValue = yearValues[index];
-		hideYearRadioButton(yearValue);
-	}
-}
-
-function hideYearRadioButton(yearValue){
-	var normalizedValue = normalizeYearValue(yearValue);
-	$('#year-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectYear(value){
-	NFL_PICKS_GLOBAL.multiselectYear = value;
-}
-
-function getMultiselectYear(){
-	return NFL_PICKS_GLOBAL.multiselectYear;
-}
-
-function onClickYearSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectYear = getMultiselectYear();
-	if (multiselectYear){
-		removeYearFromCurrentSelection('all');
-	}
-	hideYearSelector();
-	setSelectedYears(currentYearSelections);
-	updateYearsLink();
-	updateView();
-}
-
-function onClickYearSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHideYearSelections();
-}
-
-function resetYearSelections(){
-	unselectAllYearsByValue();
-	currentYearSelections = getSelectedYearValues();
-	selectYearsByValue(currentYearSelections);
-}
-
-function resetAndHideYearSelections(){
 	resetYearSelections();
-	hideYearSelector();
-}
-
-function showYearSelector(){
-	$('#yearSelectorContainer').show();
-}
-
-function hideYearSelector(){
-	$('#yearSelectorContainer').hide();
-}
-
-var currentYearSelections = [];
-
-
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearYears(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllYears(event);>Select all</a></div>' +
- */
-
-function onClickSelectAllYears(event){
-	
-	event.stopPropagation();
-	
-	var years = getAllYears();
-	
-	currentYearSelections = [];
-	
-	for (var index = 0; index < years.length; index++){
-		var year = years[index];
-		selectYear(year.value);
-		addYearToCurrentSelection(year.value);
-	}
-}
-
-function onClickClearYears(event){
-	
-	event.stopPropagation();
-	
-	var years = getAllYears();
-	
-	currentYearSelections = [];
-	
-	for (var index = 0; index < years.length; index++){
-		var year = years[index];
-		unselectYear(year.value);
-		removeYearFromCurrentSelection(year.value);
-	}
-}
-
-function onClickYear(event, value){
-	event.stopPropagation();
-	
-	var multiselectYear = getMultiselectYear();
-	
-	if (multiselectYear){
-		var indexOfValue = currentYearSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectYear(value);
-			removeYearFromCurrentSelection(value);
-		}
-		else {
-			selectYear(value);
-			addYearToCurrentSelection(value);
-		}
-	}
-	else {
-		currentYearSelections = [];
-		selectYear(value);
-		addYearToCurrentSelection(value);
-		onClickYearSelectionOk(event);
-	}
-}
-
-function updateYearsLink(){
-	
-	var selectedYears = getSelectedYears();
-	
-	//If there aren't any selected years, it should be "none"
-	if (isEmpty(selectedYears)){
-		$('#yearsLink').text('No years');
-		return;
-	}
-	
-	if (selectedYears.length == 1 && 'all' == selectedYears[0].value){
-		$('#yearsLink').text('All years');
-		return;
-	}
-	
-	sortOptionsByNumericValue(selectedYears);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedYears.length; index++){
-		var year = selectedYears[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + year.label;
-	}
-	
-	$('#yearsLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#yearsLink').text(linkText);
-}
-
-function showYearsLink(){
-	$('#yearsLink').show();
-}
-
-function hideYearsLink(){
-	$('#yearsLink').hide();
-}
-
-function selectAllYearsByValue(){
-	var yearValues = getAllYearValues();
-	selectYearsByValue(yearValues);
-}
-
-function unselectAllYearsByValue(){
-	var yearValues = getAllYearValues();
-	unselectYearsByValue(yearValues);
-}
-
-function selectYearsByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectYear(value);
-	}
-}
-
-function normalizeYearValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectYear(value){
-	var normalizedValue = normalizeYearValue(value);
-	$('#year-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#year-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addYearToCurrentSelection(value){
-	currentYearSelections.push(value);
-}
-
-function unselectYearsByValue(years){
-	for (var index = 0; index < years.length; index++){
-		var year = years[index];
-		unselectYear(year);
-	}
-}
-
-function unselectYear(year){
-	var normalizedValue = normalizeYearValue(year);
-	$('#year-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#year-radio-input-' + normalizedValue).prop('checked', false);
-}
-
-function removeYearFromCurrentSelection(value){
-	var indexOfValue = currentYearSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentYearSelections.splice(indexOfValue, 1);
-	}
-}
-
-function getAllYears(){
-	return NFL_PICKS_GLOBAL.years;
-}
-
-function getRealYears(){
-	return NFL_PICKS_GLOBAL.realYears;
-}
-
-function getAllYearValues(){
-	var yearValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.years.length; index++){
-		var year = NFL_PICKS_GLOBAL.years[index];
-		yearValues.push(year.value);
-	}
-	
-	return yearValues;
-}
-
-function getYears(values){
-	
-	var years = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var year = getYear(value);
-		if (year != null){
-			years.push(year);
-		}
-	}
-	
-	return years;
-}
-
-function getYear(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.years.length; index++){
-		var year = NFL_PICKS_GLOBAL.years[index];
-		if (value == year.value){
-			return year;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedYearValues(){
-	
-	var yearValues = [];
-	
-	var selectedYears = getSelectedYears();
-	
-	for (var index = 0; index < selectedYears.length; index++){
-		var selectedYear = selectedYears[index];
-		yearValues.push(selectedYear.value);
-	}
-	
-	return yearValues;
-}
-
-function getYearValuesForRequest(){
-	
-	var selectedValues = getSelectedYearValues();
-	
-	var valuesToSend = [];
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		var yearsForSelectedValue = getYearsForYearValue(selectedValue);
-		
-		valuesToSend = valuesToSend.concat(yearsForSelectedValue);
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var yearValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return yearValuesForRequest;
-}
-
-function getSelectedYears(){
-	return NFL_PICKS_GLOBAL.selections.years;
-}
-
-function getYearValuesForSelectedYears(){
-	
-	var selectedValues = getSelectedYearValues();
-	
-	var yearValues = [];
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-		
-		var yearsForSelectedValue = getYearsForYearValue(selectedValue);
-		
-		yearValues = yearValues.concat(yearsForSelectedValue);
-	}
-	
-	return yearValues;
-}
-
-/**
- * 
- * This function is here to get the years we should use for the given year value.
- * It will just do the "translation" from something like "jurassic-period" to 
- * values like ["2010", "2011", "2012", ...].
- * 
- * Here so that "mapping" can hopefully be done in one place.  I could make it a constant I guess,
- * but doing it this way kind of puts in the rule that "every year 2017 and over is the modern
- * era" and that would be hard to turn into a constant value.
- * 
- * @param yearValue
- * @returns
- */
-function getYearsForYearValue(yearValue){
-	
-	var yearsForYearValue = [];
-
-	var realYears = getRealYears();
-	
-	if ('all' == yearValue){
-		for (var index = 0; index < realYears.length; index++){
-			var realYear = realYears[index];
-			yearsForYearValue.push(realYear.value);
-		}
-	}
-	else if ('jurassic-period' == yearValue){
-		yearsForYearValue = ['2010', '2011', '2012', '2013', '2014', '2015'];
-	}
-	else if ('first-year' == yearValue){
-		yearsForYearValue = ['2016'];
-	}
-	else if ('modern-era' == yearValue){
-		
-		for (var index = 0; index < realYears.length; index++){
-			var realYear = realYears[index];
-
-			var realYearValue = parseInt(realYear.value);
-
-			if (realYearValue >= 2017){
-				yearsForYearValue.push(realYear.value);
-			}
-		}
-	}
-	else {
-		yearsForYearValue.push(yearValue);
-	}
-	
-	return yearsForYearValue;
-}
-
-
-
-
-
-
-function onClickWeekSelector(event){
-	event.stopPropagation();
-	
-	var wasSelectorVisible = isVisible('weekSelectorContainer'); 
-	
-	hideSelectorContainers();
-
-	if (!wasSelectorVisible){
-		resetWeekSelections();
-		showWeekSelector();
-	}
-}
-
-function onClickMultiselectWeekContainer(event){
-	event.stopPropagation();
-	
-	var multiselectWeek = getMultiselectWeek();
-	
-	if (multiselectWeek){
-		setMultiselectWeekValue(false);
-	}
-	else {
-		setMultiselectWeekValue(true);
-	}
-	
-	onClickMultiselectWeek(event);
-}
-
-function onClickMultiselectWeek(event){
-	event.stopPropagation();
-	
-	var multiselectWeekChecked = $('#multiselectWeek').prop('checked');
-	
-	setMultiselectWeek(multiselectWeekChecked);
-	
-	if (multiselectWeekChecked){
-		showMultiselectWeekContainer();
-		showWeekCheckboxes();
-		hideAllWeekSelectorContainer();
-		hideWeekRadioButtons();
-		showWeekSelectorFooterContainer();
-	}
-	else {
-		hideMultiselectWeekContainer();
-		showAllWeekSelectorContainer();
-		showWeekRadioButtons();
-		hideWeekCheckboxes();
-		hideWeekSelectorFooterContainer();
-	}
-}
-
-function setMultiselectWeekValue(value){
-	if (value){
-		$('#multiselectWeek').prop('checked', true);
-	}
-	else {
-		$('#multiselectWeek').prop('checked', false);
-	}
-}
-
-function showAllWeekSelectorContainer(){
-	$('#week-selector-container-all').show();
-}
-
-function hideAllWeekSelectorContainer(){
-	$('#week-selector-container-all').hide();
-}
-
-function showMultiselectWeekContainer(){
-	$('#multiselectWeekContainer').show();
-}
-
-function hideMultiselectWeekContainer(){
-	$('#multiselectWeekContainer').hide();
-}
-
-function showWeekSelectorFooterContainer(){
-	$('#week-selector-footer-container').show();
-}
-
-function hideWeekSelectorFooterContainer(){
-	$('#week-selector-footer-container').hide();
-}
-
-//week-checkbox-input-
-function showWeekCheckboxes(){
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		showWeekCheckbox(weekValue);
-	}
-}
-
-function showWeekCheckbox(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-checkbox-input-' + normalizedValue).show();
-}
-
-function hideWeekCheckboxes(){
-	
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		hideWeekCheckbox(weekValue);
-	}
-}
-
-function hideWeekCheckbox(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-checkbox-input-' + normalizedValue).hide();
-}
-
-//week-radio-input-
-function showWeekRadioButtons(){
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		showWeekRadioButton(weekValue);
-	}
-}
-
-function showWeekRadioButton(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-radio-input-' + normalizedValue).show();
-}
-
-function hideWeekRadioButtons(){
-	
-	var weekValues = getAllWeekValues();
-	
-	for (var index = 0; index < weekValues.length; index++){
-		var weekValue = weekValues[index];
-		hideWeekRadioButton(weekValue);
-	}
-}
-
-function hideWeekRadioButton(weekValue){
-	var normalizedValue = normalizeWeekValue(weekValue);
-	$('#week-radio-input-' + normalizedValue).hide();
-}
-
-
-function setMultiselectWeek(value){
-	NFL_PICKS_GLOBAL.multiselectWeek = value;
-}
-
-function getMultiselectWeek(){
-	return NFL_PICKS_GLOBAL.multiselectWeek;
-}
-
-function onClickWeekSelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectWeek = getMultiselectWeek();
-	if (multiselectWeek){
-		removeWeekFromCurrentSelection('all');
-	}
-	hideWeekSelector();
-	var currentWeeks = getCurrentWeekSelections();
-	setSelectedWeeks(currentWeeks);
-	updateWeeksLink();
-	updateView();
-}
-
-function onClickWeekSelectionCancel(event){
-	event.stopPropagation();
-	resetAndHideWeekSelections();
-}
-
-function resetWeekSelections(){
-	unselectAllWeeksByValue();
-	var selectedWeekValues = getSelectedWeekValues();
-	setCurrentWeekSelections(selectedWeekValues);
-	selectWeeksByValue(selectedWeekValues);
-}
-
-function resetAndHideWeekSelections(){
 	resetWeekSelections();
-	hideWeekSelector();
-}
-
-function showWeekSelector(){
-	$('#weekSelectorContainer').show();
-}
-
-function hideWeekSelector(){
-	$('#weekSelectorContainer').hide();
-}
-
-var currentWeekSelections = [];
-
-function getCurrentWeekSelections(){
-	return currentWeekSelections;
-}
-
-function setCurrentWeekSelections(updatedSelections){
-	currentWeekSelections = updatedSelections;
-}
-
-function clearCurrentWeekSelections(){
-	currentWeekSelections = [];
-}
-
-
-/*
- '<div style="display: inline-block; width: 48%; text-align: left;"><a href="javascript:void(0);" onClick="onClickClearWeeks(event);">Clear</a></div>' +
-						   					'<div style="display: inline-block; width: 48%; text-align: right;"><a href="javascript:void(0);" onClick="onClickSelectAllWeeks(event);>Select all</a></div>' +
- */
-
-function onClickSelectAllWeeks(event){
+	resetTeamSelections();
 	
-	event.stopPropagation();
-	
-	var weeks = getAllWeeks();
-	
-	clearCurrentWeekSelections();
-	
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		selectWeek(week.value);
-		addWeekToCurrentSelection(week.value);
-	}
-}
-
-function onClickClearWeeks(event){
-	
-	event.stopPropagation();
-	
-	var weeks = getAllWeeks();
-	
-	clearCurrentWeekSelections();
-	
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		unselectWeek(week.value);
-		removeWeekFromCurrentSelection(week.value);
-	}
-}
-
-function onClickWeek(event, value){
-	event.stopPropagation();
-	
-	var multiselectWeek = getMultiselectWeek();
-	
-	if (multiselectWeek){
-		var indexOfValue = currentWeekSelections.indexOf(value);
-		if (indexOfValue >= 0){
-			unselectWeek(value);
-			removeWeekFromCurrentSelection(value);
-		}
-		else {
-			selectWeek(value);
-			addWeekToCurrentSelection(value);
-		}
-	}
-	else {
-		clearCurrentWeekSelections();
-		selectWeek(value);
-		addWeekToCurrentSelection(value);
-		onClickWeekSelectionOk(event);
-	}
-}
-
-function updateWeeksLink(){
-	
-	var selectedWeeks = getSelectedWeeks();
-	
-	//If there aren't any selected weeks, it should be "none"
-	if (isEmpty(selectedWeeks)){
-		$('#weeksLink').text('No weeks');
-		return;
-	}
-	
-	if (selectedWeeks.length == 1 && 'all' == selectedWeeks[0].value){
-		$('#weeksLink').text('All weeks');
-		return;
-	}
-	
-	sortOptionsByNumericValue(selectedWeeks);
-	
-	var linkText = '';
-	
-	for (var index = 0; index < selectedWeeks.length; index++){
-		var week = selectedWeeks[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
-		}
-		
-		linkText = linkText + week.label;
-	}
-	
-	$('#weeksLink').prop('title', linkText);
-	
-	if (linkText.length >= 25){
-		linkText = linkText.substring(0, 25) + '...';
-	}
-	
-	$('#weeksLink').text(linkText);
-}
-
-function showWeeksLink(){
-	$('#weeksLink').show();
-}
-
-function hideWeeksLink(){
-	$('#weeksLink').hide();
-}
-
-function selectAllWeeksByValue(){
-	var weekValues = getAllWeekValues();
-	selectWeeksByValue(weekValues);
-}
-
-function unselectAllWeeksByValue(){
-	var weekValues = getAllWeekValues();
-	unselectWeeksByValue(weekValues);
-}
-
-function selectWeeksByValue(values){
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		selectWeek(value);
-	}
-}
-
-function normalizeWeekValue(value){
-	var normalizedValue = normalizeString(value);
-	return normalizedValue;
-}
-
-function selectWeek(value){
-	var normalizedValue = normalizeWeekValue(value);
-	$('#week-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#week-radio-input-' + normalizedValue).prop('checked', true);
-}
-
-function addWeekToCurrentSelection(value){
-	currentWeekSelections.push(value);
+	updateTypeLink();
+	updatePlayersLink();
+	updateWeeksLink();
+	updateYearsLink();
+	updateTeamsLink();
+	updateStatNameLink();
 }
 
 /**
  * 
- * This function will completely unselect the week by its value.
- * It will make the week unselected on the ui, remove it from
- * the "current selections" array, and update the selected weeks
- * in the NFL_PICKS_GLOBAL variable.
+ * This function will set all the selections from the given parameters.  It's here
+ * so that we can do the "navigate forward and backward" thing.  We keep those parameters
+ * in maps and then, to go forward and backward, we just have to feed the map we want to
+ * this function.
  * 
- * @param value
+ * This function <i>WON'T</i> update the view.  You'll have to do that yourself after calling it.
+ * 
+ * @param parameters
  * @returns
  */
-function unselectWeekFull(value){
-	unselectWeek(value);
-	removeWeekFromCurrentSelection(value);
-	var currentWeeks = getCurrentWeekSelections();
-	setSelectedWeeks(currentWeeks);
-}
-
-function unselectWeeksByValue(weeks){
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		unselectWeek(week);
+function setSelectionsFromParameters(parameters){
+	
+	//Steps to do:
+	//	1. If the parameters don't have anything, there's nothing to do.
+	//	2. Otherwise, just go through and set each individual value.
+	
+	if (!isDefined(parameters)){
+		return;
+	}
+	
+	if (isDefined(parameters.type)){
+		setSelectedType(parameters.type);
+	}
+	
+	if (isDefined(parameters.player)){
+		setSelectedPlayers(parameters.player);
+	}
+	
+	if (isDefined(parameters.year)){
+		setSelectedYears(parameters.year);
+	}
+	
+	if (isDefined(parameters.week)){
+		setSelectedWeeks(parameters.week);
+	}
+	
+	if (isDefined(parameters.team)){
+		setSelectedTeams(parameters.team);
+	}
+	
+	if (isDefined(parameters.statName)){
+		setSelectedStatName(parameters.statName);
+	}
+	
+	if (isDefined(parameters.multiselectPlayer)){
+		setMultiselectPlayer(parameters.multiselectPlayer);
+		setMultiselectPlayerValue(parameters.multiselectPlayer);
+	}
+	
+	if (isDefined(parameters.multiselectYear)){
+		setMultiselectYear(parameters.multiselectYear);
+		setMultiselectYearValue(parameters.multiselectYear);
+	}
+	
+	if (isDefined(parameters.multiselectWeek)){
+		setMultiselectWeek(parameters.multiselectWeek);
+		setMultiselectWeekValue(parameters.multiselectWeek);
+	}
+	
+	if (isDefined(parameters.multiselectTeam)){
+		setMultiselectTeam(parameters.multiselectTeam);
+		setMultiselectTeamValue(parameters.multiselectTeam);
 	}
 }
 
-function unselectWeek(week){
-	var normalizedValue = normalizeWeekValue(week);
-	$('#week-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#week-radio-input-' + normalizedValue).prop('checked', false);
+
+/**
+ * 
+ * Gets all the values for each kind of parameter (type, year, week, ...)
+ * and returns them in a map with the key being the parameter.
+ * 
+ * Here so we can easily get what's selected (for the navigate forward and backward
+ * stuff).
+ * 
+ * @returns
+ */
+function getSelectedParameters(){
+	
+	var parameters = {};
+	
+	parameters.type = getSelectedType();
+	parameters.player = getSelectedPlayerValues();
+	parameters.year = getSelectedYearValues();
+	parameters.week = getSelectedWeekValues();
+	parameters.statName = getSelectedStatName();
+	parameters.team = getSelectedTeamValues();
+	parameters.multiselectPlayer = getMultiselectPlayer();
+	parameters.multiselectYear = getMultiselectYear();
+	parameters.multiselectWeek = getMultiselectWeek();
+	parameters.multiselectTeam = getMultiselectTeam();
+	
+	return parameters;
 }
 
-function removeWeekFromCurrentSelection(value){
-	var indexOfValue = currentWeekSelections.indexOf(value);
-	if (indexOfValue >= 0){
-		currentWeekSelections.splice(indexOfValue, 1);
+
+/**
+ * 
+ * This function will update the available options for the criteria based on what's selected.
+ * It's here mainly for the situation where you select an option in a "selector" and that option
+ * should cause options in other selectors to be either shown or hidden.
+ * 
+ * I made it for the situation where somebody picks a year and we should only show the teams
+ * that actually existed that year.  Like, if somebody picks "2020" as the year, we shouldn't
+ * show "OAK", but we should show "LV".
+ * 
+ * ... And now it's here to handle the change in week for the 2021 season where a 17th game was added.
+ * 
+ * It will farm the work out to other functions that handle the specific scenarios for each
+ * kind of "selector".
+ * 
+ * @returns
+ */
+function updateAvailableCriteriaOptions(){
+	
+	updateAvailableTeamOptions();
+	
+	updateAvailableWeekOptions();
+	
+	//updateAvailableWeekOptions.................
+	//
+	//main_updateAvailableTeamOptions
+}
+
+//updateSelectors
+
+/**
+ * 
+ * This function will update the selectors for the given type.  It just calls
+ * the specific type's update function.
+ * 
+ * It will also update the multi-selects so that the selected values are updated
+ * if they're selecting multiple "items" (multiple players, weeks, or years).
+ * 
+ * @param type
+ * @returns
+ */
+function updateSelectors(type){
+	
+	//Steps to do:
+	//	1. Call the function based on the type.
+	//	2. Update the multi selects.
+	
+	if ('picks' == type){
+		updatePicksSelectors(type);
+	}
+	else if ('standings' == type){
+		updateStandingsSelectors(type);
+	}
+	else if ('divisionStandings' == type){
+		updateDivisionStandingsSelectors(type);
+	}
+	else if ('stats' == type){
+		updateStatsSelectors(type);
 	}
 }
 
-function getAllWeeks(){
-	return NFL_PICKS_GLOBAL.weeks;
-}
-
-function getRealWeeks(){
-	return NFL_PICKS_GLOBAL.realWeeks;
-}
-
-function getAllWeekValues(){
-	var weekValues = [];
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.weeks.length; index++){
-		var week = NFL_PICKS_GLOBAL.weeks[index];
-		weekValues.push(week.value);
-	}
-	
-	return weekValues;
-}
-
-function getWeeks(values){
-	
-	var weeks = [];
-	
-	for (var index = 0; index < values.length; index++){
-		var value = values[index];
-		var week = getWeek(value);
-		if (week != null){
-			weeks.push(week);
-		}
-	}
-	
-	return weeks;
-}
-
-function getWeek(value){
-	
-	for (var index = 0; index < NFL_PICKS_GLOBAL.weeks.length; index++){
-		var week = NFL_PICKS_GLOBAL.weeks[index];
-		if (value == week.value){
-			return week;
-		}
-	}
-	
-	return null;
-}
-
-function getSelectedWeekValues(){
-	
-	var weekValues = [];
-	
-	var selectedWeeks = getSelectedWeeks();
-	
-	for (var index = 0; index < selectedWeeks.length; index++){
-		var selectedWeek = selectedWeeks[index];
-		weekValues.push(selectedWeek.value);
-	}
-	
-	return weekValues;
-}
-
-function getRegularSeasonWeeksForSelectedYears(){
-	
-	var selectedYearValues = getSelectedYearValues();
-	var integerYearValues = getValuesAsIntegers(selectedYearValues);
-	
-	var regularSeasonWeeksBefore2021 = ['1', '2', '3', '4', '5', '6', '7',
-								    '8', '9', '10', '11', '12', '13', '14',
-								    '15', '16', '17', 'wildcard', 'divisional', 'conference_championship',
-								    'superbowl'];
-	
-	var regularSeasonWeeksAfter2021 = ['1', '2', '3', '4', '5', '6', '7',
-	    '8', '9', '10', '11', '12', '13', '14',
-	    '15', '16', '17', '18', 'wildcard', 'divisional', 'conference_championship',
-	    'superbowl'];
-	
-	for (var index = 0; index < integerYearValues.length; index++){
-		var integerYearValue = integerYearValues[index];
-		
-		if (integerYearValue >= 2021){
-			return regularSeasonWeeksAfter2021;
-		}
-	}
-	
-	return regularSeasonWeeksBefore2021;
-}
-
-function getAllWeekValuesForSelectedYears(){
-	
-	var selectedYearValues = getSelectedYearValues();
-	
-	var integerYearValues = getValuesAsIntegers(selectedYearValues);
-	
-	//this needs to be redone
-	//there needs to be a map or something
-	//the weeks for a year maybe could be loaded from the database and turned
-	//into a map ... but then the ... yeah it needs to be like that
-	var availableWeeksBefore2021 = ['1', '2', '3', '4', '5', '6', '7',
-								    '8', '9', '10', '11', '12', '13', '14',
-								    '15', '16', '17', 'wildcard', 'divisional', 'conference_championship',
-								    'superbowl'];
-	
-	var availableWeeksAfter2021 = ['1', '2', '3', '4', '5', '6', '7',
-	    '8', '9', '10', '11', '12', '13', '14',
-	    '15', '16', '17', '18', 'wildcard', 'divisional', 'conference_championship',
-	    'superbowl'];
-	
-	for (var index = 0; index < selectedYearValues.length; index++){
-		var selectedYearValue = selectedYearValues[index];
-		
-		if ('all' == selectedYearValue){
-			return availableWeeksAfter2021;
-		}
-		
-		var integerYearValue = parseInt(selectedYearValue);
-		
-		if (integerYearValue >= 2021){
-			return availableWeeksAfter2021;
-		}
-	}
-	
-	return availableWeeksBefore2021;
-}
-
-function getPlayoffWeeksForSelectedYears(){
-	
-	var playoffWeeks = ['wildcard', 'divisional', 'conference_championship', 'superbowl'];
-	
-	return playoffWeeks;
-}
-
-function getWeekValuesForRequest(){
-	
-	var selectedValues = getSelectedWeekValues();
-	
-	var valuesToSend = [];
-	
-	for (var index = 0; index < selectedValues.length; index++){
-		var selectedValue = selectedValues[index];
-
-		//If all is a selected value, then we want to send all the
-		//possible weeks.		
-		if ('all' == selectedValue){
-			var allWeeks = getAllWeekValuesForSelectedYears();
-			valuesToSend = valuesToSend.concat(allWeeks);
-//			for (var index2 = 0; index2 < allWeeksForSelectedYears.length; index2++){
-//				var week = allWeeksForSelectedYears[index2];
-//				valuesToSend.push(week);
-//			}
-		}
-		//If they picked the regular season, get the regular season weeks for
-		//the selected years.
-		else if ('regular_season' == selectedValue){
-			var regularSeasonWeeks = getRegularSeasonWeeksForSelectedYears();
-			valuesToSend = valuesToSend.concat(regularSeasonWeeks);
-		}
-		else if ('playoffs' == selectedValue){
-			var playoffWeeks = getPlayoffWeeksForSelectedYears();
-			valuesToSend = valuesToSend.concat(playoffWeeks);
-		}
-		else {
-			valuesToSend.push(selectedValue);
-		}
-	}
-	
-	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
-	
-	var weekValuesForRequest = arrayToDelimitedValue(uniqueValues);
-	
-	return weekValuesForRequest;
-	
-}
-
-function getSelectedWeeks(){
-	return NFL_PICKS_GLOBAL.selections.weeks;
-}
-
-function getWeekSelectorContainerId(week){
-	
-	var normalizedWeekValue = normalizeWeekValue(week);
-	
-	var weekSelectorContainerId = 'week-selector-container-' + normalizedWeekValue;
-	
-	return weekSelectorContainerId;
-}
-
-function showWeekItem(week){
-	var weekSelectorContainerId = getWeekSelectorContainerId(week);
-	$('#' + weekSelectorContainerId).show();
-}
-
-function hideWeekItem(week){
-	var weekSelectorContainerId = getWeekSelectorContainerId(week);
-	$('#' + weekSelectorContainerId).hide();
-}
-
-function showWeekItems(weeks){
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		showWeekItem(week);
-	}
-}
-
-function hideWeekItems(weeks){
-	for (var index = 0; index < weeks.length; index++){
-		var week = weeks[index];
-		hideWeekItem(week);
-	}
-}
-
-function updateCurrentWeekSelections(){
-	var selectedWeekValues = getSelectedWeekValues();
-	setCurrentWeekSelections(selectedWeekValues);
+/**
+ * 
+ * A convenience function for hiding all the selector containers.  Not much
+ * to it.
+ * 
+ * @returns
+ */
+function hideSelectorContainers(){
+	hideTypeSelector();
+	hidePlayerSelector();
+	hideYearSelector();
+	hideWeekSelector();
+	hideStatNameSelector();
+	hideTeamSelector();
 }

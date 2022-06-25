@@ -1,29 +1,29 @@
-create sequence conference_id_sequence;
-create table conference (
-	id integer primary key default nextval('conference_id_sequence'),
+create sequence team_conference_id_sequence;
+create table team_conference (
+	id integer primary key default nextval('team_conference_id_sequence'),
 	name varchar(255) not null,
 	start_year varchar(4) not null default to_char(current_date, 'yyyy'),
 	end_year varchar(4),
 	current_name varchar(255) not null
 );
-create index on conference (name);
+create index on team_conference (name);
 
-create sequence division_id_sequence;
-create table division (
-	id integer primary key default nextval('division_id_sequence'),
-	conference_id integer references conference(id),
+create sequence team_division_id_sequence;
+create table team_division (
+	id integer primary key default nextval('team_division_id_sequence'),
+	team_conference_id integer references team_conference(id),
 	name varchar(255) not null,
 	start_year varchar(4) not null default to_char(current_date, 'yyyy'),
 	end_year varchar(4),
 	current_name varchar(255) not null
 );
-create index on division (conference_id);
-create index on division (name);
+create index on team_division (team_conference_id);
+create index on team_division (name);
 
 create sequence team_id_sequence;
 create table team (
 	id integer primary key default nextval('team_id_sequence'),
-	division_id integer references division(id) not null,
+	team_division_id integer references team_division(id) not null,
 	city varchar(255) not null,
 	nickname varchar(255) not null,
 	abbreviation varchar(255) not null,
@@ -31,7 +31,7 @@ create table team (
 	end_year varchar(4),
 	current_abbreviation varchar(255) not null
 );
-create index on team (division_id);
+create index on team (team_division_id);
 create index on team (city);
 create index on team (nickname);
 create index on team (abbreviation);
@@ -44,13 +44,6 @@ create table season (
 create index on season (year);
 
 create sequence week_id_sequence;
---create table week (
---	id integer primary key default nextval('week_id_sequence'),
---	season_id integer references season(id) not null,
---	week_number integer not null,
---	label varchar(255) not null
---);
---sequence_number			key							label						type
 create table week (
 	id integer primary key default nextval('week_id_sequence'),
 	season_id integer references season(id) not null,
@@ -64,6 +57,8 @@ create index on week (sequence_number);
 create index on week (type);
 create index on week (key);
 create index on week (label);
+create index on week (season_id, sequence_number);
+create index on week (season_id, type);
 create index on week (season_id, key);
 
 create sequence game_id_sequence;
@@ -78,6 +73,10 @@ create index on game (week_id);
 create index on game (home_team_id);
 create index on game (away_team_id);
 create index on game (winning_team_id);
+create index on game (week_id, home_team_id);
+create index on game (week_id, away_team_id);
+create index on game (week_id, winning_team_id);
+create index on game (week_id, home_team_id, away_team_id);
 
 create sequence player_id_sequence;
 create table player (
@@ -96,3 +95,30 @@ create table pick (
 create index on pick (game_id);
 create index on pick (player_id);
 create index on pick (team_id);
+create index on pick (game_id, player_id);
+create index on pick (game_id, player_id, team_id);
+create index on pick (player_id, team_id);
+
+create sequence division_id_sequence;
+create table division (
+	id integer primary key default nextval('division_id_sequence'),
+	name varchar(255) not null,
+	abbreviation varchar(255) not null
+);
+create index on division (name);
+create index on division (abbreviation);
+
+create sequence player_division_id_sequence;
+create table player_division (
+	id integer primary key default nextval('player_division_id_sequence'),
+	division_id integer references division(id),
+	player_id integer references player(id),
+	season_id integer references season(id)
+);
+create index on player_division (division_id);
+create index on player_division (player_id);
+create index on player_division (season_id);
+create index on player_division (division_id, player_id);
+create index on player_division (division_id, season_id);
+create index on player_division (player_id, season_id);
+create index on player_division (division_id, player_id, season_id);

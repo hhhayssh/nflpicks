@@ -124,6 +124,11 @@ public interface NFLPicksConstants {
 	public static final String JSON_PLAYER_ID = "id";
 	public static final String JSON_PLAYER_NAME = "name";
 	
+	public static final String JSON_DIVISION_ID = "id";
+	public static final String JSON_DIVISION_NAME = "name";
+	public static final String JSON_DIVISION_ABBREVIATION = "abbreviation";
+	public static final String JSON_DIVISION_PLAYERS = "players";
+	
 	public static final String JSON_PICK_ID = "id";
 	public static final String JSON_PICK_GAME = "game";
 	public static final String JSON_PICK_PLAYER = "player";
@@ -134,6 +139,9 @@ public interface NFLPicksConstants {
 	public static final String JSON_RECORD_WINS = "wins";
 	public static final String JSON_RECORD_LOSSES = "losses";
 	public static final String JSON_RECORD_TIES = "ties";
+	
+	public static final String JSON_DIVISION_RECORD_DIVISION = "division";
+	public static final String JSON_DIVISION_RECORD_RECORDS = "records";
 	
 	public static final String JSON_WEEK_RECORD_SEASON = "season";
 	public static final String JSON_WEEK_RECORD_WEEK = "week";
@@ -163,15 +171,26 @@ public interface NFLPicksConstants {
 	public static final String JSON_CHAMPIONSHIPS_FOR_PLAYER_PLAYER = "player";
 	public static final String JSON_CHAMPIONSHIPS_FOR_PLAYER_CHAMPIONSHIPS = "championships";
 	
+	public static final String JSON_DIVISION_TITLE_DIVISION = "division";
+	public static final String JSON_DIVISION_TITLE_PLAYER = "player";
+	public static final String JSON_DIVISION_TITLE_SEASON = "season";
+	public static final String JSON_DIVISION_TITLE_RECORD = "record";
+	
+	public static final String JSON_DIVISION_TITLES_FOR_PLAYER_PLAYER = "player";
+	public static final String JSON_DIVISION_TITLES_FOR_PLAYER_DIVISION_TITLES = "divisionTitles";
+	
 	public static final String JSON_PICK_GRID_PLAYERS = "players";
 	public static final String JSON_PICK_GRID_GAMES = "games";
 	public static final String JSON_PICK_GRID_PICKS = "picks";
 	
 	public static final String JSON_STANDINGS_RECORDS = "records";
 	
+	public static final String JSON_STANDINGS_DIVISION_RECORDS = "divisionRecords";
+	
 	public static final String JSON_SELECTION_CRITERIA_YEARS = "years";
 	public static final String JSON_SELECTION_CRITERIA_PLAYERS = "players";
 	public static final String JSON_SELECTION_CRITERIA_TEAMS = "teams";
+	public static final String JSON_SELECTION_CRITERIA_DIVISIONS_ENABLED = "divisionsEnabled";
 	
 	public static final String JSON_CURRENT_YEAR = "currentYear";
 	public static final String JSON_CURRENT_WEEK_KEY = "currentWeekKey";
@@ -234,6 +253,10 @@ public interface NFLPicksConstants {
 	
 	public static final String DATA_MANAGEMENT_IMPORT_TYPE_TEAM_DATA = "team_data";
 	
+	public static final String DATA_MANAGEMENT_IMPORT_TYPE_DIVISION_DATA = "division_data";
+	
+	public static final String DATA_MANAGEMENT_IMPORT_TYPE_PLAYER_DIVISION_DATA = "player_division_data";
+	
 	/**
 	 * 
 	 * Says we're doing an export of picks with the data manager.
@@ -244,4 +267,8 @@ public interface NFLPicksConstants {
 	public static final String DATA_MANAGEMENT_EXPORT_TYPE_PICKS = "picks";
 	
 	public static final String DATA_MANAGEMENT_EXPORT_TYPE_TEAM_DATA = "team_data";
+	
+	public static final String DATA_MANAGEMENT_EXPORT_TYPE_DIVISION_DATA = "division_data";
+	
+	public static final String DATA_MANAGEMENT_EXPORT_TYPE_PLAYER_DIVISION_DATA = "player_division_data";
 }

@@ -2,6 +2,8 @@ package nflpicks;
 
 import java.util.Scanner;
 
+import org.apache.log4j.Logger;
+
 /**
  * 
  * This class is here so we can do either importing or exporting from the command line.  You
@@ -23,6 +25,8 @@ import java.util.Scanner;
  *
  */
 public class NFLPicksDataManager {
+	
+	private static final Logger log = Logger.getLogger(NFLPicksDataManager.class);
 	
 	/**
 	 * 
@@ -56,31 +60,10 @@ public class NFLPicksDataManager {
 		String propertiesFilename = null;
 		String filename = null;
 		
+		NFLPicksDataManager dataManager = new NFLPicksDataManager();
+		
 		if (args.length == 0){
-			Scanner scanner = new Scanner(System.in);
-			
-			System.out.println("Properties file:");
-			propertiesFilename = scanner.nextLine();
-			
-			System.out.println("Import or export:");
-			type = scanner.nextLine();
-			
-			if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equals(type)){
-				System.out.println("Import type (picks or team_data):");
-				importType = scanner.nextLine();
-				
-				System.out.println("Import file:");
-				filename = scanner.nextLine();
-			}
-			else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equals(type)){
-				System.out.println("Export type (picks or team_data):");
-				exportType = scanner.nextLine();
-				
-				System.out.println("Export file:");
-				filename = scanner.nextLine();
-			}
-			
-			scanner.close();
+			dataManager.importManually();
 		}
 		else if (args.length == 3){
 			propertiesFilename = args[0];
@@ -94,37 +77,130 @@ public class NFLPicksDataManager {
 			}
 			
 			filename = args[3];
+			
+			ApplicationContext.getContext().initialize(propertiesFilename);
+			NFLPicksDataService dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
+			
+			dataManager.process(type, importType, exportType, filename, dataService);
 		}
 		else {
 			System.out.println("Bad input!");
 			return;
 		}
+	}
+	
+	/**
+	 * 
+	 * This function will let us import manually from the console.  It will run in a loop so we can import or
+	 * export more than one file without restarting the program.
+	 * 
+	 */
+	protected void importManually(){
+		
+		//Steps to do:
+		//	1. Get the properties file that says what database to connect to.
+		//	2. Ask what to do.
+		//	3. Do it.
+		//	4. Ask if we should do something else.
+		
+		Scanner scanner = new Scanner(System.in);
+		
+		System.out.println("Properties file:");
+		String propertiesFilename = scanner.nextLine();
 		
 		ApplicationContext.getContext().initialize(propertiesFilename);
 		NFLPicksDataService dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
 		
-		if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equals(type)){
-			NFLPicksDataImporter dataImporter = new NFLPicksDataImporter(dataService);
-			if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_PICKS.equals(importType)){
-				dataImporter.importPicksData(filename);
+		boolean keepGoing = true;
+		
+		while (keepGoing){
+			keepGoing = false;
+			
+			System.out.println("Import or export:");
+			String type = scanner.nextLine();
+			
+			String filename = null;
+			String importType = null;
+			String exportType = null;
+			
+			if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equals(type)){
+				System.out.println("Import type (picks, team_data, division_data, or player_division_data):");
+				importType = scanner.nextLine();
+				
+				System.out.println("Import file:");
+				filename = scanner.nextLine();
 			}
-			else if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_TEAM_DATA.equals(importType)){
-				dataImporter.importTeamData(filename);
+			else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equals(type)){
+				System.out.println("Export type (picks or team_data, division_data, or player_division_data):");
+				exportType = scanner.nextLine();
+				
+				System.out.println("Export file:");
+				filename = scanner.nextLine();
+			}
+			
+			process(type, importType, exportType, filename, dataService);
+			
+			System.out.println("Keep going (yes or no)?");
+			
+			String keepGoingValue = scanner.nextLine().trim();
+			
+			if ("yes".equals(keepGoingValue)){
+				keepGoing = true;
 			}
 		}
-		else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equals(type)){
+		
+		scanner.close();
+	}
+	
+	/**
+	 * 
+	 * This will call the functions that do the work.  Put it in a separate function so it could be called by other functions.
+	 * 
+	 * @param type
+	 * @param importType
+	 * @param exportType
+	 * @param filename
+	 * @param dataService
+	 */
+	protected void process(String type, String importType, String exportType, String filename, NFLPicksDataService dataService){
+		
+		if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_IMPORT.equalsIgnoreCase(type)){
+			NFLPicksDataImporter dataImporter = new NFLPicksDataImporter(dataService);
+			
+			if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_PICKS.equalsIgnoreCase(importType)){
+				dataImporter.importPicksData(filename);
+			}
+			else if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_TEAM_DATA.equalsIgnoreCase(importType)){
+				dataImporter.importTeamData(filename);
+			}
+			else if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_DIVISION_DATA.equalsIgnoreCase(importType)){
+				dataImporter.importDivisionData(filename);
+			}
+			else if (NFLPicksConstants.DATA_MANAGEMENT_IMPORT_TYPE_PLAYER_DIVISION_DATA.equalsIgnoreCase(importType)){
+				dataImporter.importPlayerDivisionData(filename);
+			}
+			else {
+				log.error("Well, that's just your opinion, man.");
+			}
+		}
+		else if (NFLPicksConstants.DATA_MANAGEMENT_TYPE_EXPORT.equalsIgnoreCase(type)){
 			NFLPicksDataExporter dataExporter = new NFLPicksDataExporter(dataService);
 			
-			if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_PICKS.equals(exportType)){
+			if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_PICKS.equalsIgnoreCase(exportType)){
 				dataExporter.exportPicksData(filename);
 			}
 			else if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_TEAM_DATA.equals(exportType)){
 				dataExporter.exportTeamData(filename);
 			}
-		}
-		else {
-			System.out.println("You suck.");
-			return;
+			else if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_DIVISION_DATA.equalsIgnoreCase(exportType)){
+				dataExporter.exportDivisionData(filename);
+			}
+			else if (NFLPicksConstants.DATA_MANAGEMENT_EXPORT_TYPE_PLAYER_DIVISION_DATA.equalsIgnoreCase(exportType)){
+				dataExporter.exportPlayerDivisionData(filename);
+			}
+			else {
+				log.info("Huh?  What?");
+			}
 		}
 	}
 }

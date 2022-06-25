@@ -4,73 +4,35 @@ import java.util.List;
 
 /**
  * 
- * Represents the division that a team is in.  Each division
- * is in a conference.
+ * This represents a division with players in it, not a division with teams.
+ * Because I assume people will change divisions more than teams, I made a separate
+ * "PlayerDivision" object to link players, divisions, and seasons.
  * 
  * @author albundy
  *
  */
 public class Division {
-	
-	/**
-	 * The division's id.
-	 */
+
 	protected int id;
 	
-	/**
-	 * The conference the division is in.
-	 */
-	protected int conferenceId;
-	
-	/**
-	 * The name of the division.
-	 */
 	protected String name;
 	
-	/**
-	 * The teams in the division.
-	 */
-	protected List<Team> teams;
+	protected String abbreviation;
 	
-	/**
-	 * The year the division started.
-	 */
-	protected String startYear;
-	
-	/**
-	 * If the division was changed, this is the year it ended.
-	 */
-	protected String endYear;
-	
-	/**
-	 * If the division has ended, this is the name of the active division it's
-	 * linked to.
-	 */
-	protected String currentName;
+	protected List<Player> players;
 	
 	public Division(){
 	}
 	
-	/**
-	 * 
-	 * A convenience constructor for making a division without using all the setters.
-	 * 
-	 * @param id
-	 * @param conferenceId
-	 * @param name
-	 * @param teams
-	 * @param startYear
-	 * @param endYear
-	 * @param currentName
-	 */
-	public Division(int id, int conferenceId, String name, List<Team> teams, String startYear, String endYear, String currentName){
+	public Division(int id, String name, String abbreviation){
+		this(id, name, abbreviation, null);
+	}
+	
+	public Division(int id, String name, String abbreviation, List<Player> players){
 		this.id = id;
-		this.conferenceId = conferenceId;
 		this.name = name;
-		this.teams = teams;
-		this.startYear = startYear;
-		this.endYear = endYear;
-		this.currentName = currentName;
+		this.abbreviation = abbreviation;
+		this.players = players;
 	}
 
 	public int getId() {
@@ -80,14 +42,6 @@ public class Division {
 	public void setId(int id) {
 		this.id = id;
 	}
-	
-	public int getConferenceId() {
-		return conferenceId;
-	}
-
-	public void setConferenceId(int conferenceId) {
-		this.conferenceId = conferenceId;
-	}
 
 	public String getName() {
 		return name;
@@ -96,55 +50,23 @@ public class Division {
 	public void setName(String name) {
 		this.name = name;
 	}
-	
-	public List<Team> getTeams(){
-		return teams;
-	}
-	
-	public void setTeams(List<Team> teams){
-		this.teams = teams;
-	}
-	
-	public String getStartYear() {
-		return startYear;
+
+	public String getAbbreviation() {
+		return abbreviation;
 	}
 
-	public void setStartYear(String startYear) {
-		this.startYear = startYear;
+	public void setAbbreviation(String abbreviation) {
+		this.abbreviation = abbreviation;
 	}
 
-	public String getEndYear() {
-		return endYear;
+	public List<Player> getPlayers() {
+		return players;
 	}
 
-	public void setEndYear(String endYear) {
-		this.endYear = endYear;
+	public void setPlayers(List<Player> players) {
+		this.players = players;
 	}
 	
-	public String getCurrentName() {
-		return currentName;
-	}
-
-	public void setCurrentName(String currentName) {
-		this.currentName = currentName;
-	}
-
-	/**
-	 * 
-	 * A convenience function for figuring out whether this division is active or not
-	 * without having to do "endYear != null".
-	 * 
-	 * @return
-	 */
-	public boolean isActive(){
-		
-		if (endYear != null){
-			return false;
-		}
-		
-		return true;
-	}
-
 	/**
 	 * 
 	 * The hash code should turn this object into a relatively unique number
@@ -165,12 +87,9 @@ public class Division {
 		int result = 1;
 		
 		result = primeNumber * result + Integer.valueOf(id).hashCode();
-		result = primeNumber * result + Integer.valueOf(conferenceId).hashCode();
 		result = primeNumber * result + (name == null ? 0 : name.hashCode());
-		result = primeNumber * result + (teams == null ? 0 : teams.hashCode());
-		result = primeNumber * result + (startYear == null ? 0 : startYear.hashCode());
-		result = primeNumber * result + (endYear == null ? 0 : endYear.hashCode());
-		result = primeNumber * result + (currentName == null ? 0 : currentName.hashCode());
+		result = primeNumber * result + (abbreviation == null ? 0 : abbreviation.hashCode());
+		result = primeNumber * result + (players == null ? 0 : players.hashCode());
 		
 		return result;
 	}
@@ -196,7 +115,7 @@ public class Division {
 			return true;
 		}
 		
-		if (object == null || !(object instanceof Division)){
+		if (object == null || !(object instanceof TeamDivision)){
 			return false;
 		}
 		
@@ -205,12 +124,6 @@ public class Division {
 		int otherId = otherDivision.getId();
 		
 		if (id != otherId){
-			return false;
-		}
-		
-		int otherConferenceId = otherDivision.getConferenceId();
-		
-		if (conferenceId != otherConferenceId){
 			return false;
 		}
 		
@@ -227,57 +140,31 @@ public class Division {
 			}
 		}
 		
-		List<Team> otherTeams = otherDivision.getTeams();
+		String otherAbbreviation = otherDivision.getAbbreviation();
 		
-		if (teams != null){
-			if (!teams.equals(otherTeams)){
+		if (abbreviation != null){
+			if (!abbreviation.equals(otherAbbreviation)){
 				return false;
 			}
 		}
 		else {
-			if (otherTeams != null){
+			if (otherAbbreviation != null){
 				return false;
 			}
 		}
 		
-		String otherStartYear = otherDivision.getStartYear();
+		List<Player> otherPlayers = otherDivision.getPlayers();
 		
-		if (startYear != null){
-			if (!startYear.equals(otherStartYear)){
+		if (players != null){
+			if (!players.equals(otherPlayers)){
 				return false;
 			}
 		}
 		else {
-			if (otherStartYear != null){
+			if (otherPlayers != null){
 				return false;
 			}
-		}
-		
-		String otherEndYear = otherDivision.getEndYear();
-		
-		if (endYear != null){
-			if (!endYear.equals(otherEndYear)){
-				return false;
-			}
-		}
-		else {
-			if (otherEndYear != null){
-				return false;
-			}
-		}
-		
-		String otherCurrentName = otherDivision.getCurrentName();
-		
-		if (currentName != null){
-			if (!currentName.equals(otherCurrentName)){
-				return false;
-			}
-		}
-		else {
-			if (otherCurrentName != null){
-				return false;
-			}
-		}
+		} 
 		
 		return true;
 	}
@@ -291,11 +178,9 @@ public class Division {
 	public String toString(){
 		
 		String thisObjectAsAString = "id = " + id + 
-									 ", conferenceId = " + conferenceId +
 									 ", name = " + name + 
-									 ", teams = " + teams + 
-									 ", startYear = " + startYear + 
-									 ", endYear = " + endYear;
+									 ", abbreviation = " + abbreviation + 
+									 ", players = " + players;
 		
 		return thisObjectAsAString;
 	}

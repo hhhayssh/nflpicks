@@ -13,6 +13,7 @@
 		<nflpicks.jdbc.username>nflpicks</nflpicks.jdbc.username>
 		<nflpicks.jdbc.password></nflpicks.jdbc.password>
 		<nflpicks.log.location>/var/log/nflpicks/nflpicks.log</nflpicks.log.location>
+		<nflpicks.edit.key></nflpicks.edit.key>
 	</properties>
 	<profiles>
 		<!-- The profile to use to build the nflpicks jar by itself and use the picks "data manager" to import or export stuff.
@@ -147,7 +148,7 @@
     										<includes>
     											<include>nflpicks_create_tables.sql</include>
     											<include>nflpicks_create_views.sql</include>
-    											<include>nflpicks_insert_teams.sql</include>
+    											<include>nflpicks_create_materialized_views.sql</include>
     										</includes>
     										<filtering>false</filtering>
     									</resource>

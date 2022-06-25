@@ -15,7 +15,7 @@ function getSelectionCriteriaAndInitialize(){
 	)
 	.done(function(data) {
 		var selectionCriteriaContainer = $.parseJSON(data);
-
+		
 		if (selectionCriteriaContainer.error){
 			$(document.body).empty();
 			$(document.body).append('<div>Interception!  40 ... 30 ... 25 ... 20 ... He could go ... all ... the ... way! </div>');
@@ -61,6 +61,12 @@ function getSelectionCriteriaAndInitialize(){
 
 		setOptionsInSelect('player', playerOptions);
 
+		var currentWeekKey = selectionCriteriaContainer.currentWeekKey;
+		var currentYear = selectionCriteriaContainer.currentYear;
+		
+		setSelectedWeek(currentWeekKey);
+		setSelectedYear(currentYear);
+		
 		updateView();
 	})
 	.fail(function() {

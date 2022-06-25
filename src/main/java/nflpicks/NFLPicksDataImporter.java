@@ -10,13 +10,15 @@ import java.util.Scanner;
 
 import org.apache.log4j.Logger;
 
-import nflpicks.model.Conference;
 import nflpicks.model.Division;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
+import nflpicks.model.PlayerDivision;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
+import nflpicks.model.TeamConference;
+import nflpicks.model.TeamDivision;
 import nflpicks.model.Week;
 
 /**
@@ -50,7 +52,7 @@ public class NFLPicksDataImporter {
 	 * to go to the database we need a conference object from its abbreviation.
 	 * 
 	 */
-	protected Map<String, Conference> conferenceCache;
+	protected Map<String, TeamConference> teamConferenceCache;
 	
 	/**
 	 * 
@@ -58,7 +60,7 @@ public class NFLPicksDataImporter {
 	 * to go to the database we need a division object from its abbreviation.
 	 * 
 	 */
-	protected Map<String, Division> divisionCache;
+	protected Map<String, TeamDivision> teamDivisionCache;
 	
 	/**
 	 * 
@@ -92,6 +94,22 @@ public class NFLPicksDataImporter {
 	 * 
 	 */
 	protected Map<String, Player> playerCache;
+	
+	/**
+	 * 
+	 * A cache from the division name to the division object.  Here so we won't have to go to
+	 * the database every time we need a division by its name.
+	 * 
+	 */
+	protected Map<String, Division> divisionCache;
+	
+	/**
+	 * 
+	 * A cache from the player and division key combo to the player division object.  Here so we don't
+	 * have to go to the database every time we need to get a player division object.
+	 * 
+	 */
+	protected Map<String, PlayerDivision> playerDivisionCache;
 	
 	/**
 	 * 
@@ -161,12 +179,14 @@ public class NFLPicksDataImporter {
 	 * @param dataService
 	 */
 	public NFLPicksDataImporter(NFLPicksDataService dataService){
-		this.conferenceCache = new HashMap<String, Conference>();
-		this.divisionCache = new HashMap<String, Division>();
+		this.teamConferenceCache = new HashMap<String, TeamConference>();
+		this.teamDivisionCache = new HashMap<String, TeamDivision>();
 		this.teamCache = new HashMap<String, Team>();
 		this.seasonCache = new HashMap<String, Season>();
 		this.weekCache = new HashMap<String, Week>();
 		this.playerCache = new HashMap<String, Player>();
+		this.divisionCache = new HashMap<String, Division>();
+		this.playerDivisionCache = new HashMap<String, PlayerDivision>();
 		this.gameCache = new HashMap<String, Game>();
 		this.pickCache = new HashMap<String, Pick>();
 		this.dataService = dataService;
@@ -250,15 +270,15 @@ public class NFLPicksDataImporter {
 				String teamEndYear = values.get(12);
 				String currentTeamAbbreviation = values.get(13);
 				
-				Conference conference = getConference(conferenceName);
+				TeamConference conference = getTeamConference(conferenceName);
 				if (conference == null){
-					conference = createConference(conferenceName, conferenceStartYear, conferenceEndYear, currentConferenceName);
+					conference = createTeamConference(conferenceName, conferenceStartYear, conferenceEndYear, currentConferenceName);
 					log.info("Created conference: " + conference);
 				}
 				
-				Division division = getDivision(conferenceName, divisionName);
+				TeamDivision division = getTeamDivision(conferenceName, divisionName);
 				if (division == null){
-					division = createDivision(conference, divisionName, divisionStartYear, divisionEndYear, currentDivisionName);
+					division = createTeamDivision(conference, divisionName, divisionStartYear, divisionEndYear, currentDivisionName);
 					log.info("Created division: " + division);
 				}
 
@@ -279,6 +299,151 @@ public class NFLPicksDataImporter {
 		long elapsed = System.currentTimeMillis() - start;
 		
 		log.info("Done importing team data.  Took " + elapsed + " ms from file " + filename);
+	}
+	
+	/**
+	 * 
+	 * This function will import the divisions from the give filename.  It expects it
+	 * to be in a csv file like this: division name, abbreviation
+	 * 
+	 * i should make a "multi csv file" that has multiple csvs in it ... there should
+	 * be like the picks csv with the players, games, and picks and then the "model" csv
+	 * that has the teams, player divisions, and everything else in it
+	 * 
+	 * there should be a certain number of newlines or some kind of delimiter that separates
+	 * each csv in the multi csv
+	 * 
+	 * maybe 
+	 * 
+	 * ==========end csv: csv name==================
+	 * 
+	 * ================start csv: csv name==================
+	 * 
+	 * @param filename
+	 */
+	public void importDivisionData(String filename){
+		
+		log.info("Importing division data ...");
+		
+		long start = System.currentTimeMillis();
+		
+		int totalNumberOfLines = Util.getLineCount(filename);
+		log.info("Found " + totalNumberOfLines + " lines in " + filename);
+		
+		log.info("Importing data from lines...");
+		
+		BufferedReader reader = null;
+		int lineNumber = 0;
+		String line = null;
+		
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			
+			while ((line = reader.readLine() )!= null){
+				
+				//Skip the header...
+				if (lineNumber == 0){
+					lineNumber++;
+					continue;
+				}
+
+				//Turn the csv line into a list so we can handle it easier.
+				List<String> values = Util.getCsvValues(line);
+				if (values.size() != 2){
+					log.error("Bad line!  lineNumber = " + lineNumber + ", line = " + line);
+					continue;
+				}
+				
+				String divisionName = values.get(0);
+				String abbreviation = values.get(1);
+				
+				Division division = getDivision(divisionName);
+				if (division == null){
+					division = createDivision(divisionName, abbreviation);
+					
+					log.info("Created division: " + division);
+				}
+			}
+		}
+		catch (Exception e){
+			log.error("Error importing division data!  lineNumber = " + lineNumber + ", filename = " + filename, e);
+		}
+		finally {
+			Util.closeReader(reader);
+		}
+		
+		long elapsed = System.currentTimeMillis() - start;
+		
+		log.info("Done importing division data.  Took " + elapsed + " ms from file " + filename);
+	}
+	
+	/**
+	 * 
+	 * This function will import the "player division data" from the given file.  Each line in the file should
+	 * have the division name, player name, and year for the player/division "relationship", in that order.
+	 * 
+	 * It pretty much just does what the other ones do.  Reads each line, tries to turn it into an object, and then
+	 * saves the object (inserts or updates).
+	 * 
+	 * @param filename
+	 */
+	public void importPlayerDivisionData(String filename){
+		
+		log.info("Importing player division data ...");
+		
+		long start = System.currentTimeMillis();
+		
+		int totalNumberOfLines = Util.getLineCount(filename);
+		log.info("Found " + totalNumberOfLines + " lines in " + filename);
+		
+		log.info("Importing data from lines...");
+		BufferedReader reader = null;
+		int lineNumber = 0;
+		String line = null;
+		
+		try {
+			reader = new BufferedReader(new FileReader(filename));
+			
+			while ((line = reader.readLine() )!= null){
+				
+				//Skip the header...
+				if (lineNumber == 0){
+					lineNumber++;
+					continue;
+				}
+
+				//Turn the csv line into a list so we can handle it easier.
+				List<String> values = Util.getCsvValues(line);
+				if (values.size() != 3){
+					log.error("Bad line!  lineNumber = " + lineNumber + ", line = " + line);
+					continue;
+				}
+				
+				String divisionName = values.get(0);
+				String playerName = values.get(1);
+				String year = values.get(2);
+				
+				PlayerDivision playerDivision = getPlayerDivision(divisionName, playerName, year);
+				if (playerDivision == null){
+					Division division = getDivision(divisionName);
+					Player player = getPlayer(playerName);
+					Season season = getSeason(year);
+					playerDivision = createPlayerDivision(division, player, season);
+					
+					log.info("Created player division: " + playerDivision);
+				}
+			}
+		}
+		catch (Exception e){
+			log.error("Error importing player division data!  lineNumber = " + lineNumber + ", filename = " + filename, e);
+		}
+		finally {
+			Util.closeReader(reader);
+		}
+		
+		long elapsed = System.currentTimeMillis() - start;
+		
+		log.info("Done importing player division data.  Took " + elapsed + " ms from file " + filename);
 	}
 	
 	/**
@@ -521,13 +686,13 @@ public class NFLPicksDataImporter {
 	 * @param name
 	 * @return
 	 */
-	protected Conference getConference(String name){
+	protected TeamConference getTeamConference(String name){
 		
-		Conference conference = conferenceCache.get(name);
+		TeamConference conference = teamConferenceCache.get(name);
 		
 		if (conference == null){
-			conference = dataService.getConference(name, true);
-			conferenceCache.put(name, conference);
+			conference = dataService.getTeamConference(name, true);
+			teamConferenceCache.put(name, conference);
 		}
 		
 		return conference;
@@ -543,10 +708,10 @@ public class NFLPicksDataImporter {
 	 * @param currentName
 	 * @return
 	 */
-	protected Conference createConference(String name, String startYear, String endYear, String currentName){
+	protected TeamConference createTeamConference(String name, String startYear, String endYear, String currentName){
 		
-		Conference conference = new Conference(-1, name, null, startYear, endYear, currentName);
-		Conference savedConference = dataService.saveConference(conference);
+		TeamConference conference = new TeamConference(-1, name, null, startYear, endYear, currentName);
+		TeamConference savedConference = dataService.saveTeamConference(conference);
 		
 		return savedConference;
 	}
@@ -560,13 +725,13 @@ public class NFLPicksDataImporter {
 	 * @param name
 	 * @return
 	 */
-	protected Division getDivision(String conferenceName, String name){
+	protected TeamDivision getTeamDivision(String conferenceName, String name){
 		
-		Division division = divisionCache.get(name);
+		TeamDivision division = teamDivisionCache.get(name);
 		
 		if (division == null){
-			division = dataService.getDivision(conferenceName, name, true);
-			divisionCache.put(name, division);
+			division = dataService.getTeamDivision(conferenceName, name, true);
+			teamDivisionCache.put(name, division);
 		}
 		
 		return division;
@@ -583,10 +748,10 @@ public class NFLPicksDataImporter {
 	 * @param currentName
 	 * @return
 	 */
-	protected Division createDivision(Conference conference, String name, String startYear, String endYear, String currentName){
+	protected TeamDivision createTeamDivision(TeamConference conference, String name, String startYear, String endYear, String currentName){
 		
-		Division division = new Division(-1, conference.getId(), name, null, startYear, endYear, currentName);
-		Division savedDivision = dataService.saveDivision(division);
+		TeamDivision division = new TeamDivision(-1, conference.getId(), name, null, startYear, endYear, currentName);
+		TeamDivision savedDivision = dataService.saveTeamDivision(division);
 		
 		return savedDivision;
 	}
@@ -605,7 +770,7 @@ public class NFLPicksDataImporter {
 		Season season = seasonCache.get(year);
 		
 		if (season == null){
-			season = dataService.getSeasonByYear(year);
+			season = dataService.getSeasonByYear(year, true);
 			seasonCache.put(year, season);
 		}
 		
@@ -727,12 +892,89 @@ public class NFLPicksDataImporter {
 	 * @param currentAbbreviation
 	 * @return
 	 */
-	protected Team createTeam(Division division, String city, String nickname, String abbreviation, String startYear, String endYear, String currentAbbreviation){
+	protected Team createTeam(TeamDivision division, String city, String nickname, String abbreviation, String startYear, String endYear, String currentAbbreviation){
 		
 		Team team = new Team(-1, division.getId(), city, nickname, abbreviation, startYear, endYear, currentAbbreviation);
 		Team savedTeam = dataService.saveTeam(team);
 		
 		return savedTeam;
+	}
+	
+	
+	/**
+	 * 
+	 * Gets the division for the given name.  It'll get it out of the cache if it's
+	 * there and go to the database if it's not.
+	 * 
+	 * @param conferenceName
+	 * @param name
+	 * @return
+	 */
+	protected Division getDivision(String name){
+		
+		Division division = divisionCache.get(name);
+		
+		if (division == null){
+			division = dataService.getDivisionByName(name, true);
+			divisionCache.put(name, division);
+		}
+		
+		return division;
+	}
+	
+	/**
+	 * 
+	 * Creates a division with the given name and abbreviation.
+	 * 
+	 * @param name
+	 * @param abbreviation
+	 * @return
+	 */
+	protected Division createDivision(String name, String abbreviation){
+		
+		Division division = new Division(-1, name, abbreviation, null);
+		Division savedDivision = dataService.saveDivision(division);
+		
+		return savedDivision;
+	}
+	
+	/**
+	 * 
+	 * Gets the player division for the division, player name, and year.  It'll get it out of the cache if it's
+	 * there and go to the database if it's not.
+	 * 
+	 * @param conferenceName
+	 * @param name
+	 * @return
+	 */
+	protected PlayerDivision getPlayerDivision(String divisionName, String playerName, String year){
+		
+		String playerDivisionKey = this.getPlayerDivisionKey(divisionName, playerName, year);
+		PlayerDivision playerDivision = playerDivisionCache.get(playerDivisionKey);
+		
+		if (playerDivision == null){
+			playerDivision = dataService.getPlayerDivision(divisionName, playerName, year);
+			playerDivisionCache.put(playerDivisionKey, playerDivision);
+		}
+		
+		return playerDivision;
+	}
+	
+	/**
+	 * 
+	 * Creates a player division with the given division, player, and season.
+	 * 
+	 * @param division
+	 * @param player
+	 * @param season
+	 * @return
+	 */
+	protected PlayerDivision createPlayerDivision(Division division, Player player, Season season){
+		
+		PlayerDivision playerDivision = new PlayerDivision(-1, division, player, season);
+		PlayerDivision savedPlayerDivision = dataService.savePlayerDivision(playerDivision);
+		
+		return savedPlayerDivision;
 	}
 	
 	/**
@@ -858,6 +1100,19 @@ public class NFLPicksDataImporter {
 	 */
 	protected String getPickKey(String year, String week, String awayTeamAbbreviation, String homeTeamAbbreviation, String playerName){
 		return year + "-" + week + "-" + awayTeamAbbreviation + "-" + homeTeamAbbreviation + "-" + playerName;
+	}
+	
+	/**
+	 * 
+	 * Gets the key for the given player division.
+	 * 
+	 * @param divisionName
+	 * @param playerName
+	 * @param year
+	 * @return
+	 */
+	protected String getPlayerDivisionKey(String divisionName, String playerName, String year){
+		return divisionName + "-" + playerName + "-" + year;
 	}
 	
 	/**

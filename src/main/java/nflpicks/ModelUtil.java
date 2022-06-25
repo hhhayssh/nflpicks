@@ -269,6 +269,27 @@ public class ModelUtil {
 		////// i think that's called c
 	}
 	
+	public static List<Player> filterPlayersByName(List<Player> players, List<String> playerNames){
+		
+		if (players == null || playerNames == null){
+			return players;
+		}
+		
+		List<Player> filteredPlayers = new ArrayList<Player>();
+		
+		for (int index = 0; index < players.size(); index++){
+			Player player = players.get(index);
+			
+			String playerName = player.getName();
+			
+			if (playerNames.contains(playerName)){
+				filteredPlayers.add(player);
+			}
+		}
+		
+		return filteredPlayers;
+	}
+	
 	/**
 	 * 
 	 * This gets the label we should use for the given "sequence number" for a week within a year.
