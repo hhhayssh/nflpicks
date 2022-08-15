@@ -1967,3 +1967,221 @@ function toggleShowPickAccuracyDetails(index){
 		$('#pick-accuracy-details-link-' + index).text('Hide');
 	}
 }
+
+/**
+ * 
+ * This function will create the html for showing the "collective record summary", which
+ * is a summary of everybody's records combined.
+ * 
+ * @param records
+ * @returns
+ */
+function createCollectiveRecordSummaryHtml(collectiveRecordSummary){
+	
+	//Steps to do:
+	//	1. Create the header for the standings.
+	//	2. Figure out whether ties should be in it or not.
+	//	3. Put it all in a table.
+	
+	var collectiveRecordSummaryHtml = '';
+	
+	var collectiveRecords = collectiveRecordSummary.collectiveRecords;
+	
+	//We only want to include the ties header if there's a record in there
+	//with a tie.
+	var areThereAnyTies = hasTies(collectiveRecords);
+	var tiesHeader = '';
+	if (areThereAnyTies){
+		tiesHeader = '<th class="standings-table-header">T</th>';
+	}
+	
+	var yearSelected = isSpecificYearSelected();
+	var yearsHeader = '<th class="standings-table-header"></th>';
+	if (!yearSelected){
+		yearsHeader = '<th class="standings-table-header">Year</th>';
+	}
+	
+	var collectiveRecordSummaryHeaderHtml = '<thead class="standings-table-head">' +
+												yearsHeader +
+												'<th class="standings-table-header">W</th>' + 
+												'<th class="standings-table-header">L</th>' +
+												tiesHeader + 
+												'<th class="standings-table-header">%</th>' + 
+											'</thead>';
+
+	//For holding the table rows.
+	var rowsHtml = '';
+	
+	if (isEmpty(collectiveRecords)){
+		rowsHtml = '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
+	}
+	
+	for (var index = 0; index < collectiveRecords.length; index++){
+		var collectiveRecord = collectiveRecords[index];
+		
+		var percentage = collectiveRecord.wins / (collectiveRecord.wins + collectiveRecord.losses);
+		var percentageString = '';
+		//And we want it to 3 decimal places.
+		if (!isNaN(percentage)){
+			percentageString = percentage.toPrecision(3);
+		}
+		
+		var yearsCell = '<td class="standings-table-cell"></td>';
+		if (!yearSelected){
+			yearsCell = '<td class="standings-table-cell">' + collectiveRecord.season.year + '</td>';
+		}
+
+		var tiesCell = '';
+		if (areThereAnyTies){
+			tiesCell = '<td class="standings-table-cell">' + collectiveRecord.ties + '</td>';
+		}
+
+		//Now we have everything we need for the row.
+		rowsHtml = rowsHtml + 
+				   '<tr class="standings-table-row">' +
+				    yearsCell +
+				   	'<td class="standings-table-cell">' + collectiveRecord.wins + '</td>' +
+				   	'<td class="standings-table-cell">' + collectiveRecord.losses + '</td>' +
+				   	tiesCell + 
+				   	'<td class="standings-table-cell">' + percentageString + '</td>' +
+				   '</tr>';
+	}
+	
+	var summaryPercentage = collectiveRecordSummary.wins / (collectiveRecordSummary.wins + collectiveRecordSummary.losses);
+	var summaryPercentageString = '';
+	//And we want it to 3 decimal places.
+	if (!isNaN(summaryPercentage)){
+		summaryPercentageString = summaryPercentage.toPrecision(3);
+	}
+	
+	var summaryTiesCell = '';
+	if (areThereAnyTies){
+		summaryTiesCell = '<td style="padding-top: 5px; border-top: thin solid black;" class="standings-table-cell">' + collectiveRecordSummary.ties + '</td>';
+	}
+	
+	var summaryTableHtml = '<tr>' + 
+								'<td style="padding-top: 5px; border-top: thin solid black;" class="standings-table-cell">Total</td>' +
+								'<td style="padding-top: 5px; border-top: thin solid black;" class="standings-table-cell">' + collectiveRecordSummary.wins + '</td>' +
+								'<td style="padding-top: 5px; border-top: thin solid black;" class="standings-table-cell">' + collectiveRecordSummary.losses + '</td>' +
+								summaryTiesCell +
+								'<td style="padding-top: 5px; border-top: thin solid black;" class="standings-table-cell">' + summaryPercentageString + '</td>' +
+							'</tr>';
+	
+	//And now we just have to put them together.
+	var collectiveRecordSummaryBodyHtml = '<tbody class="standings-table-body">' + rowsHtml + summaryTableHtml +'</tbody>';
+	
+	collectiveRecordSummaryHtml = '<table style="border-collapse: collapse;" class="standings-table">' + collectiveRecordSummaryHeaderHtml + collectiveRecordSummaryBodyHtml + '</table>';
+	
+	return collectiveRecordSummaryHtml;
+}
+
+
+/**
+ * 
+ * This function will create the html table that shows how accurate people's picks are, collectively.
+ * Here so people can see if they suck with certain teams.  It doesn't expect the given
+ * summaries to be sorted, so it'll do the sorting.
+ * 
+ * Just like the other one, except without the players column.
+ * 
+ * @param pickAccuracySummaries
+ * @returns
+ */
+function createCollectivePickAccuracySummaryHtml(pickAccuracySummaries){
+
+	//Steps to do:
+	//	1. Make the header.
+	//	2. Make sure they're sorted in the right order (by how many times somebody was right).
+	//	3. Go through and add a row for each team and its accuracy.
+	//	4. Add a detail link that shows more details (how many times picked to win, lose, ...).
+	
+	var specificTeamSelected = isSpecificTeamSelected();
+	var teamHeader = '';
+	if (!specificTeamSelected){
+		teamHeader = '<th class="standings-table-header">Team</th>';
+	}
+	
+	var pickAccuracySummariesHeadHtml = '<thead class="standings-table-head">' +
+											'<tr class="standings-table-row">' +
+												teamHeader +
+												'<th class="standings-table-header">Right</th>' +
+												'<th class="standings-table-header">Wrong</th>' + 
+												'<th class="standings-table-header">%</th>' +
+												'<th class="standings-table-header"></th>' +
+											'</tr>' +
+										'</thead>';
+	
+	var pickAccuracySummariesBodyHtml = '<tbody class="standings-table-body">';
+	
+	sortCollectivePickAccuracySummariesByTimesRight(pickAccuracySummaries);
+	
+	if (isEmpty(pickAccuracySummaries)){
+		pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + '<tr><td colspan="5" style="text-align: center;">No results</td></tr>';
+	}
+	
+	for (var index = 0; index < pickAccuracySummaries.length; index++){
+		var pickAccuracySummary = pickAccuracySummaries[index];
+		
+		//Add in the team if they didn't pick a specific one.
+		var teamCell = '';
+		if (!specificTeamSelected){
+			teamCell = '<td class="standings-table-cell">' + pickAccuracySummary.team.abbreviation + '</td>';
+		}
+		
+		var percentage = getWinningPercentage(pickAccuracySummary.timesRight, pickAccuracySummary.timesWrong);
+
+		var detailId = 'pick-accuracy-details-' + index;
+
+		var tiesHtml = '';
+		
+		var timesPickedToWin = pickAccuracySummary.timesPickedToWinRight + pickAccuracySummary.timesPickedToWinWrong;
+		var timesPickedToLose = pickAccuracySummary.timesPickedToLoseRight + pickAccuracySummary.timesPickedToLoseWrong;
+
+		var hasTies = false;
+		var tiesRecord = '';
+		if (pickAccuracySummary.actualTies > 0){
+			hasTies = true;
+			tiesRecord = ' - ' + pickAccuracySummary.actualTies;
+		}
+
+		var years = getSelectedYearValues();
+		var players = getSelectedPlayerValues();
+		
+		//Add in a link so they can see the exact picks they made with the team.
+		var recordPicksLink = createPicksLink('Picks', years, null, pickAccuracySummary.team.abbreviation, players);
+		
+		//And add the detail that says how many times they picked them to win and lose, and how many times they were right
+		//with each.
+		var detailHtml = '<tr id="' + detailId + '" style="display: none;">' +
+						    '<td class="standings-table-cell" colspan="5">' + 
+							    '<table style="width: 100%; border-collapse: collapse;">' +
+							 		'<tr><td>Actual record</td><td style="text-align: right;">' + pickAccuracySummary.actualWins + ' - ' + pickAccuracySummary.actualLosses + tiesRecord + '</td></tr>' +
+							 		'<tr><td style="border-bottom: thin solid black;">Predicted record</td><td style="text-align: right; border-bottom:thin solid black;">' + pickAccuracySummary.predictedWins + ' - ' + pickAccuracySummary.predictedLosses + '</td></tr>' +
+							 		'<tr><td>When picking to win</td><td style="text-align: right;">' + pickAccuracySummary.timesPickedToWinRight + ' - ' + pickAccuracySummary.timesPickedToWinWrong + '</td></tr>' +
+							 		'<tr><td style="border-bottom: thin solid black;">When picking to lose</td><td style="text-align: right; border-bottom: thin solid black;"">' + pickAccuracySummary.timesPickedToLoseRight + ' - ' + pickAccuracySummary.timesPickedToLoseWrong + '</td></tr>' +
+							 		'<tr><td>Picks record</td><td style="text-align: right;">' + pickAccuracySummary.timesRight + ' - ' + pickAccuracySummary.timesWrong + '</td></tr>' +
+							 		'<tr><td>&nbsp;</td><td style="text-align: right;">' + recordPicksLink + '</tr></td>' +
+							 	'</table>' + 
+						 	'</td>' + 
+						 '</tr>';
+		
+		var pickAccuracySummaryRowHtml = '<tr>' +
+											teamCell +
+											'<td class="standings-table-cell">' + pickAccuracySummary.timesRight + '</td>' +
+											'<td class="standings-table-cell">' + pickAccuracySummary.timesWrong + '</td>' +
+											'<td class="standings-table-cell">' + percentage + '</td>' +
+											'<td class="standings-table-cell">' + 
+												'<a id="pick-accuracy-details-link-' + index + '" href="javascript:" onClick="toggleShowPickAccuracyDetails(' + index + ')" style="margin-left: 20px;">Details</a>' + 
+											'</td>' +
+										 '</tr>' + 
+										 detailHtml;
+		
+		pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + pickAccuracySummaryRowHtml;
+	}
+	
+	pickAccuracySummariesBodyHtml = pickAccuracySummariesBodyHtml + '</tbody>';
+	
+	var pickAccuracySummariesHtml = '<table class="standings-table">' + pickAccuracySummariesHeadHtml + pickAccuracySummariesBodyHtml + '</table>';
+	
+	return pickAccuracySummariesHtml;
+}

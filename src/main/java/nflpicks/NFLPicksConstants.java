@@ -242,6 +242,29 @@ public interface NFLPicksConstants {
 	public static final String JSON_SEASON_RECORD_FOR_PLAYER_RECORD = "record";
 	public static final String JSON_SEASON_RECORD_FOR_PLAYER_CHAMPIONSHIP = "championship";
 	
+	public static final String JSON_COLLECTIVE_RECORD_SEASON = "season";
+	public static final String JSON_COLLECTIVE_RECORD_WINS = "wins";
+	public static final String JSON_COLLECTIVE_RECORD_LOSSES = "losses";
+	public static final String JSON_COLLECTIVE_RECORD_TIES = "ties";
+	
+	public static final String JSON_COLLECTIVE_RECORD_SUMMARY_COLLECTIVE_RECORDS = "collectiveRecords";
+	public static final String JSON_COLLECTIVE_RECORD_SUMMARY_WINS = "wins";
+	public static final String JSON_COLLECTIVE_RECORD_SUMMARY_LOSSES = "losses";
+	public static final String JSON_COLLECTIVE_RECORD_SUMMARY_TIES = "ties";
+	
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TEAM = "team";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_ACTUAL_WINS = "actualWins";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_ACTUAL_LOSSES = "actualLosses";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_ACTUAL_TIES = "actualTies";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_PREDICTED_WINS = "predictedWins";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_PREDICTED_LOSSES = "predictedLosses";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_RIGHT = "timesRight";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_WRONG = "timesWrong";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_RIGHT = "timesPickedToWinRight";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_WRONG = "timesPickedToWinWrong";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_RIGHT = "timesPickedToLoseRight";
+	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_WRONG = "timesPickedToLoseWrong";
+	
 	/**
 	 * 
 	 * Says we're doing an import of picks with the data manager.

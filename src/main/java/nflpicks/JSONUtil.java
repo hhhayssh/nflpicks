@@ -20,6 +20,9 @@ import nflpicks.model.Team;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
+import nflpicks.model.stats.CollectivePickAccuracySummary;
+import nflpicks.model.stats.CollectiveRecord;
+import nflpicks.model.stats.CollectiveRecordSummary;
 import nflpicks.model.stats.DivisionTitle;
 import nflpicks.model.stats.DivisionTitlesForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
@@ -1766,6 +1769,274 @@ public class JSONUtil {
 		
 		return jsonObject;
 	}
+	
+	/**
+	 * 
+	 * Converts the given list of collective records into a json string.
+	 * 
+	 * @param collectiveRecords
+	 * @return
+	 */
+	public static String collectiveRecordsToJSONString(List<CollectiveRecord> collectiveRecords){
+		
+		JSONArray jsonArray = collectiveRecordsToJSONArray(collectiveRecords);
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of collective records into a json array.
+	 * 
+	 * @param collectiveRecords
+	 * @return
+	 */
+	public static JSONArray collectiveRecordsToJSONArray(List<CollectiveRecord> collectiveRecords){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < collectiveRecords.size(); index++){
+			CollectiveRecord collectiveRecord = collectiveRecords.get(index);
+			JSONObject jsonObject = collectiveRecordToJSONObject(collectiveRecord);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
+	
+	/**
+	 * 
+	 * Converts the given collective record to a json formatted string.
+	 * 
+	 * @param collectiveRecord
+	 * @return
+	 */
+	public static String collectiveRecordToJSONString(CollectiveRecord collectiveRecord){
+		
+		JSONObject jsonObject = collectiveRecordToJSONObject(collectiveRecord);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given collective record to a json object.  Not much to it.
+	 * 
+	 * @param collectiveRecord
+	 * @return
+	 */
+	public static JSONObject collectiveRecordToJSONObject(CollectiveRecord collectiveRecord){
+		
+		//Steps to do:
+		//	1. Just go through and copy all the values and convert
+		//	   the ones that are objects into json objects first.
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		Season season = collectiveRecord.getSeason();
+		JSONObject seasonJSONObject = seasonToJSONObject(season);
+		
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_SEASON, seasonJSONObject);
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_WINS, collectiveRecord.getWins());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_LOSSES, collectiveRecord.getLosses());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_TIES, collectiveRecord.getTies());
+		
+		return jsonObject;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of collective record summaries into a json string.
+	 * 
+	 * @param collectiveRecordSummaries
+	 * @return
+	 */
+	public static String collectiveRecordSummariesToJSONString(List<CollectiveRecordSummary> collectiveRecordSummaries){
+		
+		JSONArray jsonArray = collectiveRecordSummariesToJSONArray(collectiveRecordSummaries);
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given list of collective record summaries into a json array.
+	 * 
+	 * @param collectiveRecordsSummaries
+	 * @return
+	 */
+	public static JSONArray collectiveRecordSummariesToJSONArray(List<CollectiveRecordSummary> collectiveRecordSummaries){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < collectiveRecordSummaries.size(); index++){
+			CollectiveRecordSummary collectiveRecordSummary = collectiveRecordSummaries.get(index);
+			JSONObject jsonObject = collectiveRecordSummaryToJSONObject(collectiveRecordSummary);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+	}
+	
+	/**
+	 * 
+	 * Converts the given collective record summary to a json formatted string.
+	 * 
+	 * @param collectiveRecordSummary
+	 * @return
+	 */
+	public static String collectiveRecordSummaryToJSONString(CollectiveRecordSummary collectiveRecordSummary){
+		
+		JSONObject jsonObject = collectiveRecordSummaryToJSONObject(collectiveRecordSummary);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * Converts the given collective record summary to a json object.  Not much to it.
+	 * 
+	 * @param collectiveRecordSummary
+	 * @return
+	 */
+	public static JSONObject collectiveRecordSummaryToJSONObject(CollectiveRecordSummary collectiveRecordSummary){
+		
+		//Steps to do:
+		//	1. Just go through and copy all the values and convert
+		//	   the ones that are objects into json objects first.
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		List<CollectiveRecord> collectiveRecords = collectiveRecordSummary.getCollectiveRecords();
+		
+		JSONArray collectiveRecordsJSONArray = collectiveRecordsToJSONArray(collectiveRecords);
+		
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_SUMMARY_COLLECTIVE_RECORDS, collectiveRecordsJSONArray);
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_WINS, collectiveRecordSummary.getWins());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_LOSSES, collectiveRecordSummary.getLosses());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_RECORD_TIES, collectiveRecordSummary.getTies());
+		
+		return jsonObject;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 * This function converts the given collective pick accuracy summaries list into a json formatted
+	 * string.
+	 * 
+	 * @param collectivePickAccuracySummaries
+	 * @return
+	 */
+	public static String collectivePickAccuracySummariesListToJSONString(List<CollectivePickAccuracySummary> collectivePickAccuracySummaries){
+		
+		JSONArray jsonArray = collectivePickAccuracySummariesToJSONArray(collectivePickAccuracySummaries);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given collective pick accuracy summaries into a json array.
+	 * 
+	 * @param collectivePickAccuracySummaries
+	 * @return
+	 */
+	public static JSONArray collectivePickAccuracySummariesToJSONArray(List<CollectivePickAccuracySummary> collectivePickAccuracySummaries){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < collectivePickAccuracySummaries.size(); index++){
+			CollectivePickAccuracySummary collectivePickAccuracySummary = collectivePickAccuracySummaries.get(index);
+			JSONObject jsonObject = collectivePickAccuracySummaryToJSONObject(collectivePickAccuracySummary);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
+	
+	/**
+	 * 
+	 * This function converts the given collective pick accuracy summary to a json formatted string.
+	 * 
+	 * @param collectivePickAccuracySummary
+	 * @return
+	 */
+	public static String collectivePickAccuracySummaryToJSONString(CollectivePickAccuracySummary collectivePickAccuracySummary){
+		
+		JSONObject jsonObject = collectivePickAccuracySummaryToJSONObject(collectivePickAccuracySummary);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given collective pick accuracy summary into a json object.
+	 * 
+	 * @param collectivePickAccuracySummary
+	 * @return
+	 */
+	public static JSONObject collectivePickAccuracySummaryToJSONObject(CollectivePickAccuracySummary collectivePickAccuracySummary){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject teamJSONObject = teamToJSONObject(collectivePickAccuracySummary.getTeam());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TEAM, teamJSONObject);
+		
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_ACTUAL_WINS, collectivePickAccuracySummary.getActualWins());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_ACTUAL_LOSSES, collectivePickAccuracySummary.getActualLosses());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_ACTUAL_TIES, collectivePickAccuracySummary.getActualTies());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_PREDICTED_WINS, collectivePickAccuracySummary.getPredictedWins());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_PREDICTED_LOSSES, collectivePickAccuracySummary.getPredictedLosses());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_RIGHT, collectivePickAccuracySummary.getTimesRight());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_WRONG, collectivePickAccuracySummary.getTimesWrong());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_RIGHT, collectivePickAccuracySummary.getTimesPickedToWinRight());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_WRONG, collectivePickAccuracySummary.getTimesPickedToWinWrong());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_RIGHT, collectivePickAccuracySummary.getTimesPickedToLoseRight());
+		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_WRONG, collectivePickAccuracySummary.getTimesPickedToLoseWrong());
+		
+		return jsonObject;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * 

@@ -30,6 +30,9 @@ import nflpicks.model.Team;
 import nflpicks.model.Week;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
+import nflpicks.model.stats.CollectivePickAccuracySummary;
+import nflpicks.model.stats.CollectiveRecord;
+import nflpicks.model.stats.CollectiveRecordSummary;
 import nflpicks.model.stats.CompactPickAccuracyContainer;
 import nflpicks.model.stats.DivisionTitle;
 import nflpicks.model.stats.DivisionTitlesForPlayer;
@@ -40,6 +43,18 @@ import nflpicks.model.stats.WeekRecordForPlayer;
 import nflpicks.model.stats.WeekRecordForPlayers;
 import nflpicks.model.stats.WeekRecordsForPlayer;
 
+/**
+ * 
+ * This is here for the functions that deal with "computing" the stats from
+ * the "base" stuff.  Things like records, champions, and anything else
+ * that's "derived" from the games and picks.
+ * 
+ * These are in a separate class because having everything in one was starting
+ * to become too much.
+ * 
+ * @author albundy
+ *
+ */
 public class NFLPicksStatsDataService {
 	
 	private static final Logger log = Logger.getLogger(NFLPicksStatsDataService.class);
@@ -986,6 +1001,46 @@ group by pick_totals.player_id, pick_totals.player_name ;
 															    " %s " +
 															    ") pick_totals " + 
 													       "group by pick_totals.player_id, pick_totals.player_name, pick_totals.division_id, pick_totals.division ";
+	
+	
+	protected static final String SELECT_COLLECTIVE_RECORD = 
+	  "select pick_totals.season_id as season_id, " +
+			 "pick_totals.year as year, " +
+	         "sum(pick_totals.wins) as wins, " + 
+		     "sum(pick_totals.losses) as losses, " +
+		     "sum(pick_totals.ties) as ties " +
+	  "from (select s.id as season_id, " + 
+		     	   "s.year as year, " + 
+	               "pl.id as player_id, " + 
+	 			   "pl.name as player_name, " +
+	 			  //Count the game as a win if the picked team is the team that won the game.
+	 			  "(case when p.team_id = g.winning_team_id " + 
+	 			 	    "then 1 " + 
+	 			 	    "else 0 " + 
+	 			   "end) as wins, " + 
+	 			  //Only count the pick as a loss if there was a pick.  If there wasn't (p.team_id = null), then
+	 			  //don't count that as a loss.
+	 			  "(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) " + 
+	 			 	    "then 1 " + 
+	 			 	    "else 0 " + 
+	 			   "end) as losses, " + 
+	 			  //If it was a tie, we don't care what they picked.
+	 			  "(case when g.winning_team_id = -1 " + 
+	 			 	    "then 1 " + 
+	 			 	    "else 0 " +
+	 			   "end) as ties " +
+	 	    "from pick p join game g on p.game_id = g.id " + 
+	 			 "join player pl on p.player_id = pl.id " +
+	 			 "join week w on g.week_id = w.id " +
+	 			 "join season s on w.season_id = s.id " +
+	 	         "join team home_team on g.home_team_id = home_team.id " + 
+	 			 "join team away_team on g.away_team_id = away_team.id " +
+	 			 //This will be inserted later so that we only get the records we need.  Makes it
+	 			  	   //so we can restrict on stuff like the season, the player, ....
+	 			  	   "%s " + 
+	 		") pick_totals " +
+	 	    "group by pick_totals.season_id, pick_totals.year " +
+	 		"order by pick_totals.season_id desc ";
 	
 	/**
 	 * 
@@ -3289,7 +3344,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * @param teamAbbreviations
 	 * @return
 	 */
-	public List<PickAccuracySummary> getPickAccuracySummariesB2(List<String> years, List<String> weekKeys, List<String> players, List<String> teamAbbreviations){
+	public List<PickAccuracySummary> getPickAccuracySummaries(List<String> years, List<String> weekKeys, List<String> players, List<String> teamAbbreviations){
 
 		//Steps to do:
 		//	1. Add in each "criteria" that we have to the query.
@@ -4246,6 +4301,627 @@ group by pick_totals.player_id, pick_totals.player_name ;
 		return whereClause.toString();
 	}
 	
+	/**
+	 * 
+	 * This function will get the "collective record summary" for the given stuff.  It basically gets the "collective records" by year, for
+	 * the given criteria and then adds up all the wins, losses, and ties for a summary of it all.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @param teams
+	 * @return
+	 */
+	public CollectiveRecordSummary getCollectiveRecordSummary(List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+		
+		//Steps to do:
+		//	1. Get the collective records for the stuff we were given.
+		//	2. Go through and add up all the wins, losses, and ties.
+		//	3. Put it all in the summary object.
+		
+		CollectiveRecordSummary collectiveRecordSummary = new CollectiveRecordSummary();
+		
+		List<CollectiveRecord> collectiveRecords = getCollectiveRecords(years, weekKeys, players, teams);
+		
+		int totalWins = 0;
+		int totalLosses = 0;
+		int totalTies = 0;
+		
+		for (int index = 0; index < collectiveRecords.size(); index++){
+			CollectiveRecord collectiveRecord = collectiveRecords.get(index);
+			
+			int recordWins = collectiveRecord.getWins();
+			int recordLosses = collectiveRecord.getLosses();
+			int recordTies = collectiveRecord.getTies();
+			
+			totalWins = totalWins + recordWins;
+			totalLosses = totalLosses + recordLosses;
+			totalTies = totalTies + recordTies;
+		}
+		
+		collectiveRecordSummary.setWins(totalWins);
+		collectiveRecordSummary.setLosses(totalLosses);
+		collectiveRecordSummary.setTies(totalTies);
+		collectiveRecordSummary.setCollectiveRecords(collectiveRecords);
+		
+		return collectiveRecordSummary;
+	}
+	
+	/**
+	 * 
+	 * This function will get the "collective records" for the given stuff, grouped by year.  It's basically just adding
+	 * everybody's records together for a year and then sending that back.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @param teams
+	 * @return
+	 */
+	public List<CollectiveRecord> getCollectiveRecords(List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+		
+		//Steps to do:
+		//	1. Add in the arguments we were given to the query if they're there.
+		//	2. Run the query.
+		//	3. Send back what it found.
+
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+
+		List<CollectiveRecord> collectiveRecords = new ArrayList<CollectiveRecord>();
+
+		try {
+			connection = dataSource.getConnection();
+
+			String recordsCriteria = createRecordsCriteria(years, weekKeys, players, teams);
+
+			String query = String.format(SELECT_COLLECTIVE_RECORD, recordsCriteria);
+
+			statement = connection.prepareStatement(query);
+
+			//Players go first...
+			int parameterIndex = 1;
+			if (players != null && players.size() > 0){
+				for (int index = 0; index < players.size(); index++){
+					String player = players.get(index);
+					statement.setString(parameterIndex, player);
+					parameterIndex++;
+				}
+			}
+
+			//Then weeks
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
+					parameterIndex++;
+				}
+			}
+
+			//Then years
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+
+			//Then teams ... twice
+			if (teams != null && teams.size() > 0){
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+
+				for (int index = 0; index < teams.size(); index++){
+					String team = teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+			}
+
+			results = statement.executeQuery();
+
+			while (results.next()){
+				CollectiveRecord collectiveRecord = mapCollectiveRecord(results);
+				collectiveRecords.add(collectiveRecord);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting records! years = " + years + ", weekSequenceNumbers = " + weekKeys + ", players = " + players, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+
+		return collectiveRecords;
+	}
+	
+	/**
+	 * 
+	 * This function will map the given result to a collective record object.  It expects
+	 * the result to have the season_id, year, wins, losses, and ties in it.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
+	protected CollectiveRecord mapCollectiveRecord(ResultSet results) throws SQLException {
+		
+		CollectiveRecord collectiveRecord = new CollectiveRecord();
+		
+		int seasonId = results.getInt("season_id");
+		String year = results.getString("year");
+		Season season = new Season(seasonId, year);
+		collectiveRecord.setSeason(season);
+		
+		collectiveRecord.setWins(results.getInt("wins"));
+		collectiveRecord.setLosses(results.getInt("losses"));
+		collectiveRecord.setTies(results.getInt("ties"));
+		
+		return collectiveRecord;
+	}
+	
+	protected static final String COLLECTIVE_PICK_ACCURACY_QUERY = 
+			"select " + 
+					"pick_accuracy_summary.team_id as team_id, " + 
+					"pick_accuracy_summary.team_division_id as team_division_id, " +
+					"pick_accuracy_summary.team_city as team_city, " +
+					"pick_accuracy_summary.team_nickname as team_nickname, " + 
+					"pick_accuracy_summary.team_abbreviation as team_abbreviation, " + 
+					"sum(pick_accuracy_summary.actual_wins) as actual_wins, " + 
+					"sum(pick_accuracy_summary.actual_losses) as actual_losses, " + 
+					"sum(pick_accuracy_summary.actual_ties) as actual_ties, " + 
+					"sum(pick_accuracy_summary.predicted_wins) as predicted_wins, " + 
+					"sum(pick_accuracy_summary.predicted_losses) as predicted_losses, " + 
+					"sum(pick_accuracy_summary.times_right) as times_right, " + 
+					"sum(pick_accuracy_summary.times_wrong) as times_wrong, " + 
+					"sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right, " + 
+					"sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong, " + 
+					"sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right, " + 
+					"sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong " + 
+					"from (select t.id as team_id, " + 
+					"t.team_division_id as team_division_id, " + 
+					"t.city as team_city, " + 
+					"t.nickname as team_nickname, " + 
+					"t.abbreviation as team_abbreviation, " + 
+					"(select count(*) " + 
+					"from game g " + 
+					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"and g.winning_team_id = t.id " + 
+					"${GAME_WHERE_CLAUSE} " + 
+					") as actual_wins, " + 
+					"(select count(*) " + 
+					"from game g " + 
+					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"and (g.winning_team_id != t.id and g.winning_team_id != -1) " + 
+					"${GAME_WHERE_CLAUSE} " + 
+					") as actual_losses, " + 
+					"(select count(*) " + 
+					"from game g " + 
+					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"and g.winning_team_id = -1 " + 
+					"${GAME_WHERE_CLAUSE} " + 
+					") as actual_ties, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where p.team_id = t.id " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					") as predicted_wins, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where p.team_id != t.id " + 
+					"and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					") as predicted_losses, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"and g.winning_team_id = p.team_id " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					") as times_right, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"and g.winning_team_id != p.team_id " + 
+					"and g.winning_team_id != -1 " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					") as times_wrong, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where p.team_id = t.id " + 
+					"and g.winning_team_id = p.team_id " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					") as times_picked_to_win_right, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where p.team_id = t.id " + 
+					"and g.winning_team_id != p.team_id " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					"and g.winning_team_id != -1 " + 
+					") as times_picked_to_win_wrong, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where p.team_id != t.id " + 
+					"and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"and g.winning_team_id != t.id " + 
+					"and g.winning_team_id != -1 " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					") as times_picked_to_lose_right, " + 
+					"(select count(*) " + 
+					"from pick p join game g on p.game_id = g.id " + 
+					"where p.team_id != t.id " + 
+					"and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+					"and g.winning_team_id = t.id " + 
+					"${PICK_WHERE_CLAUSE} " + 
+					") as times_picked_to_lose_wrong " + 
+					"from team t " + 
+					"${TEAM_WHERE_CLAUSE} " + 
+					") pick_accuracy_summary " + 
+					"group by team_id, team_city, team_nickname, team_abbreviation, team_division_id " + 
+					"order by team_abbreviation asc ";
+	
+	
+	//need to do picks by vote ... how can that be done in a fast way?
+	//for each game, get how many people picked the right team
+	//if more than half did, that's a W
+	
+	/**
+	 * 
+	 * This function will get the "collective accuracy" of people's picks.  Instead of breaking it
+	 * down by player and team, it'll just break it down by team and add up all the wins and losses
+	 * for all the players instead of keeping them separate.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @param teamAbbreviations
+	 * @return
+	 */
+	public List<CollectivePickAccuracySummary> getCollectivePickAccuracy(List<String> years, List<String> weekKeys, List<String> players, List<String> teamAbbreviations){
+		
+		//Steps to do:
+		//	1. Get the players we actually want to use.  We can't just blindly use them all because everybody
+		//	   didn't make picks every year.
+		//	2. 
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<CollectivePickAccuracySummary> pickAccuracySummaries = new ArrayList<CollectivePickAccuracySummary>();
+		
+		try {
+			
+			//Make sure we only get players who have a pick in a year.
+			//If they don't have a pick, we don't care about their accuracy.
+			if (years != null && years.size() > 0) {
+				List<Player> playersForYears = modelDataService.getPlayersForYears(years);
+				
+				//We can't just use all the players for the years because we might have been given
+				//a subset of that.  So, instead, we just have to go through each player that made picks
+				//and check if they're in the list.  If they are, then we should keep them.  If they aren't,
+				//we don't care about them.
+				//At the end of this filtering, we'll have the players who were given in the original list who
+				//also made at least one pick in one of the years we were given.
+				List<String> playersToUse = new ArrayList<String>();
+				for (int index = 0; index < playersForYears.size(); index++) {
+					Player player = playersForYears.get(index);
+					String name = player.getName();
+					if (players != null && players.contains(name)) {
+						playersToUse.add(name);
+					}
+				}
+				
+				//If we have players who have made a pick in one of the years, use them.
+				//If we don't (the size is 0), just roll with the players we were given.
+				//In that case, we were given players who didn't make any picks in any of
+				//the years we have.  That means we'll bring back no results and that's what we want.
+				//Otherwise, we'll bring back results without using a player in the where clause and
+				//we don't want that.
+				if (playersToUse.size() > 0){
+					players = playersToUse;
+				}
+			}
+			
+			//Get the sizes once so we can reuse them over and over.
+			int numberOfPlayers = 0;
+			if (players != null){
+				numberOfPlayers = players.size();
+			}
+
+			int numberOfYears = 0;
+			if (years != null){
+				numberOfYears = years.size();
+			}
+			
+			int numberOfWeeks = 0;
+			if (weekKeys != null){
+				numberOfWeeks = weekKeys.size();
+			}
+
+			int numberOfTeams = 0;
+			if (teamAbbreviations != null){
+				numberOfTeams = teamAbbreviations.size();
+			}
+
+			//Now we have to put the where clauses in the query's placeholders.
+			//There are 3 clauses:
+			//	GAME_WHERE_CLAUSE - season, week
+			//	PICK_WHERE_CLAUSE - player, season, week
+			//	TEAM_WHERE_CLAUSE - just the team
+			
+			
+			//First up is the "game" where clause.  It looks like this in the query:
+			//
+			//	and g.winning_team_id = t.id
+			//	${GAME_WHERE_CLAUSE}
+			//
+			//And, when filled in, it'll look like this:
+			//	and g.winning_team_id = t.id
+			//  and g.week_id in (select w.id 
+			//					  from week w 
+			//					  where
+			//					  season:
+			//							g.week_id in (select w.id from week w where w.season_id in (select id from season where year in (...)))
+			//					  week:
+			//							g.week_id in (select w.id from week where key in (...))
+			//
+			//The year goes first and then the "week key" goes second for each clause.
+			
+			StringBuilder gameWhereClauseStringBuilder = new StringBuilder();
+
+			//We're adding onto a statement that already has a "where" clause in it, so we'll just set this to true.
+			boolean addedWeekAndYearWhereClause = true;
+
+			//Add in the years if we have them.
+			if (numberOfYears > 0){
+				String yearInClauseString = DatabaseUtil.createInClauseParameterString(numberOfYears);
+
+				//Dumb
+				if (addedWeekAndYearWhereClause){
+					gameWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					gameWhereClauseStringBuilder.append(" where ");
+					addedWeekAndYearWhereClause = true;
+				}
+
+				gameWhereClauseStringBuilder.append(" g.week_id in (select w.id from week w where w.season_id in (select id from season where year in ").append(yearInClauseString).append(" ) )");
+			}
+			
+			//Then add in the weeks.
+			if (numberOfWeeks > 0){
+				String weekInClauseString = DatabaseUtil.createInClauseParameterString(numberOfWeeks);
+				
+				if (addedWeekAndYearWhereClause){
+					gameWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					gameWhereClauseStringBuilder.append(" where ");
+					addedWeekAndYearWhereClause = true;
+				}
+
+				gameWhereClauseStringBuilder.append(" g.week_id in (select w.id from week w where w.key in ").append(weekInClauseString).append(" ) ");
+			}
+			
+			//And we'll have a where clause we can put into every sub query that needs it.
+			String gameWhereClause = gameWhereClauseStringBuilder.toString();
+			
+			//Next comes the picks where clause.  It should be the same as the game one, but also include the players.
+			
+			StringBuilder pickWhereClauseStringBuilder = new StringBuilder();
+			
+			//We know the where clause is already there.
+			boolean addedPickWhereClause = true;
+			
+			//First add in the game where clause if we made one (we can reuse it as is).
+			if (gameWhereClause.length() > 0){
+				pickWhereClauseStringBuilder.append(" ").append(gameWhereClause);
+			}
+			
+			//Then add in the players.
+			if (numberOfPlayers > 0){
+				String playerInClauseString = DatabaseUtil.createInClauseParameterString(numberOfPlayers);
+				
+				if (addedPickWhereClause){
+					pickWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					pickWhereClauseStringBuilder.append(" where ");
+					addedPickWhereClause = true;
+				}
+
+				pickWhereClauseStringBuilder.append(" p.player_id in (select id from player where name in ").append(playerInClauseString).append(" ) ");
+			}
+			
+			String pickWhereClause = pickWhereClauseStringBuilder.toString();
+
+			//Same deal with the team.
+			//It's in the query like this:
+			//	 ${TEAM_WHERE_CLAUSE} 
+			//
+			//And it'll be like this when "expanded":
+			//	and t.abbrevaion in (?, ?, ?)
+			
+			StringBuilder teamWhereClauseStringBuilder = new StringBuilder();
+			boolean addedTeamWhereClause = false;
+			
+			//Just have to add in the teams as we got them.
+			if (numberOfTeams > 0){
+				String teamInClauseString = DatabaseUtil.createInClauseParameterString(numberOfTeams);
+
+				if (addedTeamWhereClause){
+					teamWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					teamWhereClauseStringBuilder.append(" where ");
+					addedTeamWhereClause = true;
+				}
+
+				teamWhereClauseStringBuilder.append(" t.abbreviation in ").append(teamInClauseString);
+			}
+			
+			String teamWhereClause = teamWhereClauseStringBuilder.toString();
+
+			//Now we have the where clauses for the weeks and seasons and the teams and players.
+			//So, we just have to plop them in the query and then add the parameters.
+			String query = COLLECTIVE_PICK_ACCURACY_QUERY;
+		
+			
+			//GAME_WHERE_CLAUSE - season, week
+			//PICK_WHERE_CLAUSE - player, season, week
+			//TEAM_WHERE_CLAUSE - just the team
+			
+			//Plop them in the query.  The week and season where clause is used by 11 sub queries.
+			//The player and team where clause is only used in one place.
+			query = query.replace("${GAME_WHERE_CLAUSE}", gameWhereClause);
+			query = query.replace("${PICK_WHERE_CLAUSE}", pickWhereClause);
+			query = query.replace("${TEAM_WHERE_CLAUSE}", teamWhereClause);
+			
+			String pickAccuracyQuery = query;
+			
+			connection = dataSource.getConnection();
+			
+			statement = connection.prepareStatement(pickAccuracyQuery);
+			
+			//Now that it's ready to go, we just have to add in the parameters...
+			int parameterIndex = 1;
+
+			//There are...
+			//	3 game where clauses
+			//	8 pick where clauses
+			//	1 team clause
+			
+			//So, we'll have to put in the parameters for each sub query.
+
+			//There are 3 game where clauses.
+			for (int i = 0; i < 3; i++){
+				//Add in the years if we had some.
+				if (numberOfYears > 0){
+					for (int index = 0; index < years.size(); index++){
+						String year = years.get(index);
+						statement.setString(parameterIndex, year);
+						parameterIndex++;
+					}
+				}
+				
+				//Then add in the weeks.
+				if (numberOfWeeks > 0){
+					for (int index = 0; index < weekKeys.size(); index++){
+						String weekKey = weekKeys.get(index);
+						statement.setString(parameterIndex, weekKey);
+						parameterIndex++;
+					}
+				}
+			}
+			
+			//There are 8 picks where clauses.
+			for (int i = 0; i < 8; i++){
+				//Add in the years if we had some.
+				if (numberOfYears > 0){
+					for (int index = 0; index < years.size(); index++){
+						String year = years.get(index);
+						statement.setString(parameterIndex, year);
+						parameterIndex++;
+					}
+				}
+				
+				//Then add in the weeks.
+				if (numberOfWeeks > 0){
+					for (int index = 0; index < weekKeys.size(); index++){
+						String weekKey = weekKeys.get(index);
+						statement.setString(parameterIndex, weekKey);
+						parameterIndex++;
+					}
+				}
+				
+				//And then the players.
+				if (numberOfPlayers > 0){
+					for (int index = 0; index < numberOfPlayers; index++){
+						String player = players.get(index);
+						statement.setString(parameterIndex, player);
+						parameterIndex++;
+					}
+				}
+			}
+
+			//The team where clause just appears once, so we only have to add each team
+			//once.
+			for (int index = 0; index < numberOfTeams; index++){
+				String teamAbbreviation = teamAbbreviations.get(index);
+				statement.setString(parameterIndex, teamAbbreviation);
+				parameterIndex++;
+			}
+
+			//And now we're done, so it's time to kick off the query.
+			long queryStart = System.currentTimeMillis();
+			
+			results = statement.executeQuery();
+
+			long queryElapsed = System.currentTimeMillis() - queryStart;
+			
+			//So we can see how long it takes...
+			log.info("Getting pick summaries took " + queryElapsed + " ms");
+			
+			//And we just have to map the results and send them back.
+			while (results.next()){
+				CollectivePickAccuracySummary pickAccuracySummary = mapCollectivePickAccuracySummary(results);
+				pickAccuracySummaries.add(pickAccuracySummary);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting colletive pick accuracy summary!  players = " + players + ", years = " + years + ", teamAbbreviations = " + teamAbbreviations, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return pickAccuracySummaries;
+	}
+	
+	/**
+	 * 
+	 * This will map the "collective pick accuracy" summary from the given results to an object.  It's like the normal
+	 * pick accuracy one except it doesn't have any players to map.
+	 * 
+	 * @param results
+	 * @return
+	 * @throws SQLException
+	 */
+	protected CollectivePickAccuracySummary mapCollectivePickAccuracySummary(ResultSet results) throws SQLException {
+		
+		int teamId = results.getInt("team_id");
+		int divisionId = results.getInt("team_division_id");
+		String teamCity = results.getString("team_city");
+		String teamNickname = results.getString("team_nickname");
+		String teamAbbreviation = results.getString("team_abbreviation");
+
+		Team team = new Team(teamId, divisionId, teamCity, teamNickname, teamAbbreviation, null, null, null);
+		
+		int actualWins = results.getInt("actual_wins");
+		int actualLosses = results.getInt("actual_losses");
+		int actualTies = results.getInt("actual_ties");
+		int predictedWins = results.getInt("predicted_wins");
+		int predictedLosses = results.getInt("predicted_losses");
+		int timesRight = results.getInt("times_right");
+		int timesWrong = results.getInt("times_wrong");
+		int timesPickedToWinRight = results.getInt("times_picked_to_win_right");
+		int timesPickedToWinWrong = results.getInt("times_picked_to_win_wrong");
+		int timesPickedToLoseRight = results.getInt("times_picked_to_lose_right");
+		int timesPickedToLoseWrong = results.getInt("times_picked_to_lose_wrong");
+		
+		CollectivePickAccuracySummary pickAccuracySummary = new CollectivePickAccuracySummary(team, actualWins, actualLosses, actualTies, predictedWins, predictedLosses, timesRight, timesWrong,
+																		  timesPickedToWinRight, timesPickedToWinWrong, timesPickedToLoseRight, timesPickedToLoseWrong);
+		
+		return pickAccuracySummary;
+	}
+	
 	public NFLPicksModelDataService getModelDataService() {
 		return modelDataService;
 	}
@@ -4324,7 +5000,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 select 
    
    pick_accuracy_summary.team_id as team_id, 
-   pick_accuracy_summary.division_id as division_id, 
+   pick_accuracy_summary.team_division_id as team_division_id, 
    pick_accuracy_summary.team_name as team_name, 
    pick_accuracy_summary.team_nickname as team_nickname, 
    pick_accuracy_summary.team_abbreviation as team_abbreviation, 
@@ -4342,8 +5018,8 @@ group by pick_totals.player_id, pick_totals.player_name ;
 from (select   
 		  
 		  t.id as team_id,  
-		  t.division_id as division_id, 
-		  t.name as team_name,  
+		  t.team_division_id as team_division_id, 
+		  t.city as team_name,  
 		  t.nickname as team_nickname, 
 		  t.abbreviation as team_abbreviation,  
 		  (select count(*)  
@@ -4353,7 +5029,7 @@ from (select
 		    	  and g.winning_team_id = t.id  
 		    	  and g.week_id in (select w.id  
 		    	  		    from week w  
-		    	  		    where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		    	  		    where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		  ) as actual_wins,  
 		  (select count(*)  
 		   from game g  
@@ -4362,7 +5038,7 @@ from (select
 		   	 	  and (g.winning_team_id != t.id and g.winning_team_id != -1)  
 		   	 	  and g.week_id in (select w.id  
 		   	 	  					from week w  
-		   	 	  					where w.season_id in (select s.id from season s where year = '2016') and w.week = 2
+		   	 	  					where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2
 									      )  
 		  ) as actual_losses,  
 		  (select count(*)  
@@ -4372,7 +5048,7 @@ from (select
 		   	      and g.winning_team_id = -1  
 		   	      and g.week_id in (select w.id  
 		   	      				    from week w  
-		   	      				    where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   	      				    where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		  ) as actual_ties,  
 		  (select count(*)   
 		   from pick p join game g on p.game_id = g.id  
@@ -4380,7 +5056,7 @@ from (select
 		   		 and p.team_id = t.id  
 		   		 and g.week_id in (select w.id  
 		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		  ) as predicted_wins,  
 		  (select count(*)   
 		   from pick p join game g on p.game_id = g.id  
@@ -4389,7 +5065,7 @@ from (select
 		   		 and (g.home_team_id = t.id or g.away_team_id = t.id)  
 		   		 and g.week_id in (select w.id  
 		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		  ) as predicted_losses, 
 		  (select count(*)   
 		   from pick p join game g on p.game_id = g.id  
@@ -4398,7 +5074,7 @@ from (select
 		   		 and g.winning_team_id = p.team_id  
 		   		 and g.week_id in (select w.id  
 		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		  ) as times_right,  
 		  (select count(*)   
 		   from pick p join game g on p.game_id = g.id  
@@ -4408,7 +5084,7 @@ from (select
 		   		 and g.winning_team_id != -1  
 		   		 and g.week_id in (select w.id  
 		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		  ) as times_wrong,  
 		  (select count(*)   
 		   from pick p join game g on p.game_id = g.id  
@@ -4416,7 +5092,7 @@ from (select
 		   		 and p.team_id = t.id  
 		   		 and g.week_id in (select w.id  
 		   		 				   from week w  
-		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   		 				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		   		 and g.winning_team_id = p.team_id  
 		  ) as times_picked_to_win_right,  
 		  (select count(*)   
@@ -4425,7 +5101,7 @@ from (select
 		   	     and p.team_id = t.id  
 		   	     and g.week_id in (select w.id  
 		   	     				   from week w  
-		   	     				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   	     				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		   	     and g.winning_team_id != p.team_id  
 		   	     and g.winning_team_id != -1 
 		  ) as times_picked_to_win_wrong, 
@@ -4436,7 +5112,7 @@ from (select
 		     	 and (g.home_team_id = t.id or g.away_team_id = t.id)  
 		     	 and g.week_id in (select w.id  
 		     	 				   from week w  
-		     	 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		     	 				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		     	 and g.winning_team_id != t.id 
 		     	 and g.winning_team_id != -1 
 		  ) as times_picked_to_lose_right,  
@@ -4447,13 +5123,13 @@ from (select
 		   	 	 and (g.home_team_id = t.id or g.away_team_id = t.id)  
 		   	 	 and g.week_id in (select w.id  
 		   	 	 				   from week w  
-		   	 	 				   where w.season_id in (select s.id from season s where year = '2016') and w.week = 2)  
+		   	 	 				   where w.season_id in (select s.id from season s where year = '2016') and w.sequence_number = 2)  
 		   	 	 and g.winning_team_id = t.id  
 		   ) as times_picked_to_lose_wrong  
    from team t  
    where t.abbreviation = 'TB'
 	) pick_accuracy_summary  
-group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
+group by team_id, team_name, team_nickname, team_abbreviation, team_division_id ;
 
 	need to put in sections for:
 		players
@@ -4466,5 +5142,132 @@ group by team_id, team_name, team_nickname, team_abbreviation, division_id ;
 	public List<CompactPickAccuracyContainer> getCompactPickAccuracies(List<String> years, List<String> weeks, List<String> players, List<String> teams){
 		return null;
 	}
+	
+	/*
+	 * 
+
+	wins by vote...
+	
+select *
+from game
+where id = 1411;
+
+select *
+from game g join pick p on g.id = p.game_id
+where g.id = 2000;
+
+
+
+select g.*, p.*, 
+       (case when p.team_id = g.winning_team_id then 1 else 0 end) as rs,
+       (case when p.team_id != g.winning_team_id then 1 else 0 end) as ws
+from game g join pick p on g.id = p.game_id
+where g.id = 2487;
+
+select game_id,
+       sum(rs) as right_picks,
+       sum(ws) as wrong_picks
+from (
+select g.id as game_id,
+       (case when p.team_id = g.winning_team_id then 1 else 0 end) as rs,
+       (case when p.team_id != g.winning_team_id then 1 else 0 end) as ws
+from game g join pick p on g.id = p.game_id
+where g.id = 2487
+) sub1
+group by game_id;
+
+
+select game_id,
+       sum(rs) as right_picks,
+       sum(ws) as wrong_picks,
+       (case when sum(rs) >= sum(ws) then 1 else 0 end) as win,
+       (case when sum(rs) < sum(ws) then 1 else 0 end) as loss
+from (
+select g.id as game_id,
+       (case when p.team_id = g.winning_team_id then 1 else 0 end) as rs,
+       (case when p.team_id != g.winning_team_id then 1 else 0 end) as ws
+from game g join pick p on g.id = p.game_id
+where g.id = 2487
+) sub1
+group by game_id;
+
+
+select game_id,
+       sum(rs) as right_picks,
+       sum(ws) as wrong_picks,
+       (case when sum(rs) >= sum(ws) then 1 else 0 end) as win,
+       (case when sum(rs) < sum(ws) then 1 else 0 end) as loss
+from (
+select g.id as game_id,
+       (case when p.team_id = g.winning_team_id then 1 else 0 end) as rs,
+       (case when p.team_id != g.winning_team_id then 1 else 0 end) as ws
+from game g join pick p on g.id = p.game_id
+where g.week_id in (select id from week where sequence_number = 12 and season_id in (select s.id from season s where year = '2021'))
+) sub1
+group by game_id;
+
+select sum(win) as wins, sum(loss) as losses
+from (
+select game_id,
+       sum(rs) as right_picks,
+       sum(ws) as wrong_picks,
+       (case when sum(rs) >= sum(ws) then 1 else 0 end) as win,
+       (case when sum(rs) < sum(ws) then 1 else 0 end) as loss
+from (
+select g.id as game_id,
+       (case when p.team_id = g.winning_team_id then 1 else 0 end) as rs,
+       (case when p.team_id != g.winning_team_id then 1 else 0 end) as ws
+from game g join pick p on g.id = p.game_id
+where g.week_id in (select id from week where sequence_number = 12 and season_id in (select s.id from season s where year = '2021'))
+) sub1
+group by game_id
+) sub2;
+
+
+
+select year, week_label, sum(win) as wins, sum(loss) as losses
+from (
+select year, week_label,
+       sum(rs) as right_picks,
+       sum(ws) as wrong_picks,
+       (case when sum(rs) >= sum(ws) then 1 else 0 end) as win,
+       (case when sum(rs) < sum(ws) then 1 else 0 end) as loss
+from (
+select s.year,
+       w.label as week_label,
+       (case when p.team_id = g.winning_team_id then 1 else 0 end) as rs,
+       (case when p.team_id != g.winning_team_id then 1 else 0 end) as ws
+from game g join pick p on g.id = p.game_id
+     join week w on g.week_id = w.id
+     join season s on w.season_id = s.id
+where w.sequence_number < 12 and s.year = '2021'
+) sub1
+group by year, week_label
+) sub2
+group by year, week_label;
+
+
+
+select year, sum(win) as wins, sum(loss) as losses
+from (
+select year, week_label,
+       sum(rs) as right_picks,
+       sum(ws) as wrong_picks,
+       (case when sum(rs) >= sum(ws) then 1 else 0 end) as win,
+       (case when sum(rs) < sum(ws) then 1 else 0 end) as loss
+from (
+select s.year,
+       w.label as week_label,
+       (case when p.team_id = g.winning_team_id then 1 else 0 end) as rs,
+       (case when p.team_id != g.winning_team_id then 1 else 0 end) as ws
+from game g join pick p on g.id = p.game_id
+     join week w on g.week_id = w.id
+     join season s on w.season_id = s.id
+--where s.year = '2021'
+) sub1
+group by year, week_label
+) sub2
+group by year;
+	 */
 
 }

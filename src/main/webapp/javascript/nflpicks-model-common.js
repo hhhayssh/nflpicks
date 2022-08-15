@@ -12,6 +12,25 @@ function doesAnyDivisionRecordHaveATie(divisionRecords){
 	
 	return false;
 }
+/**
+ * 
+ * A dumb function to check if the given record has a tie or not. Yep.
+ * 
+ * @param record
+ * @returns
+ */
+function hasTie(record){
+	
+	if (!isDefined(record)){
+		return false;
+	}
+	
+	if (record.ties > 0){
+		return true;
+	}
+	
+	return false;
+}
 
 
 /**
@@ -407,6 +426,52 @@ function sortPickAccuracySummariesByTimesRight(pickAccuracySummaries){
 		}
 		
 		//If they have the same player name, sort by team abbreviation.
+		if (pickAccuracySummaryA.team.abbreviation < pickAccuracySummaryB.team.abbreviation){
+			return -1;
+		}
+		else if (pickAccuracySummaryA.team.abbreviation > pickAccuracySummaryB.team.abbreviation){
+			return 1;
+		}
+		return 0;
+		
+	});
+}
+
+
+/**
+ * 
+ * Here so we can make sure the pick accuracies are in the right order (with the most
+ * accurate team coming first).  Separate from the other function because there are no players.
+ * 
+ * @param collectivePickAccuracySummaries
+ * @returns
+ */
+function sortCollectivePickAccuracySummariesByTimesRight(collectivePickAccuracySummaries){
+	
+	//Steps to do:
+	//	1. Just sort them by how many times the person was right picking a team.
+	
+	collectivePickAccuracySummaries.sort(function (pickAccuracySummaryA, pickAccuracySummaryB){
+
+		//More times right = front of the list.
+		if (pickAccuracySummaryA.timesRight > pickAccuracySummaryB.timesRight){
+			return -1;
+		}
+		//Fewer times right = back of the list.
+		else if (pickAccuracySummaryA.timesRight < pickAccuracySummaryB.timesRight){
+			return 1;
+		}
+		
+		//If they have the same times right, sort on times wrong.
+		if (pickAccuracySummaryA.timesWrong < pickAccuracySummaryB.timesWrong){
+			return -1;
+		}
+		//Fewer times right = back of the list.
+		else if (pickAccuracySummaryA.timesWrong > pickAccuracySummaryB.timesWrong){
+			return 1;
+		}
+		
+		//If they have the same times right and wrong, sort by team abbreviation.
 		if (pickAccuracySummaryA.team.abbreviation < pickAccuracySummaryB.team.abbreviation){
 			return -1;
 		}

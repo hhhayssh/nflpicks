@@ -202,6 +202,12 @@ function updateDivisionStandingsSelectors(type){
  * 		pick splits:
  * 			shows: year, week, team
  * 			hides: player
+ * 		collective record summary:
+ * 			shows: player, year, week, team
+ * 			hides: nothing
+ * 		collective pick accuracy:
+ * 			shows: player, year, week, team
+ * 			hides: nothing
  * 
  * @param type
  * @returns
@@ -296,7 +302,18 @@ function updateStatsSelectors(type){
 		showWeeksLink();
 		hideTeamsLink();
 	}
-	
+	else if ('collectiveRecordSummary' == statName){
+		showPlayersLink();
+		showYearsLink();
+		showWeeksLink();
+		showTeamsLink();
+	}
+	else if ('collectivePickAccuracy' == statName){
+		showPlayersLink();
+		showYearsLink();
+		showWeeksLink();
+		showTeamsLink();
+	}
 	setPreviousType(type);
 }
 

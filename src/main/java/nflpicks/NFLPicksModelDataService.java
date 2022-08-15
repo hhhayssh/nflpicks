@@ -24,6 +24,18 @@ import nflpicks.model.TeamConference;
 import nflpicks.model.TeamDivision;
 import nflpicks.model.Week;
 
+/**
+ * 
+ * Here to hold the functions that talk to the database and only deal with "model" stuff.
+ * Basically, things that are kind of at the "base" and "upon which" all the figuring is
+ * done: teams, games, players, picks, ...
+ * 
+ * I separated these from the "stats" functions because the class that had them both was just
+ * getting too big.
+ * 
+ * @author albundy
+ *
+ */
 public class NFLPicksModelDataService {
 
 	private static final Logger log = Logger.getLogger(NFLPicksModelDataService.class);

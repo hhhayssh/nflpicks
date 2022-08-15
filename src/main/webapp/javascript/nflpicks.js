@@ -360,7 +360,9 @@ function getSelectionCriteriaAndInitialize(){
 		                       {label: 'Pick Accuracy', value: 'pickAccuracy'},
 		                       {label: 'Pick Splits', value: 'pickSplits'},
 		                       {label: 'Week Comparison', value: 'weekComparison'},
-		                       {label: 'Season Progression', value: 'seasonProgression'}];
+		                       {label: 'Season Progression', value: 'seasonProgression'},
+		                       {label: 'Collective Records', value: 'collectiveRecordSummary'},
+		                       {label: 'Collective Pick Accuracy', value: 'collectivePickAccuracy'}];
 		
 		//Only add in the division title options if divisions are enabled.
 		if (NFL_PICKS_GLOBAL.divisionsEnabled){
@@ -872,6 +874,14 @@ function updateStats(){
 			//Like with the other records, we want to sort them before we show them.
 			sortWeekRecordsBySeasonWeekAndRecord(weekRecords);
 			statsHtml = createSeasonProgressionHtml(weekRecords);
+		}
+		else if ('collectiveRecordSummary' == statName){
+			var collectiveRecordSummary = $.parseJSON(data);
+			statsHtml = createCollectiveRecordSummaryHtml(collectiveRecordSummary);
+		}
+		else if ('collectivePickAccuracy' == statName){
+			var collectivePickAccuracySummary = $.parseJSON(data);
+			statsHtml = createCollectivePickAccuracySummaryHtml(collectivePickAccuracySummary);
 		}
 		
 		setContent(statsHtml);

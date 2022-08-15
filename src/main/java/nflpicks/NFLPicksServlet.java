@@ -30,6 +30,9 @@ import nflpicks.model.Record;
 import nflpicks.model.Team;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
+import nflpicks.model.stats.CollectivePickAccuracySummary;
+import nflpicks.model.stats.CollectiveRecord;
+import nflpicks.model.stats.CollectiveRecordSummary;
 import nflpicks.model.stats.DivisionTitle;
 import nflpicks.model.stats.DivisionTitlesForPlayer;
 import nflpicks.model.stats.PickAccuracySummary;
@@ -72,6 +75,9 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String STAT_NAME_SEASON_STANDINGS = "seasonStandings";
 	protected static final String STAT_NAME_WEEK_COMPARISON = "weekComparison";
 	protected static final String STAT_NAME_SEASON_PROGRESSION = "seasonProgression";
+	protected static final String STAT_NAME_COLLECTIVE_RECORDS = "collectiveRecords";
+	protected static final String STAT_NAME_COLLECTIVE_RECORD_SUMMARY = "collectiveRecordSummary";
+	protected static final String STAT_NAME_COLLECTIVE_PICK_ACCURACY = "collectivePickAccuracy";
 
 	protected static final String PARAMETER_NAME_TARGET = "target";
 	protected static final String PARAMETER_NAME_PLAYER = "player";
@@ -96,8 +102,6 @@ public class NFLPicksServlet extends HttpServlet {
 	
 	protected static final String ERROR_JSON_RESPONSE = "{\"error\": true}";
 	
-	//protected NFLPicksDataService dataService;
-	
 	protected NFLPicksModelDataService modelDataService;
 	
 	protected NFLPicksStatsDataService statsDataService;
@@ -108,8 +112,6 @@ public class NFLPicksServlet extends HttpServlet {
 		log.info("Initializing servlet...");
 		
 		ApplicationContext.getContext().initialize();
-		
-		//dataService = new NFLPicksDataService(ApplicationContext.getContext().getDataSource());
 		
 		modelDataService = new NFLPicksModelDataService(ApplicationContext.getContext().getDataSource());
 		
@@ -668,7 +670,7 @@ public class NFLPicksServlet extends HttpServlet {
 				
 				log.info("Getting pick accuracy summaries...");
 				long start = System.currentTimeMillis();
-				List<PickAccuracySummary> pickAccuracySummaries = statsDataService.getPickAccuracySummariesB2(years, weekKeys, playerNames, teams);
+				List<PickAccuracySummary> pickAccuracySummaries = statsDataService.getPickAccuracySummaries(years, weekKeys, playerNames, teams);
 				long elapsed = System.currentTimeMillis() - start;
 				log.info("Done getting pick accuracy summaries. elapsed = " + elapsed);
 				
@@ -761,6 +763,104 @@ public class NFLPicksServlet extends HttpServlet {
 				List<WeekRecordForPlayer> playerWeekRecords = statsDataService.getPlayerWeekRecords(years, weekKeys, playerNames, true);
 				
 				json = JSONUtil.weekRecordForPlayerListToJSONString(playerWeekRecords);
+			}
+			else if (STAT_NAME_COLLECTIVE_RECORDS.equals(statName)){
+				
+				String playersString = getParameter(request, PARAMETER_NAME_PLAYER);
+				List<String> playerNames = null;
+				if (!PARAMETER_VALUE_ALL.equals(playersString)){
+					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+				List<String> teams = null;
+				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+				}
+
+				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
+				List<String> years = null; 
+				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				List<CollectiveRecord> collectiveRecords = statsDataService.getCollectiveRecords(years, weekKeys, playerNames, teams);
+				
+				json = JSONUtil.collectiveRecordsToJSONString(collectiveRecords);
+			}
+			else if (STAT_NAME_COLLECTIVE_RECORD_SUMMARY.equals(statName)){
+				
+				String playersString = getParameter(request, PARAMETER_NAME_PLAYER);
+				List<String> playerNames = null;
+				if (!PARAMETER_VALUE_ALL.equals(playersString)){
+					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+				List<String> teams = null;
+				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+				}
+
+				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
+				List<String> years = null; 
+				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				CollectiveRecordSummary collectiveRecordSummary = statsDataService.getCollectiveRecordSummary(years, weekKeys, playerNames, teams);
+				
+				json = JSONUtil.collectiveRecordSummaryToJSONString(collectiveRecordSummary);
+			}
+			else if (STAT_NAME_COLLECTIVE_PICK_ACCURACY.equals(statName)){
+				
+				String playersString = getParameter(request, PARAMETER_NAME_PLAYER);
+				List<String> playerNames = null;
+				if (!PARAMETER_VALUE_ALL.equals(playersString)){
+					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+				List<String> teams = null;
+				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+				}
+
+				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
+				List<String> years = null; 
+				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				log.info("Getting collective pick accuracy...");
+				
+				long start = System.currentTimeMillis();
+				
+				List<CollectivePickAccuracySummary> collectivePickAccuracies = statsDataService.getCollectivePickAccuracy(years, weekKeys, playerNames, teams);
+				
+				json = JSONUtil.collectivePickAccuracySummariesListToJSONString(collectivePickAccuracies);
+				
+				long elapsed = System.currentTimeMillis() - start;
+				
+				log.info("Got collective pick accuracy in " + elapsed + " ms");
 			}
 		}
 		else if (TARGET_MAKE_PICKS.equals(target)){
