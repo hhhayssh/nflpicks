@@ -1002,7 +1002,117 @@ group by pick_totals.player_id, pick_totals.player_name ;
 															    ") pick_totals " + 
 													       "group by pick_totals.player_id, pick_totals.player_name, pick_totals.division_id, pick_totals.division ";
 	
+	/**
+	 * 
+	 * This will get the "collective accuracy" of our picks.  It just gets the accuracy by team
+	 * and then filters the picks by player without grouping by player, so it's faster than the
+	 * normal one and doesn't need a special view.
+	 * 
+	 */
+	protected static final String COLLECTIVE_PICK_ACCURACY_QUERY = 
+		    "select pick_accuracy_summary.team_id as team_id, " + 
+		    	   "pick_accuracy_summary.team_division_id as team_division_id, " +
+		    	   "pick_accuracy_summary.team_city as team_city, " +
+		    	   "pick_accuracy_summary.team_nickname as team_nickname, " + 
+		    	   "pick_accuracy_summary.team_abbreviation as team_abbreviation, " + 
+		    	   "sum(pick_accuracy_summary.actual_wins) as actual_wins, " + 
+		    	   "sum(pick_accuracy_summary.actual_losses) as actual_losses, " + 
+		    	   "sum(pick_accuracy_summary.actual_ties) as actual_ties, " + 
+		    	   "sum(pick_accuracy_summary.predicted_wins) as predicted_wins, " + 
+		    	   "sum(pick_accuracy_summary.predicted_losses) as predicted_losses, " + 
+		    	   "sum(pick_accuracy_summary.times_right) as times_right, " + 
+		    	   "sum(pick_accuracy_summary.times_wrong) as times_wrong, " + 
+		    	   "sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right, " + 
+		    	   "sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong, " + 
+		    	   "sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right, " + 
+			"sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong " + 
+			"from (select t.id as team_id, " + 
+			      "t.team_division_id as team_division_id, " + 
+			      "t.city as team_city, " + 
+			      "t.nickname as team_nickname, " + 
+			      "t.abbreviation as team_abbreviation, " + 
+			      "(select count(*) " + 
+			       "from game g " + 
+			       "where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			              "and g.winning_team_id = t.id " + 
+			              "${GAME_WHERE_CLAUSE} " + 
+			      ") as actual_wins, " + 
+			      "(select count(*) " + 
+			       "from game g " + 
+			       "where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			              "and (g.winning_team_id != t.id and g.winning_team_id != -1) " + 
+			              "${GAME_WHERE_CLAUSE} " + 
+			      ") as actual_losses, " + 
+			      "(select count(*) " + 
+			       "from game g " + 
+			       "where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			              "and g.winning_team_id = -1 " + 
+			              "${GAME_WHERE_CLAUSE} " + 
+			      ") as actual_ties, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where p.team_id = t.id " + 
+			       "${PICK_WHERE_CLAUSE} " + 
+			      ") as predicted_wins, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where p.team_id != t.id " + 
+			              "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			              "${PICK_WHERE_CLAUSE} " + 
+			      ") as predicted_losses, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			       		  "and g.winning_team_id = p.team_id " + 
+			       		  "${PICK_WHERE_CLAUSE} " + 
+			      ") as times_right, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			              "and g.winning_team_id != p.team_id " + 
+			              "and g.winning_team_id != -1 " + 
+			              "${PICK_WHERE_CLAUSE} " + 
+			      ") as times_wrong, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where p.team_id = t.id " + 
+			             "and g.winning_team_id = p.team_id " + 
+			             "${PICK_WHERE_CLAUSE} " + 
+			      ") as times_picked_to_win_right, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where p.team_id = t.id " + 
+			             "and g.winning_team_id != p.team_id " + 
+			             "${PICK_WHERE_CLAUSE} " + 
+			             "and g.winning_team_id != -1 " + 
+			      ") as times_picked_to_win_wrong, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where p.team_id != t.id " + 
+			             "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			             "and g.winning_team_id != t.id " + 
+			             "and g.winning_team_id != -1 " + 
+			             "${PICK_WHERE_CLAUSE} " + 
+			      ") as times_picked_to_lose_right, " + 
+			      "(select count(*) " + 
+			       "from pick p join game g on p.game_id = g.id " + 
+			       "where p.team_id != t.id " + 
+			             "and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
+			             "and g.winning_team_id = t.id " + 
+			             "${PICK_WHERE_CLAUSE} " + 
+			      ") as times_picked_to_lose_wrong " + 
+			"from team t " + 
+			"${TEAM_WHERE_CLAUSE} " + 
+			") pick_accuracy_summary " + 
+			"group by team_id, team_city, team_nickname, team_abbreviation, team_division_id " + 
+			"order by team_abbreviation asc ";
 	
+	/**
+	 * 
+	 * This will get the collective "record" of people's picks by adding the wins and losses together instead
+	 * of separating them by player.
+	 * 
+	 */
 	protected static final String SELECT_COLLECTIVE_RECORD = 
 	  "select pick_totals.season_id as season_id, " +
 			 "pick_totals.year as year, " +
@@ -4465,106 +4575,6 @@ group by pick_totals.player_id, pick_totals.player_name ;
 		
 		return collectiveRecord;
 	}
-	
-	protected static final String COLLECTIVE_PICK_ACCURACY_QUERY = 
-			"select " + 
-					"pick_accuracy_summary.team_id as team_id, " + 
-					"pick_accuracy_summary.team_division_id as team_division_id, " +
-					"pick_accuracy_summary.team_city as team_city, " +
-					"pick_accuracy_summary.team_nickname as team_nickname, " + 
-					"pick_accuracy_summary.team_abbreviation as team_abbreviation, " + 
-					"sum(pick_accuracy_summary.actual_wins) as actual_wins, " + 
-					"sum(pick_accuracy_summary.actual_losses) as actual_losses, " + 
-					"sum(pick_accuracy_summary.actual_ties) as actual_ties, " + 
-					"sum(pick_accuracy_summary.predicted_wins) as predicted_wins, " + 
-					"sum(pick_accuracy_summary.predicted_losses) as predicted_losses, " + 
-					"sum(pick_accuracy_summary.times_right) as times_right, " + 
-					"sum(pick_accuracy_summary.times_wrong) as times_wrong, " + 
-					"sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right, " + 
-					"sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong, " + 
-					"sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right, " + 
-					"sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong " + 
-					"from (select t.id as team_id, " + 
-					"t.team_division_id as team_division_id, " + 
-					"t.city as team_city, " + 
-					"t.nickname as team_nickname, " + 
-					"t.abbreviation as team_abbreviation, " + 
-					"(select count(*) " + 
-					"from game g " + 
-					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"and g.winning_team_id = t.id " + 
-					"${GAME_WHERE_CLAUSE} " + 
-					") as actual_wins, " + 
-					"(select count(*) " + 
-					"from game g " + 
-					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"and (g.winning_team_id != t.id and g.winning_team_id != -1) " + 
-					"${GAME_WHERE_CLAUSE} " + 
-					") as actual_losses, " + 
-					"(select count(*) " + 
-					"from game g " + 
-					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"and g.winning_team_id = -1 " + 
-					"${GAME_WHERE_CLAUSE} " + 
-					") as actual_ties, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where p.team_id = t.id " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					") as predicted_wins, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where p.team_id != t.id " + 
-					"and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					") as predicted_losses, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"and g.winning_team_id = p.team_id " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					") as times_right, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"and g.winning_team_id != p.team_id " + 
-					"and g.winning_team_id != -1 " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					") as times_wrong, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where p.team_id = t.id " + 
-					"and g.winning_team_id = p.team_id " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					") as times_picked_to_win_right, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where p.team_id = t.id " + 
-					"and g.winning_team_id != p.team_id " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					"and g.winning_team_id != -1 " + 
-					") as times_picked_to_win_wrong, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where p.team_id != t.id " + 
-					"and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"and g.winning_team_id != t.id " + 
-					"and g.winning_team_id != -1 " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					") as times_picked_to_lose_right, " + 
-					"(select count(*) " + 
-					"from pick p join game g on p.game_id = g.id " + 
-					"where p.team_id != t.id " + 
-					"and (g.home_team_id = t.id or g.away_team_id = t.id) " + 
-					"and g.winning_team_id = t.id " + 
-					"${PICK_WHERE_CLAUSE} " + 
-					") as times_picked_to_lose_wrong " + 
-					"from team t " + 
-					"${TEAM_WHERE_CLAUSE} " + 
-					") pick_accuracy_summary " + 
-					"group by team_id, team_city, team_nickname, team_abbreviation, team_division_id " + 
-					"order by team_abbreviation asc ";
-	
 	
 	//need to do picks by vote ... how can that be done in a fast way?
 	//for each game, get how many people picked the right team
