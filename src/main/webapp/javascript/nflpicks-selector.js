@@ -63,10 +63,24 @@ function initializeSelections(){
 	}
 	setSelectedTeams(team);
 	
+	var team1 = NFL_PICKS_GLOBAL.initialTeam1;
+	if (isDefined(parameters) && isDefined(parameters.team1)){
+		team1 = parameters.team1;
+	}
+	setSelectedTeams1(team1);
+	
+	var team2 = NFL_PICKS_GLOBAL.initialTeam2;
+	if (isDefined(parameters) && isDefined(parameters.team2)){
+		team2 = parameters.team2;
+	}
+	setSelectedTeams2(team2);
+	
 	resetPlayerSelections();
 	resetYearSelections();
 	resetWeekSelections();
 	resetTeamSelections();
+	resetTeam1Selections();
+	resetTeam2Selections();
 	
 	updateTypeLink();
 	updatePlayersLink();

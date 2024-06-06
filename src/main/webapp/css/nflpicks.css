@@ -339,6 +339,17 @@ html, body {
 	cursor: pointer;
 }
 
+.selection-header-team1-at-team2-button {
+	padding-bottom: 10px;
+	padding-top: 10px;
+	cursor: pointer;
+	border-top: thin solid black;
+}
+
+.selected-team-selector {
+	background-color: aquamarine;
+}
+
 .selection-footer-container {
 	border-top: thin solid black;
 }
@@ -363,7 +374,7 @@ html, body {
 	cursor: pointer;
 }
 
-.selection-header-multiselect-button:hover, .selection-item-container:hover, .selection-item-container-last:hover, .selection-header-clear-button:hover, .selection-header-select-all-button:hover, .selector-footer-ok-button:hover, .selector-footer-cancel-button:hover {
+.selection-header-multiselect-button:hover, .selection-item-container:hover, .selection-item-container-last:hover, .selection-header-clear-button:hover, .selection-header-select-all-button:hover, .selection-header-team1-at-team2-button:hover, .selector-footer-ok-button:hover, .selector-footer-cancel-button:hover {
 	background-color: aquamarine;
 }
 

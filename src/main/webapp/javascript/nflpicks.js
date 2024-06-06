@@ -62,6 +62,7 @@ var NFL_PICKS_GLOBAL = {
 
 	/**
 	 * The current selections for everything they can pick.
+	 * Each selector will put its variables in this (players, teams, ...).
 	 */
 	selections: {},
 
@@ -80,6 +81,16 @@ var NFL_PICKS_GLOBAL = {
 	 * Whether they're selecting more than one year at a time or not.
 	 */
 	multiselectYear: false,
+	
+	/**
+	 * Whether they're selecting more than one team at a time or not.
+	 */
+	multiSelectTeam: false,
+	
+	/**
+	 * If they're selecting teams, this says whether we should treat it as "team 1 @ team 2" or not.
+	 */
+	team1AtTeam2: false,
 		
 	/**
 	 * The previous type they picked.  This is so we can decide how much of the view we need
@@ -385,6 +396,8 @@ function getSelectionCriteriaAndInitialize(){
 		NFL_PICKS_GLOBAL.initialWeek = 'all';
 		NFL_PICKS_GLOBAL.initialPlayer = 'all';
 		NFL_PICKS_GLOBAL.initialTeam = 'all';
+		NFL_PICKS_GLOBAL.initialTeam1 = 'all';
+		NFL_PICKS_GLOBAL.initialTeam2 = 'all';
 		NFL_PICKS_GLOBAL.initialStatName = 'champions';
 		
 		initializeView();
@@ -505,6 +518,9 @@ function updateStandings(){
 	var weekValuesForRequest = getWeekValuesForRequest();
 	var teamValuesForRequest = getTeamValuesForRequest();
 	
+	//getTeam1ValuesForRequest
+	//getTeam2ValuesForRequest
+	
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
 	$.ajax({url: 'nflpicks?target=standings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
@@ -576,11 +592,11 @@ function updateDivisionStandings(){
 	var playerValuesForRequest = getPlayerValuesForRequest();
 	var yearValuesForRequest = getYearValuesForRequest();
 	var weekValuesForRequest = getWeekValuesForRequest();
-	var teamValuesForRequest = getTeamValuesForRequest();
+	var team1ValuesForRequest = getTeam1ValuesForRequest();
 	
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
-	$.ajax({url: 'nflpicks?target=divisionStandings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
+	$.ajax({url: 'nflpicks?target=divisionStandings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team1=' + team1ValuesForRequest,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -907,6 +923,7 @@ function onClickBody(){
 	resetAndHidePlayerSelections();
 	resetAndHideYearSelections();
 	resetAndHideWeekSelections();
+	resetAndHideTeamSelections();
 	hideStatNameSelector();
 }
 

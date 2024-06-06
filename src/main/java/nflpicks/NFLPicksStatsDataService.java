@@ -1375,7 +1375,8 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * @param players
 	 * @return
 	 */
-	public List<Record> getRecords(List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+	public List<Record> getRecords(List<String> years, List<String> weekKeys, List<String> players, List<String> teams,
+			List<String> team1Teams, List<String> team2Teams){
 		
 		//Steps to do:
 		//	1. Add in the arguments we were given to the query if they're there.
@@ -1391,7 +1392,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 		try {
 			connection = dataSource.getConnection();
 			
-			String recordsCriteria = createRecordsCriteria(years, weekKeys, players, teams);
+			String recordsCriteria = createRecordsCriteria(years, weekKeys, players, teams, team1Teams, team2Teams);
 			
 			String query = String.format(SELECT_RECORD, recordsCriteria);
 			
@@ -1439,6 +1440,40 @@ group by pick_totals.player_id, pick_totals.player_name ;
 					parameterIndex++;
 				}
 			}
+			
+			if (team1Teams != null && team1Teams.size() > 0 &&
+					team2Teams != null && team2Teams.size() > 0){
+				
+				for (int index = 0; index < team1Teams.size(); index++){
+					String team = team1Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team2Teams.size(); index++){
+					String team = team2Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team2Teams.size(); index++){
+					String team = team2Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team1Teams.size(); index++){
+					String team = team1Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+			}
+			
+			/*
+			  (away_team.abbreviation in ('BUF', 'ATL', 'CIN') and home_team.abbreviation in ('DAL', DET'))
+			or
+			(away_team.abbreviation in ('DAL', 'DET') and home_team.abbreviation in ('BUF', 'ATL', 'CIN'))
+			 */
 			
 			results = statement.executeQuery();
 			
@@ -1489,12 +1524,37 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * do it once and reuse it.  It will add in each argument that it's given and will skip
 	 * the arguments that aren't given.
 	 * 
+	 * A convience 
+	 * 
 	 * @param years
 	 * @param weekKeys
 	 * @param players
 	 * @return
 	 */
 	protected String createRecordsCriteria(List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+		
+		String recordsCriteria = createRecordsCriteria(years, weekKeys, players, teams, null, null);
+		
+		return recordsCriteria;
+	}
+	
+	/**
+	 * 
+	 * This function will create the "criteria" part for the records query (basically, the "where" part).
+	 * It's here because we need to do this in a few places and I figured it would be a good idea to just
+	 * do it once and reuse it.  It will add in each argument that it's given and will skip
+	 * the arguments that aren't given.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @param teams
+	 * @param team1Teams
+	 * @param team2Teams
+	 * @return
+	 */
+	protected String createRecordsCriteria(List<String> years, List<String> weekKeys, List<String> players, List<String> teams,
+			List<String> team1Teams, List<String> team2Teams){
 		
 		//Steps to do:
 		//	1. Add in the where clauses for the arguments that were given.
@@ -1592,6 +1652,68 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			}
 			
 			whereClause.append(")").append(")");
+		}
+		
+		//it's all or nothing with both of them
+		if (team1Teams != null && team1Teams.size() > 0 &&
+				team2Teams != null && team2Teams.size() > 0){
+			
+			if (!addedWhere){
+				whereClause.append("where ");
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			whereClause
+				.append("(")
+					.append("(")
+						.append("away_team.abbreviation in (");
+			
+			for (int index = 0; index < team1Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(") and home_team.abbreviation in (");
+			
+			for (int index = 0; index < team2Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(")");
+			
+			whereClause.append(") or (")
+				.append("away_team.abbreviation in (");
+			
+			for (int index = 0; index < team2Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(") and home_team.abbreviation in (");
+			
+			for (int index = 0; index < team1Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(")").append(")").append(")");
+			/*
+			 (away_team.abbreviation in ('BUF', 'ATL', 'CIN') and home_team.abbreviation in ('DAL', DET'))
+			or
+			(away_team.abbreviation in ('DAL', 'DET') and home_team.abbreviation in ('BUF', 'ATL', 'CIN'))
+			 */
+			
 		}
 		
 		return whereClause.toString();
@@ -4163,7 +4285,8 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * @param players
 	 * @return
 	 */
-	public List<DivisionRecord> getDivisionRecords(List<String> divisions, List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+	public List<DivisionRecord> getDivisionRecords(List<String> divisions, List<String> years, List<String> weekKeys, 
+			List<String> players, List<String> teams, List<String> team1Teams, List<String> team2Teams){
 		
 		//Steps to do:
 		//	1. Add in the arguments we were given to the query if they're there.
@@ -4197,7 +4320,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			
 			connection = dataSource.getConnection();
 			
-			String recordsCriteria = createDivisionRecordsCriteria(divisions, years, weekKeys, players, teams);
+			String recordsCriteria = createDivisionRecordsCriteria(divisions, years, weekKeys, players, team1Teams, team2Teams);
 			
 			String query = String.format(SELECT_DIVISION_RECORD, recordsCriteria);
 			
@@ -4255,6 +4378,64 @@ group by pick_totals.player_id, pick_totals.player_name ;
 				}
 			}
 			
+			if ((team1Teams != null && team1Teams.size() > 0) &&
+					(team2Teams == null || team2Teams.size() == 0)){
+				for (int index = 0; index < team1Teams.size(); index++){
+					String team = team1Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team1Teams.size(); index++){
+					String team = team1Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+			}
+			else if ((team2Teams != null && team2Teams.size() > 0) &&
+						(team1Teams == null || team1Teams.size() == 0)){
+				
+				for (int index = 0; index < team2Teams.size(); index++){
+					String team = team2Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team2Teams.size(); index++){
+					String team = team2Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+			}
+			else if (team1Teams != null && team1Teams.size() > 0 &&
+					team2Teams != null && team2Teams.size() > 0){
+				
+				for (int index = 0; index < team1Teams.size(); index++){
+					String team = team1Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team2Teams.size(); index++){
+					String team = team2Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team2Teams.size(); index++){
+					String team = team2Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+				
+				for (int index = 0; index < team1Teams.size(); index++){
+					String team = team1Teams.get(index);
+					statement.setString(parameterIndex, team);
+					parameterIndex++;
+				}
+			}
+			
 			results = statement.executeQuery();
 			
 			while (results.next()){
@@ -4293,7 +4474,8 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * @param players
 	 * @return
 	 */
-	protected String createDivisionRecordsCriteria(List<String> divisions, List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+	protected String createDivisionRecordsCriteria(List<String> divisions, List<String> years, List<String> weekKeys, 
+			List<String> players, List<String> team1Teams, List<String> team2Teams){
 		
 		//Steps to do:
 		//	1. Add in the where clauses for the arguments that were given.
@@ -4378,7 +4560,68 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			whereClause.append(")");
 		}
 		
-		if (teams != null && teams.size() > 0){
+//		if (teams != null && teams.size() > 0){
+//			
+//			if (!addedWhere){
+//				whereClause.append("where ");
+//			}
+//			else {
+//				whereClause.append(" and ");
+//			}
+//			
+//			whereClause.append("(").append("home_team.abbreviation in (");
+//			
+//			for (int index = 0; index < teams.size(); index++){
+//				if (index > 0){
+//					whereClause.append(", ");
+//				}
+//				whereClause.append("?");
+//			}
+//			
+//			whereClause.append(") or away_team.abbreviation in (");
+//			
+//			for (int index = 0; index < teams.size(); index++){
+//				if (index > 0){
+//					whereClause.append(", ");
+//				}
+//				whereClause.append("?");
+//			}
+//			
+//			whereClause.append(")").append(")");
+//		}
+		
+		if ((team1Teams != null && team1Teams.size() > 0)
+				&& (team2Teams == null || team2Teams.size() == 0)){
+			if (!addedWhere){
+				whereClause.append("where ");
+			}
+			else {
+				whereClause.append(" and ");
+			}
+
+			whereClause.append("(").append("home_team.abbreviation in (");
+
+			for (int index = 0; index < team1Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+
+			whereClause.append(") or away_team.abbreviation in (");
+
+			for (int index = 0; index < team1Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+
+			whereClause.append(")").append(")");
+			
+		}
+		else if ((team2Teams != null && team2Teams.size() > 0)
+					&& (team1Teams == null || team1Teams.size() == 0)){
 			
 			if (!addedWhere){
 				whereClause.append("where ");
@@ -4386,26 +4629,88 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			else {
 				whereClause.append(" and ");
 			}
-			
+
 			whereClause.append("(").append("home_team.abbreviation in (");
-			
-			for (int index = 0; index < teams.size(); index++){
+
+			for (int index = 0; index < team2Teams.size(); index++){
 				if (index > 0){
 					whereClause.append(", ");
 				}
 				whereClause.append("?");
 			}
-			
+
 			whereClause.append(") or away_team.abbreviation in (");
-			
-			for (int index = 0; index < teams.size(); index++){
+
+			for (int index = 0; index < team2Teams.size(); index++){
 				if (index > 0){
 					whereClause.append(", ");
 				}
 				whereClause.append("?");
 			}
-			
+
 			whereClause.append(")").append(")");
+		}
+		
+		//it's all or nothing with both of them
+		if (team1Teams != null && team1Teams.size() > 0 &&
+				team2Teams != null && team2Teams.size() > 0){
+
+			if (!addedWhere){
+				whereClause.append("where ");
+			}
+			else {
+				whereClause.append(" and ");
+			}
+
+			whereClause
+			.append("(")
+			.append("(")
+			.append("away_team.abbreviation in (");
+
+			for (int index = 0; index < team1Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+
+			whereClause.append(") and home_team.abbreviation in (");
+
+			for (int index = 0; index < team2Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+
+			whereClause.append(")");
+
+			whereClause.append(") or (")
+			.append("away_team.abbreviation in (");
+
+			for (int index = 0; index < team2Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+
+			whereClause.append(") and home_team.abbreviation in (");
+
+			for (int index = 0; index < team1Teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+
+			whereClause.append(")").append(")").append(")");
+			/*
+					 (away_team.abbreviation in ('BUF', 'ATL', 'CIN') and home_team.abbreviation in ('DAL', DET'))
+					or
+					(away_team.abbreviation in ('DAL', 'DET') and home_team.abbreviation in ('BUF', 'ATL', 'CIN'))
+			 */
+
 		}
 		
 		return whereClause.toString();
