@@ -1,11 +1,13 @@
 function onClickTeam1Selector(event){
 	event.stopPropagation();
+	console.log('team 1');
 	
 	selectTeam1Container();
 }
 
 function onClickTeam2Selector(event){
 	event.stopPropagation();
+	console.log('team 2');
 	
 	selectTeam2Container();
 }
@@ -66,6 +68,8 @@ function onClickTeam1AtTeam2SelectorContainer(event){
 }
 
 function onClickTeam1AtTeam2Selector(event){
+	console.log('team 1 at team 2');
+	
 	event.stopPropagation();
 	
 	var team1AtTeam2Checked = $('#team1AtTeam2').prop('checked');
@@ -73,6 +77,7 @@ function onClickTeam1AtTeam2Selector(event){
 	setTeam1AtTeam2(team1AtTeam2Checked);
 	
 	updateTeam1Team2Labels();
+	
 }
 
 function updateTeam1Team2Labels(){
@@ -80,6 +85,7 @@ function updateTeam1Team2Labels(){
 	var team1AtTeam2 = getTeam1AtTeam2();
 	
 	if (team1AtTeam2){
+		//#team1SelectorLink
 		$('#team1SelectorLink').text('Team 1 (Away)');
 		$('#team2SelectorLink').text('Team 2 (Home)');
 	}
@@ -98,6 +104,7 @@ function setTeam1AtTeam2Value(value){
 	}
 }
 
+
 function setTeam1AtTeam2(value){
 	NFL_PICKS_GLOBAL.team1AtTeam2 = value;
 }
@@ -106,8 +113,16 @@ function getTeam1AtTeam2(){
 	return NFL_PICKS_GLOBAL.team1AtTeam2;
 }
 
+//onClickTeamVsOrAtSelector
 function onClickTeamVsOrAtContainerSelector(event){
 	event.stopPropagation();
+	
+	console.log('blah here!');
+	
+	//vsOrAtContainer
+	//isVisible
+	
+	//get the current team vs or at selector and make it the other one
 	
 	if (!isVisible('vsOrAtContainer')){
 		showVsOrAtContainer();
@@ -125,17 +140,27 @@ function hideVsOrAtContainer(){
 	$('#vsOrAtContainer').hide();
 }
 
+
 function onClickTeamVsOrAtSelector(event){
+	console.log('on click vs or at selector');
+	
 	event.stopPropagation();
 	
 	toggleTeamVsOrAt();
 
 	updateTeamVsOrAtLinkLabel();
 	
+	//update label here
 	hideVsOrAtContainer();
 }
 
 function toggleTeamVsOrAt(){
+	//
+	//get the current one
+	//flip it
+	//
+	
+	console.log('toggling...');
 	
 	var team1AtTeam2 = getTeam1AtTeam2();
 	
@@ -154,10 +179,12 @@ function updateTeamVsOrAtLinkLabel(){
 	if (team1AtTeam2){
 		setTeamVsOrAtLinkCurrentLabel('@');
 		setTeamVsOrAtLinkNotCurrentLabel('vs');
+		console.log('team 1 at team 2');
 	}
 	else {
 		setTeamVsOrAtLinkCurrentLabel('vs');
 		setTeamVsOrAtLinkNotCurrentLabel('@');
+		console.log('team 1 vs team 2');
 	}
 }
 
@@ -169,24 +196,30 @@ function setTeamVsOrAtLinkNotCurrentLabel(label){
 	$('#vsOrAtSelectorLinkNotCurrent').text(label);
 }
 
+
 function onClickTeam1(event, value){
 	event.stopPropagation();
 	
 	var multiselectTeam = getMultiselectTeam();
 	
+	console.log('team 1 = ' + value);
+	
 	if (multiselectTeam){
 		var currentTeam1Selections = getCurrentTeam1Selections();
 		var indexOfValue = currentTeam1Selections.indexOf(value);
 		if (indexOfValue >= 0){
+			console.log('unselect ' + value);
 			unselectTeam1(value);
 			removeTeam1FromCurrentSelection(value);
 		}
 		else {
+			console.log('select ' + value);
 			selectTeam1(value);
 			addTeam1ToCurrentSelection(value);
 		}
 	}
 	else {
+		console.log('no multi select');
 		clearCurrentTeam1Selections();
 		selectTeam1(value);
 		addTeam1ToCurrentSelection(value);
@@ -195,24 +228,31 @@ function onClickTeam1(event, value){
 }
 
 
+
+
 function onClickTeam2(event, value){
 	event.stopPropagation();
 	
 	var multiselectTeam = getMultiselectTeam();
 	
+	console.log('team 2 = ' + value);
+	
 	if (multiselectTeam){
 		var currentTeam2Selections = getCurrentTeam2Selections();
 		var indexOfValue = currentTeam2Selections.indexOf(value);
 		if (indexOfValue >= 0){
+			console.log('unselect ' + value);
 			unselectTeam2(value);
 			removeTeam2FromCurrentSelection(value);
 		}
 		else {
+			console.log('select ' + value);
 			selectTeam2(value);
 			addTeam2ToCurrentSelection(value);
 		}
 	}
 	else {
+		console.log('no multi select');
 		clearCurrentTeam2Selections();
 		selectTeam2(value);
 		addTeam2ToCurrentSelection(value);
@@ -289,6 +329,69 @@ function onClickTeam1SelectionOk(event){
 	updateView();
 }
 
+
+
+//var currentTeam1Selections = [];
+//
+//function getCurrentTeam1Selections(){
+//	return currentTeam1Selections;
+//}
+//
+//function setCurrentTeam1Selections(updatedSelections){
+//	currentTeam1Selections = updatedSelections;
+//}
+//
+//function clearCurrentTeam1Selections(){
+//	currentTeam1Selections = [];
+//}
+//
+//function selectTeam1(value){
+//	var normalizedValue = normalizeTeamValue(value);
+//	$('#team-1-checkbox-input-' + normalizedValue).prop('checked', true);
+//	$('#team-1-radio-input-' + normalizedValue).prop('checked', true);
+//}
+//
+//function unselectTeam1(team){
+//	var normalizedValue = normalizeTeamValue(team);
+//	$('#team-1-checkbox-input-' + normalizedValue).prop('checked', false);
+//	$('#team-1-radio-input-' + normalizedValue).prop('checked', false);
+//}
+//
+//function removeTeam1FromCurrentSelection(value){
+//	var currentTeam1Selections = getCurrentTeam1Selections();
+//	var indexOfValue = currentTeam1Selections.indexOf(value);
+//	if (indexOfValue >= 0){
+//		currentTeam1Selections.splice(indexOfValue, 1);
+//		setCurrentTeam1Selections(currentTeam1Selections);
+//	}
+//}
+//
+//function addTeam1ToCurrentSelection(value){
+//	currentTeam1Selections.push(value);
+//}
+//
+//function onClickTeam1SelectionOk(event){
+//	event.stopPropagation();
+//	//If it's multi select here, unselect the all option.
+//	var multiselectTeam = getMultiselectTeam();
+//	if (multiselectTeam){
+//		var ct1 = getCurrentTeam1Selections();
+//		console.log('before ct1 = ' + ct1);
+//		removeTeam1FromCurrentSelection('all');
+//		var ct2 = getCurrentTeam1Selections();
+//		console.log('after ct2 = ' + ct2);
+//	}
+//	hideTeamSelector();
+//	var currentTeams = getCurrentTeam1Selections();
+//	setSelectedTeams(currentTeams);
+//	updateTeamsLink();
+//	updateView();
+//}
+
+
+
+
+
 var currentTeam2Selections = [];
 
 function getCurrentTeam2Selections(){
@@ -333,7 +436,11 @@ function onClickTeam2SelectionOk(event){
 	//If it's multi select here, unselect the all option.
 	var multiselectTeam = getMultiselectTeam();
 	if (multiselectTeam){
+		var ct1 = getCurrentTeam2Selections();
+		console.log('before ct1 = ' + ct1);
 		removeTeam2FromCurrentSelection('all');
+		var ct2 = getCurrentTeam2Selections();
+		console.log('after ct2 = ' + ct2);
 	}
 	hideTeamSelector();
 	var currentTeams = getCurrentTeam2Selections();
@@ -341,6 +448,17 @@ function onClickTeam2SelectionOk(event){
 	updateTeamsLink();
 	updateView();
 }
+
+
+
+
+
+
+
+
+
+
+
 
 
 /**
@@ -409,8 +527,12 @@ function setSelectedTeams1(teams){
 function resetTeam1Selections(){
 	unselectAllTeams1ByValue();
 	var selectedTeamValues = getSelectedTeam1Values();
+	console.log('team 1 after unselect by value ... selected values ...');
+	console.log(selectedTeamValues);
 	setCurrentTeam1Selections(selectedTeamValues);
 	var currentTeams = getCurrentTeam1Selections();
+	console.log('cur teams ...');
+	console.log(currentTeams);
 	selectTeams1ByValue(currentTeams);
 }
 
@@ -476,6 +598,16 @@ function getTeam1ValuesForRequest(){
 	return team1ValuesForRequest;
 }
 
+
+
+
+
+
+
+
+
+
+
 function setSelectedTeams2(teams){
 	
 	//Steps to do:
@@ -520,6 +652,7 @@ function setSelectedTeams2(teams){
 	
 	NFL_PICKS_GLOBAL.selections.teams2 = teamsArray;
 }
+
 
 function resetTeam2Selections(){
 	unselectAllTeams2ByValue();
@@ -591,18 +724,13 @@ function getTeam2ValuesForRequest(){
 	return team2ValuesForRequest;
 }
 
-function getTeam1AtTeam2ValueForRequest(){
-	
-	var team1AtTeam2 = getTeam1AtTeam2();
-	
-	var team1AtTeam2Value = 'false';
-	
-	if (team1AtTeam2){
-		team1AtTeam2Value = 'true';
-	}
-	
-	return team1AtTeam2Value;
-}
+
+
+
+
+
+
+
 
 function hideAllTeam1SelectorContainer(){
 	$('#team-1-selector-container-all').hide();
@@ -620,6 +748,27 @@ function showAllTeam2SelectorContainer(){
 	$('#team-2-selector-container-all').show();
 }
 
+//don't need to change this
+//function getAllTeamValues(){
+//	var teamValues = [];
+//	
+//	for (var index = 0; index < NFL_PICKS_GLOBAL.teams.length; index++){
+//		var team = NFL_PICKS_GLOBAL.teams[index];
+//		teamValues.push(team.value);
+//	}
+//	
+//	return teamValues;
+//}
+
+
+
+
+
+
+
+
+
+
 function onClickTeamSelector(event){
 	event.stopPropagation();
 	
@@ -629,8 +778,12 @@ function onClickTeamSelector(event){
 
 	if (!wasSelectorVisible){
 		resetTeam1Selections();
+		var checkedVal0 = $('#team-1-radio-input-all').prop('checked');
+		console.log('after reset sel... ' + checkedVal0);
 		resetTeam2Selections();
 		showTeamSelector();
+		var checkedVal = $('#team-1-radio-input-all').prop('checked');
+		console.log('before container 1 select .. cv ' + checkedVal);
 		selectTeam1Container();
 	}
 }
@@ -798,6 +951,12 @@ function onClickTeamSelectionOk(event){
 	var currentTeams2 = getCurrentTeam2Selections();
 	setSelectedTeams2(currentTeams2);
 	
+	console.log('ON OK TEAM ...');
+	console.log('teams 1...');
+	console.log(currentTeams1);
+	console.log('teams 2...');
+	console.log(currentTeams2);
+	
 	//this one is next
 	//	ARZ, BAL @ ATL, CLE, ...
 	// make elipses for each team
@@ -816,9 +975,16 @@ function onClickTeamSelectionCancel(event){
 	resetAndHideTeamSelections();
 }
 
+function resetTeamSelections(){
+	unselectAllTeamsByValue();
+	var selectedTeamValues = getSelectedTeamValues();
+	setCurrentTeamSelections(selectedTeamValues);
+	var currentTeams = getCurrentTeamSelections();
+	selectTeamsByValue(currentTeams);
+}
+
 function resetAndHideTeamSelections(){
-	resetTeam1Selections();
-	resetTeam2Selections();
+	resetTeamSelections();
 	hideTeamSelector();
 }
 
@@ -829,6 +995,25 @@ function showTeamSelector(){
 function hideTeamSelector(){
 	$('#teamSelectorContainer').hide();
 }
+
+var currentTeamSelections = [];
+
+function getCurrentTeamSelections(){
+	return currentTeamSelections;
+}
+
+function setCurrentTeamSelections(updatedSelections){
+	currentTeamSelections = updatedSelections;
+}
+
+function clearCurrentTeamSelections(){
+	currentTeamSelections = [];
+}
+
+/*
+ $('#team2SelectorRadioButton').prop('checked', false);
+	$('#team1SelectorRadioButton').prop('checked', true);
+ */
 
 function isTeam1Selected(){
 	var isTeam1Selected = $('#team1SelectorRadioButton').prop('checked');
@@ -870,6 +1055,12 @@ function onClickSelectAllTeams(event){
 			addTeam2ToCurrentSelection(team.value);
 		}
 	}
+	
+//	for (var index = 0; index < teams.length; index++){
+//		var team = teams[index];
+//		selectTeam(team.value);
+//		addTeamToCurrentSelection(team.value);
+//	}
 }
 
 function onClickClearTeams(event){
@@ -899,95 +1090,32 @@ function onClickClearTeams(event){
 			removeTeam2FromCurrentSelection(team.value);
 		}
 	}
+	
+	
 }
 
-function isSpecificTeamSelected(){
+function onClickTeam(event, value){
+	event.stopPropagation();
 	
-	var specificTeam1Selected = isSpecificTeam1Selected();
+	var multiselectTeam = getMultiselectTeam();
 	
-	var specificTeam2Selected = isSpecificTeam2Selected();
-	
-	if (specificTeam1Selected || specificTeam2Selected){
-		return true;
+	if (multiselectTeam){
+		var indexOfValue = currentTeamSelections.indexOf(value);
+		if (indexOfValue >= 0){
+			unselectTeam(value);
+			removeTeamFromCurrentSelection(value);
+		}
+		else {
+			selectTeam(value);
+			addTeamToCurrentSelection(value);
+		}
 	}
-	
-	return false;
-}
-
-function isSpecificTeam1Selected() {
-	
-	var selectedTeams1 = getSelectedTeams1();
-	
-	if (selectedTeams1.length > 1){
-		return false;
+	else {
+		clearCurrentTeamSelections();
+		selectTeam(value);
+		addTeamToCurrentSelection(value);
+		onClickTeamSelectionOk(event);
 	}
-	
-	var selectedTeam = selectedTeams1[0].value;
-	
-	if ('all' == selectedTeam){
-		return false;
-	}
-	
-	return true;
-}
-
-function isTeam1AllTeams(){
-	
-	var selectedTeams1 = getSelectedTeams1();
-	
-	if (isEmpty(selectedTeams1)){
-		return false;
-	}
-	
-	if (selectedTeams1.length > 1){
-		return false;
-	}
-	
-	var selectedTeam = selectedTeams1[0].value;
-	
-	if ('all' == selectedTeam){
-		return true;
-	}
-	
-	return false;
-}
-
-function isSpecificTeam2Selected() {
-	
-	var selectedTeams2 = getSelectedTeams2();
-	
-	if (selectedTeams2.length > 1){
-		return false;
-	}
-	
-	var selectedTeam = selectedTeams2[0].value;
-	
-	if ('all' == selectedTeam){
-		return false;
-	}
-	
-	return true;
-}
-
-function isTeam2AllTeams(){
-	
-	var selectedTeams2 = getSelectedTeams2();
-	
-	if (isEmpty(selectedTeams2)){
-		return false;
-	}
-	
-	if (seletectTeams2.length > 1){
-		return false;
-	}
-	
-	var selectedTeam = selectedTeams2[0].value;
-	
-	if ('all' == selectedTeam){
-		return true;
-	}
-	
-	return false;
 }
 
 function updateTeamsLink(){
@@ -1003,78 +1131,39 @@ function updateTeamsLink(){
 	//ATL, BUF vs ALL
 	
 	var selectedTeams1 = getSelectedTeams1();
-	var selectedTeams2 = getSelectedTeams2();
+	
+	var selectedTeams = getSelectedTeams();
 	
 	//If there aren't any selected teams, it should be "none"
-	if (isEmpty(selectedTeams1) && isEmpty(selectedTeams2)){
+	if (isEmpty(selectedTeams1)){
 		$('#teamsLink').text('No teams');
 		return;
 	}
 	
-	var team1AllTeams = isTeam1AllTeams();
-	
-	var team2AllTeams = isTeam1AllTeams();
-	
-	if (team1AllTeams || team2AllTeams){
+	if (selectedTeams1.length == 1 && 'all' == selectedTeams1[0].value){
 		$('#teamsLink').text('All teams');
 		return;
 	}
 	
 	sortOptionsByLabel(selectedTeams1);
-	sortOptionsByLabel(selectedTeams2);
 	
-	var teams1LinkText = '';
+	var linkText = '';
 	
 	for (var index = 0; index < selectedTeams1.length; index++){
 		var team = selectedTeams1[index];
 		
 		if (index > 0){
-			teams1LinkText = teams1LinkText + ', ';
+			linkText = linkText + ', ';
 		}
 		
-		teams1LinkText = teams1LinkText + team.label;
+		linkText = linkText + team.label;
 	}
 	
-	var fullTeams1LinkText = teams1LinkText;
+	$('#teamsLink').prop('title', linkText);
 	
-	//we want 3 teams at most
-	//most teams have 3 letters, so that would be
-	//	ATL, ARZ, BUF
-	//13
-	if (teams1LinkText.length > 13){
-		teams1LinkText = teams1LinkText.substring(0, 13) + '...';
+	if (linkText.length >= 25){
+		linkText = linkText.substring(0, 25) + '...';
 	}
-	
-	var teams2LinkText = '';
-	
-	for (var index = 0; index < selectedTeams2.length; index++){
-		var team = selectedTeams2[index];
-		
-		if (index > 0){
-			teams2LinkText = teams2LinkText + ', ';
-		}
-		
-		teams2LinkText = teams2LinkText + team.label;
-	}
-	
-	var fullTeams2LinkText = teams2LinkText;
-	
-	if (teams2LinkText.length > 13){
-		teams2LinkText = teams2LinkText.substring(0, 13) + '...';
-	}
-	
-	var conjunction = 'vs';
-	
-	var team1AtTeam2 = getTeam1AtTeam2();
-	if (team1AtTeam2){
-		conjunction = '@';
-	}
-	
-	var linkText = teams1LinkText + ' ' + conjunction + ' ' + teams2LinkText;
-	
-	var fullLinkText = fullTeams1LinkText + ' ' + conjunction + ' ' + fullTeams2LinkText;
-	
-	$('#teamsLink').prop('title', fullLinkText);
 	
 	$('#teamsLink').text(linkText);
 }
@@ -1087,6 +1176,24 @@ function hideTeamsLink(){
 	$('#teamsLink').hide();
 }
 
+function selectAllTeamsByValue(){
+	var teamValues = getAllTeamValues();
+	selectTeamsByValue(teamValues);
+}
+
+function unselectAllTeamsByValue(){
+	var teamValues = getAllTeamValues();
+	unselectTeamsByValue(teamValues);
+}
+
+function selectTeamsByValue(values){
+	for (var index = 0; index < values.length; index++){
+		var value = values[index];
+		selectTeam(value);
+	}
+}
+
+
 function normalizeTeamValue(value){
 	var normalizedValue = normalizeString(value);
 	return normalizedValue;
@@ -1098,6 +1205,67 @@ function selectTeam(value){
 	$('#team-2-checkbox-input-' + normalizedValue).prop('checked', true);
 	$('#team-1-radio-input-' + normalizedValue).prop('checked', true);
 	$('#team-2-radio-input-' + normalizedValue).prop('checked', true);
+}
+
+function addTeamToCurrentSelection(value){
+	currentTeamSelections.push(value);
+}
+
+function unselectTeamsByValue(teams){
+	for (var index = 0; index < teams.length; index++){
+		var team = teams[index];
+		unselectTeam(team);
+	}
+}
+
+function unselectTeam(team){
+	var normalizedValue = normalizeTeamValue(team);
+	$('#team-1-checkbox-input-' + normalizedValue).prop('checked', false);
+	$('#team-2-checkbox-input-' + normalizedValue).prop('checked', false);
+	$('#team-1-radio-input-' + normalizedValue).prop('checked', false);
+	$('#team-2-radio-input-' + normalizedValue).prop('checked', false);
+}
+
+function removeTeamFromCurrentSelection(value){
+	var indexOfValue = currentTeamSelections.indexOf(value);
+	if (indexOfValue >= 0){
+		currentTeamSelections.splice(indexOfValue, 1);
+	}
+}
+
+/**
+ * 
+ * This function will cause the given team (the value should be the abbreviation)
+ * to be the only team selected.
+ * 
+ * @param value
+ * @returns
+ */
+function selectSingleTeamFull(value){
+	clearCurrentTeamSelections();
+	//just does the ui
+	selectTeam(value);
+	//just does the current selections
+	addTeamToCurrentSelection(value);
+	var currentTeams = getCurrentTeamSelections();
+	setSelectedTeams(currentTeams);
+}
+
+/**
+ * 
+ * This function will completely unselect the team by its value.
+ * It will make the team unselected on the ui, remove it from
+ * the "current selections" array, and update the selected teams
+ * in the NFL_PICKS_GLOBAL variable.
+ * 
+ * @param value
+ * @returns
+ */
+function unselectTeamFull(value){
+	unselectTeam(value);
+	removeTeamFromCurrentSelection(value);
+	var currentTeams = getCurrentTeamSelections();
+	setSelectedTeams(currentTeams);
 }
 
 function getAllTeams(){
@@ -1146,6 +1314,53 @@ function getTeam(value){
 	return null;
 }
 
+function getSelectedTeamValues(){
+	
+	var teamValues = [];
+	
+	var selectedTeams = getSelectedTeams();
+	
+	for (var index = 0; index < selectedTeams.length; index++){
+		var selectedTeam = selectedTeams[index];
+		teamValues.push(selectedTeam.value);
+	}
+	
+	return teamValues;
+}
+
+function getTeamValuesForRequest(){
+	
+	var selectedValues = getSelectedTeamValues();
+	
+	var valuesToSend = [];
+	
+	var realTeams = getRealTeams();
+	
+	for (var index = 0; index < selectedValues.length; index++){
+		var selectedValue = selectedValues[index];
+		
+		if ('all' == selectedValue){
+			for (var index2 = 0; index2 < realTeams.length; index2++){
+				var realTeam = realTeams[index2];
+				valuesToSend.push(realTeam.value);
+			}
+		}
+		else {
+			valuesToSend.push(selectedValue);
+		}
+	}
+	
+	var uniqueValues = getUniqueValuesFromArray(valuesToSend);
+	
+	var teamValuesForRequest = arrayToDelimitedValue(uniqueValues);
+	
+	return teamValuesForRequest;
+}
+
+function getSelectedTeams(){
+	return NFL_PICKS_GLOBAL.selections.teams;
+}
+
 function getSelectedTeams1(){
 	return NFL_PICKS_GLOBAL.selections.teams1;
 }
@@ -1153,6 +1368,17 @@ function getSelectedTeams1(){
 function getSelectedTeams2(){
 	return NFL_PICKS_GLOBAL.selections.teams2;
 }
+
+/*
+ var normalizedValue = normalizeTeamValue(team.value);
+		
+		var divHtmlCssClass = 'selection-item-container';
+		if (index + 1 == teams.length){
+			divHtmlCssClass = 'selection-item-container-last';
+		}
+
+		var teamHtml = '<div id="team-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickTeam(event, \'' + team.value + '\');">' +
+ */
 
 function getTeamSelectorContainerId(team){
 	
@@ -1179,6 +1405,7 @@ function showTeamItem(team){
 function hideTeamItem(team){
 	
 	var normalizedTeamAbbreviation = normalizeTeamValue(team);
+	//var teamSelectorContainerId = getTeamSelectorContainerId(team);
 	
 	var team1SelectorContainerId = 'team-1-selector-container-' + normalizedTeamAbbreviation;
 	$('#' + team1SelectorContainerId).hide();
@@ -1200,6 +1427,50 @@ function hideTeamItems(teams){
 		hideTeamItem(team);
 	}
 }
+
+function updateCurrentTeamSelections(){
+	var selectedTeamValues = getSelectedTeamValues();
+	setCurrentTeamSelections(selectedTeamValues);
+}
+
+
+
+
+
+/**
+ * 
+ * This function will say whether a "specific" team was selected
+ * (basically if the team isn't "all").
+ * 
+ * @returns
+ */
+function isSpecificTeamSelected(){
+	
+	var selectedTeams = getSelectedTeams();
+	
+	if (selectedTeams.length > 1){
+		return false;
+	}
+	
+	var selectedTeam = selectedTeams[0].value;
+	
+	if ('all' == selectedTeam){
+		return false;
+	}
+	
+	return true;
+}
+
+
+
+function showTeamContainer(){
+	$('#teamContainer').show();
+}
+
+function hideTeamContainer(){
+	$('#teamContainer').hide();
+}
+
 
 
 /**
@@ -1272,9 +1543,71 @@ function updateAvailableTeamOptions(){
 	//And, we have to go through and unselect the ones we should hide in case they 
 	//were selected.  If we just hide them and they're still selected, they'll still
 	//show up on the ui, just not in the selection dropdown.
-//	for (var index = 0; index < teamsToHide.length; index++){
-//		var teamToHide = teamsToHide[index];
-//		unselectTeamFull(teamToHide);
-//	}
+	for (var index = 0; index < teamsToHide.length; index++){
+		var teamToHide = teamsToHide[index];
+		unselectTeamFull(teamToHide);
+	}
 	
+}
+
+
+/**
+ * 
+ * This function will set the given teams as being selected in the UI and in the
+ * NFL_PICKS_GLOBAL variable (NFL_PICKS_GLOBAL.selections.teams).  
+ * 
+ * It expects the given teams variable to either be...
+ * 	1. An array of team abbreviations.
+ * 	2. A comma separated string of team abbreviations.
+ * 	3. A single team abbreviation.
+ * 
+ * It will put the actual team objects into the NFL_PICKS_GLOBAL variable for
+ * each team abbreviation that's given.
+ * 
+ * @param teams
+ * @returns
+ */
+function setSelectedTeams(teams){
+	
+	//Steps to do:
+	//	1. Check whether the teams variable is an array.
+	//	2. If it is, just keep it.
+	//	3. Otherwise, it's a string so check to see if it has multiple values.
+	//	4. If it does, then turn it into an array.
+	//	5. Otherwise, just put it in there as a single value.
+	//	6. Go through each team in the array, get the actual object for the team
+	//	   and put it in the global variable.  And, "select" it in the ui.
+	
+	var teamValuesArray = [];
+	
+	var isArray = Array.isArray(teams);
+	
+	if (isArray){
+		teamValuesArray = teams;
+	}
+	else {
+		var hasMultipleValues = doesValueHaveMultipleValues(teams);
+		
+		if (hasMultipleValues){
+			teamValuesArray = delimitedValueToArray(teams);
+		}
+		else {
+			teamValuesArray.push(teams);
+		}
+	}
+	
+	var teamsArray = [];
+	
+	for (var index = 0; index < teamValuesArray.length; index++){
+		var value = teamValuesArray[index];
+		selectTeam(value);
+
+		var team = getTeam(value);
+		teamsArray.push(team);
+	}
+	
+	//THIS was the key ... update the current team selections... geez this is too complicated
+	setCurrentTeamSelections(teamValuesArray);
+	
+	NFL_PICKS_GLOBAL.selections.teams = teamsArray;
 }

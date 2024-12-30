@@ -1,0 +1,266 @@
+update the terms of service and add a link to the home page?
+
+make sure it sorts the games when doing the edit
+
+add a matchup or second team selection so you can see how you do in different matchups
+
+	stuff to do:
+	
+		done - 1. make sure the selected teams are where they should be in javascript.
+		started - 2. make sure they're added onto to the request like they should be
+			done - division standings
+			done - standings
+			done - picks
+			stats
+				pick accuracy
+				pick splits
+				week comparison
+				season progression?
+				collective records
+				collective pick accuracy
+		done - 3. list out the functions that need to change on the java side.
+		started - 4. update the sql queries
+		started - 5. test it out
+
+add an "against the grain" stat
+	calculate each team's record in a single query
+	put that data in a map
+	use it to figure out how many teams with a losing record a person picked and what their record was in those games
+
+done - update the week label in the picks grid when we show the playoffs
+
+done - finish up the options stuff
+
+	make multi select player work all the way through
+	ranges are more complicated because you have to do > and < in the sql queries
+
+	done - figure out how the multi select works and write comments about it
+	
+	test multi select for players
+	put it in for weeks
+	put it in for years
+
+make pick accuracy faster
+
+done - make team histories
+
+done - import the old picks
+
+done - add old years
+
+done - bug test with the new years
+
+(mostly) done - bug test displays
+
+done - week comparison
+
+add sorting
+	would be only done in the browser since all the data is already there
+	would need to:
+		store the sort column in the nfl picks global variable
+		for each column, would have to get the sort character
+		then, before showing, sort for that column
+		might be good to have an nflpicks-sorter.js file that takes
+		care of all the sorting.
+
+clean up the code
+	done - break up the javascript
+	nflpicks-common
+	nflpicks-request
+	nflpicks-main
+	nflpicks-selector-common
+	nflpicks-selector-type
+	nflpicks-selector-player
+	nflpicks-selector-week
+	nflpicks-selector-season
+	nflpicks-selector-team
+	nflpicks-selector-stats
+	nflpicks-html-common
+	nflpicks-html-standings
+	nflpicks-html-picks
+	nflpicks-html-stats-champions
+	nflpicks-html-stats-championship-standings
+	nflpicks-html-stats-season-standings
+	nflpicks-html-stats-week-standings
+	nflpicks-html-stats-weeks-won-standings
+	nflpicks-html-stats-weeks-won-by-week
+	nflpicks-html-stats-week-records-by-player
+	nflpicks-html-stats-pick-accuracy
+	nflpicks-html-stats-pick-splits
+	nflpicks-html-stats-week-comparison
+	nflpicks-html-stats-season-progression
+	
+
+add in "totals" mode which would show the totals for the number of wins and losses
+
+
+is there any way to make it so the "modern era" is derived? ... I don't think so...
+
+	could use "aliases" that are either defined in the properties or in the database
+	they could either be loaded in the javascript or on the translation could be done
+	on the server side
+
+	probably best on the server side
+	the alias
+	
+done - week progression
+
+Thru week	Player				Result
+Week 1			Doodle (12-4)		Doodle (+1)
+				Jerry (11-5)
+Week 2			Doodle (24-8)		Doodle (+2)
+		Jerry (22-10)
+		
+		
+		
+divisions
+
+	done - design everything
+	done - make the database tables
+	done - make the model in the code
+	done - update the existing data service code
+	done - update the UI
+	done - update the import and export stuff
+	done - add a variable to turn the divisions on or off on the UI
+	done - test it
+		done - 1. add in the 2022 schedule with the data importer
+		done - 2. go through a full season with simulating the picks
+		test the division groupings
+			done - 1. create the same division relationships for 2021
+			done - 2. move one person to another division in 2020
+				jerry moved to montana division
+			done - 3. move a different person to another division in 2019
+				bruce moved to madden division
+			done - 4. see how the division standings work
+				they should show in each division and their wins should count in that division
+				seems to work
+				
+	done - add a "division champions" stat
+		test it with the existing data as it is and with 2022 being the start of the divisions (the "steroid era")
+		fake divisions in previous years and switch people between divisions to try to "simulate" what it will be like if people
+		get added or change divisions later
+		
+	done - break up the data service class into a model one and a stats one
+	
+	test the importing again
+	
+	put it out on the server
+		
+	for next season (2023), add in sorting
+	
+	add in some way to get the "collective accuracy" and totals for everybody added together
+	
+		two new stats ... 
+			done - total standings
+				shows everything summed up with "and" for the "criteria"
+			done? - total accuracy
+				shows the collective accuracy, separated by team
+		another stat
+			against the grain wins
+			wins by "vote" - how often is the "majority" right?
+	
+
+	started - add in a way to do
+		matchups
+		home and away
+		
+		teams
+		-----
+		[] Team 1 @ Team 2
+		---------------------
+		Team 1    | Team 2
+		---------------------
+		BUF
+		ATL
+		CIN
+		...
+		
+		
+		
+		teams
+		-----
+		[x] Team 1 @ Team 2
+		---------------------
+		Team 1    | Team 2
+		---------------------
+		BUF
+		ATL
+		CIN
+		...
+		
+		i need a few new parameters
+			team1
+			team2
+			teamHomeAway=true/false
+			
+		a team on its own can be home or away
+		team1/team2 will do all the matchups of team1 with team2
+		if team1 has like 3 teams: BUF, ATL, CIN and team2 has 2 teams: DAL, DET
+		then it'll go like this
+			(home_team.abbreviation in ('BUF', 'ATL', 'CIN') and away_team.abbreviation in ('DAL', DET'))
+			or
+			(home_team.abbreviation in ('DAL', 'DET') and away_team.abbreviation in ('BUF', 'ATL', 'CIN'))
+		
+		when team1 is by itself, it becomes what team is now
+		
+		i think i could add them in as is ...
+		team stays how it is home/away team abbreviation
+		if either team1 or team2 is sent on its own, it's switched to team at the servlet level
+		
+		if both team1
+		
+		
+select pick_totals.player_id,  
+     pick_totals.player_name,  
+     sum(pick_totals.wins) as wins,  
+     sum(pick_totals.losses) as losses, 
+     sum(pick_totals.ties) as ties 
+from (select pl.id as player_id,  
+		   pl.name as player_name, 
+		  (case when p.team_id = g.winning_team_id  
+		 	    then 1  
+		 	    else 0  
+		   end) as wins,  
+		  (case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id)  
+		 	    then 1  
+		 	    else 0  
+		   end) as losses,  
+		  (case when g.winning_team_id = -1  
+		 	    then 1  
+		 	    else 0 
+		   end) as ties 
+    from pick p join game g on p.game_id = g.id  
+	 join player pl on p.player_id = pl.id 
+         join team home_team on g.home_team_id = home_team.id  
+         join team away_team on g.away_team_id = away_team.id 
+     where pl.name = 'Jonathan'
+	   and home_team.abbreviation in ('BUF', 'KC')
+           and away_team.abbreviation in ('BUF', 'KC')
+	) pick_totals  
+group by pick_totals.player_id, pick_totals.player_name;
+
+
+
+select pick_totals.player_id, pick_totals.player_name, sum(pick_totals.wins) as wins, sum(pick_totals.losses) as losses, sum(pick_totals.ties) as ties 
+from (select pl.id as player_id, 
+pl.name as player_name, 
+(case when p.team_id = g.winning_team_id then 1 else 0 end) as wins, 
+(case when g.winning_team_id != -1 and (p.team_id is not null and p.team_id != g.winning_team_id) then 1 else 0 end) as losses, 
+(case when g.winning_team_id = -1 then 1 else 0 end) as ties 
+from pick p join game g on p.game_id = g.id 
+	join player pl on p.player_id = pl.id 
+	join team home_team on g.home_team_id = home_team.id 
+	join team away_team on g.away_team_id = away_team.id 
+where pl.name in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  
+and g.week_id in (select w.id from week w where w.key in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  
+and w.season_id in (select s.id from season s where s.year in (?))) and 
+(home_team.abbreviation in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) 
+ or away_team.abbreviation in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)) 
+and ((away_team.abbreviation in (?) and home_team.abbreviation in (?)) or 
+(away_team.abbreviation in (?) and home_team.abbreviation in (?))) 
+) pick_totals group by pick_totals.player_id, pick_totals.player_name 
+
+
+
+http://localhost:8080/nflpicks/nflpicks?target=standings&player=Jonathan&year=2023&team1=BUF&team2=NYJ
+http://localhost:8080/nflpicks/nflpicks?target=standings&player=Jonathan&year=2023&week=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,wildcard,divisional,conference_championship,superbowl&team=all,ARZ,ATL,BAL,BUF,CAR,CHI,CIN,CLE,DAL,DEN,DET,GB,HOU,IND,JAX,KC,LAC,LAR,LV,MIA,MIN,NE,NO,NYG,NYJ,OAK,PHI,PIT,SD,SEA,SF,STL,TB,TEN,WASH

@@ -726,7 +726,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 *		... Spoiler alert, he was never wrong and they never lost.
 	 * 
 	 * This query will get all of the numbers we need to show that stuff ... and do it faster than we've done
-	 * it before.  It's an improvment over the original in two places:
+	 * it before.  It's an improvement over the original in two places:
 	 * 
 	 * 		1. It just does a "cross join" of the team and player instead of the team, player, and season.
 	 * 		2. It does that "cross join" through a materialized view instead of doing it every time we run the query.
@@ -735,7 +735,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * by "cross joining" all the teams and all the players.  Then, we just use each combination of team and player (each
 	 * row in that view) to answer the questions above by just going down into joins of the picks and games tables to
 	 * figure out each one.  It tries to use the same idea as the original query (get "coordinates" and use those to get
-	 * individual couns), but with an "improved strategy" for getting the "coordinates" (materialized view of just the team
+	 * individual counts), but with an "improved strategy" for getting the "coordinates" (materialized view of just the team
 	 * and player instead of a cross join of the team, player, and season tables).
 	 * 
 	 */
@@ -914,6 +914,217 @@ group by pick_totals.player_id, pick_totals.player_name ;
 					" ) pick_accuracy_summary " +
 					//And we want the totals by player and team, so group by all the columns we want to show for them.
 					"group by player_id, player_name, team_id, team_name, team_nickname, team_abbreviation, team_division_id ";
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	protected static final String PICK_ACCURACY_SUMMARY_BETTER3 = 
+			//These are the numbers we want to pick out for every person and team.
+			"select pick_accuracy_summary.player_id as player_id, " + 
+				  " pick_accuracy_summary.player_name as player_name, " + 
+				  " pick_accuracy_summary.team_id as team_id, " + 
+				  " pick_accuracy_summary.team_division_id as team_division_id, " + 
+				  " pick_accuracy_summary.team_name as team_city, " + 
+				  " pick_accuracy_summary.team_nickname as team_nickname, " + 
+				  " pick_accuracy_summary.team_abbreviation as team_abbreviation, " +
+				  " sum(pick_accuracy_summary.actual_wins) as actual_wins, " + 
+				  " sum(pick_accuracy_summary.actual_losses) as actual_losses, " + 
+				  " sum(pick_accuracy_summary.actual_ties) as actual_ties, " + 
+				  " sum(pick_accuracy_summary.predicted_wins) as predicted_wins, " + 
+				  " sum(pick_accuracy_summary.predicted_losses) as predicted_losses, " + 
+				  " sum(pick_accuracy_summary.times_right) as times_right, " + 
+				  " sum(pick_accuracy_summary.times_wrong) as times_wrong, " + 
+				  " sum(pick_accuracy_summary.times_picked_to_win_right) as times_picked_to_win_right, " + 
+				  " sum(pick_accuracy_summary.times_picked_to_win_wrong) as times_picked_to_win_wrong, " + 
+				  " sum(pick_accuracy_summary.times_picked_to_lose_right) as times_picked_to_lose_right, " + 
+				  " sum(pick_accuracy_summary.times_picked_to_lose_wrong) as times_picked_to_lose_wrong " +
+					//The "atapv" is "all_team_all_player_view".  The "materialized view" that was made by cross joining
+					//the team and player tables.
+			"from (select atapv.player_id as player_id, " + 
+					    " atapv.player_name as player_name, " + 
+					    " atapv.team_id as team_id, " + 
+					    " atapv.team_division_id as team_division_id, " + 
+					    " atapv.city as team_name, " + 
+					    " atapv.nickname as team_nickname, " + 
+					    " atapv.abbreviation as team_abbreviation, " +
+						//The number of times a team won is how many times they were the winning team
+						//in games that the person picked somebody.
+						//I don't use all the team's games here so that the "actual" only includes
+						//games where they made a pick.  That way the "actual" vs predicted use the
+						//same games.
+						" (select count(*) " + 
+						 //Join on pick to make sure the player made a pick in the game.  If they didn't, we don't
+						 //want to count it.
+						 " from game g join pick p on g.id = p.game_id " + 
+						 " where p.player_id = atapv.player_id " +
+						 	   //The current team was involved in the game.
+						       " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+						 	   //The current team won the game.
+						       " and g.winning_team_id = atapv.team_id " +
+						       //The "week and season where clause" depends on the years and weeks they picked.
+						       //This will restrict it to just games in those weeks and seasons.
+						       " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						       " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+					    " ) as actual_wins, " + 
+					    //Same thing for the losses.
+					    " (select count(*) " + 
+					     " from game g join pick p on g.id = p.game_id " + 
+					     " where p.player_id = atapv.player_id " +
+					     	   //The current team was involved in the game.
+					           " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+					     	   //The current team didn't win the game and it wasn't a tie.
+					           " and (g.winning_team_id != atapv.team_id and g.winning_team_id != -1) " + 
+					           " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+					           " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+					    " ) as actual_losses, " + 
+					    //And the ties.
+					    " (select count(*) " + 
+					     " from game g join pick p on g.id = p.game_id " + 
+					     " where p.player_id = atapv.player_id " + 
+					     	   //The current team was involved in the game.
+					           " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+					     	   //It was a tie.
+					           " and g.winning_team_id = -1 " + 
+					           " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+					           " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+					    " ) as actual_ties, " +
+					    //The predicted wins are the number of times the player picked the team, whether they
+					    //won or lost, so we don't look at the winning team id here.
+						" (select count(*) " + 
+						 " from pick p join game g on p.game_id = g.id " + 
+						 " where p.player_id = atapv.player_id " +
+						 	   //The "current" team is the team they picked.
+						       " and p.team_id = atapv.team_id " + 
+						       " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						       " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+					    " ) as predicted_wins, " + 
+					    //The predicted losses are the number of times the player picked the other team in a game
+					    //where the current team (atapv.team_id) was involved.
+					    " (select count(*) " + 
+					     " from pick p join game g on p.game_id = g.id " + 
+					     " where p.player_id = atapv.player_id " + 
+					     	   //The "current team" was involved in the game.
+					     	   " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+					     	   //They picked the other team.
+					     	   " and p.team_id != atapv.team_id " + 
+					           " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+					           " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+					    " ) as predicted_losses, " + 
+					    //The number of times they were right comes from the number of times they picked
+					    //the current team to win a game and that team won.
+						" (select count(*) " + 
+						 " from pick p join game g on p.game_id = g.id " + 
+						 " where p.player_id = atapv.player_id " +
+						 	   //The "current" team was involved in the game.
+						       " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+						 	   //The winning team was the one they picked.
+						       " and g.winning_team_id = p.team_id " + 
+						       " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						       " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+						 " ) as times_right, " +
+						 //The number of times they were wrong comes from the number of times they picked
+						 //the current team to win a game and that team lost.
+						 " (select count(*) " + 
+						  " from pick p join game g on p.game_id = g.id " + 
+						  " where p.player_id = atapv.player_id " +
+						  		//The "current" team was involved in the game.
+						        " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+						  		//The winning team wasn't the team they picked.
+						        " and g.winning_team_id != p.team_id " + 
+						        //...And there wasn't a tie.
+						        " and g.winning_team_id != -1 " + 
+						        " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						        " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+						 " ) as times_wrong, " +
+						 //The number of times they picked the current team to win and they were right is the number
+						 //of times the current team was their pick and also the winning team for the game.
+						 " (select count(*) " + 
+						  " from pick p join game g on p.game_id = g.id " + 
+						  " where p.player_id = atapv.player_id " + 
+						  		//They picked the current team.
+						        " and p.team_id = atapv.team_id " +
+						  		//That team won the game.
+						        " and g.winning_team_id = p.team_id " +
+						        " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						        " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+						 " ) as times_picked_to_win_right, " +
+						 //The number of times they picked the current team to win and were wrong is the number of
+						 //times the current team was their pick and the winning team wasn't that team (and it wasn't a tie).
+						 " (select count(*) " + 
+						  " from pick p join game g on p.game_id = g.id " + 
+						  " where p.player_id = atapv.player_id " + 
+						  		//They picked the current team to win.
+						        " and p.team_id = atapv.team_id " + 
+						  		//The other team won.
+						        " and g.winning_team_id != p.team_id " +
+						  		//It wasn't a tie.
+						        " and g.winning_team_id != -1 " + 
+						        " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						        " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+						 " ) as times_picked_to_win_wrong, " +
+						 //The number of times they picked the current team to lose and were right is the number of times
+						 //the current team was involved in the game, they picked the other team, the current team didn't
+						 //win and it wasn't a tie.
+						 " (select count(*) " + 
+						  " from pick p join game g on p.game_id = g.id " + 
+						  " where p.player_id = atapv.player_id " + 
+						  		//The current team was involved in the game.
+						  	    " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+						  		//They picked the other team.
+						  		" and p.team_id != atapv.team_id " +
+						  		//The current team didn't win.
+						  	    " and g.winning_team_id != atapv.team_id " +
+						  		//The game didn't end in a tie.
+						  	    " and g.winning_team_id != -1 " +
+						  	    " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						  	  " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+						 " ) as times_picked_to_lose_right, " +
+						 //The number of times they picked a team to lose and were wrong is the number of times
+						 //the current team was involved in the game, they picked the other team, and the current team won.
+						 " (select count(*) " + 
+						  " from pick p join game g on p.game_id = g.id " + 
+						  " where p.player_id = atapv.player_id " +
+						  		//The current team was involved in the game.
+						  	    " and (g.home_team_id = atapv.team_id or g.away_team_id = atapv.team_id) " +
+						  		//They picked the other team.
+						        " and p.team_id != atapv.team_id " +
+						  		//The current team won.
+						        " and g.winning_team_id = atapv.team_id " +
+						        " and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE}) " +
+						        " ${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE} " +
+						 " ) as times_picked_to_lose_wrong " +
+				    //This is the "materialized view" that has all the combinations of the teams and players.  This way
+				    //we just have to do that query once (when we're creating the views at the beginning of the season
+				    //and we can reuse it the whole time.  It will automatically use the indexes just like it would if
+				    //we were querying the tables themselves.  Pretty neat.
+					" from all_team_all_player_view atapv " +
+				    //And we might want to restrict the teams an players based on what they picked (just like we do the weeks
+					//and seasons.
+					" ${PLAYER_AND_TEAM_WHERE_CLAUSE} " + 
+					" ) pick_accuracy_summary " +
+					//And we want the totals by player and team, so group by all the columns we want to show for them.
+					"group by player_id, player_name, team_id, team_name, team_nickname, team_abbreviation, team_division_id ";
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	/**
 	 * 
@@ -1728,7 +1939,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 */
 	public List<CompactPick> getCompactPicks(){
 		
-		List<CompactPick> compactPicks = getCompactPicks(null, null, null, null);
+		List<CompactPick> compactPicks = getCompactPicks(null, null, null, null, null, false);
 		
 		return compactPicks;
 		
@@ -1747,7 +1958,9 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * @param teams
 	 * @return
 	 */
-	public List<CompactPick> getCompactPicks(List<String> years, List<String> weekKeys, List<String> playerNames, List<String> teams) {
+	public List<CompactPick> getCompactPicks(List<String> years, List<String> weekKeys, 
+			List<String> playerNames, List<String> team1Teams, List<String> team2Teams,
+			boolean team1AtTeam2) {
 		
 		//Steps to do:
 		//	1. Make the query.
@@ -1822,7 +2035,8 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			boolean addedWhere = false;
 			boolean hasYears = Util.hasSomething(years);
 			boolean hasWeeks = Util.hasSomething(weekKeys);
-			boolean hasTeams = Util.hasSomething(teams);
+			boolean hasTeams1 = Util.hasSomething(team1Teams);
+			boolean hasTeams2 = Util.hasSomething(team2Teams);
 			
 			if (hasYears){
 				addedWhere = true;
@@ -1844,19 +2058,22 @@ group by pick_totals.player_id, pick_totals.player_name ;
 				whereBase = whereBase + " w.key in " + inParameterString;
 			}
 			
-			if (hasTeams){
+			//need to do the goofy stuff here
+			if (hasTeams1 || hasTeams2){
 				
-				if (addedWhere){
-					whereBase = whereBase + " and ";
-				}
-				else {
-					whereBase = "where ";
-					addedWhere = true;
-				}
+				String teamsCriteria = createTeamsCriteria(team1Teams, team2Teams, team1AtTeam2);
 				
-				String inParameterString = DatabaseUtil.createInClauseParameterString(teams.size());
-				whereBase = whereBase + " (home_team.abbreviation in " + inParameterString + 
-									 	  "or away_team.abbreviation in " + inParameterString + ") ";
+				if (Util.hasSomething(teamsCriteria)){
+					if (addedWhere){
+						whereBase = whereBase + " and ";
+					}
+					else {
+						whereBase = "where ";
+						addedWhere = true;
+					}
+					
+					whereBase = whereBase + " " + teamsCriteria;
+				}
 			}
 			
 			String orderBy = "order by s.year asc, w.sequence_number asc, g.id asc ";
@@ -1889,19 +2106,120 @@ group by pick_totals.player_id, pick_totals.player_name ;
 				}
 			}
 			
-			if (hasTeams){
-				for (int index = 0; index < teams.size(); index++){
-					String team = teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
-				}
-				
-				for (int index = 0; index < teams.size(); index++){
-					String team = teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
-				}
-			}
+			parameterIndex = addTeamsParameters(statement, parameterIndex, team1Teams, team2Teams, team1AtTeam2);
+
+//			if (hasTeams1 || hasTeams2){
+//				if (team1AtTeam2){
+//					
+//					if (hasTeams1 && !hasTeams2){
+//						if (hasTeams1){
+//							for (int index = 0; index < team1Teams.size(); index++){
+//								String team = team1Teams.get(index);
+//								statement.setString(parameterIndex, team);
+//								parameterIndex++;
+//							}
+//						}
+//					}
+//					else if (!hasTeams1 && hasTeams2){
+//						if (hasTeams2){
+//							for (int index = 0; index < team2Teams.size(); index++){
+//								String team = team2Teams.get(index);
+//								statement.setString(parameterIndex, team);
+//								parameterIndex++;
+//							}
+//						}
+//					}
+//					else if (hasTeams1 && hasTeams2){
+//						if (hasTeams1){
+//							for (int index = 0; index < team1Teams.size(); index++){
+//								String team = team1Teams.get(index);
+//								statement.setString(parameterIndex, team);
+//								parameterIndex++;
+//							}
+//						}
+//						
+//						if (hasTeams2){
+//							for (int index = 0; index < team2Teams.size(); index++){
+//								String team = team2Teams.get(index);
+//								statement.setString(parameterIndex, team);
+//								parameterIndex++;
+//							}
+//						}
+//					}
+//				}
+//				else {
+//				
+//					if (hasTeams1 && !hasTeams2){
+//
+//						for (int index = 0; index < team1Teams.size(); index++){
+//							String team = team1Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//
+//						for (int index = 0; index < team1Teams.size(); index++){
+//							String team = team1Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//					}
+//					else if (!hasTeams1 && hasTeams2){
+//
+//						for (int index = 0; index < team2Teams.size(); index++){
+//							String team = team2Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//
+//						for (int index = 0; index < team2Teams.size(); index++){
+//							String team = team2Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//
+//					}
+//					else if (hasTeams1 && hasTeams2){
+//
+//						for (int index = 0; index < team1Teams.size(); index++){
+//							String team = team1Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//
+//						for (int index = 0; index < team2Teams.size(); index++){
+//							String team = team2Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//
+//						for (int index = 0; index < team2Teams.size(); index++){
+//							String team = team2Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//
+//						for (int index = 0; index < team1Teams.size(); index++){
+//							String team = team1Teams.get(index);
+//							statement.setString(parameterIndex, team);
+//							parameterIndex++;
+//						}
+//					}
+//				}
+//			}
+			
+//			if (hasTeams){
+//				for (int index = 0; index < teams.size(); index++){
+//					String team = teams.get(index);
+//					statement.setString(parameterIndex, team);
+//					parameterIndex++;
+//				}
+//				
+//				for (int index = 0; index < teams.size(); index++){
+//					String team = teams.get(index);
+//					statement.setString(parameterIndex, team);
+//					parameterIndex++;
+//				}
+//			}
 			
 			results = statement.executeQuery();
 			
@@ -3652,7 +3970,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			//  and g.week_id in (select w.id from week w where
 			//											  season:
 			//											  w.season_id in (select id from season where year in (?, ?, ?))
-			//											  week
+			//											  week:
 			//											  w.week_key in (?, ?, ?)
 			//
 			//The year goes first and then the "week key" goes second for each clause.
@@ -3701,7 +4019,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			//	 ${PLAYER_AND_TEAM_WHERE_CLAUSE} 
 			//
 			//And it'll be like this when "expanded":
-			//	and atapv.abbrevaion in (?, ?, ?)
+			//	and atapv.abbreviation in (?, ?, ?)
 			//  and atap.player_name in (?, ?, ?)
 			
 			StringBuilder playerAndTeamWhereClauseStringBuilder = new StringBuilder();
@@ -3822,6 +4140,408 @@ group by pick_totals.player_id, pick_totals.player_name ;
 		
 		return pickAccuracySummaries;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	//next things to do:
+	//	1. make sure it isn't sending all the teams if one isn't selected
+	//		or, at least make sure it somehow filters that out when doing the pick accuracies
+	//	2. make sure the display is right with the team names (seemed like it messed up when a
+	//	   team wasn't in both team 1 and team 2 lists
+	//
+	//work on adding it to the other stats queries
+	
+	
+	/**
+	 * 
+	 * This is the "new and improved" pick accuracy function.  It uses the new and improved query and just stuffs
+	 * the given arguments in it.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @param teamAbbreviations
+	 * @return
+	 */
+	public List<PickAccuracySummary> getPickAccuracySummaries3(List<String> years, List<String> weekKeys, List<String> players, 
+			List<String> teams1, List<String> teams2){
+
+		//Steps to do:
+		//	1. Add in each "criteria" that we have to the query.
+		//	2. Run the query.
+		//	3. Map the results.
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<PickAccuracySummary> pickAccuracySummaries = new ArrayList<PickAccuracySummary>();
+		
+		try {
+			
+			//Make sure we only get players who have a pick in a year.
+			//If they don't have a pick, we don't care about their accuracy.
+			if (years != null && years.size() > 0) {
+				List<Player> playersForYears = modelDataService.getPlayersForYears(years);
+				
+				//We can't just use all the players for the years because we might have been given
+				//a subset of that.  So, instead, we just have to go through each player that made picks
+				//and check if they're in the list.  If they are, then we should keep them.  If they aren't,
+				//we don't care about them.
+				//At the end of this filtering, we'll have the players who were given in the original list who
+				//also made at least one pick in one of the years we were given.
+				List<String> playersToUse = new ArrayList<String>();
+				for (int index = 0; index < playersForYears.size(); index++) {
+					Player player = playersForYears.get(index);
+					String name = player.getName();
+					if (players.contains(name)) {
+						playersToUse.add(name);
+					}
+				}
+				
+				//If we have players who have made a pick in one of the years, use them.
+				//If we don't (the size is 0), just roll with the players we were given.
+				//In that case, we were given players who didn't make any picks in any of
+				//the years we have.  That means we'll bring back no results and that's what we want.
+				//Otherwise, we'll bring back results without using a player in the where clause and
+				//we don't want that.
+				if (playersToUse.size() > 0){
+					players = playersToUse;
+				}
+			}
+			
+			//Get the sizes once so we can reuse them over and over.
+			int numberOfPlayers = 0;
+			if (players != null){
+				numberOfPlayers = players.size();
+			}
+
+			int numberOfYears = 0;
+			if (years != null){
+				numberOfYears = years.size();
+			}
+			
+			int numberOfWeeks = 0;
+			if (weekKeys != null){
+				numberOfWeeks = weekKeys.size();
+			}
+
+			int numberOfTeams1 = 0;
+			if (teams1 != null){
+				numberOfTeams1 = teams1.size();
+			}
+			
+			int numberOfTeams2 = 0;
+			if (teams2 != null){
+				numberOfTeams2 = teams2.size();
+			}
+			
+			Set<String> combinedTeamsSet = new HashSet<String>();
+			if (teams1 != null){
+				combinedTeamsSet.addAll(teams1);
+			}
+			
+			if (teams2 != null){
+				combinedTeamsSet.addAll(teams2);
+			}
+			
+			List<String> combinedTeams = new ArrayList<String>(combinedTeamsSet);
+			Collections.sort(combinedTeams);
+			
+			int numberOfCombinedTeams = combinedTeams.size();
+			
+
+			//Now we have to put the where clauses in the query's placeholders.
+			//First up is the "week and season" where clause.  It looks like this
+			//in the query:
+			//  and g.week_id in (select w.id from week w ${WEEK_AND_SEASON_WHERE_CLAUSE})
+			//
+			//And, when filled in, it'll look like this:
+			//  and g.week_id in (select w.id from week w where
+			//											  season:
+			//											  w.season_id in (select id from season where year in (?, ?, ?))
+			//											  week
+			//											  w.week_key in (?, ?, ?)
+			//
+			//The year goes first and then the "week key" goes second for each clause.
+			
+			StringBuilder weekAndYearWhereClauseStringBuilder = new StringBuilder();
+
+			boolean addedWeekAndYearWhereClause = false;
+
+			//Add in the years if we have them.
+			if (numberOfYears > 0){
+				String yearInClauseString = DatabaseUtil.createInClauseParameterString(numberOfYears);
+
+				//Dumb
+				if (addedWeekAndYearWhereClause){
+					weekAndYearWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					weekAndYearWhereClauseStringBuilder.append(" where ");
+					addedWeekAndYearWhereClause = true;
+				}
+
+				weekAndYearWhereClauseStringBuilder.append(" w.season_id in (select id from season where year in ").append(yearInClauseString).append(" ) ");
+			}
+			
+			//Then add in the weeks.
+			if (numberOfWeeks > 0){
+				String weekInClauseString = DatabaseUtil.createInClauseParameterString(numberOfWeeks);
+				
+				if (addedWeekAndYearWhereClause){
+					weekAndYearWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					weekAndYearWhereClauseStringBuilder.append(" where ");
+					addedWeekAndYearWhereClause = true;
+				}
+
+				weekAndYearWhereClauseStringBuilder.append(" w.key in ").append(weekInClauseString);
+			}
+			
+			//And we'll have a where clause we can put into every sub query that needs it.
+			String weekAndYearWhereClause = weekAndYearWhereClauseStringBuilder.toString();
+
+			
+			//Extra for the teams 1 and teams 2...
+			
+			StringBuilder teams1And2GamesWhereClauseStringBuilder = new StringBuilder();
+			
+			if (weekAndYearWhereClause.length() > 0){
+				teams1And2GamesWhereClauseStringBuilder.append(" and ");
+			}
+			
+			boolean addedTeams1And2WhereClause = false;
+			if ((teams1 != null && teams1.size() > 0) ||
+					(teams2 != null && teams2.size() > 0)){
+				
+				teams1And2GamesWhereClauseStringBuilder.append("(");
+				
+				//figuring vs and at later
+				if (teams1 != null && teams1.size() > 0){
+					String teams1InClauseString = DatabaseUtil.createInClauseParameterString(numberOfTeams1);
+					teams1And2GamesWhereClauseStringBuilder
+						.append("g.home_team_id in (select id from team where abbreviation in ")
+						.append(teams1InClauseString)
+						.append(")");
+					addedTeams1And2WhereClause = true;
+				}
+				
+				if (teams2 != null && teams2.size() > 0){
+					if (addedTeams1And2WhereClause){
+						teams1And2GamesWhereClauseStringBuilder.append(" and ");
+					}
+					
+					String teams2InClauseString = DatabaseUtil.createInClauseParameterString(numberOfTeams2);
+					teams1And2GamesWhereClauseStringBuilder
+						.append("g.away_team_id in (select id from team where abbreviation in ")
+						.append(teams2InClauseString)
+						.append(")");
+					addedTeams1And2WhereClause = true;
+				}
+				
+				teams1And2GamesWhereClauseStringBuilder.append(")");
+			}
+			
+			String teams1And2GamesWhereClause = teams1And2GamesWhereClauseStringBuilder.toString();
+			
+			
+			/*
+			 and g.week_id in (select w.id from week w where w.season_id in (select id from season where year = '2023') )
+	        and (g.home_team_id in (select id from team where abbreviation in ('BUF', 'MIA'))
+	        	 and g.away_team_id in (select id from team where abbreviation in ('BUF', 'MIA')))
+			 */
+			
+			
+			//Same deal for the team and player.
+			//
+			//It's in the query like this:
+			//	 ${PLAYER_AND_TEAM_WHERE_CLAUSE} 
+			//
+			//And it'll be like this when "expanded":
+			//	and atapv.abbrevaion in (?, ?, ?)
+			//  and atap.player_name in (?, ?, ?)
+			
+			StringBuilder playerAndTeamWhereClauseStringBuilder = new StringBuilder();
+			boolean addedPlayerAndTeamWhereClause = false;
+			
+			//Add in the teams first.
+			if (numberOfCombinedTeams > 0){
+				String teamInClauseString = DatabaseUtil.createInClauseParameterString(numberOfCombinedTeams);
+
+				if (addedPlayerAndTeamWhereClause){
+					playerAndTeamWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					playerAndTeamWhereClauseStringBuilder.append(" where ");
+					addedPlayerAndTeamWhereClause = true;
+				}
+
+				playerAndTeamWhereClauseStringBuilder.append(" atapv.abbreviation in ").append(teamInClauseString);
+			}
+			
+			//Then add in the players.
+			if (numberOfPlayers > 0){
+				String playerInClauseString = DatabaseUtil.createInClauseParameterString(numberOfPlayers);
+				
+				if (addedPlayerAndTeamWhereClause){
+					playerAndTeamWhereClauseStringBuilder.append(" and ");
+				}
+				else {
+					playerAndTeamWhereClauseStringBuilder.append(" where ");
+					addedPlayerAndTeamWhereClause = true;
+				}
+
+				playerAndTeamWhereClauseStringBuilder.append(" atapv.player_name in ").append(playerInClauseString);
+			}
+			
+			String playerAndTeamWhereClause = playerAndTeamWhereClauseStringBuilder.toString();
+
+			//Now we have the where clauses for the weeks and seasons and the teams and players.
+			//So, we just have to plop them in the query and then add the parameters.
+			String query = PICK_ACCURACY_SUMMARY_BETTER3;
+			
+			//Plop them in the query.  The week and season where clause is used by 11 sub queries.
+			//The player and team where clause is only used in one place.
+			query = query.replace("${WEEK_AND_SEASON_WHERE_CLAUSE}", weekAndYearWhereClause);
+			//${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE}
+			query = query.replace("${TEAM1_AND_2_WHERE_GAME_WHERE_CLAUSE}", teams1And2GamesWhereClause);
+			query = query.replace("${PLAYER_AND_TEAM_WHERE_CLAUSE}", playerAndTeamWhereClause);
+			
+			String pickAccuracyQuery = query;
+			
+			connection = dataSource.getConnection();
+			
+			statement = connection.prepareStatement(pickAccuracyQuery);
+			
+			//Now that it's ready to go, we just have to add in the parameters...
+			int parameterIndex = 1;
+
+			//We have to put in the parameters for each sub query first.  There are 11 sub queries
+			//in the big query, so this will loop through 11 times and set the parameters for
+			//each one.
+			//Each sub query is the same.  It queries the weeks table, but puts the year first and then the week,
+			//so that's the order the parameter values need to go in.
+			for (int i = 0; i < 11; i++){
+				//Add in the years if we had some.
+				if (numberOfYears > 0){
+					for (int index = 0; index < years.size(); index++){
+						String year = years.get(index);
+						statement.setString(parameterIndex, year);
+						parameterIndex++;
+					}
+				}
+				
+				//Then add in the weeks.
+				if (numberOfWeeks > 0){
+					for (int index = 0; index < weekKeys.size(); index++){
+						String weekKey = weekKeys.get(index);
+						statement.setString(parameterIndex, weekKey);
+						parameterIndex++;
+					}
+				}
+				
+				//and the extra teams...
+				/*
+				 and g.week_id in (select w.id from week w where w.season_id in (select id from season where year = '2023') )
+		        and (g.home_team_id in (select id from team where abbreviation in ('BUF', 'MIA'))
+		        	 and g.away_team_id in (select id from team where abbreviation in ('BUF', 'MIA')))
+				 */
+				
+				if (numberOfTeams1 > 0){
+					for (int index = 0; index < teams1.size(); index++){
+						String team1 = teams1.get(index);
+						statement.setString(parameterIndex, team1);
+						parameterIndex++;
+					}
+				}
+				
+				if (numberOfTeams2 > 0){
+					for (int index = 0; index < teams2.size(); index++){
+						String team2 = teams2.get(index);
+						statement.setString(parameterIndex, team2);
+						parameterIndex++;
+					}
+				}
+			}
+
+			//The team and player where clause just appears once, so we only have to add each team
+			//and player once (team goes first).
+			for (int index = 0; index < combinedTeams.size(); index++){
+				String teamAbbreviation = combinedTeams.get(index);
+				statement.setString(parameterIndex, teamAbbreviation);
+				parameterIndex++;
+			}
+			
+			for (int index = 0; index < numberOfPlayers; index++){
+				String player = players.get(index);
+				statement.setString(parameterIndex, player);
+				parameterIndex++;
+			}
+			
+			String fullQuery = statement.toString();
+			
+			System.out.println("fq = " + fullQuery);
+
+			//And now we're done, so it's time to kick off the query.
+			long queryStart = System.currentTimeMillis();
+			
+			results = statement.executeQuery();
+
+			long queryElapsed = System.currentTimeMillis() - queryStart;
+			
+			//So we can see how long it takes...
+			log.info("Getting pick summaries took " + queryElapsed + " ms");
+			
+			//And we just have to map the results and send them back.
+			while (results.next()){
+				PickAccuracySummary pickAccuracySummary = mapPickAccuracySummary(results);
+				pickAccuracySummaries.add(pickAccuracySummary);
+			}
+		}
+		catch (Exception e){
+			log.error("Error getting pick accuracy summary!  players = " + players + ", years = " + years + ", teams1 = " + teams1 + ", teams2 = " + teams2, e);
+			rollback(connection);
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return pickAccuracySummaries;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 
 	/**
 	 * 
@@ -4286,7 +5006,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * @return
 	 */
 	public List<DivisionRecord> getDivisionRecords(List<String> divisions, List<String> years, List<String> weekKeys, 
-			List<String> players, List<String> teams, List<String> team1Teams, List<String> team2Teams){
+			List<String> players, List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
 		
 		//Steps to do:
 		//	1. Add in the arguments we were given to the query if they're there.
@@ -4320,7 +5040,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			
 			connection = dataSource.getConnection();
 			
-			String recordsCriteria = createDivisionRecordsCriteria(divisions, years, weekKeys, players, team1Teams, team2Teams);
+			String recordsCriteria = createDivisionRecordsCriteria(divisions, years, weekKeys, players, team1Teams, team2Teams, team1AtTeam2);
 			
 			String query = String.format(SELECT_DIVISION_RECORD, recordsCriteria);
 			
@@ -4363,76 +5083,163 @@ group by pick_totals.player_id, pick_totals.player_name ;
 				}
 			}
 			
-			//Then teams ... twice
-			if (teams != null && teams.size() > 0){
-				for (int index = 0; index < teams.size(); index++){
-					String team = teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
+//			//Then teams ... twice
+//			if (teams != null && teams.size() > 0){
+//				for (int index = 0; index < teams.size(); index++){
+//					String team = teams.get(index);
+//					statement.setString(parameterIndex, team);
+//					parameterIndex++;
+//				}
+//				
+//				for (int index = 0; index < teams.size(); index++){
+//					String team = teams.get(index);
+//					statement.setString(parameterIndex, team);
+//					parameterIndex++;
+//				}
+//			}
+			
+			boolean teams1Exist = Util.hasSomething(team1Teams);
+			boolean teams2Exist = Util.hasSomething(team2Teams);
+			
+			/*
+			 //Add to away team abbreviation
+			if (teams1Exist){
+				if (!addedWhere){
+					whereClause.append("where ");
+					addedWhere = true;
+				}
+				else {
+					whereClause.append(" and ");
 				}
 				
-				for (int index = 0; index < teams.size(); index++){
-					String team = teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
+				whereClause.append("(").append("home_team.abbreviation in (");
+
+				for (int index = 0; index < team1Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
 				}
+
+				whereClause.append(") ");
 			}
 			
-			if ((team1Teams != null && team1Teams.size() > 0) &&
-					(team2Teams == null || team2Teams.size() == 0)){
-				for (int index = 0; index < team1Teams.size(); index++){
-					String team = team1Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
+			//Add to home abbreviation
+			if (teams2Exist){
+				if (!addedWhere){
+					whereClause.append("where ");
+					addedWhere = true;
+				}
+				else {
+					whereClause.append(" and ");
 				}
 				
-				for (int index = 0; index < team1Teams.size(); index++){
-					String team = team1Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
+				whereClause.append("(").append("away_team.abbreviation in (");
+
+				for (int index = 0; index < team2Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(") ");
+			}
+			 */
+			if (team1AtTeam2){
+			
+				if (teams1Exist && !teams2Exist){
+					if (teams1Exist){
+						for (int index = 0; index < team1Teams.size(); index++){
+							String team = team1Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
+				}
+				else if (!teams1Exist && teams2Exist){
+					if (teams2Exist){
+						for (int index = 0; index < team2Teams.size(); index++){
+							String team = team2Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
+				}
+				else if (teams1Exist && teams2Exist){
+					if (teams1Exist){
+						for (int index = 0; index < team1Teams.size(); index++){
+							String team = team1Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
+					
+					if (teams2Exist){
+						for (int index = 0; index < team2Teams.size(); index++){
+							String team = team2Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
 				}
 			}
-			else if ((team2Teams != null && team2Teams.size() > 0) &&
-						(team1Teams == null || team1Teams.size() == 0)){
-				
-				for (int index = 0; index < team2Teams.size(); index++){
-					String team = team2Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
+			else {
+			
+				if (teams1Exist && !teams2Exist){
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
 				}
-				
-				for (int index = 0; index < team2Teams.size(); index++){
-					String team = team2Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
+				else if (!teams1Exist && teams2Exist){
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
 				}
-				
-			}
-			else if (team1Teams != null && team1Teams.size() > 0 &&
-					team2Teams != null && team2Teams.size() > 0){
-				
-				for (int index = 0; index < team1Teams.size(); index++){
-					String team = team1Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
-				}
-				
-				for (int index = 0; index < team2Teams.size(); index++){
-					String team = team2Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
-				}
-				
-				for (int index = 0; index < team2Teams.size(); index++){
-					String team = team2Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
-				}
-				
-				for (int index = 0; index < team1Teams.size(); index++){
-					String team = team1Teams.get(index);
-					statement.setString(parameterIndex, team);
-					parameterIndex++;
+				else if (teams1Exist && teams2Exist){
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
 				}
 			}
 			
@@ -4475,7 +5282,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 * @return
 	 */
 	protected String createDivisionRecordsCriteria(List<String> divisions, List<String> years, List<String> weekKeys, 
-			List<String> players, List<String> team1Teams, List<String> team2Teams){
+			List<String> players, List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
 		
 		//Steps to do:
 		//	1. Add in the where clauses for the arguments that were given.
@@ -4560,160 +5367,507 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			whereClause.append(")");
 		}
 		
-//		if (teams != null && teams.size() > 0){
+		String teamsWhereClause = createTeamsCriteria(team1Teams, team2Teams, team1AtTeam2);
+		
+		if (addedWhere){
+			whereClause.append(" and ");
+		}
+		else {
+			whereClause.append(" where ");
+		}
+		
+		whereClause.append(teamsWhereClause);
+		
+		//handle the vs or at here
+		//can i do lists of home and away teams?
+		//if it's vs, what happens?
+		//the teams can't be on both sides because what about this?
+		//	BUF, BAL vs ATL, ARZ
+		//there shouldn't be any BUF, BAL matchup, so they need to be 
+		//in their own list and you can't say they're home or away.
+		
+		//I think this makes it easier
+		
+		/*
+		 (away_team.abbreviation in ('BUF', 'ATL', 'CIN') and home_team.abbreviation in ('DAL', DET'))
+		or
+		(away_team.abbreviation in ('DAL', 'DET') and home_team.abbreviation in ('BUF', 'ATL', 'CIN'))
+*/
+		
+//		boolean teams1Exist = Util.hasSomething(team1Teams);
+//		boolean teams2Exist = Util.hasSomething(team2Teams);
+//		
+//		if (team1AtTeam2){
 //			
-//			if (!addedWhere){
-//				whereClause.append("where ");
-//			}
-//			else {
-//				whereClause.append(" and ");
-//			}
-//			
-//			whereClause.append("(").append("home_team.abbreviation in (");
-//			
-//			for (int index = 0; index < teams.size(); index++){
-//				if (index > 0){
-//					whereClause.append(", ");
+//			if (teams1Exist && !teams2Exist){
+//				if (!addedWhere){
+//					whereClause.append("where ");
+//					addedWhere = true;
 //				}
-//				whereClause.append("?");
-//			}
-//			
-//			whereClause.append(") or away_team.abbreviation in (");
-//			
-//			for (int index = 0; index < teams.size(); index++){
-//				if (index > 0){
-//					whereClause.append(", ");
+//				else {
+//					whereClause.append(" and ");
 //				}
-//				whereClause.append("?");
+//				
+//				whereClause.append("(").append("away_team.abbreviation in (");
+//
+//				for (int index = 0; index < team1Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(")) ");
 //			}
-//			
-//			whereClause.append(")").append(")");
+//			else if (!teams1Exist && teams2Exist){
+//				if (!addedWhere){
+//					whereClause.append("where ");
+//					addedWhere = true;
+//				}
+//				else {
+//					whereClause.append(" and ");
+//				}
+//				
+//				whereClause.append("(").append("home_team.abbreviation in (");
+//
+//				for (int index = 0; index < team2Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(")) ");
+//			}
+//			else if (teams1Exist && teams2Exist){
+//				
+//				if (!addedWhere){
+//					whereClause.append("where ");
+//					addedWhere = true;
+//				}
+//				else {
+//					whereClause.append(" and ");
+//				}
+//				
+//				whereClause.append("(").append("away_team.abbreviation in (");
+//
+//				for (int index = 0; index < team1Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(") and home_team.abbreviation in ( ");
+//				
+//				for (int index = 0; index < team2Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//				
+//				whereClause.append("))");
+//			}
 //		}
-		
-		if ((team1Teams != null && team1Teams.size() > 0)
-				&& (team2Teams == null || team2Teams.size() == 0)){
-			if (!addedWhere){
-				whereClause.append("where ");
-			}
-			else {
-				whereClause.append(" and ");
-			}
-
-			whereClause.append("(").append("home_team.abbreviation in (");
-
-			for (int index = 0; index < team1Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(") or away_team.abbreviation in (");
-
-			for (int index = 0; index < team1Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(")").append(")");
-			
-		}
-		else if ((team2Teams != null && team2Teams.size() > 0)
-					&& (team1Teams == null || team1Teams.size() == 0)){
-			
-			if (!addedWhere){
-				whereClause.append("where ");
-			}
-			else {
-				whereClause.append(" and ");
-			}
-
-			whereClause.append("(").append("home_team.abbreviation in (");
-
-			for (int index = 0; index < team2Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(") or away_team.abbreviation in (");
-
-			for (int index = 0; index < team2Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(")").append(")");
-		}
-		
-		//it's all or nothing with both of them
-		if (team1Teams != null && team1Teams.size() > 0 &&
-				team2Teams != null && team2Teams.size() > 0){
-
-			if (!addedWhere){
-				whereClause.append("where ");
-			}
-			else {
-				whereClause.append(" and ");
-			}
-
-			whereClause
-			.append("(")
-			.append("(")
-			.append("away_team.abbreviation in (");
-
-			for (int index = 0; index < team1Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(") and home_team.abbreviation in (");
-
-			for (int index = 0; index < team2Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(")");
-
-			whereClause.append(") or (")
-			.append("away_team.abbreviation in (");
-
-			for (int index = 0; index < team2Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(") and home_team.abbreviation in (");
-
-			for (int index = 0; index < team1Teams.size(); index++){
-				if (index > 0){
-					whereClause.append(", ");
-				}
-				whereClause.append("?");
-			}
-
-			whereClause.append(")").append(")").append(")");
-			/*
-					 (away_team.abbreviation in ('BUF', 'ATL', 'CIN') and home_team.abbreviation in ('DAL', DET'))
-					or
-					(away_team.abbreviation in ('DAL', 'DET') and home_team.abbreviation in ('BUF', 'ATL', 'CIN'))
-			 */
-
-		}
-		
+//		else {
+//			if (teams1Exist && !teams2Exist){
+//				if (!addedWhere){
+//					whereClause.append("where ");
+//				}
+//				else {
+//					whereClause.append(" and ");
+//				}
+//
+//				whereClause.append("(").append("away_team.abbreviation in (");
+//
+//				for (int index = 0; index < team1Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(") or home_team.abbreviation in (");
+//
+//				for (int index = 0; index < team1Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(")").append(")");
+//			}
+//			else if (!teams1Exist && teams2Exist){
+//				if (!addedWhere){
+//					whereClause.append("where ");
+//				}
+//				else {
+//					whereClause.append(" and ");
+//				}
+//
+//				whereClause.append("(").append("away_team.abbreviation in (");
+//
+//				for (int index = 0; index < team2Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(") or home_team.abbreviation in (");
+//
+//				for (int index = 0; index < team2Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(")").append(")");
+//			}
+//			else if (teams1Exist && teams2Exist){
+//				if (!addedWhere){
+//					whereClause.append("where ");
+//				}
+//				else {
+//					whereClause.append(" and ");
+//				}
+//
+//				whereClause
+//				.append("(")
+//				.append("(")
+//				.append("away_team.abbreviation in (");
+//
+//				for (int index = 0; index < team1Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(") and home_team.abbreviation in (");
+//
+//				for (int index = 0; index < team2Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(")");
+//
+//				whereClause.append(") or (")
+//				.append("away_team.abbreviation in (");
+//
+//				for (int index = 0; index < team2Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(") and home_team.abbreviation in (");
+//
+//				for (int index = 0; index < team1Teams.size(); index++){
+//					if (index > 0){
+//						whereClause.append(", ");
+//					}
+//					whereClause.append("?");
+//				}
+//
+//				whereClause.append(")").append(")").append(")");
+//			}
+//		}
+				
 		return whereClause.toString();
+	}
+	
+	protected int addTeamsParameters(PreparedStatement statement, int parameterIndex, List<String> team1Teams,
+			List<String> team2Teams, boolean team1AtTeam2) throws Exception {
+		
+		boolean hasTeams1 = Util.hasSomething(team1Teams);
+		boolean hasTeams2 = Util.hasSomething(team2Teams);
+		
+		if (hasTeams1 || hasTeams2){
+			if (team1AtTeam2){
+				
+				if (hasTeams1 && !hasTeams2){
+					if (hasTeams1){
+						for (int index = 0; index < team1Teams.size(); index++){
+							String team = team1Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
+				}
+				else if (!hasTeams1 && hasTeams2){
+					if (hasTeams2){
+						for (int index = 0; index < team2Teams.size(); index++){
+							String team = team2Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
+				}
+				else if (hasTeams1 && hasTeams2){
+					if (hasTeams1){
+						for (int index = 0; index < team1Teams.size(); index++){
+							String team = team1Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
+					
+					if (hasTeams2){
+						for (int index = 0; index < team2Teams.size(); index++){
+							String team = team2Teams.get(index);
+							statement.setString(parameterIndex, team);
+							parameterIndex++;
+						}
+					}
+				}
+			}
+			else {
+			
+				if (hasTeams1 && !hasTeams2){
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+				}
+				else if (!hasTeams1 && hasTeams2){
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+				}
+				else if (hasTeams1 && hasTeams2){
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team2Teams.size(); index++){
+						String team = team2Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+
+					for (int index = 0; index < team1Teams.size(); index++){
+						String team = team1Teams.get(index);
+						statement.setString(parameterIndex, team);
+						parameterIndex++;
+					}
+				}
+			}
+		}
+		
+		return parameterIndex;
+	}
+	
+	protected String createTeamsCriteria(List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
+		
+		StringBuilder whereClause = new StringBuilder();
+		
+		boolean teams1Exist = Util.hasSomething(team1Teams);
+		boolean teams2Exist = Util.hasSomething(team2Teams);
+		
+		if (team1AtTeam2){
+			
+			if (teams1Exist && !teams2Exist){
+				if (whereClause.length() > 0){
+					whereClause.append(" and ");
+				}
+				
+				whereClause.append("(").append("away_team.abbreviation in (");
+
+				for (int index = 0; index < team1Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(")) ");
+			}
+			else if (!teams1Exist && teams2Exist){
+				if (whereClause.length() > 0){
+					whereClause.append(" and ");
+				}
+				
+				whereClause.append("(").append("home_team.abbreviation in (");
+
+				for (int index = 0; index < team2Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(")) ");
+			}
+			else if (teams1Exist && teams2Exist){
+				
+				if (whereClause.length() > 0){
+					whereClause.append(" and ");
+				}
+				
+				whereClause.append("(").append("away_team.abbreviation in (");
+
+				for (int index = 0; index < team1Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(") and home_team.abbreviation in ( ");
+				
+				for (int index = 0; index < team2Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+				
+				whereClause.append("))");
+			}
+		}
+		else {
+			if (teams1Exist && !teams2Exist){
+				
+				if (whereClause.length() > 0){
+					whereClause.append(" and ");
+				}
+
+				whereClause.append("(").append("away_team.abbreviation in (");
+
+				for (int index = 0; index < team1Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(") or home_team.abbreviation in (");
+
+				for (int index = 0; index < team1Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(")").append(")");
+			}
+			else if (!teams1Exist && teams2Exist){
+				
+				if (whereClause.length() > 0){
+					whereClause.append(" and ");
+				}
+
+				whereClause.append("(").append("away_team.abbreviation in (");
+
+				for (int index = 0; index < team2Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(") or home_team.abbreviation in (");
+
+				for (int index = 0; index < team2Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(")").append(")");
+			}
+			else if (teams1Exist && teams2Exist){
+				
+				if (whereClause.length() > 0){
+					whereClause.append(" and ");
+				}
+
+				whereClause
+				.append("(")
+				.append("(")
+				.append("away_team.abbreviation in (");
+
+				for (int index = 0; index < team1Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(") and home_team.abbreviation in (");
+
+				for (int index = 0; index < team2Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(")");
+
+				whereClause.append(") or (")
+				.append("away_team.abbreviation in (");
+
+				for (int index = 0; index < team2Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(") and home_team.abbreviation in (");
+
+				for (int index = 0; index < team1Teams.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+
+				whereClause.append(")").append(")").append(")");
+			}
+		}
+		
+		String teamsCriteriaWhereClause = whereClause.toString();
+		
+		return teamsCriteriaWhereClause;
 	}
 	
 	/**

@@ -57,11 +57,11 @@ function initializeSelections(){
 	}
 	setSelectedStatName(statName);
 	
-	var team = NFL_PICKS_GLOBAL.initialTeam;
-	if (isDefined(parameters) && isDefined(parameters.team)){
-		team = parameters.team;
-	}
-	setSelectedTeams(team);
+//	var team = NFL_PICKS_GLOBAL.initialTeam;
+//	if (isDefined(parameters) && isDefined(parameters.team)){
+//		team = parameters.team;
+//	}
+//	setSelectedTeams(team);
 	
 	var team1 = NFL_PICKS_GLOBAL.initialTeam1;
 	if (isDefined(parameters) && isDefined(parameters.team1)){
@@ -78,7 +78,7 @@ function initializeSelections(){
 	resetPlayerSelections();
 	resetYearSelections();
 	resetWeekSelections();
-	resetTeamSelections();
+//	resetTeamSelections();
 	resetTeam1Selections();
 	resetTeam2Selections();
 	
@@ -177,7 +177,8 @@ function getSelectedParameters(){
 	parameters.year = getSelectedYearValues();
 	parameters.week = getSelectedWeekValues();
 	parameters.statName = getSelectedStatName();
-	parameters.team = getSelectedTeamValues();
+	parameters.team1 = getSelectedTeam1Values();
+	parameters.team2 = getSelectedTeam2Values();
 	parameters.multiselectPlayer = getMultiselectPlayer();
 	parameters.multiselectYear = getMultiselectYear();
 	parameters.multiselectWeek = getMultiselectWeek();

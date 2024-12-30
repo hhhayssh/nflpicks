@@ -1,0 +1,419 @@
+/**
+ * 
+ * This function will update the multi selects to make sure they have the right values
+ * selected.  What values they have depends on whether multi select is enabled for a
+ * particular selector or not and what's been selected in that selector.
+ * 
+ * This function just farms out the actual work to the different types.  It's here so that
+ * the caller can just say "update them all" and not have to worry about what individual
+ * types there are.
+ * 
+ * @param type
+ * @returns
+ */
+function updateMultiSelects(type){
+	
+	//Steps to do:
+	//	1. Update the different kinds of multi select.
+	
+	updateMultiSelectPlayer();
+	//update multi select team, week, year
+}
+
+/**
+ * 
+ * This function will update the player selection and make sure the right values
+ * are selected.  
+ * 
+ * If multi select is enabled for players, it will:
+ * 
+ * 		Combine the most recently selected player with the previously selected
+ * 		multi player values and set the unique combination as the newly selected player.
+ * 		So, like you have 3 players selected and select another.
+ * 		It will get the combined 4 selected players and set them as the current selected player.
+ * 
+ * If multi select isn't enabled, it will:
+ * 
+ * 		Get the current selected player and set that player as the selected one.  Yeah, kind of dumb.
+ * 
+ * And, it will call the function that updates the multi select player visibility so that the right
+ * stuff is shown.
+ * 
+ * Basically, this is kind of like a "refresh player selection" function to make sure what's shown
+ * matches what should be shown.
+ * 
+ * @returns
+ */
+function updateMultiSelectPlayer(){
+	
+	//Steps to do:
+	//	1. Get whether multi select is enabled for picking players.
+	//	2. If it is, then get players that should be selected (the combination of
+	//	   previously selected players and the new player).
+	//	3. If it's not, then the most recently selected player should be what's
+	//	   selected.
+	//	4. Update what's selected.
+	//	5. Update the visibility of the multi select player stuff so that it makes everything
+	//	   consistent.
+	
+	var selectedPlayerValue = null;
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	
+	if (multiSelectPlayerEnabled){
+		selectedPlayerValue = getMultiSelectCombinedValuesPlayer();
+	}
+	else {
+		selectedPlayerValue = getSelectedPlayer();
+	}
+	
+	setSelectedPlayer(selectedPlayerValue);
+	
+	updateMultiSelectVisibilityPlayer();
+}
+
+/**
+ * 
+ * This function will get the unique combination of the most recently selected player
+ * and any previously selected ones that are part of the multi selected values.
+ * 
+ * So, it's like you have previously selected players sitting in the select and
+ * somebody selects a new, and different, player.  You want to keep the previously selected ones
+ * and combine them with what they just picked.  Well, this function will do that.
+ * 
+ * It won't update any selections or anything like that.  It will just get the unique combination
+ * of players that should be selected.  It'll be up to the caller to actually update the selection
+ * and the UI.
+ * 
+ * @returns
+ */
+function getMultiSelectCombinedValuesPlayer(){
+	
+	//Steps to do:
+	//	1. Get the most recently selected single player value.
+	//	2. Get the value of the "container" option in the multi select.
+	//	3. Combine them together so that we end up with the unique combination.
+
+	//This is the most recently selected single player.
+	var selectedPlayerValue = getSelectedPlayer();
+	//These are the previously selected players from the "multi select container option".
+	var selectedPlayersValue = getSelectedPlayers();
+	
+	//Now we have to get the individual players in the currently "multi selected" players.
+	var selectedPlayersValueArray = selectedPlayersValue.split(',');
+	for (var index = 0; index < selectedPlayersValueArray.length; index++){
+		var selectedPlayer = selectedPlayersValueArray[index].trim();
+		selectedPlayersValueArray[index] = selectedPlayer;
+	}
+	
+	//And combine them with the most recently selected player ... which could be multiple players.
+	var newPlayersToSelect = selectedPlayerValue.split(',');
+	
+	//I'm combining the two by going through the new players to select and adding them into the 
+	//selected players if they're not already there.
+	//I'm doing it this way because:
+	//	1. We can be pretty sure the newly selected players has at least one player in it.
+	//	2. There's no guarantee that the previously selected players has anything in it (it could be the first
+	//	   time we're combining them).
+	//
+	//So, just go through each player and add it to the selected players if it hasn't been selected before.
+	for (var index = 0; index < newPlayersToSelect.length; index++){
+		var newPlayerToSelect = newPlayersToSelect[index].trim();
+		
+		//And, only add it to the players array if it's a valid player.
+		if (!selectedPlayersValueArray.includes(newPlayerToSelect) &&
+				doesSelectHaveOptionWithValue('player', newPlayerToSelect)){
+		
+			if (selectedPlayersValue.length > 0){
+				selectedPlayersValue = selectedPlayersValue + ', ';
+			}
+			
+			selectedPlayersValue = selectedPlayersValue + newPlayerToSelect;
+		}
+	}
+	
+	return selectedPlayersValue;
+}
+
+/**
+ * 
+ * This function will happens when they click the checkbox that controls
+ * whether we do multi select with players or not.  It will handle both possibilities.
+ * 
+ * If they switch on multi select:
+ * 
+ * 		1. If the current selected player is all, it shouldn't be added to the "multi select
+ * 		   player container", so don't do that.
+ * 		2. If it's not all, then we want to make that player the first player in the multi select
+ * 		   player container, so do that.
+ * 
+ * If they switch off multi select:
+ * 
+ * 		1. There's nothing to do because:
+ * 			1. The "updateMultiSelectPlayer" function will handle the refreshing of the actual selected player value.
+ * 			2. The "updateMultiSelectVisibilityPlayer" function will handle updating the visibility of the previously
+ * 			   "multi selected players" so that their options become visible.
+ * 
+ * Whether the switched it on or off, we want to update the visibility of the multi select stuff after we handle
+ * the first part.  Updating the visibility will make it so we either:
+ * 
+ * 		1. Hide the "all" option (if they switched it on).
+ * 		2. Make the select options back to what they were originally (if they switched it off).
+ * 
+ * @returns
+ */
+function multiSelectOptionChangePlayer(){
+	
+	//Steps to do:
+	//	1. Get whether the switch is on or off.
+	//	2. If it's on, then get the currently selected player.
+	//	3. If it's not "all", then we want that player to become the first
+	//	   player in the selected players container.
+	//	   If it is all, we don't want "all" to be anything and the update visibility
+	//	   function will handle hiding it.
+	//	4. If the switch is off, then there's nothing to do.
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	
+	if (multiSelectPlayerEnabled){
+
+		//If multi select is enabled, then we want the current selected player to become the first thing in
+		//the "selected players" container option.
+		//But, if it's "all" then we don't because that's not a real selection.
+		
+		var currentSelectedPlayer = getSelectedPlayer();
+		if (currentSelectedPlayer != 'all'){
+			updateSelectedPlayersOption(currentSelectedPlayer);
+		}
+	}
+//	else {
+//		//If they switched it off, then there's nothing to do here.  The update visibility function will take
+//		//care of showing and hiding the right options.
+//	}
+	
+	updateMultiSelectVisibilityPlayer();
+}
+
+
+function showSelectMultiplePlayersOption(){
+	$('#select-multiple-players').show();
+}
+
+function hideSelectMultiplePlayersOption(){
+	$('#select-multiple-players').hide();
+}
+
+function showSelectSinglePlayersOption(){
+	$('#select-single-player').show();
+}
+
+function hideSelectSinglePlayersOption(){
+	$('#select-single-player').hide();
+}
+
+function getSelectedPlayers(){
+	return $('#selected-players').val();
+}
+
+function updateSelectedPlayersOption(selectedPlayers){
+	$('#selected-players').val(selectedPlayers);
+	$('#selected-players').text(selectedPlayers);
+}
+
+function showSelectedPlayersOption(){
+	$('#selected-players').show();
+}
+
+function hideSelectedPlayersOption(){
+	$('#selected-players').hide();
+}
+
+function hidePlayerOptions(players){
+	
+	var playersArray = players.split(',');
+	
+	for (var index = 0; index < playersArray.length; index++){
+		var player = playersArray[index].trim();
+		hidePlayerOption(player);
+	}
+}
+
+function hidePlayerOption(player){
+	$('#' + normalizeString('player-' + player)).hide();
+}
+
+function showAllPlayerOptions(){
+	var allOptions = $('#player option');
+	
+	for (var index = 0; index < allOptions.length; index++){
+		var option = allOptions[index];
+		
+		if (isDefined(option.id) && option.id.startsWith('player-')){
+			$('#' + option.id).show();
+		}
+	}
+}
+
+/**
+ * 
+ * Gets the player that's selected.
+ * 
+ * @returns
+ */
+function getSelectedPlayer(){
+	return $('#player option:selected').val();
+}
+
+/**
+ * 
+ * Sets the selected player to the given one if that player is
+ * one of the player input's options.
+ * 
+ * If the given player has multiple players in it, it will enable
+ * multi select for players (if it's not enabled already).
+ * 
+ * It will also update the multi select player container option with the
+ * given player and, finally, set the given player as the actual selected value.
+ * 
+ * If the given player is null or not defined, it won't do anything.
+ * 
+ * @param player
+ * @returns
+ */
+function setSelectedPlayer(player){
+	
+	//Steps to do:
+	//	1. If the given player is null, there's nothing to do.
+	//	2. Check whether it has multiple values.
+	//	3. If it does, then flip the switch that says selecting multiple players
+	//	   is enabled.
+	//	4. If it doesn't, that doesn't mean it's disabled, just that the given player isn't
+	//	   multiple players.
+	//	5. Because multi select players might be enabled (or might not be), get whether it's
+	//	   enabled or not.
+	//	6. If it's not enabled, then we just have to set the actual value of the select
+	//	   input to what we were given and that's it.
+	//	7. Otherwise, if it is enabled, then we want what we were given to become
+	//	   both the "selected players" container option and the value for the select.
+	
+	if (!isDefined(player)){
+		return;
+	}
+	
+	//if the player has a comma in it, we need to enable multi select for the player
+	//the forward and backward navigation need this...
+	if (doesValueHaveMultipleValues(player)){
+		setMultiSelectPlayer(true);
+	}
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	
+	if (!multiSelectPlayerEnabled){
+		//I think this should go away ... there should be a function that updates
+		//the visibility of the options
+		//updateSelectedPlayersOption('');
+		setSelectedPlayerValue(player);
+		return;
+	}
+
+	//Set the "container" option to what we were given.
+	updateSelectedPlayersOption(player);
+	//Make sure to select that option.
+	setSelectedPlayerValue(player);
+}
+
+/**
+ * 
+ * Sets the value on the player input to the given value.  Doesn't do any
+ * funny business of trying to figure out whether it's mutliple select or not.
+ * 
+ * @param value
+ * @returns
+ */
+function setSelectedPlayerValue(value){
+	$('#player').val(value);
+}
+
+
+/**
+ * 
+ * This function will make sure everything that should be shown for picking more
+ * than one player is shown.  It was made so this can be done in one place.
+ * 
+ * It will decide what to do based on whether multi select for players is enabled 
+ * or not.
+ * 
+ * If it is, it will...
+ * 
+ * 		1. Make sure the "multi select players" option in the select is shown.
+ * 		2. Make sure that all the players in the multi select player option are hidden
+ * 		   as regular options.
+ *		3. Make sure the "all" player option isn't shown.
+ * 
+ * If it's not, it will...
+ * 
+ * 		1. Hide the "multi select players" container option in the select.
+ * 		2. Show all of the individual player options.
+ * 		3. Show the "all" player option.
+ * 
+ * @returns
+ */
+function updateMultiSelectVisibilityPlayer(){
+	
+	//Steps to do:
+	//	1. Get whether multi select is enabled or not.
+	//	2. If it is, then get whether any players are selected.
+	//	3. If they are, then make sure we show that option.
+	//	4. Make sure we are only showing the individual player options
+	//	   that should be shown.
+	//	5. Hide the "all" option.
+	//	6. If it's not, hide the "multi select player" container option.
+	//	7. Make sure all the individual player options are shown.
+	//	8. Make sure the "all" option is shown.
+	
+	var multiSelectPlayerEnabled = isMultiSelectPlayerEnabled();
+	
+	if (multiSelectPlayerEnabled){
+		
+		//If there's any selected players, make sure the option for it is shown.
+		var selectedPlayers = getSelectedPlayers();
+		if (selectedPlayers != null && selectedPlayers != ''){
+			showSelectedPlayersOption();
+		}
+
+		//And, make sure we're only showing the individual player options that
+		//aren't in the multi select.
+		//First, show all the individual players.
+		showAllPlayerOptions();
+		//Then, hide all the options for the players that are picked.
+		var currentSelectedPlayer = getSelectedPlayer();
+		hidePlayerOptions(currentSelectedPlayer);
+		//And, hide the "all" option.
+		hideAllPlayerOption();
+	}
+	else {
+		//Otherwise, just hide the multi select container option, show
+		//all the individual players, and show the "all" option.
+		hideSelectedPlayersOption();
+		showAllPlayerOption();
+		showAllPlayerOptions();
+	}
+}
+
+function setMultiSelectPlayer(value){
+	return $('#multiSelectPlayer').prop('checked', value);
+}
+
+function isMultiSelectPlayerEnabled(){
+	return $('#multiSelectPlayer').prop('checked');
+}
+
+
+function doesValueHaveMultipleValues(value){
+	
+	if (isDefined(value) && value.indexOf(',') != -1){
+		return true;
+	}
+	
+	return false;
+}

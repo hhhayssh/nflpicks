@@ -1,0 +1,178 @@
+{
+  "divisions": [
+    {
+      "id": "1",
+      "name": "Joe Montana Sports Talk Football",
+      "records": [
+        {
+          "wins": 168,
+          "ties": 1,
+          "losses": 115,
+          "player": {
+            "name": "Mark",
+            "id": 2
+          }
+        },
+        {
+          "wins": 133,
+          "ties": 1,
+          "losses": 83,
+          "player": {
+            "name": "Var",
+            "id": 11
+          }
+        },
+        {
+          "wins": 1,
+          "ties": 0,
+          "losses": 3,
+          "player": {
+            "name": "Frankie",
+            "id": 20
+          }
+        },
+        {
+          "wins": 2,
+          "ties": 0,
+          "losses": 0,
+          "player": {
+            "name": "Teddy",
+            "id": 6
+          }
+        },
+        {
+          "wins": 185,
+          "ties": 1,
+          "losses": 97,
+          "player": {
+            "name": "Quan",
+            "id": 16
+          }
+        },
+        {
+          "wins": 168,
+          "ties": 1,
+          "losses": 115,
+          "player": {
+            "name": "Boo",
+            "id": 13
+          }
+        },
+        {
+          "wins": 181,
+          "ties": 1,
+          "losses": 102,
+          "player": {
+            "name": "Bookey",
+            "id": 8
+          }
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "name": "John Madden Football",
+      "records": [
+        {
+          "wins": 172,
+          "ties": 1,
+          "losses": 111,
+          "player": {
+            "name": "Doodle",
+            "id": 10
+          }
+        },
+        {
+          "wins": 185,
+          "ties": 1,
+          "losses": 98,
+          "player": {
+            "name": "Gary",
+            "id": 19
+          }
+        },
+        {
+          "wins": 174,
+          "ties": 1,
+          "losses": 109,
+          "player": {
+            "name": "Bruce",
+            "id": 4
+          }
+        },
+        {
+          "wins": 159,
+          "ties": 0,
+          "losses": 98,
+          "player": {
+            "name": "Benny boy",
+            "id": 15
+          }
+        },
+        {
+          "wins": 49,
+          "ties": 0,
+          "losses": 33,
+          "player": {
+            "name": "Chance",
+            "id": 5
+          }
+        },
+        {
+          "wins": 181,
+          "ties": 1,
+          "losses": 102,
+          "player": {
+            "name": "Tim",
+            "id": 3
+          }
+        },
+        {
+          "wins": 170,
+          "ties": 1,
+          "losses": 113,
+          "player": {
+            "name": "Jonathan",
+            "id": 1
+          }
+        },
+        {
+          "wins": 175,
+          "ties": 1,
+          "losses": 108,
+          "player": {
+            "name": "Jerry",
+            "id": 7
+          }
+        },
+        {
+          "wins": 193,
+          "ties": 1,
+          "losses": 90,
+          "player": {
+            "name": "Josh",
+            "id": 9
+          }
+        },
+        {
+          "wins": 173,
+          "ties": 1,
+          "losses": 109,
+          "player": {
+            "name": "Moe",
+            "id": 12
+          }
+        },
+        {
+          "wins": 176,
+          "ties": 1,
+          "losses": 95,
+          "player": {
+            "name": "Troy",
+            "id": 18
+          }
+        }
+      ]
+    }
+  ]
+}

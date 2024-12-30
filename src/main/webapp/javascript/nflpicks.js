@@ -516,14 +516,17 @@ function updateStandings(){
 	var playerValuesForRequest = getPlayerValuesForRequest();
 	var yearValuesForRequest = getYearValuesForRequest();
 	var weekValuesForRequest = getWeekValuesForRequest();
-	var teamValuesForRequest = getTeamValuesForRequest();
-	
-	//getTeam1ValuesForRequest
-	//getTeam2ValuesForRequest
+	var team1ValuesForRequest = getTeam1ValuesForRequest();
+	var team2ValuesForRequest = getTeam2ValuesForRequest();
 	
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
-	$.ajax({url: 'nflpicks?target=standings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
+	$.ajax({url: 'nflpicks?target=standings' + 
+			'&player=' + playerValuesForRequest + 
+			'&year=' + yearValuesForRequest + 
+			'&week=' + weekValuesForRequest + 
+			'&team1=' + team1ValuesForRequest + 
+			'&team2=' + team2ValuesForRequest,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -593,10 +596,20 @@ function updateDivisionStandings(){
 	var yearValuesForRequest = getYearValuesForRequest();
 	var weekValuesForRequest = getWeekValuesForRequest();
 	var team1ValuesForRequest = getTeam1ValuesForRequest();
+	var team2ValuesForRequest = getTeam2ValuesForRequest();
+	var team1AtTeam2ForRequest = getTeam1AtTeam2ValueForRequest();
+	
+	//need to send the "@" or "vs"
 	
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
-	$.ajax({url: 'nflpicks?target=divisionStandings&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team1=' + team1ValuesForRequest,
+	$.ajax({url: 'nflpicks?target=divisionStandings' + 
+			'&player=' + playerValuesForRequest + 
+			'&year=' + yearValuesForRequest + 
+			'&week=' + weekValuesForRequest + 
+			'&team1=' + team1ValuesForRequest + 
+			'&team2=' + team2ValuesForRequest + 
+			'&team1AtTeam2=' + team1AtTeam2ForRequest,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -725,12 +738,20 @@ function updatePicks(){
 	var playerValuesForRequest = getPlayerValuesForRequest();
 	var yearValuesForRequest = getYearValuesForRequest();
 	var weekValuesForRequest = getWeekValuesForRequest();
-	var teamValuesForRequest = getTeamValuesForRequest();
+	var team1ValuesForRequest = getTeam1ValuesForRequest();
+	var team2ValuesForRequest = getTeam2ValuesForRequest();
+	var team1AtTeam2ForRequest = getTeam1AtTeam2ValueForRequest();
 
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
 	//Go to the server and get the grid.
-	$.ajax({url: 'nflpicks?target=compactPicksGrid&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
+	$.ajax({url: 'nflpicks?target=compactPicksGrid' + 
+		'&player=' + playerValuesForRequest + 
+		'&year=' + yearValuesForRequest + 
+		'&week=' + weekValuesForRequest + 
+		'&team1=' + team1ValuesForRequest + 
+		'&team2=' + team2ValuesForRequest + 
+		'&team1AtTeam2=' + team1AtTeam2ForRequest,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -765,7 +786,7 @@ function updateStats(){
 	var selectedPlayerValues = getPlayerValuesForRequest();
 	var selectedYearValues = getYearValuesForRequest();
 	var selectedWeekValues = getWeekValuesForRequest();
-	var selectedTeamValues = getTeamValuesForRequest();
+	//var selectedTeamValues = getTeamValuesForRequest();
 	
 	//If the stat name is the "pick splits", we want to do the same thing we do with the picks grid.
 	//Only show "all" for the year or the week if they actually set it to "all".
@@ -814,13 +835,19 @@ function updateStats(){
 	var playerValuesForRequest = getPlayerValuesForRequest();
 	var yearValuesForRequest = getYearValuesForRequest();
 	var weekValuesForRequest = getWeekValuesForRequest();
-	var teamValuesForRequest = getTeamValuesForRequest();
+//	var teamValuesForRequest = getTeamValuesForRequest();
+	
+	var team1ValuesForRequest = getTeam1ValuesForRequest();
+	var team2ValuesForRequest = getTeam2ValuesForRequest();
+	var team1AtTeam2ForRequest = getTeam1AtTeam2ValueForRequest();
 
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
 	//Send the request to the server.
 	$.ajax({url: 'nflpicks?target=stats&statName=' + statName + '&player=' + playerValuesForRequest + '&year=' + yearValuesForRequest + 
-				 '&week=' + weekValuesForRequest + '&team=' + teamValuesForRequest,
+				 '&week=' + weekValuesForRequest + 
+				 '&team1=' + team1ValuesForRequest + '&team2=' + team2ValuesForRequest +
+				 '&team1AtTeam2=' + team1AtTeam2ForRequest,
 			contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
