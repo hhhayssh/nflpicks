@@ -26,6 +26,8 @@ add an "against the grain" stat
 	calculate each team's record in a single query
 	put that data in a map
 	use it to figure out how many teams with a losing record a person picked and what their record was in those games
+	
+	this should be the "chalk standings" and "genius standings"
 
 done - update the week label in the picks grid when we show the playoffs
 

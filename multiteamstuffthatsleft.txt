@@ -1,0 +1,113 @@
+public String getCurrentYear(){
+public String getCurrentWeekKey(){
+public int getCurrentWeekSequenceNumber(){
+public int getNextWeekSequenceNumber(){
+public Week getCurrentWeek() {
+public List<Game> getGamesForCurrentWeek(){
+public List<Record> getRecords(List<String> years, List<String> weekKeys, List<String> players, List<String> teams,
+		List<String> team1Teams, List<String> team2Teams){
+public List<CompactPick> getCompactPicks(){
+public List<CompactPick> getCompactPicks(List<String> years, List<String> weekKeys, 
+		List<String> playerNames, List<String> team1Teams, List<String> team2Teams,
+		boolean team1AtTeam2) {
+public List<WeekRecordForPlayers> getWeeksWonByWeek(List<String> years, List<String> weekKeys, List<String> players, boolean onlyFinishedGames){
+public List<WeekRecordsForPlayer> getWeeksWon(List<String> years, List<String> weekKeys, List<String> players, boolean onlyFinishedGames){
+public List<WeekRecordForPlayer> getPlayerWeekRecords(List<String> years, List<String> weeks, List<String> players, boolean onlyFinishedGames){
+public List<WeekRecordForPlayer> getWeekStandings(List<String> years, List<String> weekKeys, List<String> players){
+public List<String> getAllCompletedYears(){
+public List<String> getCompletedYears(List<String> years){
+public List<Championship> getAllChampionships(){
+public List<Championship> getChampionships(List<String> years, List<String> players){
+public List<ChampionshipsForPlayer> getPlayerChampionships(List<String> years, List<String> players){
+public List<DivisionTitle> getDivisionTitles(List<String> years, List<String> players){
+public List<DivisionTitlesForPlayer> getPlayerDivisionTitles(List<String> years, List<String> players){
+public List<PickAccuracySummary> getPickAccuracySummariesOldAndSlow(List<String> years, List<String> weekKeys, List<String> players, List<String> teamAbbreviations){
+public List<PickAccuracySummary> getPickAccuracySummaries(List<String> years, List<String> weekKeys, List<String> players, List<String> teamAbbreviations){
+public List<PickAccuracySummary> getPickAccuracySummaries3(List<String> years, List<String> weekKeys, List<String> players, 
+		List<String> teams1, List<String> teams2){
+public List<PickSplit> getPickSplits(List<String> years, List<String> weekKeys, List<String> playerNames, List<String> teams){
+public List<SeasonRecordForPlayer> getSeasonRecords(List<String> years, List<String> weekKeys, List<String> players){
+public List<DivisionRecord> getDivisionRecords(List<String> divisions, List<String> years, List<String> weekKeys, 
+		List<String> players, List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
+
+public CollectiveRecordSummary getCollectiveRecordSummary(List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+public List<CollectiveRecord> getCollectiveRecords(List<String> years, List<String> weekKeys, List<String> players, List<String> teams){
+public List<CollectivePickAccuracySummary> getCollectivePickAccuracy(List<String> years, List<String> weekKeys, List<String> players, List<String> teamAbbreviations){
+public List<CompactPickAccuracyContainer> getCompactPickAccuracies(List<String> years, List<String> weeks, List<String> players, List<String> teams){
+
+
+
+pages
+
+division standings - teams, done
+standings - teams, done
+picks - teams, done
+stats
+	champions - no teams, done
+	championship standings - no teams, done
+	division titles - no teams, done
+	division title standings - no teams, done
+	season standings - no teams, done
+	week standings - no teams, done
+	weeks won standings - no teams, done
+	weeks won by week - no teams, done
+	week records by player - no teams, done
+	pick accuracy - teams, done
+		need to fix:
+			done - 1. the link text generation
+			done - 2. what happens when you do "all teams" @ "a specific team"
+			done, i think - 3. filtering out teams that are on both sides ("BUF @ BUF")
+				by just leaving it alone, i think it works because it'll never find that matchup
+	pick splits - teams, done
+	week comparison - no teams, done
+	season progression - no teams, done
+	collective records - teams, not done
+	collective pick accuracy - teams, not done
+	
+things to do
+
+done - add teams to pick accuracy
+add teams to pick splits
+add teams to collected records
+add teams to collective pick accuracy
+handle "all" teams
+
+	the ui needs to handle this
+	the backend is dumb and shouldn't assume that "no teams" means "go get all the possible teams for the other criteria"
+	it should just say "get the info for the criteria that was given"
+
+
+----------------------------
+
+all vs none vs any
+
+
+it was a goofy accident that not picking players, weeks, teams, or whatever caused there to be no results
+the reason was the word "null" was used as a parameter value in the queries
+that's not how it should work
+
+the backend shouldn't make decisions like "oh, you didn't pick any players, so there should be no results"
+it should be dumber than that and just run the queries for whatever "criteria" was given
+
+so, i think the ui needs to do it
+
+one tricky thing is the processing is done on the response, which should have a certain structure
+
+the updating of the ui based on the response is integrated with the request
+
+and the thing that executes the request shouldn't care
+
+the only thing to do would be to have a shortcut that...
+
+	1. checked the parameters
+	2. if they were wrong, showed the "no results" results
+	
+decided to do it as "all teams" because there was no other way to make it so you could say
+"team1, team2 vs all teams"
+
+if i had made it so it said "no teams" when you picked no teams, i would have had to do
+some complicated jujitsu on the second part of the "team1, team2 vs all teams" to not have it say
+"team1, team2 vs no teams"
+
+plus, having it bring back "no results" when you don't select anything is "technically correct", but that's
+usually the worst kind of correct because you have to twist your mind to think of it as "right"

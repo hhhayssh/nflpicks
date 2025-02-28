@@ -227,8 +227,12 @@ public class Util {
 		
 		for (int index = 0; index < valuesArray.length; index++){
 			String currentValue = valuesArray[index];
+			
 			currentValue = hardcoreTrim(currentValue);
-			values.add(currentValue);
+			
+			if (currentValue != null){
+				values.add(currentValue);
+			}
 		}
 		
 		return values;
@@ -526,5 +530,20 @@ public class Util {
 		}
 		
 		return filteredValues;
+	}
+	
+	public static List<String> combineLists(List<String> values1, List<String> values2){
+		
+		List<String> combinedValues = new ArrayList<String>();
+		
+		if (values1 != null){
+			combinedValues.addAll(values1);
+		}
+		
+		if (values2 != null){
+			combinedValues.addAll(values2);
+		}
+		
+		return combinedValues;
 	}
 }

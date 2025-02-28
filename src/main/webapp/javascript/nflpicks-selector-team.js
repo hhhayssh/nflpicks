@@ -918,7 +918,7 @@ function isSpecificTeam1Selected() {
 	
 	var selectedTeams1 = getSelectedTeams1();
 	
-	if (selectedTeams1.length > 1){
+	if (selectedTeams1.length > 1 || selectedTeams1.length == 0){
 		return false;
 	}
 	
@@ -936,7 +936,7 @@ function isTeam1AllTeams(){
 	var selectedTeams1 = getSelectedTeams1();
 	
 	if (isEmpty(selectedTeams1)){
-		return false;
+		return true;
 	}
 	
 	if (selectedTeams1.length > 1){
@@ -956,7 +956,7 @@ function isSpecificTeam2Selected() {
 	
 	var selectedTeams2 = getSelectedTeams2();
 	
-	if (selectedTeams2.length > 1){
+	if (selectedTeams2.length > 1 || selectedTeams2.length == 0){
 		return false;
 	}
 	
@@ -974,10 +974,10 @@ function isTeam2AllTeams(){
 	var selectedTeams2 = getSelectedTeams2();
 	
 	if (isEmpty(selectedTeams2)){
-		return false;
+		return true;
 	}
 	
-	if (seletectTeams2.length > 1){
+	if (selectedTeams2.length > 1){
 		return false;
 	}
 	
@@ -1006,17 +1006,24 @@ function updateTeamsLink(){
 	var selectedTeams2 = getSelectedTeams2();
 	
 	//If there aren't any selected teams, it should be "none"
-	if (isEmpty(selectedTeams1) && isEmpty(selectedTeams2)){
-		$('#teamsLink').text('No teams');
-		return;
-	}
+//	if (isEmpty(selectedTeams1) && isEmpty(selectedTeams2)){
+//		$('#teamsLink').text('No teams');
+//		return;
+//	}
 	
 	var team1AllTeams = isTeam1AllTeams();
 	
-	var team2AllTeams = isTeam1AllTeams();
+	var team2AllTeams = isTeam2AllTeams();
 	
-	if (team1AllTeams || team2AllTeams){
+	if (team1AllTeams && team2AllTeams){
 		$('#teamsLink').text('All teams');
+		$('#teamsLink').prop('title', 'All teams');
+		return;
+	}
+	
+	if (selectedTeams1.length == 0 && selectedTeams2.length == 0){
+		$('#teamsLink').text('All teams');
+		$('#teamsLink').prop('title', 'All teams');
 		return;
 	}
 	
@@ -1025,14 +1032,19 @@ function updateTeamsLink(){
 	
 	var teams1LinkText = '';
 	
-	for (var index = 0; index < selectedTeams1.length; index++){
-		var team = selectedTeams1[index];
-		
-		if (index > 0){
-			teams1LinkText = teams1LinkText + ', ';
+	if (selectedTeams1.length > 0){
+		for (var index = 0; index < selectedTeams1.length; index++){
+			var team = selectedTeams1[index];
+			
+			if (index > 0){
+				teams1LinkText = teams1LinkText + ', ';
+			}
+			
+			teams1LinkText = teams1LinkText + team.label;
 		}
-		
-		teams1LinkText = teams1LinkText + team.label;
+	}
+	else {
+		teams1LinkText = 'All teams';
 	}
 	
 	var fullTeams1LinkText = teams1LinkText;
@@ -1047,14 +1059,19 @@ function updateTeamsLink(){
 	
 	var teams2LinkText = '';
 	
-	for (var index = 0; index < selectedTeams2.length; index++){
-		var team = selectedTeams2[index];
-		
-		if (index > 0){
-			teams2LinkText = teams2LinkText + ', ';
+	if (selectedTeams2.length > 0){
+		for (var index = 0; index < selectedTeams2.length; index++){
+			var team = selectedTeams2[index];
+			
+			if (index > 0){
+				teams2LinkText = teams2LinkText + ', ';
+			}
+			
+			teams2LinkText = teams2LinkText + team.label;
 		}
-		
-		teams2LinkText = teams2LinkText + team.label;
+	}
+	else {
+		teams2LinkText = 'All teams';
 	}
 	
 	var fullTeams2LinkText = teams2LinkText;

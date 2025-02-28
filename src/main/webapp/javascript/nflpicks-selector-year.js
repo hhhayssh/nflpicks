@@ -254,29 +254,29 @@ function updateYearsLink(){
 	
 	var selectedYears = getSelectedYears();
 	
-	//If there aren't any selected years, it should be "none"
-	if (isEmpty(selectedYears)){
-		$('#yearsLink').text('No years');
-		return;
-	}
-	
-	if (selectedYears.length == 1 && 'all' == selectedYears[0].value){
-		$('#yearsLink').text('All years');
-		return;
-	}
+//	if (selectedYears.length == 1 && 'all' == selectedYears[0].value){
+//		$('#yearsLink').text('All years');
+//		$('#yearsLink').prop('title', 'All years');
+//		return;
+//	}
 	
 	sortOptionsByNumericValue(selectedYears);
 	
 	var linkText = '';
 	
-	for (var index = 0; index < selectedYears.length; index++){
-		var year = selectedYears[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
+	if (selectedYears.length > 0){
+		for (var index = 0; index < selectedYears.length; index++){
+			var year = selectedYears[index];
+			
+			if (index > 0){
+				linkText = linkText + ', ';
+			}
+			
+			linkText = linkText + year.label;
 		}
-		
-		linkText = linkText + year.label;
+	}
+	else {
+		linkText = 'All years';
 	}
 	
 	$('#yearsLink').prop('title', linkText);

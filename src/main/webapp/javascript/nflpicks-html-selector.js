@@ -325,7 +325,7 @@ function createTeamSelectorHtml(teams){
 
 		var team1Html = '<div id="team-1-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickTeam1(event, \'' + team.value + '\');">' +
 							'<span><input type="checkbox" id="team-1-checkbox-input-' + normalizedValue + '" value="' + team.value + '" style="' + multiselectDisplay + '" onClick="onClickTeam1(event, \'' + team.value + '\');"/></span>' +
-							'<span><input type="radio" id="team-1-radio-input-' + normalizedValue + '" value="' + team.value + '" style="' + singleSelectDisplay + '" onClick="onClickTeam1(event, \'' + team.value + '\');"/></span>' +
+							'<span><input type="radio" id="team-1-radio-input-' + normalizedValue + '" name="team-1" value="' + team.value + '" style="' + singleSelectDisplay + '" onClick="onClickTeam1(event, \'' + team.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickTeam1(event, \'' + team.value + '\');">' + team.label + '</a></span>' +
 					     '</div>';
 
@@ -333,7 +333,7 @@ function createTeamSelectorHtml(teams){
 		
 		var team2Html = '<div id="team-2-selector-container-' + normalizedValue + '" class="' + divHtmlCssClass + '" onClick="onClickTeam2(event, \'' + team.value + '\');">' +
 							'<span><input type="checkbox" id="team-2-checkbox-input-' + normalizedValue + '" value="' + team.value + '" style="' + multiselectDisplay + '" onClick="onClickTeam2(event, \'' + team.value + '\');"/></span>' +
-							'<span><input type="radio" id="team-2-radio-input-' + normalizedValue + '" value="' + team.value + '" style="' + singleSelectDisplay + '" onClick="onClickTeam2(event, \'' + team.value + '\');"/></span>' +
+							'<span><input type="radio" id="team-2-radio-input-' + normalizedValue + '" name="team-2" value="' + team.value + '" style="' + singleSelectDisplay + '" onClick="onClickTeam2(event, \'' + team.value + '\');"/></span>' +
 					   		'<span><a href="javascript:void(0);" onClick="onClickTeam2(event, \'' + team.value + '\');">' + team.label + '</a></span>' +
 					     '</div>';
 		

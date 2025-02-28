@@ -254,24 +254,23 @@ function updatePlayersLink(){
 	
 	var selectedPlayers = getSelectedPlayers();
 	
-	//If there aren't any selected players, it should be "none"
-	if (isEmpty(selectedPlayers)){
-		$('#playersLink').text('Nobody');
-		return;
-	}
-	
 	sortOptionsByLabel(selectedPlayers);
 	
 	var linkText = '';
 	
-	for (var index = 0; index < selectedPlayers.length; index++){
-		var player = selectedPlayers[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
+	if (selectedPlayers.length > 0){
+		for (var index = 0; index < selectedPlayers.length; index++){
+			var player = selectedPlayers[index];
+			
+			if (index > 0){
+				linkText = linkText + ', ';
+			}
+			
+			linkText = linkText + player.label;
 		}
-		
-		linkText = linkText + player.label;
+	}
+	else {
+		linkText = 'Everybody';
 	}
 	
 	$('#playersLink').prop('title', linkText);

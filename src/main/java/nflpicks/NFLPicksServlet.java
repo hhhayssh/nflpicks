@@ -87,6 +87,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String PARAMETER_NAME_TEAM = "team";
 	protected static final String PARAMETER_NAME_TEAM1 = "team1";
 	protected static final String PARAMETER_NAME_TEAM2 = "team2";
+	//this should become like "vsmode" or something
 	protected static final String PARAMETER_NAME_TEAM1_AT_TEAM2 = "team1AtTeam2";
 	protected static final String PARAMETER_NAME_DIVISION = "division";
 	
@@ -731,8 +732,14 @@ public class NFLPicksServlet extends HttpServlet {
 				
 				String teams2String = getParameter(request, PARAMETER_NAME_TEAM2);
 				List<String> teams2 = null;
-				if (!PARAMETER_VALUE_ALL.equals(teams2String) && !"".equals(teams2String)){ 
+				if (!PARAMETER_VALUE_ALL.equals(teams2String)){ 
 					teams2 = Util.delimitedStringToList(teams2String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String team1AtTeam2Parameter = getParameter(request, PARAMETER_NAME_TEAM1_AT_TEAM2);
+				boolean team1AtTeam2 = false;
+				if (team1AtTeam2Parameter != null && PARAMETER_VALUE_TRUE.equals(team1AtTeam2Parameter)){
+					team1AtTeam2 = true;
 				}
 
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
@@ -745,7 +752,7 @@ public class NFLPicksServlet extends HttpServlet {
 				long start = System.currentTimeMillis();
 				//List<PickAccuracySummary> pickAccuracySummaries = statsDataService.getPickAccuracySummaries(years, weekKeys, playerNames, teams);
 				//getPickAccuracySummaries3
-				List<PickAccuracySummary> pickAccuracySummaries = statsDataService.getPickAccuracySummaries3(years, weekKeys, playerNames, teams1, teams2);
+				List<PickAccuracySummary> pickAccuracySummaries = statsDataService.getPickAccuracySummaries3(years, weekKeys, playerNames, teams1, teams2, team1AtTeam2);
 				
 				long elapsed = System.currentTimeMillis() - start;
 				log.info("Done getting pick accuracy summaries. elapsed = " + elapsed);
@@ -784,13 +791,31 @@ public class NFLPicksServlet extends HttpServlet {
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
-				List<String> teams = null;
-				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
-					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+//				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+//				List<String> teams = null;
+//				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+//					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+//				}
+				
+				String teams1String = getParameter(request, PARAMETER_NAME_TEAM1);
+				List<String> teams1 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams1String)){ 
+					teams1 = Util.delimitedStringToList(teams1String, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<PickSplit> pickSplits = statsDataService.getPickSplits(years, weekKeys, playerNames, teams);
+				String teams2String = getParameter(request, PARAMETER_NAME_TEAM2);
+				List<String> teams2 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams2String)){ 
+					teams2 = Util.delimitedStringToList(teams2String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String team1AtTeam2Parameter = getParameter(request, PARAMETER_NAME_TEAM1_AT_TEAM2);
+				boolean team1AtTeam2 = false;
+				if (team1AtTeam2Parameter != null && PARAMETER_VALUE_TRUE.equals(team1AtTeam2Parameter)){
+					team1AtTeam2 = true;
+				}
+				
+				List<PickSplit> pickSplits = statsDataService.getPickSplits(years, weekKeys, playerNames, teams1, teams2, team1AtTeam2);
 				
 				json = JSONUtil.pickSplitsToJSONString(pickSplits);
 			}

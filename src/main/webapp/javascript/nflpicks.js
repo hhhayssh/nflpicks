@@ -246,7 +246,7 @@ function getSelectionCriteriaAndInitialize(){
 		
 		var years = selectionCriteriaContainer.years;
 		//We want the "all" year option to be first.
-		var yearOptions = [{label: 'All', value: 'all'},
+		var yearOptions = [{label: 'All years', value: 'all'},
 		                   {label: 'Jurassic Period (2010-2015)', value: 'jurassic-period'},
 		                   {label: 'First year (2016)', value: 'first-year'},
 		                   {label: 'Modern Era (2017 - now)', value: 'modern-era'}];
@@ -262,7 +262,7 @@ function getSelectionCriteriaAndInitialize(){
 		$('#yearsContainer').empty();
 		$('#selectorContainer').append(yearSelectorHtml);
 		
-		var weekOptions = [{label: 'All', value: 'all'},
+		var weekOptions = [{label: 'All weeks', value: 'all'},
 		                   {label: 'Regular season', value: 'regular_season'},
 		                   {label: 'Playoffs', value: 'playoffs'},
 		                   {label: 'Week 1', value: '1'}, {label: 'Week 2', value: '2'},
@@ -352,7 +352,7 @@ function getSelectionCriteriaAndInitialize(){
 			return 0;
 		});
 		//We also want the "all" option to be first.
-		var teamOptions = [{label: 'All', value: 'all'}];
+		var teamOptions = [{label: 'All teams', value: 'all'}];
 		for (var index = 0; index < teams.length; index++){
 			var team = teams[index];
 			teamOptions.push({label: team.abbreviation, value: team.abbreviation});

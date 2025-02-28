@@ -268,29 +268,28 @@ function updateWeeksLink(){
 	
 	var selectedWeeks = getSelectedWeeks();
 	
-	//If there aren't any selected weeks, it should be "none"
-	if (isEmpty(selectedWeeks)){
-		$('#weeksLink').text('No weeks');
-		return;
-	}
-	
-	if (selectedWeeks.length == 1 && 'all' == selectedWeeks[0].value){
-		$('#weeksLink').text('All weeks');
-		return;
-	}
+//	if (selectedWeeks.length == 1 && 'all' == selectedWeeks[0].value){
+//		$('#weeksLink').text('All weeks');
+//		return;
+//	}
 	
 	sortOptionsByNumericValue(selectedWeeks);
 	
 	var linkText = '';
 	
-	for (var index = 0; index < selectedWeeks.length; index++){
-		var week = selectedWeeks[index];
-		
-		if (index > 0){
-			linkText = linkText + ', ';
+	if (selectedWeeks.length > 0){
+		for (var index = 0; index < selectedWeeks.length; index++){
+			var week = selectedWeeks[index];
+			
+			if (index > 0){
+				linkText = linkText + ', ';
+			}
+			
+			linkText = linkText + week.label;
 		}
-		
-		linkText = linkText + week.label;
+	}
+	else {
+		linkText = 'All weeks';
 	}
 	
 	$('#weeksLink').prop('title', linkText);

@@ -1845,7 +1845,8 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 		playerHeader = '<th class="standings-table-header">Player</th>';
 	}
 	
-	var specificTeamSelected = isSpecificTeamSelected();
+	//this should only be based on team 1
+	var specificTeamSelected = isSpecificTeam1Selected();
 	var teamHeader = '';
 	if (!specificTeamSelected){
 		teamHeader = '<th class="standings-table-header">Team</th>';
@@ -1872,6 +1873,11 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 	
 	for (var index = 0; index < pickAccuracySummaries.length; index++){
 		var pickAccuracySummary = pickAccuracySummaries[index];
+		
+		if (pickAccuracySummary.timesRight == 0 &&
+				pickAccuracySummary.timesWrong == 0){
+			continue;
+		}
 		
 		//Add in the team if they didn't pick a specific one.
 		var teamCell = '';
