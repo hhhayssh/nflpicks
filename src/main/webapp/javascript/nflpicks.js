@@ -518,6 +518,7 @@ function updateStandings(){
 	var weekValuesForRequest = getWeekValuesForRequest();
 	var team1ValuesForRequest = getTeam1ValuesForRequest();
 	var team2ValuesForRequest = getTeam2ValuesForRequest();
+	var team1AtTeam2ForRequest = getTeam1AtTeam2ValueForRequest();
 	
 	setContent('<div style="text-align: center;">Loading...</div>');
 	
@@ -526,7 +527,8 @@ function updateStandings(){
 			'&year=' + yearValuesForRequest + 
 			'&week=' + weekValuesForRequest + 
 			'&team1=' + team1ValuesForRequest + 
-			'&team2=' + team2ValuesForRequest,
+			'&team2=' + team2ValuesForRequest +
+			'&team1AtTeam2=' + team1AtTeam2ForRequest,
 		contentType: 'application/json; charset=UTF-8'}
 	)
 	.done(function(data) {
@@ -1001,6 +1003,66 @@ function showPickView(year, week, team, player){
 	if (isDefined(team)){
 		selectSingleTeamFull(team);
 	}
+	
+	//setSelectedTeams1
+	
+	updateView();
+}
+
+
+/**
+ * 
+ * This function will show the picks grid for the given year, week, team, and player.
+ * All the arguments are optional.  It will just set each one as the selected
+ * year, week, team, and player (if it's given) and then cause the picks to be shown.
+ * 
+ * It'll flip the global "havePicksBeenShown" switch to true so that the view shows
+ * all the picks for the given parameters and doesn't try to overrule it and only show
+ * a week's worth of picks.
+ * 
+ * @param year
+ * @param week
+ * @param team
+ * @param player
+ * @returns
+ */
+function showPickView2(year, week, team1Teams, team2Teams, player){
+
+	//Steps to do:
+	//	1. If we're coming from this function, then we don't want
+	//	   the updatePicks function saying "no, you can't see all the picks",
+	//	   so we need to flip the switch that disables that feature.
+	//	2. Set all the parameters that were given.
+	//	3. Call the function that'll show them on the screen.
+	
+	//If this switch is true, we'll show the picks for the parameters no matter
+	//whether it's a week's worth or not.  If it's not, it'll show only a week's
+	//worth as a way to prevent accidentally showing all the picks (which takes a while to do).
+	NFL_PICKS_GLOBAL.havePicksBeenShown = true;
+	
+	setSelectedType('picks');
+	
+	if (isDefined(year)){
+		setSelectedYears(year);
+	}
+	
+	if (isDefined(week)){
+		setSelectedWeeks(week);
+	}
+	
+	if (isDefined(player)){
+		setSelectedPlayers(player);
+	}
+	
+	if (isDefined(team1Teams)){
+		setSelectedTeams1(team1Teams);
+	}
+	
+	if (isDefined(team2Teams)){
+		setSelectedTeams2(team2Teams);
+	}
+	
+	//setSelectedTeams1
 	
 	updateView();
 }

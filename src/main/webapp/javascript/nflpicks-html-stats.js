@@ -308,7 +308,7 @@ function createWeekComparisonHtml(weekRecords){
 			if (!aWeekIsSelected){
 				//We'll want a link to the picks grid for the week.
 				var weekLabelToUse = shortenWeekLabel(previousWeekRecord.week.label);
-				var picksLink = createPicksLink(weekLabelToUse, previousWeekRecord.season.year, previousWeekRecord.week.weekKey, null, null);
+				var picksLink = createPicksLink(weekLabelToUse, previousWeekRecord.season.year, previousWeekRecord.week.weekKey, null, null, null);
 				weekCell = '<td class="common-table-cell">' + picksLink + '</td>'; 
 			}
 
@@ -507,7 +507,7 @@ function createSeasonProgressionHtml(weekRecords){
 			if (!aWeekIsSelected){
 				//We'll want a link to the picks grid for the week.
 				var weekLabelToUse = shortenWeekLabel(previousWeekRecord.week.label);
-				var picksLink = createPicksLink(weekLabelToUse, previousWeekRecord.season.year, previousWeekRecord.week.weekKey, null, null);
+				var picksLink = createPicksLink(weekLabelToUse, previousWeekRecord.season.year, previousWeekRecord.week.weekKey, null, null, null);
 				weekCell = '<td class="common-table-cell">' + picksLink + '</td>'; 
 			}
 
@@ -816,7 +816,7 @@ function createWeeksWonHtml(weekRecords){
 			//And we want the link that'll show the actual picks for the person, year, and week, so they can jump directly to
 			//what they picked.
 			var labelToUse = shortenWeekLabel(record.week.label);
-			var picksLink = createPicksLink(labelToUse, record.season.year, record.week.weekKey, null, weekRecord.player.name);
+			var picksLink = createPicksLink(labelToUse, record.season.year, record.week.weekKey, null, null, weekRecord.player.name);
 			
 			weekRecordsHtml = weekRecordsHtml + '<li>' + year + picksLink + ' (' + record.record.wins + ' - ' + record.record.losses +
 			 				  ties + ')' + '</li>';
@@ -912,7 +912,7 @@ function createWeekRecordsByPlayerHtml(weekRecords){
 		
 		var weekLabel = shortenWeekLabel(weekRecord.week.label);
 		
-		var playerPicksLink = createPicksLink(weekLabel, weekRecord.season.year, weekRecord.week.weekKey, null, weekRecord.player.name);
+		var playerPicksLink = createPicksLink(weekLabel, weekRecord.season.year, weekRecord.week.weekKey, null, null, weekRecord.player.name);
 
 		var tiesCell = '';
 		//Add a cell for ties if there are any.
@@ -1086,7 +1086,7 @@ function createWeekStandingsHtml(playerWeekRecords){
 		if (!isWeekSelected){
 			var labelToUse = shortenWeekLabel(playerWeekRecord.week.label);
 			//function createPicksLink(linkText, year, week, team, player){
-			var picksLink = createPicksLink(labelToUse, playerWeekRecord.season.year, playerWeekRecord.week.weekKey, null, playerWeekRecord.player.name);
+			var picksLink = createPicksLink(labelToUse, playerWeekRecord.season.year, playerWeekRecord.week.weekKey, null, null, playerWeekRecord.player.name);
 			weekCell = '<td class="standings-table-cell">' + picksLink + '</td>';
 		}
 		
@@ -1797,7 +1797,7 @@ function createWeeksWonByWeek(weeksWonByWeek){
 		for (var playerIndex = 0; playerIndex < weekRecord.players.length; playerIndex++){
 			var player = weekRecord.players[playerIndex];
 			
-			var playerPicksLink = createPicksLink(player.name, weekRecord.season.year, weekRecord.week.weekKey, null, player.name);
+			var playerPicksLink = createPicksLink(player.name, weekRecord.season.year, weekRecord.week.weekKey, null, null, player.name);
 			
 			var plHtml = '<li>' + playerPicksLink + '</li>';
 			playerHtml = playerHtml + plHtml;
@@ -1908,7 +1908,10 @@ function createPickAccuracySummariesHtml(pickAccuracySummaries){
 
 		var years = getSelectedYearValues();
 		//Add in a link so they can see the exact picks they made with the team.
-		var recordPicksLink = createPicksLink('Picks', years, null, pickAccuracySummary.team.abbreviation, pickAccuracySummary.player.name);
+		//this should be maybe the currently selected team for team 1 
+		var team1Teams = getSelectedTeam1Values();
+		var team2Teams = getSelectedTeam2Values();
+		var recordPicksLink = createPicksLink('Picks', years, null, pickAccuracySummary.team.abbreviation, team2Teams, pickAccuracySummary.player.name);
 		
 		//And add the detail that says how many times they picked them to win and lose, and how many times they were right
 		//with each.
@@ -2153,8 +2156,11 @@ function createCollectivePickAccuracySummaryHtml(pickAccuracySummaries){
 		var years = getSelectedYearValues();
 		var players = getSelectedPlayerValues();
 		
+		var team1Teams = getSelectedTeam1Values();
+		var team2Teams = getSelectedTeam2Values();
+		
 		//Add in a link so they can see the exact picks they made with the team.
-		var recordPicksLink = createPicksLink('Picks', years, null, pickAccuracySummary.team.abbreviation, players);
+		var recordPicksLink = createPicksLink('Picks', years, null, pickAccuracySummary.team.abbreviation, team2Teams, players);
 		
 		//And add the detail that says how many times they picked them to win and lose, and how many times they were right
 		//with each.

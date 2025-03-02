@@ -61,7 +61,7 @@ stats
 	pick splits - teams, done
 	week comparison - no teams, done
 	season progression - no teams, done
-	collective records - teams, not done
+	collective records - teams, done
 	collective pick accuracy - teams, not done
 	
 things to do

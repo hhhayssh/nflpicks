@@ -353,7 +353,13 @@ public class NFLPicksServlet extends HttpServlet {
 				team2Teams = Util.delimitedStringToList(team2TeamsString, PARAMETER_VALUE_DELIMITER);
 			}
 			
-			List<Record> records = statsDataService.getRecords(years, weekKeys, playerNames, teams, team1Teams, team2Teams);
+			String team1AtTeam2String = getParameter(request, PARAMETER_NAME_TEAM1_AT_TEAM2);
+			boolean team1AtTeam2 = false;
+			if (team1AtTeam2String != null && PARAMETER_VALUE_TRUE.equals(team1AtTeam2String)){
+				team1AtTeam2 = true;
+			}
+			
+			List<Record> records = statsDataService.getRecords(years, weekKeys, playerNames, teams, team1Teams, team2Teams, team1AtTeam2);
 			
 			JSONObject recordsJSONObject = new JSONObject();
 			recordsJSONObject.put(NFLPicksConstants.JSON_STANDINGS_RECORDS, JSONUtil.recordsToJSONArray(records));
@@ -879,19 +885,31 @@ public class NFLPicksServlet extends HttpServlet {
 					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
-				List<String> teams = null;
-				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
-					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
-				}
-
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
 				List<String> years = null; 
 				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				List<CollectiveRecord> collectiveRecords = statsDataService.getCollectiveRecords(years, weekKeys, playerNames, teams);
+				String teams1String = getParameter(request, PARAMETER_NAME_TEAM1);
+				List<String> teams1 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams1String)){ 
+					teams1 = Util.delimitedStringToList(teams1String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teams2String = getParameter(request, PARAMETER_NAME_TEAM2);
+				List<String> teams2 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams2String)){ 
+					teams2 = Util.delimitedStringToList(teams2String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String team1AtTeam2Parameter = getParameter(request, PARAMETER_NAME_TEAM1_AT_TEAM2);
+				boolean team1AtTeam2 = false;
+				if (team1AtTeam2Parameter != null && PARAMETER_VALUE_TRUE.equals(team1AtTeam2Parameter)){
+					team1AtTeam2 = true;
+				}
+				
+				List<CollectiveRecord> collectiveRecords = statsDataService.getCollectiveRecords(years, weekKeys, playerNames, teams1, teams2, team1AtTeam2);
 				
 				json = JSONUtil.collectiveRecordsToJSONString(collectiveRecords);
 			}
@@ -909,19 +927,31 @@ public class NFLPicksServlet extends HttpServlet {
 					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
-				List<String> teams = null;
-				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
-					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
-				}
-
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
 				List<String> years = null; 
 				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				CollectiveRecordSummary collectiveRecordSummary = statsDataService.getCollectiveRecordSummary(years, weekKeys, playerNames, teams);
+				String teams1String = getParameter(request, PARAMETER_NAME_TEAM1);
+				List<String> teams1 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams1String)){ 
+					teams1 = Util.delimitedStringToList(teams1String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teams2String = getParameter(request, PARAMETER_NAME_TEAM2);
+				List<String> teams2 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams2String)){ 
+					teams2 = Util.delimitedStringToList(teams2String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String team1AtTeam2Parameter = getParameter(request, PARAMETER_NAME_TEAM1_AT_TEAM2);
+				boolean team1AtTeam2 = false;
+				if (team1AtTeam2Parameter != null && PARAMETER_VALUE_TRUE.equals(team1AtTeam2Parameter)){
+					team1AtTeam2 = true;
+				}
+				
+				CollectiveRecordSummary collectiveRecordSummary = statsDataService.getCollectiveRecordSummary(years, weekKeys, playerNames, teams1, teams2, team1AtTeam2);
 				
 				json = JSONUtil.collectiveRecordSummaryToJSONString(collectiveRecordSummary);
 			}
@@ -939,23 +969,36 @@ public class NFLPicksServlet extends HttpServlet {
 					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
 				}
 				
-				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
-				List<String> teams = null;
-				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
-					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
-				}
-
 				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
 				List<String> years = null; 
 				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
 					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
 				}
 				
+				String teams1String = getParameter(request, PARAMETER_NAME_TEAM1);
+				List<String> teams1 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams1String)){ 
+					teams1 = Util.delimitedStringToList(teams1String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teams2String = getParameter(request, PARAMETER_NAME_TEAM2);
+				List<String> teams2 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams2String)){ 
+					teams2 = Util.delimitedStringToList(teams2String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String team1AtTeam2Parameter = getParameter(request, PARAMETER_NAME_TEAM1_AT_TEAM2);
+				boolean team1AtTeam2 = false;
+				if (team1AtTeam2Parameter != null && PARAMETER_VALUE_TRUE.equals(team1AtTeam2Parameter)){
+					team1AtTeam2 = true;
+				}
+				
 				log.info("Getting collective pick accuracy...");
 				
 				long start = System.currentTimeMillis();
 				
-				List<CollectivePickAccuracySummary> collectivePickAccuracies = statsDataService.getCollectivePickAccuracy(years, weekKeys, playerNames, teams);
+				//List<CollectivePickAccuracySummary> collectivePickAccuracies = statsDataService.getCollectivePickAccuracy(years, weekKeys, playerNames, teams1);
+				List<CollectivePickAccuracySummary> collectivePickAccuracies = statsDataService.getCollectivePickAccuracy0(years, weekKeys, playerNames, teams1, teams2, team1AtTeam2);
 				
 				json = JSONUtil.collectivePickAccuracySummariesListToJSONString(collectivePickAccuracies);
 				

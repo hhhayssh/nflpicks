@@ -497,7 +497,7 @@ function sortCollectivePickAccuracySummariesByTimesRight(collectivePickAccuracyS
  * @param player
  * @returns
  */
-function createPicksLink(linkText, year, week, team, player){
+function createPicksLink(linkText, year, week, team1Teams, team2Teams, player){
 	
 	//Steps to do:
 	//	1. Just make a link that'll call the javascript function
@@ -505,7 +505,7 @@ function createPicksLink(linkText, year, week, team, player){
 	//	2. All the arguments are optional, so only add them in if
 	//	   they're given.
 	
-	var picksLink = '<a href="javascript:" onClick="showPickView(';
+	var picksLink = '<a href="javascript:" onClick="showPickView2(';
 	
 	if (isDefined(year)){
 		var yearValue = year;
@@ -529,10 +529,32 @@ function createPicksLink(linkText, year, week, team, player){
 		picksLink = picksLink + 'null, ';
 	}
 	
-	if (isDefined(team)){
-		var teamValue = team;
-		if (Array.isArray(team)){
-			teamValue = arrayToDelimitedValue(team, ',');
+//	if (isDefined(team)){
+//		var teamValue = team;
+//		if (Array.isArray(team)){
+//			teamValue = arrayToDelimitedValue(team, ',');
+//		}
+//		picksLink = picksLink + '\'' + teamValue + '\', ';
+//	}
+//	else {
+//		picksLink = picksLink + 'null, ';
+//	}
+	
+	if (isDefined(team1Teams)){
+		var teamValue = team1Teams;
+		if (Array.isArray(team1Teams)){
+			teamValue = arrayToDelimitedValue(team1Teams, ',');
+		}
+		picksLink = picksLink + '\'' + teamValue + '\', ';
+	}
+	else {
+		picksLink = picksLink + 'null, ';
+	}
+	
+	if (isDefined(team2Teams)){
+		var teamValue = team2Teams;
+		if (Array.isArray(team2Teams)){
+			teamValue = arrayToDelimitedValue(team2Teams, ',');
 		}
 		picksLink = picksLink + '\'' + teamValue + '\', ';
 	}
