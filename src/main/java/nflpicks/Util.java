@@ -11,11 +11,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 public class Util {
 	
-	private static final Logger log = Logger.getLogger(Util.class);
+	private static final Log log = LogFactory.getLog(Util.class);
 	
 	public static List<String> readLines(String filename){
 		
@@ -214,8 +215,26 @@ public class Util {
 		
 		return values;
 	}
+	
+	public static List<String> getCsvValues(String line, boolean skipNull){
+		
+		List<String> values = delimitedStringToList(line, ",", skipNull);
+		
+		return values;
+	}
 
 	public static List<String> delimitedStringToList(String value, String delimiter){
+		
+		if (value == null || delimiter == null){
+			return null;
+		}
+		
+		List<String> values = delimitedStringToList(value, delimiter, true);
+		
+		return values;
+	}
+	
+	public static List<String> delimitedStringToList(String value, String delimiter, boolean skipNull){
 		
 		if (value == null || delimiter == null){
 			return null;
@@ -230,9 +249,11 @@ public class Util {
 			
 			currentValue = hardcoreTrim(currentValue);
 			
-			if (currentValue != null){
-				values.add(currentValue);
+			if (currentValue == null && skipNull) {
+				continue;
 			}
+			
+			values.add(currentValue);
 		}
 		
 		return values;

@@ -28,6 +28,8 @@ add an "against the grain" stat
 	use it to figure out how many teams with a losing record a person picked and what their record was in those games
 	
 	this should be the "chalk standings" and "genius standings"
+	
+maybe add conferences and divisions to the bottom of the selector
 
 done - update the week label in the picks grid when we show the playoffs
 

@@ -11,7 +11,8 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import nflpicks.model.Division;
 import nflpicks.model.Game;
@@ -38,7 +39,7 @@ import nflpicks.model.Week;
  */
 public class NFLPicksModelDataService {
 
-	private static final Logger log = Logger.getLogger(NFLPicksModelDataService.class);
+	private static final Log log = LogFactory.getLog(NFLPicksModelDataService.class);
 
 	/**
 	 * 
@@ -2115,7 +2116,7 @@ public class NFLPicksModelDataService {
 		try {
 			connection = getConnection();
 			String query = SELECT_WEEK + 
-						   "where season_id = ?" +
+						   "where season_id = ? " +
 						   		 "and key = ? ";
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, seasonId);
@@ -2159,7 +2160,7 @@ public class NFLPicksModelDataService {
 		try {
 			connection = getConnection();
 			String query = SELECT_WEEK + 
-						   "where season_id = ?" +
+						   "where season_id = ? " +
 						   		 "and sequence_number = ? ";
 			statement = connection.prepareStatement(query);
 			statement.setInt(1, seasonId);
@@ -2207,7 +2208,7 @@ public class NFLPicksModelDataService {
 			String query = SELECT_WEEK + 
 					"where season_id in (select id " +
 					"from season " +
-					"where year = ? )" +
+					"where year = ? ) " +
 					"and sequence_number = ? ";
 			
 			statement = connection.prepareStatement(query);
@@ -2256,7 +2257,7 @@ public class NFLPicksModelDataService {
 			String query = SELECT_WEEK + 
 						   "where season_id in (select id " +
 						   					   "from season " +
-						   					   "where year = ? )" +
+						   					   "where year = ? ) " +
 						   		 "and key = ? ";
 			statement = connection.prepareStatement(query);
 			statement.setString(1, year);
@@ -3017,7 +3018,7 @@ public class NFLPicksModelDataService {
 			String query = SELECT_PICK +
 						   "where player_id in (select id " +
 						   					   "from player " +
-						   					   "where name = ? )" +
+						   					   "where name = ? ) " +
 						   	      "and game_id in (select id " +
 							   					  "from game " + 
 							   					  "where week_id in (select id " + 

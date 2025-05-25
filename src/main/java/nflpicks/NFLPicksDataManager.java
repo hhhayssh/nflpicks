@@ -2,7 +2,8 @@ package nflpicks;
 
 import java.util.Scanner;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * 
@@ -26,7 +27,7 @@ import org.apache.log4j.Logger;
  */
 public class NFLPicksDataManager {
 	
-	private static final Logger log = Logger.getLogger(NFLPicksDataManager.class);
+	private static final Log log = LogFactory.getLog(NFLPicksDataManager.class);
 	
 	/**
 	 * 

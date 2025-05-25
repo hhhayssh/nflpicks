@@ -9,7 +9,8 @@ import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import nflpicks.model.CompactPick;
 import nflpicks.model.CompactPlayerPick;
@@ -37,7 +38,7 @@ import nflpicks.model.TeamDivision;
  */
 public class NFLPicksDataExporter {
 	
-	private static final Logger log = Logger.getLogger(NFLPicksDataExporter.class);
+	private static final Log log = LogFactory.getLog(NFLPicksDataExporter.class);
 	
 	/**
 	 *

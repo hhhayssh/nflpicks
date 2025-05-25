@@ -7,8 +7,6 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.BasicConfigurator;
-
 import nflpicks.model.Pick;
 
 public class OldNFLPicksDataImporter {
@@ -225,7 +223,7 @@ where g.week_id in (select w.id
 		String filename = args[4];
 		String propertiesFilename = args[5];
 		
-		BasicConfigurator.configure();
+		//BasicConfigurator.configure();
 		
 		ApplicationContext.getContext().initialize(propertiesFilename);
 		DataSource dataSource = ApplicationContext.getContext().getDataSource();

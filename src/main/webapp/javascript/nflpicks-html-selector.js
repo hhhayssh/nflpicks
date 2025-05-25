@@ -310,8 +310,8 @@ function createTeamSelectorHtml(teams){
 						   		'</div>' + 
 						   		'<div class="selection-list-items-container">';
 
-	var team1ListHtml = '<div id="team-1-list-items-container"><div>TEAM1</div>';
-	var team2ListHtml = '<div id="team-2-list-items-container" style="display: none;"><div>TEAM2</div>';
+	var team1ListHtml = '<div id="team-1-list-items-container">';
+	var team2ListHtml = '<div id="team-2-list-items-container" style="display: none;">';
 	
 	for (var index = 0; index < teams.length; index++){
 		var team = teams[index];

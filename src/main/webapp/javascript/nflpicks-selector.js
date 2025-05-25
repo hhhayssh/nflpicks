@@ -263,4 +263,5 @@ function hideSelectorContainers(){
 	hideWeekSelector();
 	hideStatNameSelector();
 	hideTeamSelector();
+	hideVsOrAtContainer();
 }

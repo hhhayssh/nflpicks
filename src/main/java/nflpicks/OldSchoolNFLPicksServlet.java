@@ -7,14 +7,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
-import org.apache.log4j.Logger;
-
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import nflpicks.model.Game;
 import nflpicks.model.Pick;
 import nflpicks.model.Player;
@@ -24,7 +24,7 @@ import nflpicks.model.Week;
 
 public class OldSchoolNFLPicksServlet extends HttpServlet {
 
-	private static final Logger log = Logger.getLogger(NFLPicksServlet.class);
+	private static final Log log = LogFactory.getLog(NFLPicksServlet.class);
 	
 	protected OldNFLPicksDataService dataService;
 	

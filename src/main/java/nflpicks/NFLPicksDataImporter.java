@@ -8,7 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import nflpicks.model.Division;
 import nflpicks.model.Game;
@@ -37,7 +38,7 @@ import nflpicks.model.Week;
  */
 public class NFLPicksDataImporter {
 	
-	private static final Logger log = Logger.getLogger(NFLPicksDataImporter.class);
+	private static final Log log = LogFactory.getLog(NFLPicksDataImporter.class);
 	
 	/**
 	 *
@@ -254,12 +255,13 @@ public class NFLPicksDataImporter {
 				
 				//Skip the header...
 				if (lineNumber == 0){
+					log.info("Skipping header: " + line);
 					lineNumber++;
 					continue;
 				}
 
 				//Turn the csv line into a list so we can handle it easier.
-				List<String> values = Util.getCsvValues(line);
+				List<String> values = Util.getCsvValues(line, false);
 				if (values.size() != 14){
 					log.error("Bad line!  lineNumber = " + lineNumber + ", line = " + line);
 					continue;
@@ -358,7 +360,7 @@ public class NFLPicksDataImporter {
 				}
 
 				//Turn the csv line into a list so we can handle it easier.
-				List<String> values = Util.getCsvValues(line);
+				List<String> values = Util.getCsvValues(line, false);
 				if (values.size() != 2){
 					log.error("Bad line!  lineNumber = " + lineNumber + ", line = " + line);
 					continue;
@@ -423,7 +425,7 @@ public class NFLPicksDataImporter {
 				}
 
 				//Turn the csv line into a list so we can handle it easier.
-				List<String> values = Util.getCsvValues(line);
+				List<String> values = Util.getCsvValues(line, false);
 				if (values.size() != 3){
 					log.error("Bad line!  lineNumber = " + lineNumber + ", line = " + line);
 					continue;
@@ -544,7 +546,7 @@ public class NFLPicksDataImporter {
 				}
 				
 				//Turn the csv line into a list so we can handle it easier.
-				List<String> values = Util.getCsvValues(line);
+				List<String> values = Util.getCsvValues(line, false);
 				
 				int numberOfValues = values.size();
 				

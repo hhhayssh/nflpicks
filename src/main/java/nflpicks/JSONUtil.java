@@ -2,7 +2,8 @@ package nflpicks;
 
 import java.util.List;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -45,7 +46,7 @@ import nflpicks.model.stats.WeekRecordsForPlayer;
  */
 public class JSONUtil {
 	
-	private static final Logger log = Logger.getLogger(JSONUtil.class);
+	private static final Log log = LogFactory.getLog(JSONUtil.class);
 
 	/**
 	 * 

@@ -7,7 +7,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.apache.tomcat.jdbc.pool.DataSource;
 import org.apache.tomcat.jdbc.pool.PoolProperties;
 
@@ -30,7 +31,7 @@ import org.apache.tomcat.jdbc.pool.PoolProperties;
  */
 public class ApplicationContext {
 	
-	private static final Logger log = Logger.getLogger(ApplicationContext.class);
+	private static final Log log = LogFactory.getLog(ApplicationContext.class);
 	
 	/**
 	 * 

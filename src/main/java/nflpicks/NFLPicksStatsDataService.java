@@ -15,7 +15,8 @@ import java.util.Set;
 
 import javax.sql.DataSource;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 import nflpicks.model.CompactPick;
 import nflpicks.model.CompactPlayerPick;
@@ -57,7 +58,7 @@ import nflpicks.model.stats.WeekRecordsForPlayer;
  */
 public class NFLPicksStatsDataService {
 	
-	private static final Logger log = Logger.getLogger(NFLPicksStatsDataService.class);
+	private static final Log log = LogFactory.getLog(NFLPicksStatsDataService.class);
 
 	/**
 	 * 

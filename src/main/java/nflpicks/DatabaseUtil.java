@@ -4,7 +4,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * 
@@ -15,7 +16,7 @@ import org.apache.log4j.Logger;
  */
 public class DatabaseUtil {
 	
-	private static final Logger log = Logger.getLogger(DatabaseUtil.class);
+	private static final Log log = LogFactory.getLog(DatabaseUtil.class);
 	
 	/**
 	 * 

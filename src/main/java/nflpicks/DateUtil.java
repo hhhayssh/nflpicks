@@ -3,7 +3,8 @@ package nflpicks;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 
 /**
  * 
@@ -14,7 +15,7 @@ import org.apache.log4j.Logger;
  */
 public class DateUtil {
 	
-	private static final Logger log = Logger.getLogger(DateUtil.class);
+	private static final Log log = LogFactory.getLog(DateUtil.class);
 	
 	/**
 	 * 

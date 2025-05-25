@@ -2104,7 +2104,8 @@ function createCollectivePickAccuracySummaryHtml(pickAccuracySummaries){
 	//	3. Go through and add a row for each team and its accuracy.
 	//	4. Add a detail link that shows more details (how many times picked to win, lose, ...).
 	
-	var specificTeamSelected = isSpecificTeamSelected();
+	//Show the team header unless team 1 has a specific team.
+	var specificTeamSelected = isSpecificTeam1Selected();
 	var teamHeader = '';
 	if (!specificTeamSelected){
 		teamHeader = '<th class="standings-table-header">Team</th>';

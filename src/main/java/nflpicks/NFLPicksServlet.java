@@ -10,15 +10,15 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.apache.log4j.Logger;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import nflpicks.model.CompactPick;
 import nflpicks.model.Division;
 import nflpicks.model.DivisionRecord;
@@ -44,7 +44,7 @@ import nflpicks.model.stats.WeekRecordsForPlayer;
 
 public class NFLPicksServlet extends HttpServlet {
 	
-	private static final Logger log = Logger.getLogger(NFLPicksServlet.class);
+	private static final Log log = LogFactory.getLog(NFLPicksServlet.class);
 	
 	protected static final String TARGET_TEAMS = "teams";
 	protected static final String TARGET_GAMES = "games";
