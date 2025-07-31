@@ -153,7 +153,7 @@ divisions
 	for next season (2023), add in sorting
 	
 	add in some way to get the "collective accuracy" and totals for everybody added together
-	
+	 
 		two new stats ... 
 			done - total standings
 				shows everything summed up with "and" for the "criteria"
@@ -164,7 +164,7 @@ divisions
 			wins by "vote" - how often is the "majority" right?
 	
 
-	started - add in a way to do
+	"done" - add in a way to do
 		matchups
 		home and away
 		

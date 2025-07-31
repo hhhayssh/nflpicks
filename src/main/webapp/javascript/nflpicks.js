@@ -70,22 +70,32 @@ var NFL_PICKS_GLOBAL = {
 	 * Whether they're selecting more than one player at a time
 	 * or not.
 	 */
-	multiselectPlayer: false,
+	multiSelectPlayer: false,
 	
 	/**
 	 * Whether they're selecting more than one week at a time or not.
 	 */
-	multiselectWeek: false,
+	multiSelectWeek: false,
 	
 	/**
 	 * Whether they're selecting more than one year at a time or not.
 	 */
-	multiselectYear: false,
+	multiSelectYear: false,
 	
 	/**
 	 * Whether they're selecting more than one team at a time or not.
 	 */
 	multiSelectTeam: false,
+	
+	/**
+	 * Whether they're selecting more than one team for team 1.
+	 */
+	multiSelectTeam1: false,
+	
+	/**
+	 * Whether they're selecting more than one team for team 2.
+	 */
+	multiSelectTeam2: false,
 	
 	/**
 	 * If they're selecting teams, this says whether we should treat it as "team 1 @ team 2" or not.
@@ -147,6 +157,12 @@ var NFL_PICKS_GLOBAL = {
 	initialPlayer: null,
 	initialTeam: null,
 	initialStatName: null,
+	
+	/**
+	 * The initial team selectors
+	 */
+	initialTeamSelector: 'team1',
+	initialTeam1AtTeam2: false,
 	
 	/**
 	 * Whether divisions are enabled or not.  Here so I can flip back and forth from how it used to be

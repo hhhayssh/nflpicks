@@ -75,6 +75,12 @@ function initializeSelections(){
 	}
 	setSelectedTeams2(team2);
 	
+	var teamSelector = NFL_PICKS_GLOBAL.initialTeamSelector;
+	if (isDefined(parameters) && isDefined(parameters.teamSelector)){
+		teamSelector = parameters.teamSelector;
+	}
+	setTeamSelector(teamSelector);
+	
 	resetPlayerSelections();
 	resetYearSelections();
 	resetWeekSelections();
@@ -136,24 +142,24 @@ function setSelectionsFromParameters(parameters){
 		setSelectedStatName(parameters.statName);
 	}
 	
-	if (isDefined(parameters.multiselectPlayer)){
-		setMultiselectPlayer(parameters.multiselectPlayer);
-		setMultiselectPlayerValue(parameters.multiselectPlayer);
+	if (isDefined(parameters.multiSelectPlayer)){
+		setMultiSelectPlayer(parameters.multiSelectPlayer);
+		setMultiSelectPlayerValue(parameters.multiSelectPlayer);
 	}
 	
-	if (isDefined(parameters.multiselectYear)){
-		setMultiselectYear(parameters.multiselectYear);
-		setMultiselectYearValue(parameters.multiselectYear);
+	if (isDefined(parameters.multiSelectYear)){
+		setMultiSelectYear(parameters.multiSelectYear);
+		setMultiSelectYearValue(parameters.multiSelectYear);
 	}
 	
-	if (isDefined(parameters.multiselectWeek)){
-		setMultiselectWeek(parameters.multiselectWeek);
-		setMultiselectWeekValue(parameters.multiselectWeek);
+	if (isDefined(parameters.multiSelectWeek)){
+		setMultiSelectWeek(parameters.multiSelectWeek);
+		setMultiSelectWeekValue(parameters.multiSelectWeek);
 	}
 	
-	if (isDefined(parameters.multiselectTeam)){
-		setMultiselectTeam(parameters.multiselectTeam);
-		setMultiselectTeamValue(parameters.multiselectTeam);
+	if (isDefined(parameters.multiSelectTeam)){
+		setMultiSelectTeam(parameters.multiSelectTeam);
+		setMultiSelectTeamValue(parameters.multiSelectTeam);
 	}
 }
 
@@ -179,10 +185,10 @@ function getSelectedParameters(){
 	parameters.statName = getSelectedStatName();
 	parameters.team1 = getSelectedTeam1Values();
 	parameters.team2 = getSelectedTeam2Values();
-	parameters.multiselectPlayer = getMultiselectPlayer();
-	parameters.multiselectYear = getMultiselectYear();
-	parameters.multiselectWeek = getMultiselectWeek();
-	parameters.multiselectTeam = getMultiselectTeam();
+	parameters.multiSelectPlayer = getMultiSelectPlayer();
+	parameters.multiSelectYear = getMultiSelectYear();
+	parameters.multiSelectWeek = getMultiSelectWeek();
+	parameters.multiSelectTeam = getMultiSelectTeam();
 	
 	return parameters;
 }

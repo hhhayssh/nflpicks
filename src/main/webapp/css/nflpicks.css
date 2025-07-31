@@ -339,15 +339,62 @@ html, body {
 	cursor: pointer;
 }
 
+.selection-header-team1-button {
+	width: 50%;
+	padding: 10px;
+	text-align: center;
+	border-right: thin solid black;
+	cursor: pointer;
+	border-bottom: thin solid black;
+}
+
+.selection-header-vs-or-at-button {
+	padding: 10px;
+	text-align: center;
+	border-right: thin solid black;
+	border-bottom: thin solid black;
+	cursor: pointer;
+}
+
+.selection-header-team2-button {
+	width: 50%;
+	padding: 10px;
+	text-align: center;
+	cursor: pointer;
+	border-bottom: thin solid black;
+}
+
 .selection-header-team1-at-team2-button {
 	padding-bottom: 10px;
 	padding-top: 10px;
 	cursor: pointer;
-	border-top: thin solid black;
+	border-bottom: thin solid black;
 }
 
 .selected-team-selector {
-	background-color: aquamarine;
+	/*background-color: aquamarine;*/
+}
+
+.vs-or-at-selector-left {
+	padding: 10px;
+	text-align: center;
+	border-bottom: thin solid black;
+	border-right: thin solid black;
+}
+
+.vs-or-at-selector {
+	padding: 10px;
+	text-align: center;
+	border-bottom: thin solid black;
+	border-right: thin solid black;
+	cursor: pointer;
+}
+
+.vs-or-at-selector-right {
+	width: 50%;
+	padding: 10px;
+	text-align: center;
+	border-bottom: thin solid black;
 }
 
 .selection-footer-container {
@@ -374,7 +421,13 @@ html, body {
 	cursor: pointer;
 }
 
-.selection-header-multiselect-button:hover, .selection-item-container:hover, .selection-item-container-last:hover, .selection-header-clear-button:hover, .selection-header-select-all-button:hover, .selection-header-team1-at-team2-button:hover, .selector-footer-ok-button:hover, .selector-footer-cancel-button:hover {
+.selection-header-multiselect-button:hover, .selection-item-container:hover, 
+.selection-item-container-last:hover, .selection-header-clear-button:hover, 
+.selection-header-select-all-button:hover, .selection-header-team1-at-team2-button:hover, 
+.selector-footer-ok-button:hover, .selector-footer-cancel-button:hover, 
+.selection-header-team1-button:hover, .selection-header-vs-or-at-button:hover,
+.selection-header-team2-button:hover,
+.vs-or-at-selector:hover {
 	background-color: aquamarine;
 }
 

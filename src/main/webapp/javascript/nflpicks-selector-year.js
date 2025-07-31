@@ -11,37 +11,37 @@ function onClickYearSelector(event){
 	}
 }
 
-function onClickMultiselectYearContainer(event){
+function onClickMultiSelectYearContainer(event){
 	event.stopPropagation();
 	
-	var multiselectYear = getMultiselectYear();
+	var multiSelectYear = getMultiSelectYear();
 	
-	if (multiselectYear){
-		setMultiselectYearValue(false);
+	if (multiSelectYear){
+		setMultiSelectYearValue(false);
 	}
 	else {
-		setMultiselectYearValue(true);
+		setMultiSelectYearValue(true);
 	}
 	
-	onClickMultiselectYear(event);
+	onClickMultiSelectYear(event);
 }
 
-function onClickMultiselectYear(event){
+function onClickMultiSelectYear(event){
 	event.stopPropagation();
 	
-	var multiselectYearChecked = $('#multiselectYear').prop('checked');
+	var multiSelectYearChecked = $('#multiSelectYear').prop('checked');
 	
-	setMultiselectYear(multiselectYearChecked);
+	setMultiSelectYear(multiSelectYearChecked);
 	
-	if (multiselectYearChecked){
-		showMultiselectYearContainer();
+	if (multiSelectYearChecked){
+		showMultiSelectYearContainer();
 		showYearCheckboxes();
 		hideAllYearSelectorContainer();
 		hideYearRadioButtons();
 		showYearSelectorFooterContainer();
 	}
 	else {
-		hideMultiselectYearContainer();
+		hideMultiSelectYearContainer();
 		showAllYearSelectorContainer();
 		showYearRadioButtons();
 		hideYearCheckboxes();
@@ -49,12 +49,12 @@ function onClickMultiselectYear(event){
 	}
 }
 
-function setMultiselectYearValue(value){
+function setMultiSelectYearValue(value){
 	if (value){
-		$('#multiselectYear').prop('checked', true);
+		$('#multiSelectYear').prop('checked', true);
 	}
 	else {
-		$('#multiselectYear').prop('checked', false);
+		$('#multiSelectYear').prop('checked', false);
 	}
 }
 
@@ -66,12 +66,12 @@ function hideAllYearSelectorContainer(){
 	$('#year-selector-container-all').hide();
 }
 
-function showMultiselectYearContainer(){
-	$('#multiselectYearContainer').show();
+function showMultiSelectYearContainer(){
+	$('#multiSelectYearContainer').show();
 }
 
-function hideMultiselectYearContainer(){
-	$('#multiselectYearContainer').hide();
+function hideMultiSelectYearContainer(){
+	$('#multiSelectYearContainer').hide();
 }
 
 function showYearSelectorFooterContainer(){
@@ -143,19 +143,19 @@ function hideYearRadioButton(yearValue){
 }
 
 
-function setMultiselectYear(value){
-	NFL_PICKS_GLOBAL.multiselectYear = value;
+function setMultiSelectYear(value){
+	NFL_PICKS_GLOBAL.multiSelectYear = value;
 }
 
-function getMultiselectYear(){
-	return NFL_PICKS_GLOBAL.multiselectYear;
+function getMultiSelectYear(){
+	return NFL_PICKS_GLOBAL.multiSelectYear;
 }
 
 function onClickYearSelectionOk(event){
 	event.stopPropagation();
 	//If it's multi select here, unselect the all option.
-	var multiselectYear = getMultiselectYear();
-	if (multiselectYear){
+	var multiSelectYear = getMultiSelectYear();
+	if (multiSelectYear){
 		removeYearFromCurrentSelection('all');
 	}
 	hideYearSelector();
@@ -229,9 +229,9 @@ function onClickClearYears(event){
 function onClickYear(event, value){
 	event.stopPropagation();
 	
-	var multiselectYear = getMultiselectYear();
+	var multiSelectYear = getMultiSelectYear();
 	
-	if (multiselectYear){
+	if (multiSelectYear){
 		var indexOfValue = currentYearSelections.indexOf(value);
 		if (indexOfValue >= 0){
 			unselectYear(value);
@@ -500,12 +500,12 @@ function getYearsForYearValue(yearValue){
 	return yearsForYearValue;
 }
 
-function setMultiselectYear(value){
-	NFL_PICKS_GLOBAL.multiselectYear = value;
+function setMultiSelectYear(value){
+	NFL_PICKS_GLOBAL.multiSelectYear = value;
 }
 
-function getMultiselectYear(){
-	return NFL_PICKS_GLOBAL.multiselectYear;
+function getMultiSelectYear(){
+	return NFL_PICKS_GLOBAL.multiSelectYear;
 }
 
 

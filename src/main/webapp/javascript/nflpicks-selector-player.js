@@ -11,37 +11,37 @@ function onClickPlayerSelector(event){
 	}
 }
 
-function onClickMultiselectPlayerContainer(event){
+function onClickMultiSelectPlayerContainer(event){
 	event.stopPropagation();
 	
-	var multiselectPlayer = getMultiselectPlayer();
+	var multiSelectPlayer = getMultiSelectPlayer();
 	
-	if (multiselectPlayer){
-		setMultiselectPlayerValue(false);
+	if (multiSelectPlayer){
+		setMultiSelectPlayerValue(false);
 	}
 	else {
-		setMultiselectPlayerValue(true);
+		setMultiSelectPlayerValue(true);
 	}
 	
-	onClickMultiselectPlayer(event);
+	onClickMultiSelectPlayer(event);
 }
 
-function onClickMultiselectPlayer(event){
+function onClickMultiSelectPlayer(event){
 	event.stopPropagation();
 	
-	var multiselectPlayerChecked = $('#multiselectPlayer').prop('checked');
+	var multiSelectPlayerChecked = $('#multiSelectPlayer').prop('checked');
 	
-	setMultiselectPlayer(multiselectPlayerChecked);
+	setMultiSelectPlayer(multiSelectPlayerChecked);
 	
-	if (multiselectPlayerChecked){
-		showMultiselectPlayerContainer();
+	if (multiSelectPlayerChecked){
+		showMultiSelectPlayerContainer();
 		showPlayerCheckboxes();
 		hideAllPlayerSelectorContainer();
 		hidePlayerRadioButtons();
 		showPlayerSelectorFooterContainer();
 	}
 	else {
-		hideMultiselectPlayerContainer();
+		hideMultiSelectPlayerContainer();
 		showAllPlayerSelectorContainer();
 		showPlayerRadioButtons();
 		hidePlayerCheckboxes();
@@ -49,12 +49,12 @@ function onClickMultiselectPlayer(event){
 	}
 }
 
-function setMultiselectPlayerValue(value){
+function setMultiSelectPlayerValue(value){
 	if (value){
-		$('#multiselectPlayer').prop('checked', true);
+		$('#multiSelectPlayer').prop('checked', true);
 	}
 	else {
-		$('#multiselectPlayer').prop('checked', false);
+		$('#multiSelectPlayer').prop('checked', false);
 	}
 }
 
@@ -66,12 +66,12 @@ function hideAllPlayerSelectorContainer(){
 	$('#player-selector-container-all').hide();
 }
 
-function showMultiselectPlayerContainer(){
-	$('#multiselectPlayerContainer').show();
+function showMultiSelectPlayerContainer(){
+	$('#multiSelectPlayerContainer').show();
 }
 
-function hideMultiselectPlayerContainer(){
-	$('#multiselectPlayerContainer').hide();
+function hideMultiSelectPlayerContainer(){
+	$('#multiSelectPlayerContainer').hide();
 }
 
 function showPlayerSelectorFooterContainer(){
@@ -143,19 +143,19 @@ function hidePlayerRadioButton(playerValue){
 }
 
 
-function setMultiselectPlayer(value){
-	NFL_PICKS_GLOBAL.multiselectPlayer = value;
+function setMultiSelectPlayer(value){
+	NFL_PICKS_GLOBAL.multiSelectPlayer = value;
 }
 
-function getMultiselectPlayer(){
-	return NFL_PICKS_GLOBAL.multiselectPlayer;
+function getMultiSelectPlayer(){
+	return NFL_PICKS_GLOBAL.multiSelectPlayer;
 }
 
 function onClickPlayerSelectionOk(event){
 	event.stopPropagation();
 	//If it's multi select here, unselect the all option.
-	var multiselectPlayer = getMultiselectPlayer();
-	if (multiselectPlayer){
+	var multiSelectPlayer = getMultiSelectPlayer();
+	if (multiSelectPlayer){
 		removePlayerFromCurrentSelection('all');
 	}
 	hidePlayerSelector();
@@ -229,9 +229,9 @@ function onClickClearPlayers(event){
 function onClickPlayer(event, value){
 	event.stopPropagation();
 	
-	var multiselectPlayer = getMultiselectPlayer();
+	var multiSelectPlayer = getMultiSelectPlayer();
 	
-	if (multiselectPlayer){
+	if (multiSelectPlayer){
 		var indexOfValue = currentPlayerSelections.indexOf(value);
 		if (indexOfValue >= 0){
 			unselectPlayer(value);

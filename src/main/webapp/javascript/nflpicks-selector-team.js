@@ -1,3 +1,8 @@
+function setTeamSelector(teamSelector){
+	setCurrentActiveTeamSelector(teamSelector);
+	NFL_PICKS_GLOBAL.selections.teamSelector = teamSelector;
+}
+
 function onClickTeam1Selector(event){
 	event.stopPropagation();
 	
@@ -15,12 +20,27 @@ function selectTeam1Container(){
 	hideTeam2Container();
 	showTeam1Container();
 	
+	showMultiSelectTeam1RowContainer();
+	hideMultiSelectTeam2RowContainer();
+	hideMultiSelectTeam2Container();
+	
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var multiSelectTeam1 = getCurrentMultiSelectTeam1();
+	if (multiSelectTeam1){
+		showMultiSelectTeam1Container();
+	}
+	else {
+		hideMultiSelectTeam1Container();
+	}
+	
 	//selected-team-selector
-	$('#team2SelectorContainer').removeClass('selected-team-selector');
-	$('#team1SelectorContainer').addClass('selected-team-selector');
+	//$('#team2SelectorContainer').removeClass('selected-team-selector');
+	//$('#team1SelectorContainer').addClass('selected-team-selector');
 	
 	$('#team2SelectorRadioButton').prop('checked', false);
 	$('#team1SelectorRadioButton').prop('checked', true);
+	
+	setCurrentActiveTeamSelector('team1');
 }
 
 function showTeam1Container(){
@@ -35,11 +55,25 @@ function selectTeam2Container(){
 	hideTeam1Container();
 	showTeam2Container();
 	
-	$('#team1SelectorContainer').removeClass('selected-team-selector');
-	$('#team2SelectorContainer').addClass('selected-team-selector');
+	hideMultiSelectTeam1RowContainer();
+	hideMultiSelectTeam1Container();
+	showMultiSelectTeam2RowContainer();
+	
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	if (multiSelectTeam2){
+		showMultiSelectTeam2Container();
+	}
+	else {
+		hideMultiSelectTeam2Container();
+	}
+	
+	//$('#team1SelectorContainer').removeClass('selected-team-selector');
+	//$('#team2SelectorContainer').addClass('selected-team-selector');
 	
 	$('#team1SelectorRadioButton').prop('checked', false);
 	$('#team2SelectorRadioButton').prop('checked', true);
+	
+	setCurrentActiveTeamSelector('team2');
 }
 
 function showTeam2Container(){
@@ -68,9 +102,21 @@ function onClickTeam1AtTeam2SelectorContainer(event){
 function onClickTeam1AtTeam2Selector(event){
 	event.stopPropagation();
 	
+	//setCurrentTeam1AtTeam2Selection
+	var currentTeam1AtTeam2Selection = getCurrentTeam1AtTeam2Selection();
+	
+	var newTeam1AtTeam2Selection = null;
+	if (currentTeam1AtTeam2Selection){
+		newTeam1AtTeam2Selection = false;
+	}
+	else {
+		newTeam1AtTeam2Selection = true;
+	}
+	setCurrentTeam1AtTeam2Selection(newTeam1AtTeam2Selection);
+	
 	var team1AtTeam2Checked = $('#team1AtTeam2').prop('checked');
 	
-	setTeam1AtTeam2(team1AtTeam2Checked);
+	//setTeam1AtTeam2(team1AtTeam2Checked);
 	
 	updateTeam1Team2Labels();
 }
@@ -98,13 +144,6 @@ function setTeam1AtTeam2Value(value){
 	}
 }
 
-function setTeam1AtTeam2(value){
-	NFL_PICKS_GLOBAL.team1AtTeam2 = value;
-}
-
-function getTeam1AtTeam2(){
-	return NFL_PICKS_GLOBAL.team1AtTeam2;
-}
 
 function onClickTeamVsOrAtContainerSelector(event){
 	event.stopPropagation();
@@ -137,19 +176,23 @@ function onClickTeamVsOrAtSelector(event){
 
 function toggleTeamVsOrAt(){
 	
-	var team1AtTeam2 = getTeam1AtTeam2();
+	//var team1AtTeam2 = getTeam1AtTeam2();
+	var team1AtTeam2 = getCurrentTeam1AtTeam2Selection();
 	
 	if (team1AtTeam2){
-		setTeam1AtTeam2(false);
+		setCurrentTeam1AtTeam2Selection(false);
+		//setTeam1AtTeam2(false);
 	}
 	else {
-		setTeam1AtTeam2(true);
+		setCurrentTeam1AtTeam2Selection(true);
+		//setTeam1AtTeam2(true);
 	}
 }
 
 function updateTeamVsOrAtLinkLabel(){
 	
-	var team1AtTeam2 = getTeam1AtTeam2();
+	//var team1AtTeam2 = getTeam1AtTeam2();
+	var team1AtTeam2 = getCurrentTeam1AtTeam2Selection();
 	
 	if (team1AtTeam2){
 		setTeamVsOrAtLinkCurrentLabel('@');
@@ -172,9 +215,12 @@ function setTeamVsOrAtLinkNotCurrentLabel(label){
 function onClickTeam1(event, value){
 	event.stopPropagation();
 	
-	var multiselectTeam = getMultiselectTeam();
+	setCurrentActiveTeamSelector('team1');
 	
-	if (multiselectTeam){
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var multiSelectTeam1 = getCurrentMultiSelectTeam1();
+	
+	if (multiSelectTeam1){
 		var currentTeam1Selections = getCurrentTeam1Selections();
 		var indexOfValue = currentTeam1Selections.indexOf(value);
 		if (indexOfValue >= 0){
@@ -190,7 +236,8 @@ function onClickTeam1(event, value){
 		clearCurrentTeam1Selections();
 		selectTeam1(value);
 		addTeam1ToCurrentSelection(value);
-		onClickTeam1SelectionOk(event);
+		//onClickTeam1SelectionOk(event);
+		onClickTeamSelectionOk(event);
 	}
 }
 
@@ -198,9 +245,11 @@ function onClickTeam1(event, value){
 function onClickTeam2(event, value){
 	event.stopPropagation();
 	
-	var multiselectTeam = getMultiselectTeam();
+	setCurrentActiveTeamSelector('team2');
 	
-	if (multiselectTeam){
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	
+	if (multiSelectTeam2){
 		var currentTeam2Selections = getCurrentTeam2Selections();
 		var indexOfValue = currentTeam2Selections.indexOf(value);
 		if (indexOfValue >= 0){
@@ -216,35 +265,193 @@ function onClickTeam2(event, value){
 		clearCurrentTeam2Selections();
 		selectTeam2(value);
 		addTeam2ToCurrentSelection(value);
-		onClickTeam2SelectionOk(event);
+		//onClickTeam2SelectionOk(event);
+		onClickTeamSelectionOk(event);
+	}
+}
+
+//The team selector that they picked (team1 or team2).
+//Here so we can remember which one they were on when we open the menu because
+//that makes it a little easier and better.
+var currentActiveTeamSelector = null;
+
+function setCurrentActiveTeamSelector(activeTeamSelector){
+	currentActiveTeamSelector = activeTeamSelector;
+}
+
+function getCurrentActiveTeamSelector(){
+	return currentActiveTeamSelector;
+}
+
+var currentTeam1AtTeam2Selection = null;
+
+function getCurrentTeam1AtTeam2Selection(){
+	return currentTeam1AtTeam2Selection;
+}
+
+function setCurrentTeam1AtTeam2Selection(updatedSelection){
+	currentTeam1AtTeam2Selection = updatedSelection;
+}
+
+function getTeam1AtTeam2(){
+	return NFL_PICKS_GLOBAL.team1AtTeam2;
+}
+
+function setTeam1AtTeam2(team1AtTeam2){
+	NFL_PICKS_GLOBAL.team1AtTeam2 = team1AtTeam2;
+}
+
+
+var currentMultiSelectTeam1Selections = [];
+
+var currentSingleSelectTeam1Selections = [];
+
+//split this into multi and single team selections
+var currentTeam1Selections = [];
+
+var currentMultiSelectTeam1 = false;
+
+function getCurrentTeam1Selections(){
+	
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var multiSelectTeam1 = getCurrentMultiSelectTeam1();
+	
+	var selections = currentSingleSelectTeam1Selections;
+	
+	if (multiSelectTeam1){
+		selections = getCurrentMultiSelectTeam1Selections();
+	}
+	else {
+		selections = getCurrentSingleSelectTeam1Selections();
+	}
+	
+	return selections;
+}
+
+function setCurrentTeam1Selections(updatedSelections){
+	
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var multiSelectTeam1 = getCurrentMultiSelectTeam1();
+	
+	if (multiSelectTeam1){
+		setCurrentMultiSelectTeam1Selections(updatedSelections);
+	}
+	else {
+		setCurrentSingleSelectTeam1Selections(updatedSelections);
+	}
+	
+}
+
+//not sure if this should be both or not ...
+function clearCurrentTeam1Selections(){
+	//currentTeam1Selections = [];
+	
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var multiSelectTeam1 = getCurrentMultiSelectTeam1();
+	
+	if (multiSelectTeam1){
+		clearCurrentMultiSelectTeam1Selections();
+	}
+	else {
+		clearCurrentSingleSelectTeam1Selections();
 	}
 }
 
 
-var currentTeam1Selections = [];
 
-function getCurrentTeam1Selections(){
-	return currentTeam1Selections;
+function getCurrentMultiSelectTeam1Selections(){
+	return currentMultiSelectTeam1Selections;
 }
 
-function setCurrentTeam1Selections(updatedSelections){
-	currentTeam1Selections = updatedSelections;
+function setCurrentMultiSelectTeam1Selections(updatedSelections){
+	currentMultiSelectTeam1Selections = updatedSelections;
 }
 
-function clearCurrentTeam1Selections(){
-	currentTeam1Selections = [];
+function clearCurrentMultiSelectTeam1Selections(){
+	currentMultiSelectTeam1Selections = [];
+}
+
+function getCurrentSingleSelectTeam1Selections(){
+	return currentSingleSelectTeam1Selections;
+}
+
+function setCurrentSingleSelectTeam1Selections(updatedSelections){
+	currentSingleSelectTeam1Selections = updatedSelections;
+}
+
+function clearCurrentSingleSelectTeam1Selections(){
+	currentSingleSelectTeam1Selections = [];
+}
+
+function getCurrentMultiSelectTeam1(){
+	return currentMultiSelectTeam1;
+}
+
+function setCurrentMultiSelectTeam1(updatedMultiSelect){
+	currentMultiSelectTeam1 = updatedMultiSelect;
+}
+
+function isTeamInTeam1CurrentSelections(team){
+	
+	var normalizedValue = normalizeTeamValue(team);
+	
+	var selections = getCurrentTeam1Selections();
+	
+	for (var index = 0; index < selections.length; index++){
+		var selection = selections[index];
+		
+		if (normalizedValue == selection){
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+function isSpecificTeam1InCurrentSelections(){
+	
+	var currentTeam1Selections = getCurrentTeam1Selections();
+	
+	if (isEmpty(currentTeam1Selections)){
+		return false;
+	}
+	
+	var allItem = normalizeTeamValue('all');
+	var firstItem = currentTeam1Selections[0];
+	
+	if (currentTeam1Selections.length == 1 && allItem == firstItem){
+		return false;
+	}
+	
+	return true;
 }
 
 function selectTeam1(value){
 	var normalizedValue = normalizeTeamValue(value);
-	$('#team-1-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#team-1-radio-input-' + normalizedValue).prop('checked', true);
+	
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var currentMultiSelectTeam1 = getCurrentMultiSelectTeam1();
+	
+	if (currentMultiSelectTeam1){
+		$('#team-1-checkbox-input-' + normalizedValue).prop('checked', true);	
+	}
+	else {
+		$('#team-1-radio-input-' + normalizedValue).prop('checked', true);
+	}
 }
 
 function unselectTeam1(team){
 	var normalizedValue = normalizeTeamValue(team);
-	$('#team-1-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#team-1-radio-input-' + normalizedValue).prop('checked', false);
+	
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var currentMultiSelectTeam1 = getCurrentMultiSelectTeam1();
+	
+	if (currentMultiSelectTeam1){
+		$('#team-1-checkbox-input-' + normalizedValue).prop('checked', false);	
+	}
+	else {
+		$('#team-1-radio-input-' + normalizedValue).prop('checked', false);
+	}
 }
 
 function removeTeam1FromCurrentSelection(value){
@@ -257,62 +464,131 @@ function removeTeam1FromCurrentSelection(value){
 }
 
 function addTeam1ToCurrentSelection(value){
-	currentTeam1Selections.push(value);
+	
+	//var multiSelectTeam1 = getMultiSelectTeam1();
+	var multiSelectTeam1 = getCurrentMultiSelectTeam1();
+	
+	if (multiSelectTeam1){
+		var selections = getCurrentMultiSelectTeam1Selections();
+		selections.push(value);
+		setCurrentMultiSelectTeam1Selections(selections);
+	}
+	else {
+		var selections = getCurrentSingleSelectTeam1Selections();
+		selections.push(value);
+		setCurrentSingleSelectTeam1Selections(selections);
+	}
 }
 
-function onClickTeam1SelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectTeam = getMultiselectTeam();
-	if (multiselectTeam){
-		removeTeam1FromCurrentSelection('all');
-		removeTeam2FromCurrentSelection('all');
-	}
-	
-	hideTeamSelector();
-	var currentTeams1 = getCurrentTeam1Selections();
-	setSelectedTeams1(currentTeams1);
-	
-	var currentTeams2 = getCurrentTeam2Selections();
-	setSelectedTeams2(currentTeams2);
-	
-	//this one is next
-	//	ARZ, BAL @ ATL, CLE, ...
-	// make elipses for each team
-	// and that'll make it for the full thing
-	// if only one team is selected, it should be
-	//	ATL vs All
-	//	All @ ATL
-	updateTeamsLink();
-	//and then we add them for the request
-	//then, update the java side
-	updateView();
-}
+var currentMultiSelectTeam2Selections = [];
+
+var currentSingleSelectTeam2Selections = [];
 
 var currentTeam2Selections = [];
 
+var currentMultiSelectTeam2 = false;
+
 function getCurrentTeam2Selections(){
-	return currentTeam2Selections;
+	
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	
+	var selections = currentSingleSelectTeam2Selections;
+	
+	if (multiSelectTeam2){
+		selections = getCurrentMultiSelectTeam2Selections();
+	}
+	else {
+		selections = getCurrentSingleTeam2Selections();
+	}
+	
+	return selections;
 }
 
 function setCurrentTeam2Selections(updatedSelections){
-	currentTeam2Selections = updatedSelections;
+	
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	
+	if (multiSelectTeam2){
+		setCurrentMultiTeam2Selections(updatedSelections);
+	}
+	else {
+		setCurrentSingleTeam2Selections(updatedSelections);
+	}
+	
 }
 
+//not sure if this should be both or not ...
 function clearCurrentTeam2Selections(){
-	currentTeam2Selections = [];
+	//currentTeam1Selections = [];
+	
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	
+	if (multiSelectTeam2){
+		clearCurrentMultiTeam2Selections();
+	}
+	else {
+		clearCurrentSingleTeam2Selections();
+	}
 }
+
+function getCurrentMultiSelectTeam2Selections(){
+	return currentMultiSelectTeam2Selections;
+}
+
+function setCurrentMultiTeam2Selections(updatedSelections){
+	currentMultiSelectTeam2Selections = updatedSelections;
+}
+
+function clearCurrentMultiTeam2Selections(){
+	currentMultiSelectTeam2Selections = [];
+}
+
+function getCurrentSingleTeam2Selections(){
+	return currentSingleSelectTeam2Selections;
+}
+
+function setCurrentSingleTeam2Selections(updatedSelections){
+	currentSingleSelectTeam2Selections = updatedSelections;
+}
+
+function clearCurrentSingleTeam2Selections(){
+	currentSingleSelectTeam2Selections = [];
+}
+
+function getCurrentMultiSelectTeam2(){
+	return currentMultiSelectTeam2;
+}
+
+function setCurrentMultiSelectTeam2(updatedMultiSelect){
+	currentMultiSelectTeam2 = updatedMultiSelect;
+}
+
+
 
 function selectTeam2(value){
 	var normalizedValue = normalizeTeamValue(value);
-	$('#team-2-checkbox-input-' + normalizedValue).prop('checked', true);
-	$('#team-2-radio-input-' + normalizedValue).prop('checked', true);
+	
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	
+	if (multiSelectTeam2){
+		$('#team-2-checkbox-input-' + normalizedValue).prop('checked', true);	
+	}
+	else {
+		$('#team-2-radio-input-' + normalizedValue).prop('checked', true);
+	}
 }
 
 function unselectTeam2(team){
 	var normalizedValue = normalizeTeamValue(team);
-	$('#team-2-checkbox-input-' + normalizedValue).prop('checked', false);
-	$('#team-2-radio-input-' + normalizedValue).prop('checked', false);
+	
+	var currentMultiSelectTeam2 = getCurrentMultiSelectTeam2();
+	
+	if (currentMultiSelectTeam2){
+		$('#team-2-checkbox-input-' + normalizedValue).prop('checked', false);	
+	}
+	else {
+		$('#team-2-radio-input-' + normalizedValue).prop('checked', false);
+	}
 }
 
 function removeTeam2FromCurrentSelection(value){
@@ -325,23 +601,56 @@ function removeTeam2FromCurrentSelection(value){
 }
 
 function addTeam2ToCurrentSelection(value){
-	currentTeam2Selections.push(value);
-}
-
-function onClickTeam2SelectionOk(event){
-	event.stopPropagation();
-	//If it's multi select here, unselect the all option.
-	var multiselectTeam = getMultiselectTeam();
-	if (multiselectTeam){
-		removeTeam2FromCurrentSelection('all');
+	
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	
+	if (multiSelectTeam2){
+		var selections = getCurrentMultiSelectTeam2Selections();
+		selections.push(value);
+		setCurrentMultiTeam2Selections(selections);
 	}
-	hideTeamSelector();
-	var currentTeams = getCurrentTeam2Selections();
-	setSelectedTeams2(currentTeams);
-	updateTeamsLink();
-	updateView();
+	else {
+		var selections = getCurrentSingleTeam2Selections();
+		selections.push(value);
+		setCurrentSingleTeam2Selections(selections);
+	}
 }
 
+
+function isTeamInTeam2CurrentSelections(team){
+	
+	var normalizedValue = normalizeTeamValue(team);
+	
+	var selections = getCurrentTeam2Selections();
+	
+	for (var index = 0; index < selections.length; index++){
+		var selection = selections[index];
+		
+		if (normalizedValue == selection){
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+function isSpecificTeam2InCurrentSelections(){
+	
+	var currentTeam2Selections = getCurrentTeam2Selections();
+	
+	if (isEmpty(currentTeam2Selections)){
+		return false;
+	}
+	
+	var allItem = normalizeTeamValue('all');
+	var firstItem = currentTeam2Selections[0];
+	
+	if (currentTeam2Selections.length == 1 && allItem == firstItem){
+		return false;
+	}
+	
+	return true;
+}
 
 /**
  * 
@@ -404,6 +713,18 @@ function setSelectedTeams1(teams){
 	NFL_PICKS_GLOBAL.selections.teams1 = teamsArray;
 } 
 
+function resetTeamSelector(){
+	
+	var teamSelector = NFL_PICKS_GLOBAL.selections.teamSelector;
+	
+	if ('team1' == teamSelector){
+		selectTeam1Container();
+	}
+	else if ('team2' == teamSelector){
+		selectTeam2Container();
+	}
+}
+
 
 //this needs to reset team 1 and 2 selections
 function resetTeam1Selections(){
@@ -412,11 +733,43 @@ function resetTeam1Selections(){
 	setCurrentTeam1Selections(selectedTeamValues);
 	var currentTeams = getCurrentTeam1Selections();
 	selectTeams1ByValue(currentTeams);
+	
+	var multiSelectTeam1 = getMultiSelectTeam1();
+	setCurrentMultiSelectTeam1(multiSelectTeam1);
+	setMultiSelectTeam1Value(multiSelectTeam1);
+	
+	updateTeam1MultiSelectDisplay(multiSelectTeam1);
+}
+
+function updateTeam1MultiSelectDisplay(multiSelectTeam1){
+	
+	if (multiSelectTeam1){
+		showMultiSelectTeam1Container();
+		showTeam1Checkboxes();
+		hideAllTeam1SelectorContainer();
+		hideTeam1RadioButtons();
+	}
+	else {
+		hideMultiSelectTeam1Container();
+		hideTeam1Checkboxes();
+		showAllTeam1SelectorContainer();
+		showTeam1RadioButtons();
+	}
 }
 
 function unselectAllTeams1ByValue(){
 	var teamValues = getAllTeamValues();
 	unselectTeams1ByValue(teamValues);
+}
+
+function unselectTeams1AllItem(){
+	
+	var allItem = getAllTeamsItem();
+	
+	var teams = [];
+	teams.push('all');
+	
+	unselectTeams1ByValue(teams);
 }
 
 function unselectTeams1ByValue(teams){
@@ -438,6 +791,14 @@ function getSelectedTeam1Values(){
 	}
 	
 	return teamValues;
+}
+
+function selectTeams1AllItem(){
+	
+	var teams = [];
+	teams.push('all');
+	
+	selectTeams1ByValue(teams);
 }
 
 function selectTeams1ByValue(values){
@@ -527,6 +888,28 @@ function resetTeam2Selections(){
 	setCurrentTeam2Selections(selectedTeamValues);
 	var currentTeams = getCurrentTeam2Selections();
 	selectTeams2ByValue(currentTeams);
+	
+	var multiSelectTeam2 = getMultiSelectTeam2();
+	setCurrentMultiSelectTeam2(multiSelectTeam2);
+	setMultiSelectTeam2Value(multiSelectTeam2);
+	updateTeam2MultiSelectDisplay(multiSelectTeam2);
+	
+}
+
+function updateTeam2MultiSelectDisplay(multiSelectTeam2){
+	
+	if (multiSelectTeam2){
+		showMultiSelectTeam2Container();
+		showTeam2Checkboxes();
+		hideAllTeam2SelectorContainer();
+		hideTeam2RadioButtons();
+	}
+	else {
+		hideMultiSelectTeam2Container();
+		hideTeam2Checkboxes();
+		showAllTeam2SelectorContainer();
+		showTeam2RadioButtons();
+	}
 }
 
 function unselectAllTeams2ByValue(){
@@ -603,7 +986,7 @@ function getTeam1AtTeam2ValueForRequest(){
 	
 	return team1AtTeam2Value;
 }
-
+/*
 function hideAllTeam1SelectorContainer(){
 	$('#team-1-selector-container-all').hide();
 }
@@ -619,6 +1002,7 @@ function hideAllTeam2SelectorContainer(){
 function showAllTeam2SelectorContainer(){
 	$('#team-2-selector-container-all').show();
 }
+*/
 
 function onClickTeamSelector(event){
 	event.stopPropagation();
@@ -628,37 +1012,38 @@ function onClickTeamSelector(event){
 	hideSelectorContainers();
 
 	if (!wasSelectorVisible){
+		resetTeam1AtTeam2Selection();
 		resetTeam1Selections();
 		resetTeam2Selections();
+		resetTeamSelector();
 		showTeamSelector();
-		selectTeam1Container();
 	}
 }
 
-function onClickMultiselectTeamContainer(event){
+function onClickMultiSelectTeamContainer(event){
 	event.stopPropagation();
 	
-	var multiselectTeam = getMultiselectTeam();
+	var multiSelectTeam = getMultiSelectTeam();
 	
-	if (multiselectTeam){
-		setMultiselectTeamValue(false);
+	if (multiSelectTeam){
+		setMultiSelectTeamValue(false);
 	}
 	else {
-		setMultiselectTeamValue(true);
+		setMultiSelectTeamValue(true);
 	}
 	
-	onClickMultiselectTeam(event);
+	onClickMultiSelectTeam(event);
 }
 
-function onClickMultiselectTeam(event){
+function onClickMultiSelectTeam(event){
 	event.stopPropagation();
 	
-	var multiselectTeamChecked = $('#multiselectTeam').prop('checked');
+	var multiSelectTeamChecked = $('#multiSelectTeam').prop('checked');
 	
-	setMultiselectTeam(multiselectTeamChecked);
+	setMultiSelectTeam(multiSelectTeamChecked);
 	
-	if (multiselectTeamChecked){
-		showMultiselectTeamContainer();
+	if (multiSelectTeamChecked){
+		showMultiSelectTeamContainer();
 		showTeamCheckboxes();
 		hideAllTeamSelectorContainer();
 		hideAllTeam1SelectorContainer();
@@ -666,7 +1051,7 @@ function onClickMultiselectTeam(event){
 		hideTeamRadioButtons();
 	}
 	else {
-		hideMultiselectTeamContainer();
+		hideMultiSelectTeamContainer();
 		showAllTeamSelectorContainer();
 		showAllTeam1SelectorContainer();
 		showAllTeam2SelectorContainer();
@@ -675,12 +1060,12 @@ function onClickMultiselectTeam(event){
 	}
 }
 
-function setMultiselectTeamValue(value){
+function setMultiSelectTeamValue(value){
 	if (value){
-		$('#multiselectTeam').prop('checked', true);
+		$('#multiSelectTeam').prop('checked', true);
 	}
 	else {
-		$('#multiselectTeam').prop('checked', false);
+		$('#multiSelectTeam').prop('checked', false);
 	}
 }
 
@@ -692,12 +1077,12 @@ function hideAllTeamSelectorContainer(){
 	$('#team-selector-container-all').hide();
 }
 
-function showMultiselectTeamContainer(){
-	$('#multiselectTeamContainer').show();
+function showMultiSelectTeamContainer(){
+	$('#multiSelectTeamContainer').show();
 }
 
-function hideMultiselectTeamContainer(){
-	$('#multiselectTeamContainer').hide();
+function hideMultiSelectTeamContainer(){
+	$('#multiSelectTeamContainer').hide();
 }
 
 function showTeamSelectorFooterContainer(){
@@ -750,6 +1135,7 @@ function showTeamRadioButtons(){
 	}
 }
 
+//this needs to change so it's per team now.
 function showTeamRadioButton(teamValue){
 	var normalizedValue = normalizeTeamValue(teamValue);
 	$('#team-1-radio-input-' + normalizedValue).show();
@@ -773,23 +1159,367 @@ function hideTeamRadioButton(teamValue){
 }
 
 
-function setMultiselectTeam(value){
-	NFL_PICKS_GLOBAL.multiselectTeam = value;
+function setMultiSelectTeam(value){
+	NFL_PICKS_GLOBAL.multiSelectTeam = value;
 }
 
-function getMultiselectTeam(){
-	return NFL_PICKS_GLOBAL.multiselectTeam;
+function getMultiSelectTeam(){
+	return NFL_PICKS_GLOBAL.multiSelectTeam;
 }
+
+
+
+function setMultiSelectTeam1(value){
+	NFL_PICKS_GLOBAL.multiSelectTeam1 = value;
+}
+
+function getMultiSelectTeam1(){
+	return NFL_PICKS_GLOBAL.multiSelectTeam1;
+}
+
+function setMultiSelectTeam2(value){
+	NFL_PICKS_GLOBAL.multiSelectTeam2 = value;
+}
+
+function getMultiSelectTeam2(){
+	return NFL_PICKS_GLOBAL.multiSelectTeam2;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function onClickMultiSelectTeam1Container(event){
+	event.stopPropagation();
+	
+	onClickMultiSelectTeam1(event);
+}
+
+function onClickMultiSelectTeam1(event){
+	event.stopPropagation();
+	
+	var currentMultiSelectTeam1Checked = getCurrentMultiSelectTeam1();
+	
+	var newMultiSelectTeam1 = null;
+	if (currentMultiSelectTeam1Checked){
+		newMultiSelectTeam1 = false;
+	}
+	else {
+		newMultiSelectTeam1 = true;
+	}
+	
+	setCurrentMultiSelectTeam1(newMultiSelectTeam1);
+	setMultiSelectTeam1Value(newMultiSelectTeam1);
+	
+	updateTeam1MultiSelectDisplay(newMultiSelectTeam1);
+}
+
+
+
+
+
+
+function setMultiSelectTeam1Value(value){
+	if (value){
+		$('#multiSelectTeam1').prop('checked', true);
+	}
+	else {
+		$('#multiSelectTeam1').prop('checked', false);
+	}
+}
+
+
+//multiSelectTeam1RowContainer
+
+function showMultiSelectTeam1RowContainer(){
+	$('#multiSelectTeam1RowContainer').show();
+}
+
+function hideMultiSelectTeam1RowContainer(){
+	$('#multiSelectTeam1RowContainer').hide();
+}
+
+function showAllTeam1SelectorContainer(){
+	$('#team-1-selector-container-all').show();
+}
+
+function hideAllTeam1SelectorContainer(){
+	$('#team-1-selector-container-all').hide();
+}
+
+function showMultiSelectTeam1Container(){
+	$('#multiSelectTeam1Container').show();
+}
+
+function hideMultiSelectTeam1Container(){
+	$('#multiSelectTeam1Container').hide();
+}
+
+function showTeam1SelectorFooterContainer(){
+	$('#team1-selector-footer-container').show();
+}
+
+function hideTeam1SelectorFooterContainer(){
+	$('#team1-selector-footer-container').hide();
+}
+
+//team-checkbox-input-
+function showTeam1Checkboxes(){
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		showTeam1Checkbox(teamValue);
+	}
+}
+
+function showTeam1Checkbox(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-1-checkbox-input-' + normalizedValue).show();
+}
+
+function hideTeam1Checkboxes(){
+	
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		hideTeam1Checkbox(teamValue);
+	}
+}
+
+function hideTeam1Checkbox(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-1-checkbox-input-' + normalizedValue).hide();
+}
+
+//team-radio-input-
+function showTeam1RadioButtons(){
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		showTeam1RadioButton(teamValue);
+	}
+}
+
+//this needs to change so it's per team now.
+function showTeam1RadioButton(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-1-radio-input-' + normalizedValue).show();
+}
+
+function hideTeam1RadioButtons(){
+	
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		hideTeam1RadioButton(teamValue);
+	}
+}
+
+function hideTeam1RadioButton(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-1-radio-input-' + normalizedValue).hide();
+}
+
+
+
+
+function onClickMultiSelectTeam2Container(event){
+	event.stopPropagation();
+	
+	onClickMultiSelectTeam2(event);
+}
+
+function onClickMultiSelectTeam2(event){
+	event.stopPropagation();
+	
+	var currentMultiSelectTeam2Checked = getCurrentMultiSelectTeam2();
+	
+	var newMultiSelectTeam2 = null;
+	if (currentMultiSelectTeam2Checked){
+		newMultiSelectTeam2 = false;
+	}
+	else {
+		newMultiSelectTeam2 = true;
+	}
+	
+	setCurrentMultiSelectTeam2(newMultiSelectTeam2);
+	setMultiSelectTeam2Value(newMultiSelectTeam2);
+	
+	updateTeam2MultiSelectDisplay(newMultiSelectTeam2);
+}
+
+function setMultiSelectTeam2Value(value){
+	if (value){
+		$('#multiSelectTeam2').prop('checked', true);
+	}
+	else {
+		$('#multiSelectTeam2').prop('checked', false);
+	}
+}
+
+function showMultiSelectTeam2RowContainer(){
+	$('#multiSelectTeam2RowContainer').show();
+}
+
+function hideMultiSelectTeam2RowContainer(){
+	$('#multiSelectTeam2RowContainer').hide();
+}
+
+
+function showAllTeam2SelectorContainer(){
+	$('#team-2-selector-container-all').show();
+}
+
+function hideAllTeam2SelectorContainer(){
+	$('#team-2-selector-container-all').hide();
+}
+
+function showMultiSelectTeam2Container(){
+	$('#multiSelectTeam2Container').show();
+}
+
+function hideMultiSelectTeam2Container(){
+	$('#multiSelectTeam2Container').hide();
+}
+
+function showTeam2SelectorFooterContainer(){
+	$('#team2-selector-footer-container').show();
+}
+
+function hideTeam2SelectorFooterContainer(){
+	$('#team2-selector-footer-container').hide();
+}
+
+//team-checkbox-input-
+function showTeam2Checkboxes(){
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		showTeam2Checkbox(teamValue);
+	}
+}
+
+function showTeam2Checkbox(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-2-checkbox-input-' + normalizedValue).show();
+}
+
+function hideTeam2Checkboxes(){
+	
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		hideTeam2Checkbox(teamValue);
+	}
+}
+
+function hideTeam2Checkbox(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-2-checkbox-input-' + normalizedValue).hide();
+}
+
+//team-radio-input-
+function showTeam2RadioButtons(){
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		showTeam2RadioButton(teamValue);
+	}
+}
+
+//this needs to change so it's per team now.
+function showTeam2RadioButton(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-2-radio-input-' + normalizedValue).show();
+}
+
+function hideTeam2RadioButtons(){
+	
+	var teamValues = getAllTeamValues();
+	
+	for (var index = 0; index < teamValues.length; index++){
+		var teamValue = teamValues[index];
+		hideTeam2RadioButton(teamValue);
+	}
+}
+
+function hideTeam2RadioButton(teamValue){
+	var normalizedValue = normalizeTeamValue(teamValue);
+	$('#team-2-radio-input-' + normalizedValue).hide();
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function onClickTeamSelectionOk(event){
 	event.stopPropagation();
+	
+	//Make the selection official at this point.
+	var multiSelectTeam1 = getCurrentMultiSelectTeam1();
+	setMultiSelectTeam1(multiSelectTeam1);
 
 	//If it's multi select here, unselect the all option.
-	var multiselectTeam = getMultiselectTeam();
-	if (multiselectTeam){
+	if (multiSelectTeam1){
 		removeTeam1FromCurrentSelection('all');
+	}
+	
+	var multiSelectTeam2 = getCurrentMultiSelectTeam2();
+	setMultiSelectTeam2(multiSelectTeam2);
+	if (multiSelectTeam2){
 		removeTeam2FromCurrentSelection('all');
 	}
+	
+	var team1AtTeam2 = getCurrentTeam1AtTeam2Selection();
+	setTeam1AtTeam2(team1AtTeam2);
 	
 	hideTeamSelector();
 	var currentTeams1 = getCurrentTeam1Selections();
@@ -797,6 +1527,9 @@ function onClickTeamSelectionOk(event){
 	
 	var currentTeams2 = getCurrentTeam2Selections();
 	setSelectedTeams2(currentTeams2);
+	
+	var teamSelector = getCurrentActiveTeamSelector();
+	setTeamSelector(teamSelector);
 	
 	//this one is next
 	//	ARZ, BAL @ ATL, CLE, ...
@@ -817,9 +1550,16 @@ function onClickTeamSelectionCancel(event){
 }
 
 function resetAndHideTeamSelections(){
+	resetTeam1AtTeam2Selection();
 	resetTeam1Selections();
 	resetTeam2Selections();
 	hideTeamSelector();
+}
+
+function resetTeam1AtTeam2Selection(){
+	var team1AtTeam2 = getTeam1AtTeam2();
+	setCurrentTeam1AtTeam2Selection(team1AtTeam2);
+	updateTeamVsOrAtLinkLabel();
 }
 
 function showTeamSelector(){
@@ -900,6 +1640,135 @@ function onClickClearTeams(event){
 		}
 	}
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function onClickSelectAllTeams1(event){
+	
+	//get the current active team (team 1 or 2)
+	//and select them all
+	
+	event.stopPropagation();
+	
+	var teams = getAllTeams();
+	
+	var team1Selected = isTeam1Selected();
+	
+	if (team1Selected){
+		clearCurrentTeam1Selections();
+		
+		for (var index = 0; index < teams.length; index++){
+			var team = teams[index];
+			selectTeam1(team.value);
+			addTeam1ToCurrentSelection(team.value);
+		}
+	}
+}
+
+function onClickClearTeams1(event){
+	
+	event.stopPropagation();
+	
+	var realTeams = getRealTeams();
+	
+	var team1Selected = isTeam1Selected();
+	
+	if (team1Selected){
+		clearCurrentTeam1Selections();
+		
+		for (var index = 0; index < realTeams.length; index++){
+			var team = realTeams[index];
+			unselectTeam1(team.value);
+			removeTeam1FromCurrentSelection(team.value);
+		}
+	}
+}
+
+
+
+
+
+
+function onClickSelectAllTeams2(event){
+	
+	//get the current active team (team 1 or 2)
+	//and select them all
+	
+	event.stopPropagation();
+	
+	var teams = getAllTeams();
+	
+	var team1Selected = isTeam2Selected();
+	
+	if (team1Selected){
+		clearCurrentTeam2Selections();
+		
+		for (var index = 0; index < teams.length; index++){
+			var team = teams[index];
+			selectTeam2(team.value);
+			addTeam2ToCurrentSelection(team.value);
+		}
+	}
+}
+
+function onClickClearTeams2(event){
+	
+	event.stopPropagation();
+	
+	var realTeams = getRealTeams();
+	
+	var team2Selected = isTeam2Selected();
+	
+	if (team2Selected){
+		clearCurrentTeam2Selections();
+		
+		for (var index = 0; index < realTeams.length; index++){
+			var team = realTeams[index];
+			unselectTeam2(team.value);
+			removeTeam2FromCurrentSelection(team.value);
+		}
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 function isSpecificTeamSelected(){
 	
@@ -1294,4 +2163,13 @@ function updateAvailableTeamOptions(){
 //		unselectTeamFull(teamToHide);
 //	}
 	
+}
+
+
+
+function getAllTeamsItem(){
+	
+	var allTeamsTeam = {label: 'All teams', value: 'all'};
+	
+	return allTeamsTeam;
 }

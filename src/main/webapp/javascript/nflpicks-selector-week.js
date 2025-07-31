@@ -11,37 +11,37 @@ function onClickWeekSelector(event){
 	}
 }
 
-function onClickMultiselectWeekContainer(event){
+function onClickMultiSelectWeekContainer(event){
 	event.stopPropagation();
 	
-	var multiselectWeek = getMultiselectWeek();
+	var multiSelectWeek = getMultiSelectWeek();
 	
-	if (multiselectWeek){
-		setMultiselectWeekValue(false);
+	if (multiSelectWeek){
+		setMultiSelectWeekValue(false);
 	}
 	else {
-		setMultiselectWeekValue(true);
+		setMultiSelectWeekValue(true);
 	}
 	
-	onClickMultiselectWeek(event);
+	onClickMultiSelectWeek(event);
 }
 
-function onClickMultiselectWeek(event){
+function onClickMultiSelectWeek(event){
 	event.stopPropagation();
 	
-	var multiselectWeekChecked = $('#multiselectWeek').prop('checked');
+	var multiSelectWeekChecked = $('#multiSelectWeek').prop('checked');
 	
-	setMultiselectWeek(multiselectWeekChecked);
+	setMultiSelectWeek(multiSelectWeekChecked);
 	
-	if (multiselectWeekChecked){
-		showMultiselectWeekContainer();
+	if (multiSelectWeekChecked){
+		showMultiSelectWeekContainer();
 		showWeekCheckboxes();
 		hideAllWeekSelectorContainer();
 		hideWeekRadioButtons();
 		showWeekSelectorFooterContainer();
 	}
 	else {
-		hideMultiselectWeekContainer();
+		hideMultiSelectWeekContainer();
 		showAllWeekSelectorContainer();
 		showWeekRadioButtons();
 		hideWeekCheckboxes();
@@ -49,12 +49,12 @@ function onClickMultiselectWeek(event){
 	}
 }
 
-function setMultiselectWeekValue(value){
+function setMultiSelectWeekValue(value){
 	if (value){
-		$('#multiselectWeek').prop('checked', true);
+		$('#multiSelectWeek').prop('checked', true);
 	}
 	else {
-		$('#multiselectWeek').prop('checked', false);
+		$('#multiSelectWeek').prop('checked', false);
 	}
 }
 
@@ -66,12 +66,12 @@ function hideAllWeekSelectorContainer(){
 	$('#week-selector-container-all').hide();
 }
 
-function showMultiselectWeekContainer(){
-	$('#multiselectWeekContainer').show();
+function showMultiSelectWeekContainer(){
+	$('#multiSelectWeekContainer').show();
 }
 
-function hideMultiselectWeekContainer(){
-	$('#multiselectWeekContainer').hide();
+function hideMultiSelectWeekContainer(){
+	$('#multiSelectWeekContainer').hide();
 }
 
 function showWeekSelectorFooterContainer(){
@@ -143,19 +143,19 @@ function hideWeekRadioButton(weekValue){
 }
 
 
-function setMultiselectWeek(value){
-	NFL_PICKS_GLOBAL.multiselectWeek = value;
+function setMultiSelectWeek(value){
+	NFL_PICKS_GLOBAL.multiSelectWeek = value;
 }
 
-function getMultiselectWeek(){
-	return NFL_PICKS_GLOBAL.multiselectWeek;
+function getMultiSelectWeek(){
+	return NFL_PICKS_GLOBAL.multiSelectWeek;
 }
 
 function onClickWeekSelectionOk(event){
 	event.stopPropagation();
 	//If it's multi select here, unselect the all option.
-	var multiselectWeek = getMultiselectWeek();
-	if (multiselectWeek){
+	var multiSelectWeek = getMultiSelectWeek();
+	if (multiSelectWeek){
 		removeWeekFromCurrentSelection('all');
 	}
 	hideWeekSelector();
@@ -243,9 +243,9 @@ function onClickClearWeeks(event){
 function onClickWeek(event, value){
 	event.stopPropagation();
 	
-	var multiselectWeek = getMultiselectWeek();
+	var multiSelectWeek = getMultiSelectWeek();
 	
-	if (multiselectWeek){
+	if (multiSelectWeek){
 		var indexOfValue = currentWeekSelections.indexOf(value);
 		if (indexOfValue >= 0){
 			unselectWeek(value);
@@ -592,12 +592,12 @@ function updateCurrentWeekSelections(){
 	setCurrentWeekSelections(selectedWeekValues);
 }
 
-function setMultiselectWeek(value){
-	NFL_PICKS_GLOBAL.multiselectWeek = value;
+function setMultiSelectWeek(value){
+	NFL_PICKS_GLOBAL.multiSelectWeek = value;
 }
 
-function getMultiselectWeek(){
-	return NFL_PICKS_GLOBAL.multiselectWeek;
+function getMultiSelectWeek(){
+	return NFL_PICKS_GLOBAL.multiSelectWeek;
 }
 
 
