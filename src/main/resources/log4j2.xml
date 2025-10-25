@@ -8,9 +8,10 @@
 		<Console name="CONSOLE"> 
 			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
 		</Console>
-		<File name="FILE" fileName="${nflpicks.log.location}"> 
+		<RollingFile name="FILE" fileName="${nflpicks.log.location}" filePattern="${nflpicks.log.location}.%d{yyyy-MM-dd}">
 			<PatternLayout pattern="%d{yyyy-MM-dd HH:mm:ss} %-5p %c{1}:%L - %m%n" />
-		</File>
+			<TimeBasedTriggeringPolicy />
+        </RollingFile>
 	</Appenders>
 	<Loggers>
 		<Root level="INFO"> 

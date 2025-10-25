@@ -410,6 +410,40 @@ public class Util {
 		return parsedInt;
 	}
 	
+	public static Long toLong(String value) {
+		
+		if (value == null) {
+			return null;
+		}
+		
+		Long longValue = null;
+		try {
+			longValue = Long.parseLong(value);
+		}
+		catch (Exception e) {
+			longValue = null;
+		}
+		
+		return longValue;
+	}
+	
+	public static Boolean toBoolean(String value) {
+		
+		if (value == null) {
+			return null;
+		}
+		
+		Boolean booleanValue = null;
+		try {
+			booleanValue = Boolean.parseBoolean(value);
+		}
+		catch (Exception e) {
+			booleanValue = null;
+		}
+		
+		return booleanValue;
+	}
+	
 	public static String replaceUrlCharacters(String value){
 		
 		if (value == null){

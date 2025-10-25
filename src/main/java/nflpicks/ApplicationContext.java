@@ -74,6 +74,13 @@ public class ApplicationContext {
 	
 	/**
 	 * 
+	 * The properties for the database connection pool.
+	 * 
+	 */
+	protected PoolProperties poolProperties;
+	
+	/**
+	 * 
 	 * The object that lets us connect to the database.
 	 * 
 	 */
@@ -81,31 +88,129 @@ public class ApplicationContext {
 	
 	/**
 	 * 
-	 * The property that says the name of the jdbc driver we should use.
+	 * The property that says the name of the jdbc driver we should use (required).
 	 * 
 	 */
-	protected static final String JDBC_DRIVER_CLASS_NAME = "nflpicks.jdbc.driverClassName";
+	protected static final String NFL_PICKS_DATABASE_KEY_DRIVER_CLASS_NAME = "nflpicks.database.driverClassName";
 	
 	/**
 	 * 
-	 * The property that has the url we use to connect to the database.
+	 * The property that has the url we use to connect to the database (required).
 	 * 
 	 */
-	protected static final String JDBC_URL_KEY = "nflpicks.jdbc.url";
+	protected static final String NFL_PICKS_DATABASE_KEY_URL = "nflpicks.database.url";
 	
 	/**
 	 * 
-	 * The property name that has the username we use to connect to the database.
+	 * The property name that has the username we use to connect to the database (required).
 	 * 
 	 */
-	protected static final String JDBC_USERNAME_KEY = "nflpicks.jdbc.username";
+	protected static final String NFL_PICKS_DATABASE_KEY_USERNAME = "nflpicks.database.username";
 	
 	/**
 	 * 
-	 * The property name that has the password we use to connect to the database.
+	 * The property name that has the password we use to connect to the database (required).
 	 * 
 	 */
-	protected static final String JDBC_PASSWORD_KEY = "nflpicks.jdbc.password";
+	protected static final String NFL_PICKS_DATABASE_KEY_PASSWORD = "nflpicks.database.password";
+	
+	/**
+	 * 
+	 * Says the max active db connections in the pool (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_MAX_ACTIVE = "nflpicks.database.max.active";
+	
+	/**
+	 * 
+	 * Says how old a connection should be allowed to be (milliseconds, optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_MAX_AGE = "nflpicks.database.max.age";
+	
+	/**
+	 * 
+	 * Says how many connections should be in the pool to start with (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_INITIAL_SIZE = "nflpicks.database.initial.size";
+	
+	/**
+	 * 
+	 * Says the max number of idle connections there should be in the pool (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_MAX_IDLE = "nflpicks.database.max.idle";
+	
+	/**
+	 * 
+	 * Says the minimum number of idle connections there should be in the pool (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_MIN_IDLE = "nflpicks.database.min.idle";
+	
+	/**
+	 * 
+	 * Says whether we should test whether a connection is ok when it's borrowed from the pool (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_TEST_ON_BORROW = "nflpicks.database.test.on.borrow";
+	
+	/**
+	 * 
+	 * The validation query we should use to check the connection (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_VALIDATION_QUERY = "nflpicks.database.validation.query";
+	
+	/**
+	 * 
+	 * Whether we should test a connection before returning it to the pool (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_TEST_ON_RETURN = "nflpicks.database.test.on.return";
+	
+	/**
+	 * 
+	 * Whether we should test connections in the pool while they're idle (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_TEST_WHILE_IDLE = "nflpicks.database.test.while.idle";
+	
+	/**
+	 * 
+	 * Whether we should remove abandoned connections from the pool (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_REMOVE_ABANDONED = "nflpicks.database.remove.abandoned";
+	
+	/**
+	 * 
+	 * How long we should wait to remove an abandoned connection (in milliseconds, optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_REMOVE_ABANDONED_TIMEOUT = "nflpicks.database.remove.abandoned.timeout";
+	
+	/**
+	 * 
+	 * Whether we should log abandoned connections (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_LOG_ABANDONED = "nflpicks.database.log.abandoned";
+	
+	/**
+	 * 
+	 * Whether we should log validation errors (optional).
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_LOG_VALIDATION_ERRORS = "nflpicks.database.log.validation.errors";
+	
+	/**
+	 * 
+	 * How often we should validate connections in the pool (milliseconds, optional).l
+	 * 
+	 */
+	protected static final String NFL_PICKS_DATABASE_KEY_VALIDATION_INTERVAL = "nflpicks.database.validation.interval";
 	
 	/**
 	 * 
@@ -117,40 +222,20 @@ public class ApplicationContext {
 	
 	/**
 	 * 
+	 * Same deal here.  The partial part of the key that's used for requests to make sure
+	 * it's not public.
+	 * 
+	 */
+	protected static final String ADMIN_KEY = "nflpicks.admin.key";
+	
+	/**
+	 * 
 	 * The key that will say whether divisions are enabled or not (so I can turn it off pretty quickly
 	 * if I want to).
 	 * 
 	 */
 	protected static final String DIVISIONS_ENABLED_KEY = "nflpicks.divisions.enabled";
 
-	/**
-	 * 
-	 * The name of the driver we use to connect to the database.
-	 * 
-	 */
-	protected String jdbcDriverClassName;
-	
-	/**
-	 * 
-	 * The url we use to connect to the database.
-	 * 
-	 */
-	protected String jdbcUrl;
-	
-	/**
-	 * 
-	 * The username we use to connect to the database.
-	 * 
-	 */
-	protected String jdbcUsername;
-	
-	/**
-	 * 
-	 * The password we use to connect to the database.
-	 * 
-	 */
-	protected String jdbcPassword;
-	
 	/**
 	 * 
 	 * This lets it put different players in different context paths so we
@@ -187,9 +272,27 @@ public class ApplicationContext {
 	 * 
 	 */
 	public void initialize(){
+
 		String propertiesFileName = System.getProperty(NFLPicksConstants.NFL_PICKS_PROPERTIES_FILENAME_PROPERTY);
 		
 		initialize(propertiesFileName);
+	}
+	
+	/**
+	 * 
+	 * A convenience function so you can re-initialize the application context.
+	 * 
+	 */
+	public void reinitialize() {
+		
+		log.info("Reinitializing ...");
+		
+		//Flip the switch that says it's initialized.
+		setInitialized(false);
+		
+		initialize();
+		
+		log.info("Done reinitializing.");
 	}
 	
 	/**
@@ -214,25 +317,21 @@ public class ApplicationContext {
 		
 		log.info("Initializing application context...");
 		
+		boolean initialized = getInitialized();
 		if (initialized){
 			log.info("Context already initialized.");
 			return;
 		}
 		
-		this.propertiesFilename = propertiesFilename;
-		this.context = new HashMap<String, Object>();
-		this.properties = new HashMap<String, String>();
+		setPropertiesFilename(propertiesFilename);
+		setContext(new HashMap<String, Object>());
+		setProperties(new HashMap<String, String>());
 		
 		loadProperties(propertiesFilename);
 		
-		this.jdbcDriverClassName = getProperty(JDBC_DRIVER_CLASS_NAME);
-		this.jdbcUrl = getProperty(JDBC_URL_KEY);
-		this.jdbcUsername = getProperty(JDBC_USERNAME_KEY);
-		this.jdbcPassword = getProperty(JDBC_PASSWORD_KEY);
-		
 		initializeDataSource();
 		
-		this.initialized = true;
+		setInitialized(true);
 		
 		log.info("Application context initialized.");
 	}
@@ -240,31 +339,197 @@ public class ApplicationContext {
 	/**
 	 * 
 	 * Initializes the data source connection to the database so that
-	 * we can get database connections.  Not much to it.  The only
-	 * interesting thing is that it sets defaultAutoCommit to false
-	 * because we only want to commit when we explicitly say so. 
+	 * we can get database connections.  Not much to it.
 	 * 
 	 */
 	protected void initializeDataSource(){
-
-		log.info("Initializing data source...");
-		log.info("jdbcDriverClassName = " + jdbcDriverClassName);
-		log.info("jdbcUrl = " + jdbcUrl);
-		log.info("jdbcUsername = " + jdbcUsername);
+		
+		log.info("Initializing data source ...");
+		
+		PoolProperties poolProperties = createDatabaseConnectionPoolProperties();
+		
+		DataSource dataSource = new DataSource(poolProperties);
+		
+		setDataSource(dataSource);
+		
+		log.info("Data source initialized.");
+		
+	}
+	
+	/**
+	 * 
+	 * This initializes the database connection pool properties variable using
+	 * the database connection variables.
+	 * 
+	 * I made this because, sometimes, we'd have a problem getting a good database connection.
+	 * That's because I just went with the defaults on the properties (just used username, password,
+	 * and url).  That worked ok until tomcat 11, when I think the jdbc connection management stuff
+	 * must have changed or something.
+	 * 
+	 * Anyway, according to this page:
+	 * 
+	 * 		https://stackoverflow.com/questions/41998490/tomcat-jdbc-connection-pool-testonborrow-vs-testwhileidle
+	 * 
+	 * I should probably use "test on borrow = true".  I'm also going to use a validation query too, and add
+	 * in all the other options too just in case I need them later.
+	 * 
+	 */
+	protected PoolProperties createDatabaseConnectionPoolProperties() {
+		
+		//Steps to do:
+		//	1. Pull out all the properties and put them in the ... properties object.
+		
+		//I think the ones I want to use are "test on borrow" and probably set the validation query:
+		//	https://stackoverflow.com/questions/41998490/tomcat-jdbc-connection-pool-testonborrow-vs-testwhileidle
+		//Basically, I don't want it to get stuck with a bad connection.
+		//If it does, I'd like to be able to reinitialize the connections.
+		//If that doesn't work, then there's something wrong with the database.
+		
+		log.info("Creating database connection pool properties ...");
 		
 		PoolProperties poolProperties = new PoolProperties();
-		poolProperties.setDriverClassName(jdbcDriverClassName);
-		poolProperties.setUrl(jdbcUrl);
-		poolProperties.setUsername(jdbcUsername);
-		poolProperties.setPassword(jdbcPassword);
+		
+		String databaseDriverClassName = getProperty(NFL_PICKS_DATABASE_KEY_DRIVER_CLASS_NAME);
+		log.info("jdbcDriverClassName = " + databaseDriverClassName);
+		poolProperties.setDriverClassName(databaseDriverClassName);
+		
+		String databaseUrl = getProperty(NFL_PICKS_DATABASE_KEY_URL);
+		log.info("jdbcUrl = " + databaseUrl);
+		poolProperties.setUrl(databaseUrl);
+		
+		String databaseUsername = getProperty(NFL_PICKS_DATABASE_KEY_USERNAME);
+		log.info("jdbcUsername = " + databaseUsername);
+		poolProperties.setUsername(databaseUsername);
+		
+		String databasePassword = getProperty(NFL_PICKS_DATABASE_KEY_PASSWORD);
+		poolProperties.setPassword(databasePassword);
+		
+		//Optional properties ...
+		String databaseInitialSize = getProperty(NFL_PICKS_DATABASE_KEY_INITIAL_SIZE);
+		if (databaseInitialSize != null) {
+			log.info("databaseInitialSize = " + databaseInitialSize);
+			poolProperties.setInitialSize(Util.toInteger(databaseInitialSize));
+		}
+		else {
+			log.info("databaseInitialSize = default");
+		}
+		
+		String databaseMaxActive = getProperty(NFL_PICKS_DATABASE_KEY_MAX_ACTIVE);
+		if (databaseMaxActive != null) {
+			log.info("databaseMaxActive = " + databaseMaxActive);
+			poolProperties.setMaxActive(Util.toInteger(databaseMaxActive));
+		}
+		else {
+			log.info("databaseMaxActive = default");
+		}
+		
+		String databaseMaxIdle = getProperty(NFL_PICKS_DATABASE_KEY_MAX_IDLE);
+		if (databaseMaxIdle != null) {
+			log.info("databaseMaxIdle = " + databaseMaxIdle);
+			poolProperties.setMaxIdle(Util.toInteger(databaseMaxIdle));
+		}
+		else {
+			log.info("databaseMaxIdle = default");
+		}
+		
+		String databaseMinIdle = getProperty(NFL_PICKS_DATABASE_KEY_MIN_IDLE);
+		if (databaseMinIdle != null) {
+			log.info("databaseMinIdle = " + databaseMinIdle);
+			poolProperties.setMinIdle(Util.toInteger(databaseMinIdle));
+		}
+		else {
+			log.info("databaseMinIdle = default");
+		}
+		
+		String databaseMaxAge = getProperty(NFL_PICKS_DATABASE_KEY_MAX_AGE);
+		if (databaseMaxAge != null) {
+			log.info("databaseMaxAge = " + databaseMaxAge);
+			poolProperties.setMaxAge(Util.toLong(databaseMaxAge));
+		}
+		else {
+			log.info("databaseMaxAge = default");
+		}
+		
+		String databaseTestOnBorrow = getProperty(NFL_PICKS_DATABASE_KEY_TEST_ON_BORROW);
+		if (databaseTestOnBorrow != null) {
+			log.info("databaseTestOnBorrow = " + databaseTestOnBorrow);
+			poolProperties.setTestOnBorrow(Util.toBoolean(databaseTestOnBorrow));
+		}
+		else {
+			log.info("databaseTestOnBorrow = default");
+		}
+		
+		String databaseValidationQuery = getProperty(NFL_PICKS_DATABASE_KEY_VALIDATION_QUERY);
+		if (databaseValidationQuery != null) {
+			log.info("databaseValidationQuery = " + databaseValidationQuery);
+			poolProperties.setValidationQuery(databaseValidationQuery);
+		}
+		else {
+			log.info("databaseValidationQuery = default");
+		}
+		
+		String databaseValidationInterval = getProperty(NFL_PICKS_DATABASE_KEY_VALIDATION_INTERVAL);
+		if (databaseValidationInterval != null) {
+			log.info("databaseValidationInterval = " + databaseValidationInterval);
+			poolProperties.setValidationInterval(Util.toLong(databaseValidationInterval));
+		}
+		else {
+			log.info("databaseValidationInterval = default");
+		}
+		
+		String databaseTestOnReturn = getProperty(NFL_PICKS_DATABASE_KEY_TEST_ON_RETURN);
+		if (databaseTestOnReturn != null) {
+			log.info("databaseTestOnReturn = " + databaseTestOnReturn);
+			poolProperties.setTestOnReturn(Util.toBoolean(databaseTestOnReturn));
+		}
+		else {
+			log.info("databaseTestOnReturn = default");
+		}
+		
+		String databaseTestWhileIdle = getProperty(NFL_PICKS_DATABASE_KEY_TEST_WHILE_IDLE);
+		if (databaseTestWhileIdle != null) {
+			log.info("databaseTestWhileIdle = " + databaseTestWhileIdle);
+			poolProperties.setTestWhileIdle(Util.toBoolean(databaseTestWhileIdle));
+		}
+		else {
+			log.info("databaseTestWhileIdle = default");
+		}
+		
+		String databaseRemoveAbandoned = getProperty(NFL_PICKS_DATABASE_KEY_REMOVE_ABANDONED);
+		if (databaseRemoveAbandoned != null) {
+			log.info("databaseRemoveAbandoned = " + databaseRemoveAbandoned);
+			poolProperties.setRemoveAbandoned(Util.toBoolean(databaseRemoveAbandoned));
+		}
+		else {
+			log.info("databaseRemoveAbandoned = default");
+		}
+
+		String databaseRemoveAbandonedTimeout = getProperty(NFL_PICKS_DATABASE_KEY_REMOVE_ABANDONED_TIMEOUT);
+		if (databaseRemoveAbandonedTimeout != null) {
+			log.info("databaseRemoveAbandonedTimeout = " + databaseRemoveAbandonedTimeout);
+			poolProperties.setRemoveAbandonedTimeout(Util.toInteger(databaseRemoveAbandonedTimeout));
+		}
+		else {
+			log.info("databaseRemoveAbandonedTimeout = default");
+		}
+		
+		String databaseLogAbandoned = getProperty(NFL_PICKS_DATABASE_KEY_LOG_ABANDONED);
+		if (databaseLogAbandoned != null) {
+			log.info("databaseLogAbandoned = " + databaseLogAbandoned);
+			poolProperties.setLogAbandoned(Util.toBoolean(databaseLogAbandoned));
+		}
+		else {
+			log.info("databaseLogAbandoned = default");
+		}
+		
 		//This is so we explicitly have to say when to commit.
 		//I'm doing it that way because this is my program and I feel
 		//like it.
 		poolProperties.setDefaultAutoCommit(false);
 		
-		dataSource = new DataSource(poolProperties);
+		log.info("Database connection pool properties created.");
 		
-		log.info("Data source initialized.");
+		return poolProperties;
 	}
 	
 	/**
@@ -318,6 +583,26 @@ public class ApplicationContext {
 	 */
 	public String getProperty(String key){
 		return properties.get(key);
+	}
+	
+	/**
+	 * 
+	 * Gets the value of the property with the key and returns the default value
+	 * if the property doesn't exist.
+	 * 
+	 * @param key
+	 * @param defaulValue
+	 * @return
+	 */
+	public String getProperty(String key, String defaultValue) {
+		
+		String value = getProperty(key);
+		
+		if (value == null) {
+			value = defaultValue;
+		}
+		
+		return value;
 	}
 	
 	/**
@@ -379,6 +664,31 @@ public class ApplicationContext {
 	
 	/**
 	 * 
+	 * Gets the property that's used to see whether somebody can use admin features.
+	 * 
+	 * @return
+	 */
+	public String getAdminKey(){
+		
+		String editKey = getProperty(ADMIN_KEY);
+		
+		return editKey;
+	}
+	
+	/**
+	 * 
+	 * Sets the property that's used to see whether somebody can use admin features.
+	 * 
+	 * @param editKey
+	 */
+	public void setAdminKey(String editKey){
+		setProperty(ADMIN_KEY, editKey);
+	}
+	
+	
+	
+	/**
+	 * 
 	 * Gets the property that says whether divisions are enabled or not.
 	 * 
 	 * @return
@@ -399,6 +709,64 @@ public class ApplicationContext {
 	public void setDivisionsEnabled(String divisionsEnabled){
 		setProperty(DIVISIONS_ENABLED_KEY, divisionsEnabled);
 	}
+	
+	/**
+	 * 
+	 * A convenience function for logging all the database connection proeprties when initializing.
+	 * 
+	 * @param propertyName
+	 * @param propertyValue
+	 * @param defaultPropertyValue
+	 */
+	protected void logDatabaseConnectionProperty(String propertyName, String propertyValue, String defaultPropertyValue) {
+		
+		if (propertyValue != null) {
+			log.info(propertyName + " = " + propertyValue);
+		}
+		else {
+			log.info(propertyName + " = " + propertyValue + " (default)");
+		}
+	}
+	
+	public boolean getInitialized() {
+		return initialized;
+	}
+	
+	public void setInitialized(boolean initialized) {
+		this.initialized = initialized;
+	}
+
+	public String getPropertiesFilename() {
+		return propertiesFilename;
+	}
+
+	public void setPropertiesFilename(String propertiesFilename) {
+		this.propertiesFilename = propertiesFilename;
+	}
+
+	public Map<String, String> getProperties() {
+		return properties;
+	}
+
+	public void setProperties(Map<String, String> properties) {
+		this.properties = properties;
+	}
+
+	public PoolProperties getPoolProperties() {
+		return poolProperties;
+	}
+
+	public void setPoolProperties(PoolProperties poolProperties) {
+		this.poolProperties = poolProperties;
+	}
+
+	public void setContext(Map<String, Object> context) {
+		this.context = context;
+	}
+
+	public void setDataSource(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
 
 	/**
 	 * 
@@ -409,10 +777,6 @@ public class ApplicationContext {
 		
 		String thisObjectAsAString = "propertiesFilename = " + propertiesFilename + 
 									 ", context = " + context + 
-									 ", properties = " + properties +
-									 ", jdbcDriverClassName = " + jdbcDriverClassName + 
-									 ", jdbcUrl = " + jdbcUrl + 
-									 ", jdbcUsername = " + jdbcUsername + 
 									 ", initialized = " + initialized;
 		
 		return thisObjectAsAString;

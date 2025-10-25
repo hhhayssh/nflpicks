@@ -8,10 +8,12 @@
       	<servlet-name>nflpicks</servlet-name>
       	<servlet-class>nflpicks.NFLPicksServlet</servlet-class>
    	</servlet>
+   	<!-- Disabling the old school servlets.
    	<servlet>
       	<servlet-name>oldschool_nflpicks</servlet-name>
       	<servlet-class>nflpicks.OldSchoolNFLPicksServlet</servlet-class>
    	</servlet>
+   	 -->
    	<servlet-mapping>
       	<servlet-name>nflpicks</servlet-name>
       	<url-pattern>/nflpicks</url-pattern>
@@ -20,8 +22,18 @@
       	<servlet-name>nflpicks</servlet-name>
       	<url-pattern>/export</url-pattern>
    	</servlet-mapping>
-   		<servlet-mapping>
+   	<servlet-mapping>
+      	<servlet-name>nflpicks</servlet-name>
+      	<url-pattern>/admin</url-pattern>
+   	</servlet-mapping>
+   	<!-- Don't forget to redirect https to http 
+   		 https://stackoverflow.com/questions/24736543/tomcat-7-automatically-redirect-https-requests-to-port-8443
+   		 probably using ip tables
+   	-->
+   	<!-- Get rid of the old school stuff since it's showing the logs, but shouldn't be.
+   	<servlet-mapping>
       	<servlet-name>oldschool_nflpicks</servlet-name>
       	<url-pattern>/alternate</url-pattern>
    	</servlet-mapping>
+   	 -->
 </web-app>

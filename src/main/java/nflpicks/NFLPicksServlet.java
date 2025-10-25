@@ -8,7 +8,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -41,7 +43,11 @@ import nflpicks.model.stats.WeekRecordForPlayer;
 import nflpicks.model.stats.WeekRecordForPlayers;
 import nflpicks.model.stats.WeekRecordsForPlayer;
 
-
+/**
+ * 
+ * Yep, a servlet ... Old school, baby.
+ * 
+ */
 public class NFLPicksServlet extends HttpServlet {
 	
 	private static final Log log = LogFactory.getLog(NFLPicksServlet.class);
@@ -61,6 +67,8 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String TARGET_EXPORT_PICKS = "exportPicks";
 	protected static final String TARGET_STATS = "stats";
 	protected static final String TARGET_MAKE_PICKS = "makePicks";
+	protected static final String TARGET_ADMIN = "admin";
+	protected static final String TARGET_ADMIN_REINITIALIZE = "reinitialize";
 	
 	protected static final String STAT_NAME_WEEKS_WON_STANDINGS = "weeksWonStandings";
 	protected static final String STAT_NAME_WEEKS_WON_BY_WEEK = "weeksWonByWeek";
@@ -105,6 +113,7 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String PARAMETER_VALUE_NEXT = "next";
 	protected static final String PARAMETER_VALUE_TRUE = "true";
 	
+	protected static final String SUCCESS_JSON_RESPONSE = "{\"status\": \"SUCCESS\"}";
 	protected static final String ERROR_JSON_RESPONSE = "{\"error\": true}";
 	
 	protected NFLPicksModelDataService modelDataService;
@@ -1013,8 +1022,59 @@ public class NFLPicksServlet extends HttpServlet {
 			
 			json = JSONUtil.gamesToJSONString(gamesForNextWeek);
 		}
+		else if (TARGET_ADMIN.equals(target)) {
+			
+			String key = getParameter(request, "key");
+			
+			boolean adminKeyCheck = checkAdminKey(key);
+			
+			if (!adminKeyCheck){
+				log.error("Admin check error!  Invalid key!  key = " + key);
+				writeErrorResponse(response);
+				return;
+			}
+			
+			log.error("Admin check success.");
+			
+			writeSuccessResponse(response);
+		}
+		else if (TARGET_ADMIN_REINITIALIZE.equals(target)) {
+			
+			String key = getParameter(request, "key");
+			
+			boolean adminKeyCheck = checkAdminKey(key);
+			
+			if (!adminKeyCheck){
+				log.error("Error reinitializing!  Invalid key!  key = " + key);
+				writeErrorResponse(response);
+				return;
+			}
+			
+			log.info("Reinitializing application context ...");
+			ApplicationContext.getContext().reinitialize();
+			log.info("Application context reinitialized.");
+			
+			Map<String, String> status = new HashMap<String, String>();
+			status.put("status", "SUCCESS");
+			json = JSONUtil.createJSONStringFromMap(status);
+		}
 		
 		writeJSONResponse(response, json);
+	}
+	
+	/**
+	 * 
+	 * A convenience function so we can use the same success message as a response if we need to.
+	 * Basically, here so whatever catches the success won't have to think about what to do with it.
+	 * 
+	 * Normally, there's a lot more content in the response, but sometimes we just want to send back
+	 * a thumbs up.
+	 * 
+	 * @param response
+	 * @throws IOException
+	 */
+	protected void writeSuccessResponse(HttpServletResponse response) throws IOException {
+		writeJSONResponse(response, SUCCESS_JSON_RESPONSE);
 	}
 	
 	/**
@@ -1223,11 +1283,46 @@ public class NFLPicksServlet extends HttpServlet {
 		int sum = month + day;
 		
 		String expectedEditKey = String.valueOf(sum);
-		if (editKey != null){
+		if (editKey != null && !"".equals(editKey)){
 			expectedEditKey = editKey + "-" + sum;
 		}
 		
 		if (key.equals(expectedEditKey)){
+			return true;
+		}
+		
+		return false;
+	}
+	
+	/**
+	 * 
+	 * Same thing with the admin features.  Hopefully this is good enough.
+	 * 
+	 * @param key
+	 * @return
+	 */
+	protected boolean checkAdminKey(String key){
+		
+		//Steps to do:
+		//	1. Same process as with the edit key.
+		//	2. Get the sum of the day and month and add the key on the front
+		//	   if we have it.
+		
+		String adminKey = ApplicationContext.getContext().getAdminKey();
+		
+		LocalDateTime ldt = LocalDateTime.now();
+
+		int month = ldt.getMonthValue();
+		int day = ldt.getDayOfMonth();
+		
+		int sum = month + day;
+		
+		String expectedAdminKey = String.valueOf(sum);
+		if (adminKey != null && !"".equals(adminKey)){
+			expectedAdminKey = adminKey + "-" + sum;
+		}
+		
+		if (key.equals(expectedAdminKey)){
 			return true;
 		}
 		

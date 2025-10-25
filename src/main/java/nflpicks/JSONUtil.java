@@ -1,6 +1,7 @@
 package nflpicks;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -1926,24 +1927,6 @@ public class JSONUtil {
 		return jsonObject;
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	/**
 	 * 
 	 * This function converts the given collective pick accuracy summaries list into a json formatted
@@ -2027,17 +2010,42 @@ public class JSONUtil {
 		return jsonObject;
 	}
 	
+	/**
+	 * 
+	 * Creates a new json object from the given map.
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public static JSONObject createJSONObjectFromMap(Map<String, String> map) {
+		
+		JSONObject object = null;
+		
+		try {
+			object = new JSONObject(map);
+		}
+		catch (Exception e) {
+			log.error("Error creating json object from map!  map = " + map);
+		}
+		
+		return object;
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	/**
+	 * 
+	 * A convenience function to create a json string from a map.
+	 * 
+	 * @param map
+	 * @return
+	 */
+	public static String createJSONStringFromMap(Map<String, String> map) {
+		
+		JSONObject object = createJSONObjectFromMap(map);
+		
+		String json = object.toString();
+		
+		return json;
+	}
 	
 	/**
 	 * 

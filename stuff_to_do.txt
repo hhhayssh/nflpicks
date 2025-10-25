@@ -268,3 +268,14 @@ and ((away_team.abbreviation in (?) and home_team.abbreviation in (?)) or
 
 http://localhost:8080/nflpicks/nflpicks?target=standings&player=Jonathan&year=2023&team1=BUF&team2=NYJ
 http://localhost:8080/nflpicks/nflpicks?target=standings&player=Jonathan&year=2023&week=1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,wildcard,divisional,conference_championship,superbowl&team=all,ARZ,ATL,BAL,BUF,CAR,CHI,CIN,CLE,DAL,DEN,DET,GB,HOU,IND,JAX,KC,LAC,LAR,LV,MIA,MIN,NE,NO,NYG,NYJ,OAK,PHI,PIT,SD,SEA,SF,STL,TB,TEN,WASH
+
+
+make the division standings query faster
+
+in progress - add in better db variables for the connection so the pool doesn't wind up with nothing but closed connections
+
+in progress - add some sort of admin page or something to reinitialize it without restarting
+
+in progress - make it so a closed connection error triggers a reinitialization i think
+
+ready to start - add "this week" to the week selector and "this week's matchups" to the teams selector
