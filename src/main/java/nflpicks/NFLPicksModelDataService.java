@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.sql.DataSource;
 
@@ -284,6 +286,43 @@ public class NFLPicksModelDataService {
 		}
 		
 		return seasons;
+	}
+	
+	/**
+	 * 
+	 * A convenience function that will get shallow versions of
+	 * all the seasons in a map with their ids being the keys.
+	 * 
+	 * @return
+	 */
+	public Map<Integer, Season> getSeasonsCache(){
+		
+		Map<Integer, Season> seasonsCache = getSeasonsCache(true);
+		
+		return seasonsCache;
+	}
+	
+	/**
+	 * 
+	 * A convenience function that'll get all the seasons and put them in a map with their
+	 * ids being the keys.
+	 * 
+	 * @param shallow
+	 * @return
+	 */
+	public Map<Integer, Season> getSeasonsCache(boolean shallow){
+		
+		List<Season> seasons = getSeasons(shallow);
+		
+		Map<Integer, Season> seasonsCache = new HashMap<Integer, Season>();
+		
+		for (int index = 0; index < seasons.size(); index++) {
+			Season season = seasons.get(index);
+			int seasonId = season.getId();
+			seasonsCache.put(seasonId, season);
+		}
+		
+		return seasonsCache;
 	}
 	
 	/**
@@ -1522,6 +1561,45 @@ public class NFLPicksModelDataService {
 		List<Week> weeks = getWeeks(null, null, false);
 		
 		return weeks;
+	}
+	
+	/**
+	 * 
+	 * A convenience function that will get a shallow version
+	 * of all the weeks and put them in a map with their ids as the keys.
+	 * 
+	 * @return
+	 */
+	public Map<Integer, Week> getWeeksCache(){
+		
+		Map<Integer, Week> weeksCache = getWeeksCache(true);
+		
+		return weeksCache;
+	}
+	
+	/**
+	 * 
+	 * A convenience function that will get all the weeks we have and put
+	 * them in a map with their ids being the keys.
+	 * 
+	 * @param shallow
+	 * @return
+	 */
+	public Map<Integer, Week> getWeeksCache(boolean shallow){
+		
+		List<Week> weeks = getWeeks(null, null, shallow);
+		
+		Map<Integer, Week> weeksCache = new HashMap<Integer, Week>();
+		
+		for (int index = 0; index < weeks.size(); index++){
+			Week week = weeks.get(index);
+			
+			int weekId = week.getId();
+			
+			weeksCache.put(Integer.valueOf(weekId), week);
+		}
+		
+		return weeksCache;
 	}
 	
 	/**
@@ -3956,6 +4034,28 @@ public class NFLPicksModelDataService {
 		}
 		
 		return players;
+	}
+	
+	/**
+	 * 
+	 * A convenience function to get all the players in a map with the keys being
+	 * their ids.
+	 * 
+	 * @return
+	 */
+	public Map<Integer, Player> getPlayersCache(){
+		
+		List<Player> players = getPlayers();
+		
+		Map<Integer, Player> playerCache = new HashMap<Integer, Player>();
+		
+		for (int index = 0; index < players.size(); index++) {
+			Player player = players.get(index);
+			int playerId = player.getId();
+			playerCache.put(Integer.valueOf(playerId), player);
+		}
+		
+		return playerCache;
 	}
 	
 	/**

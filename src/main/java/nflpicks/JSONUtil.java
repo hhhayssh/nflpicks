@@ -20,6 +20,8 @@ import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
+import nflpicks.model.stats.ChalkGeniusRecord;
+import nflpicks.model.stats.ChalkGeniusRecordByWeek;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.CollectivePickAccuracySummary;
@@ -2006,6 +2008,168 @@ public class JSONUtil {
 		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_WIN_WRONG, collectivePickAccuracySummary.getTimesPickedToWinWrong());
 		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_RIGHT, collectivePickAccuracySummary.getTimesPickedToLoseRight());
 		jsonObject.put(NFLPicksConstants.JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_WRONG, collectivePickAccuracySummary.getTimesPickedToLoseWrong());
+		
+		return jsonObject;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given chalk genius records list into a json formatted
+	 * string.
+	 * 
+	 * @param chalkGeniusRecords
+	 * @return
+	 */
+	public static String chalkGeniusRecordsListToJSONString(List<ChalkGeniusRecordByWeek> chalkGeniusRecords){
+		
+		JSONArray jsonArray = chalkGeniusRecordsToJSONArray(chalkGeniusRecords);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given chalk genius records list into a json array.
+	 * 
+	 * @param chalkGeniusRecords
+	 * @return
+	 */
+	public static JSONArray chalkGeniusRecordsToJSONArray(List<ChalkGeniusRecordByWeek> chalkGeniusRecords){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < chalkGeniusRecords.size(); index++){
+			ChalkGeniusRecordByWeek chalkGeniusRecord = chalkGeniusRecords.get(index);
+			JSONObject jsonObject = chalkGeniusRecordToJSONObject(chalkGeniusRecord);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
+	
+	/**
+	 * 
+	 * This function converts the given collective pick accuracy summary to a json formatted string.
+	 * 
+	 * @param chalkGeniusRecord
+	 * @return
+	 */
+	public static String chalkGeniusRecordToJSONString(ChalkGeniusRecordByWeek chalkGeniusRecord){
+		
+		JSONObject jsonObject = chalkGeniusRecordToJSONObject(chalkGeniusRecord);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given chalk genius record into a json object.
+	 * 
+	 * @param chalkGeniusRecord
+	 * @return
+	 */
+	public static JSONObject chalkGeniusRecordToJSONObject(ChalkGeniusRecordByWeek chalkGeniusRecord){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject seasonJsonObject = seasonToJSONObject(chalkGeniusRecord.getSeason());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_SEASON, seasonJsonObject);
+		
+		JSONObject weekJsonObject = weekToJSONObject(chalkGeniusRecord.getWeek());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_WEEK, weekJsonObject);
+		
+		JSONObject playerJsonObject = playerToJSONObject(chalkGeniusRecord.getPlayer());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_PLAYER, playerJsonObject);
+		
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_TOTAL_CHALK_COUNT, chalkGeniusRecord.getTotalChalkCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_CHALK_RIGHT_COUNT, chalkGeniusRecord.getChalkRightCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_CHALK_WRONG_COUNT, chalkGeniusRecord.getChalkWrongCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_TOTAL_GENIUS_COUNT, chalkGeniusRecord.getTotalGeniusCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_GENIUS_RIGHT_COUNT, chalkGeniusRecord.getGeniusRightCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_RECORD_GENIUS_WRONG_COUNT, chalkGeniusRecord.getGeniusWrongCount());
+		
+		return jsonObject;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given chalk genius records list into a json formatted
+	 * string.
+	 * 
+	 * @param chalkGeniusRecords
+	 * @return
+	 */
+	public static String chalkGeniusTotalRecordsListToJSONString(List<ChalkGeniusRecord> chalkGeniusRecords){
+		
+		JSONArray jsonArray = chalkGeniusTotalRecordsToJSONArray(chalkGeniusRecords);
+		
+		String json = jsonArray.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given chalk genius records list into a json array.
+	 * 
+	 * @param chalkGeniusRecords
+	 * @return
+	 */
+	public static JSONArray chalkGeniusTotalRecordsToJSONArray(List<ChalkGeniusRecord> chalkGeniusRecords){
+		
+		JSONArray jsonArray = new JSONArray();
+		
+		for (int index = 0; index < chalkGeniusRecords.size(); index++){
+			ChalkGeniusRecord chalkGeniusRecord = chalkGeniusRecords.get(index);
+			JSONObject jsonObject = chalkGeniusTotalRecordToJSONObject(chalkGeniusRecord);
+			jsonArray.put(jsonObject);
+		}
+		
+		return jsonArray;
+
+	}
+	
+	/**
+	 * 
+	 * This function converts the given chalk genius record to a json formatted string.
+	 * 
+	 * @param chalkGeniusRecord
+	 * @return
+	 */
+	public static String chalkGeniusTotalRecordToJSONString(ChalkGeniusRecord chalkGeniusRecord){
+		
+		JSONObject jsonObject = chalkGeniusTotalRecordToJSONObject(chalkGeniusRecord);
+		
+		String json = jsonObject.toString();
+		
+		return json;
+	}
+	
+	/**
+	 * 
+	 * This function converts the given chalk genius record into a json object.
+	 * 
+	 * @param chalkGeniusRecord
+	 * @return
+	 */
+	public static JSONObject chalkGeniusTotalRecordToJSONObject(ChalkGeniusRecord chalkGeniusRecord){
+		
+		JSONObject jsonObject = new JSONObject();
+		
+		JSONObject playerJsonObject = playerToJSONObject(chalkGeniusRecord.getPlayer());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_TOTAL_RECORD_PLAYER, playerJsonObject);
+		
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_TOTAL_RECORD_TOTAL_CHALK_COUNT, chalkGeniusRecord.getTotalChalkCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_TOTAL_RECORD_CHALK_RIGHT_COUNT, chalkGeniusRecord.getChalkRightCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_TOTAL_RECORD_CHALK_WRONG_COUNT, chalkGeniusRecord.getChalkWrongCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_TOTAL_RECORD_TOTAL_GENIUS_COUNT, chalkGeniusRecord.getTotalGeniusCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_TOTAL_RECORD_GENIUS_RIGHT_COUNT, chalkGeniusRecord.getGeniusRightCount());
+		jsonObject.put(NFLPicksConstants.CHALK_GENIUS_TOTAL_RECORD_GENIUS_WRONG_COUNT, chalkGeniusRecord.getGeniusWrongCount());
 		
 		return jsonObject;
 	}

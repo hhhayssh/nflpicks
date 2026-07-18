@@ -30,6 +30,7 @@ import nflpicks.model.PickSplit;
 import nflpicks.model.Player;
 import nflpicks.model.Record;
 import nflpicks.model.Team;
+import nflpicks.model.stats.ChalkGeniusRecord;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.CollectivePickAccuracySummary;
@@ -86,6 +87,8 @@ public class NFLPicksServlet extends HttpServlet {
 	protected static final String STAT_NAME_COLLECTIVE_RECORDS = "collectiveRecords";
 	protected static final String STAT_NAME_COLLECTIVE_RECORD_SUMMARY = "collectiveRecordSummary";
 	protected static final String STAT_NAME_COLLECTIVE_PICK_ACCURACY = "collectivePickAccuracy";
+	protected static final String STAT_NAME_CHALK_STANDINGS = "chalkStandings";
+	protected static final String STAT_NAME_GENIUS_STANDINGS = "geniusStandings";
 
 	protected static final String PARAMETER_NAME_TARGET = "target";
 	protected static final String PARAMETER_NAME_PLAYER = "player";
@@ -1014,6 +1017,63 @@ public class NFLPicksServlet extends HttpServlet {
 				long elapsed = System.currentTimeMillis() - start;
 				
 				log.info("Got collective pick accuracy in " + elapsed + " ms");
+			}
+			else if (STAT_NAME_CHALK_STANDINGS.equals(statName) ||
+						STAT_NAME_GENIUS_STANDINGS.equals(statName)) {
+				
+				String playersString = getParameter(request, PARAMETER_NAME_PLAYER);
+				List<String> playerNames = null;
+				if (!PARAMETER_VALUE_ALL.equals(playersString)){
+					playerNames = Util.delimitedStringToList(playersString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String weekKeysString = getParameter(request, PARAMETER_NAME_WEEK);
+				List<String> weekKeys = null;
+				if (!PARAMETER_VALUE_ALL.equals(weekKeysString)){
+					weekKeys = Util.delimitedStringToList(weekKeysString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String yearsString = getParameter(request, PARAMETER_NAME_YEAR);
+				List<String> years = null; 
+				if (!PARAMETER_VALUE_ALL.equals(yearsString)){
+					years = Util.delimitedStringToList(yearsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teamsString = getParameter(request, PARAMETER_NAME_TEAM);
+				List<String> teams = null;
+				if (!PARAMETER_VALUE_ALL.equals(teamsString)){ 
+					teams = Util.delimitedStringToList(teamsString, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teams1String = getParameter(request, PARAMETER_NAME_TEAM1);
+				List<String> teams1 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams1String)){ 
+					teams1 = Util.delimitedStringToList(teams1String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String teams2String = getParameter(request, PARAMETER_NAME_TEAM2);
+				List<String> teams2 = null;
+				if (!PARAMETER_VALUE_ALL.equals(teams2String)){ 
+					teams2 = Util.delimitedStringToList(teams2String, PARAMETER_VALUE_DELIMITER);
+				}
+				
+				String team1AtTeam2Parameter = getParameter(request, PARAMETER_NAME_TEAM1_AT_TEAM2);
+				boolean team1AtTeam2 = false;
+				if (team1AtTeam2Parameter != null && PARAMETER_VALUE_TRUE.equals(team1AtTeam2Parameter)){
+					team1AtTeam2 = true;
+				}
+				
+				log.info("Getting chalk genius records...");
+				
+				long start = System.currentTimeMillis();
+				
+				List<ChalkGeniusRecord> chalkGeniusRecords = statsDataService.getChalkGeniusTotalRecords(years, weekKeys, playerNames, teams, teams1, teams2, team1AtTeam2);
+				
+				json = JSONUtil.chalkGeniusTotalRecordsListToJSONString(chalkGeniusRecords);
+				
+				long elapsed = System.currentTimeMillis() - start;
+				
+				log.info("Got chalk genius records in " + elapsed + " ms");
 			}
 		}
 		else if (TARGET_MAKE_PICKS.equals(target)){

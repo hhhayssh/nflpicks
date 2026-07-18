@@ -68,3 +68,81 @@ function sortAccumulatedRecords(accumulatedRecords){
 		return 0;
 	});
 }
+
+
+
+function sortChalkRecords(chalkGeniusRecords){
+	
+	chalkGeniusRecords.sort(function(chalkGeniusRecord1, chalkGeniusRecord2){
+		
+		//Most wins goes first.
+		if (chalkGeniusRecord1.chalkRightCount > chalkGeniusRecord2.chalkRightCount){
+			return -1;
+		}
+		else if (chalkGeniusRecord1.chalkRightCount < chalkGeniusRecord2.chalkRightCount){
+			return 1;
+		}
+		//If they have the same number of wins...
+		else {
+			//Fewest losses goes first.
+			if (chalkGeniusRecord1.chalkWrongCount < chalkGeniusRecord2.chalkWrongCount){
+				return -1;
+			}
+			else if (chalkGeniusRecord1.chalkWrongCount > chalkGeniusRecord2.chalkWrongCount){
+				return 1;
+			}
+			//If they have the same number of wins and losses...
+			else {
+				//Go by their name.
+				if (chalkGeniusRecord1.player.name < chalkGeniusRecord2.player.name){
+					return -1;
+				}
+				else if (chalkGeniusRecord1.player.name > chalkGeniusRecord2.player.name){
+					return 1;
+				}
+			}
+		}
+		
+		//Blah
+		return 0;
+	});
+}
+
+
+
+function sortGeniusRecords(chalkGeniusRecords){
+	
+	chalkGeniusRecords.sort(function(chalkGeniusRecord1, chalkGeniusRecord2){
+		
+		//Most wins goes first.
+		if (chalkGeniusRecord1.geniusRightCount > chalkGeniusRecord2.geniusRightCount){
+			return -1;
+		}
+		else if (chalkGeniusRecord1.geniusRightCount < chalkGeniusRecord2.geniusRightCount){
+			return 1;
+		}
+		//If they have the same number of wins...
+		else {
+			//Fewest losses goes first.
+			if (chalkGeniusRecord1.geniusWrongCount < chalkGeniusRecord2.geniusWrongCount){
+				return -1;
+			}
+			else if (chalkGeniusRecord1.geniusWrongCount > chalkGeniusRecord2.geniusWrongCount){
+				return 1;
+			}
+			//If they have the same number of wins and losses...
+			else {
+				//Go by their name.
+				if (chalkGeniusRecord1.player.name < chalkGeniusRecord2.player.name){
+					return -1;
+				}
+				else if (chalkGeniusRecord1.player.name > chalkGeniusRecord2.player.name){
+					return 1;
+				}
+			}
+		}
+		
+		//Blah
+		return 0;
+	});
+}

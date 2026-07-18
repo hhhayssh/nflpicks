@@ -29,6 +29,8 @@ import nflpicks.model.Record;
 import nflpicks.model.Season;
 import nflpicks.model.Team;
 import nflpicks.model.Week;
+import nflpicks.model.stats.ChalkGeniusRecord;
+import nflpicks.model.stats.ChalkGeniusRecordByWeek;
 import nflpicks.model.stats.Championship;
 import nflpicks.model.stats.ChampionshipsForPlayer;
 import nflpicks.model.stats.CollectivePickAccuracySummary;
@@ -1483,6 +1485,265 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	 		") pick_totals " +
 	 	    "group by pick_totals.season_id, pick_totals.year " +
 	 		"order by pick_totals.season_id desc ";
+	
+	/*
+	 
+	 select season_id,
+	   week_id,
+	   player_id,
+	   sum(chalk_count) as total_chalk_count,
+	   sum(chalk_right_count) as chalk_right_count,
+	   sum(chalk_wrong_count) as chalk_wrong_count,
+	   sum(genius_count) as total_genius_count,
+	   sum(genius_right_count) as genius_right_count,
+	   sum(genius_wrong_count) as genius_wrong_count
+from (
+select season_id,
+	   week_id,
+	   game_id,
+	   player_id,
+	   winning_team_id,
+	   winning_team_count,
+	   losing_team_id,
+	   losing_team_count,
+	   chalk_team_id,
+	   genius_team_id,
+	   picked_team_id,
+	   (case when picked_team_id = chalk_team_id then 'CHALK'
+	   		 when picked_team_id = genius_team_id then 'GENIUS'
+	   		 else null
+	   end) as pick_type,
+	   (case when picked_team_id = chalk_team_id then 1 else 0 end) as chalk_count,
+	   (case when picked_team_id = chalk_team_id and winning_team_id = chalk_team_id then 1 else 0 end) as chalk_right_count,
+	   (case when picked_team_id = chalk_team_id and winning_team_id = genius_team_id then 1 else 0 end) as chalk_wrong_count,
+	   (case when picked_team_id = genius_team_id then 1 else 0 end) as genius_count,
+	   (case when picked_team_id = genius_team_id and winning_team_id = genius_team_id then 1 else 0 end) as genius_right_count,
+	   (case when picked_team_id = genius_team_id and winning_team_id = chalk_team_id then 1 else 0 end) as genius_wrong_count
+from (
+select season_id,
+	   week_id,
+	   game_id,
+	   player_id,
+	   winning_team_id,
+	   winning_team_count,
+	   losing_team_id,
+	   losing_team_count,
+	   picked_team_id,
+	   (case when winning_team_count >= losing_team_count then winning_team_id
+	   	     when losing_team_count >= winning_team_count then losing_team_id
+	   	end) as chalk_team_id,
+	   	(case when winning_team_count < losing_team_count then winning_team_id
+	   	     when losing_team_count < winning_team_count then losing_team_id
+	   	end) as genius_team_id
+from (
+select s.id as season_id, 
+	   w.id as week_id,
+	   g.id as game_id,
+	   p.player_id as player_id,
+	   g.home_team_id as home_team_id,
+	   g.away_team_id as away_team_id,
+	   g.winning_team_id as winning_team_id,
+	   (case when g.home_team_id = g.winning_team_id then g.away_team_id
+	   	     when g.away_team_id = g.winning_team_id then g.home_team_id
+	   	     else null
+	   	end) as losing_team_id,
+	   (select count(*)
+	    from pick p1
+	    where p1.game_id = g.id
+	    	  and p1.team_id = g.winning_team_id) as winning_team_count,
+	   (select count(*)
+	    from pick p1
+	    where p1.game_id = g.id
+	    	  and g.winning_team_id is not null
+	    	  and p1.team_id != g.winning_team_id) as losing_team_count,
+	   p.team_id as picked_team_id
+from game g
+		join pick p
+			on g.id = p.game_id
+		join week w
+			on g.week_id = w.id
+		join season s
+			on w.season_id = s.id
+) sub1
+) sub2
+) sub3
+group by season_id, week_id, player_id
+order by season_id, week_id, player_id;
+
+	 
+	 */
+	
+	public static final String SELECT_CHALK_GENIUS_BY_WEEK_QUERY = 
+			"select season_id,  " +
+			"	    week_id,  " +
+			"	    player_id,  " +
+			"	   sum(chalk_count) as total_chalk_count,  " +
+			"	   sum(chalk_right_count) as chalk_right_count,  " +
+			"	   sum(chalk_wrong_count) as chalk_wrong_count,  " +
+			"	   sum(genius_count) as total_genius_count,  " +
+			"	   sum(genius_right_count) as genius_right_count,  " +
+			"	   sum(genius_wrong_count) as genius_wrong_count  " +
+			"from (select season_id,  " +
+			"	   		  week_id,  " +
+			"	   		  game_id,  " +
+			"	   		  player_id,  " +
+			"	   		  winning_team_id,  " +
+			"	   		  winning_team_count,  " +
+			"	   		  losing_team_id,  " +
+			"	   		  losing_team_count,  " +
+			"	   		  chalk_team_id,  " +
+			"	   genius_team_id,  " +
+			"	   picked_team_id,  " +
+			"	   (case when picked_team_id = chalk_team_id then 'CHALK'  " +
+			"	   		 when picked_team_id = genius_team_id then 'GENIUS'  " +
+			"	   		 else null  " +
+			"	   end) as pick_type,  " +
+			"	   (case when picked_team_id = chalk_team_id then 1 else 0 end) as chalk_count,  " +
+			"	   (case when picked_team_id = chalk_team_id and winning_team_id = chalk_team_id then 1 else 0 end) as chalk_right_count,  " +
+			"	   (case when picked_team_id = chalk_team_id and winning_team_id = genius_team_id then 1 else 0 end) as chalk_wrong_count,  " +
+			"	   (case when picked_team_id = genius_team_id then 1 else 0 end) as genius_count,  " +
+			"	   (case when picked_team_id = genius_team_id and winning_team_id = genius_team_id then 1 else 0 end) as genius_right_count,  " +
+			"	   (case when picked_team_id = genius_team_id and winning_team_id = chalk_team_id then 1 else 0 end) as genius_wrong_count  " +
+			"	   from (select season_id,  " +
+			"	   				week_id,  " +
+			"	   				game_id,  " +
+			"	   				player_id,  " +
+			"	   				winning_team_id,  " +
+			"	   				winning_team_count,  " +
+			"	   				losing_team_id,  " +
+			"	   				losing_team_count,  " +
+			"	   				picked_team_id,  " +
+			"	   				(case when winning_team_count >= losing_team_count then winning_team_id  " +
+			"	   	     			  when losing_team_count >= winning_team_count then losing_team_id  " +
+			"	   				 end) as chalk_team_id,  " +
+			"	   				(case when winning_team_count < losing_team_count then winning_team_id  " +
+			"	   	     			  when losing_team_count < winning_team_count then losing_team_id  " +
+			"	   				 end) as genius_team_id  " +
+			"			 from (select s.id as season_id,   " +
+			"	   					  w.id as week_id,  " +
+			"	   					  g.id as game_id,  " +
+			"	   					  p.player_id as player_id,  " +
+			"	   					  g.home_team_id as home_team_id,  " +
+			"	   					  g.away_team_id as away_team_id,  " +
+			"	   					  g.winning_team_id as winning_team_id,  " +
+			"	   					  (case when g.home_team_id = g.winning_team_id then g.away_team_id  " +
+			"	   	     					when g.away_team_id = g.winning_team_id then g.home_team_id  " +
+			"	   	     					else null  " +
+			"	   					   end) as losing_team_id,  " +
+			"	   					  (select count(*)  " +
+			"	    				   from pick p1  " +
+			"	    				   where p1.game_id = g.id  " +
+			"	    	  					 and p1.team_id = g.winning_team_id) as winning_team_count,  " +
+			"	   					  (select count(*)  " +
+			"	    				   from pick p1  " +
+			"	    				   where p1.game_id = g.id  " +
+			"	    	  					 and g.winning_team_id is not null  " +
+			"	    	  					 and p1.team_id != g.winning_team_id) as losing_team_count,  " +
+			"	   					  p.team_id as picked_team_id  " +
+			"				   from game g  " +
+			"							join pick p  " +
+			"								on g.id = p.game_id  " +
+			"							join week w  " +
+			"								on g.week_id = w.id  " +
+			"							join season s  " +
+			"								on w.season_id = s.id  " +
+			"						    join team home_team " + 
+			"								on g.home_team_id = home_team.id " +
+			"							join team away_team " + 
+			"								on g.away_team_id = away_team.id " +
+			"							join player pl " +
+			"								on p.player_id = pl.id " + 
+			" 				   ${WHERE_CLAUSE} " + 
+			"				 ) sub1  " +
+			"			) sub2  " +
+			"	) sub3  " +
+			"group by season_id, week_id, player_id " +
+			"order by season_id, week_id, player_id ";
+	
+	//The same query as above, but it gets the totals by player for the criteria that was given.
+	public static final String SELECT_CHALK_GENIUS_TOTAL_RECORDS_QUERY = 
+			"select player_id,  " +
+			"	   sum(chalk_count) as total_chalk_count,  " +
+			"	   sum(chalk_right_count) as chalk_right_count,  " +
+			"	   sum(chalk_wrong_count) as chalk_wrong_count,  " +
+			"	   sum(genius_count) as total_genius_count,  " +
+			"	   sum(genius_right_count) as genius_right_count,  " +
+			"	   sum(genius_wrong_count) as genius_wrong_count  " +
+			"from (select season_id,  " +
+			"	   		  week_id,  " +
+			"	   		  game_id,  " +
+			"	   		  player_id,  " +
+			"	   		  winning_team_id,  " +
+			"	   		  winning_team_count,  " +
+			"	   		  losing_team_id,  " +
+			"	   		  losing_team_count,  " +
+			"	   		  chalk_team_id,  " +
+			"	   genius_team_id,  " +
+			"	   picked_team_id,  " +
+			"	   (case when picked_team_id = chalk_team_id then 'CHALK'  " +
+			"	   		 when picked_team_id = genius_team_id then 'GENIUS'  " +
+			"	   		 else null  " +
+			"	   end) as pick_type,  " +
+			"	   (case when picked_team_id = chalk_team_id then 1 else 0 end) as chalk_count,  " +
+			"	   (case when picked_team_id = chalk_team_id and winning_team_id = chalk_team_id then 1 else 0 end) as chalk_right_count,  " +
+			"	   (case when picked_team_id = chalk_team_id and winning_team_id = genius_team_id then 1 else 0 end) as chalk_wrong_count,  " +
+			"	   (case when picked_team_id = genius_team_id then 1 else 0 end) as genius_count,  " +
+			"	   (case when picked_team_id = genius_team_id and winning_team_id = genius_team_id then 1 else 0 end) as genius_right_count,  " +
+			"	   (case when picked_team_id = genius_team_id and winning_team_id = chalk_team_id then 1 else 0 end) as genius_wrong_count  " +
+			"	   from (select season_id,  " +
+			"	   				week_id,  " +
+			"	   				game_id,  " +
+			"	   				player_id,  " +
+			"	   				winning_team_id,  " +
+			"	   				winning_team_count,  " +
+			"	   				losing_team_id,  " +
+			"	   				losing_team_count,  " +
+			"	   				picked_team_id,  " +
+			"	   				(case when winning_team_count >= losing_team_count then winning_team_id  " +
+			"	   	     			  when losing_team_count >= winning_team_count then losing_team_id  " +
+			"	   				 end) as chalk_team_id,  " +
+			"	   				(case when winning_team_count < losing_team_count then winning_team_id  " +
+			"	   	     			  when losing_team_count < winning_team_count then losing_team_id  " +
+			"	   				 end) as genius_team_id  " +
+			"			 from (select s.id as season_id,   " +
+			"	   					  w.id as week_id,  " +
+			"	   					  g.id as game_id,  " +
+			"	   					  p.player_id as player_id,  " +
+			"	   					  g.home_team_id as home_team_id,  " +
+			"	   					  g.away_team_id as away_team_id,  " +
+			"	   					  g.winning_team_id as winning_team_id,  " +
+			"	   					  (case when g.home_team_id = g.winning_team_id then g.away_team_id  " +
+			"	   	     					when g.away_team_id = g.winning_team_id then g.home_team_id  " +
+			"	   	     					else null  " +
+			"	   					   end) as losing_team_id,  " +
+			"	   					  (select count(*)  " +
+			"	    				   from pick p1  " +
+			"	    				   where p1.game_id = g.id  " +
+			"	    	  					 and p1.team_id = g.winning_team_id) as winning_team_count,  " +
+			"	   					  (select count(*)  " +
+			"	    				   from pick p1  " +
+			"	    				   where p1.game_id = g.id  " +
+			"	    	  					 and g.winning_team_id is not null  " +
+			"	    	  					 and p1.team_id != g.winning_team_id) as losing_team_count,  " +
+			"	   					  p.team_id as picked_team_id  " +
+			"				   from game g  " +
+			"							join pick p  " +
+			"								on g.id = p.game_id  " +
+			"							join week w  " +
+			"								on g.week_id = w.id  " +
+			"							join season s  " +
+			"								on w.season_id = s.id  " +
+			"						    join team home_team " + 
+			"								on g.home_team_id = home_team.id " +
+			"							join team away_team " + 
+			"								on g.away_team_id = away_team.id " +
+			"							join player pl " +
+			"								on p.player_id = pl.id " + 
+			" 				   ${WHERE_CLAUSE} " + 
+			"				 ) sub1  " +
+			"			) sub2  " +
+			"	) sub3  " +
+			"group by player_id ";
 	
 	/**
 	 * 
@@ -4689,6 +4950,8 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			String fullQuery = statement.toString();
 			
 			System.out.println("fq = " + fullQuery);
+			
+			statement.setFetchSize(10000);
 
 			//And now we're done, so it's time to kick off the query.
 			long queryStart = System.currentTimeMillis();
@@ -4702,6 +4965,7 @@ group by pick_totals.player_id, pick_totals.player_name ;
 			
 			//And we just have to map the results and send them back.
 			while (results.next()){
+				//pass in the team and player caches here so we don't have to make an object each time.
 				PickAccuracySummary pickAccuracySummary = mapPickAccuracySummary(results);
 				pickAccuracySummaries.add(pickAccuracySummary);
 			}
@@ -6884,6 +7148,251 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	}
 	
 	
+	//SELECT_CHALK_GENIUS_QUERY
+	
+	public List<ChalkGeniusRecordByWeek> getChalkGeniusRecordsByWeek(List<String> years, List<String> weekKeys, List<String> players, List<String> teams,
+			List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<ChalkGeniusRecordByWeek> chalkGeniusRecords = new ArrayList<ChalkGeniusRecordByWeek>();
+		
+		try {
+			
+			Map<Integer, Player> playersCache = modelDataService.getPlayersCache();
+			Map<Integer, Season> seasonsCache = modelDataService.getSeasonsCache();
+			Map<Integer, Week> weeksCache = modelDataService.getWeeksCache();
+			
+			connection = dataSource.getConnection();
+			
+			String chalkGeniusCriteria = createChalkGeniusCriteria(years, weekKeys, players, teams, team1Teams, team2Teams, team1AtTeam2);
+			
+			String query = SELECT_CHALK_GENIUS_BY_WEEK_QUERY.replace("${WHERE_CLAUSE}", chalkGeniusCriteria);
+			
+			statement = connection.prepareStatement(query);
+			
+			//Players go first...
+			int parameterIndex = 1;
+			if (players != null && players.size() > 0){
+				for (int index = 0; index < players.size(); index++){
+					String player = players.get(index);
+					statement.setString(parameterIndex, player);
+					parameterIndex++;
+				}
+			}
+			
+			//Then weeks
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
+					parameterIndex++;
+				}
+			}
+			
+			//Then years
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			//Add the teams parameters in a function.
+			parameterIndex = addTeamsParameters(statement, parameterIndex, team1Teams, team2Teams, team1AtTeam2);
+			
+			statement.setFetchSize(5000);
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				ChalkGeniusRecordByWeek chalkGeniusCount = mapChalkGeniusByWeekCount(results, playersCache, seasonsCache, weeksCache);
+				chalkGeniusRecords.add(chalkGeniusCount);
+			}
+		}
+		catch (Exception e) {
+			log.error("Error getting chalk genius counts!  years = " + years + ", weekKeys = " + weekKeys + ", players = " + players +
+					  ", team1Teams = " + team1Teams + ", team2Teams = " + team2Teams + ", team1AtTeam2 = " + team1AtTeam2, e);		
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return chalkGeniusRecords;
+	}
+	
+	/**
+	 * 
+	 * This function will create the "criteria" part for the genius/chalk records (basically, the "where" part).
+	 * It's here because we need to do this in a few places and I figured it would be a good idea to just
+	 * do it once and reuse it.  It will add in each argument that it's given and will skip
+	 * the arguments that aren't given.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @param teams
+	 * @param team1Teams
+	 * @param team2Teams
+	 * @param team1AtTeam2
+	 * @return
+	 */
+	protected String createChalkGeniusCriteria(List<String> years, List<String> weekKeys, List<String> players, List<String> teams,
+			List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
+		
+		//Steps to do:
+		//	1. Add in the where clauses for the arguments that were given.
+		//	2. That's it.
+		
+		StringBuilder whereClause = new StringBuilder();
+
+		boolean addedWhere = false;
+
+		//First goes player name
+		if (players != null && players.size() > 0){
+			addedWhere = true;
+			whereClause.append("where pl.name in (");
+			for (int index = 0; index < players.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			whereClause.append(") ");
+		}
+		
+		boolean hasYears = years != null && years.size() > 0;
+		boolean hasWeeks = weekKeys != null && weekKeys.size() > 0;
+		
+		if (hasYears || hasWeeks){
+			
+			if (!addedWhere){
+				whereClause.append("where ");
+				addedWhere = true;
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			whereClause.append("g.week_id in (select w.id from week w where ");
+		
+			if (hasWeeks){
+				whereClause.append("w.key in (");
+				for (int index = 0; index < weekKeys.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+				whereClause.append(") ");
+			}
+			
+			if (hasYears){
+				
+				if (hasWeeks){
+					whereClause.append(" and ");
+				}
+				
+				whereClause.append("w.season_id in (select s.id from season s where s.year in (");
+				
+				for (int index = 0; index < years.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					
+					whereClause.append("?");
+				}
+				
+				whereClause.append("))");
+			}
+			
+			whereClause.append(")");
+		}
+		
+		if (teams != null && teams.size() > 0){
+			
+			if (!addedWhere){
+				whereClause.append("where ");
+				addedWhere = true;
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			whereClause.append("(").append("home_team.abbreviation in (");
+			
+			for (int index = 0; index < teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(") or away_team.abbreviation in (");
+			
+			for (int index = 0; index < teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(")").append(")");
+		}
+		
+		//it's all or nothing with both of them
+		if (team1Teams != null && team1Teams.size() > 0 &&
+				team2Teams != null && team2Teams.size() > 0){
+			
+			String teamsWhereClause = createTeamsCriteria(team1Teams, team2Teams, team1AtTeam2);
+			
+			if (Util.hasSomething(teamsWhereClause)){
+				if (addedWhere){
+					whereClause.append(" and ");
+				}
+				else {
+					whereClause.append(" where ");
+					addedWhere = true;
+				}
+				
+				whereClause.append(teamsWhereClause);
+			}
+		}
+		
+		return whereClause.toString();
+	}
+	
+	protected ChalkGeniusRecordByWeek mapChalkGeniusByWeekCount(ResultSet results, 
+			Map<Integer, Player> playersCache,
+			Map<Integer, Season> seasonsCache,
+			Map<Integer, Week> weeksCache) throws SQLException {
+		
+		ChalkGeniusRecordByWeek chalkGeniusCount = new ChalkGeniusRecordByWeek();
+		
+		int playerId = results.getInt("player_id");
+		Player player = playersCache.get(Integer.valueOf(playerId));
+		chalkGeniusCount.setPlayer(player);
+		
+		int seasonId = results.getInt("season_id");
+		Season season = seasonsCache.get(Integer.valueOf(seasonId));
+		chalkGeniusCount.setSeason(season);
+		
+		int weekId = results.getInt("week_id");
+		Week week = weeksCache.get(Integer.valueOf(weekId));
+		chalkGeniusCount.setWeek(week);
+		
+		chalkGeniusCount.setTotalChalkCount(results.getInt("total_chalk_count"));
+		chalkGeniusCount.setChalkRightCount(results.getInt("chalk_right_count"));
+		chalkGeniusCount.setChalkWrongCount(results.getInt("chalk_wrong_count"));
+		chalkGeniusCount.setTotalGeniusCount(results.getInt("total_genius_count"));
+		chalkGeniusCount.setGeniusRightCount(results.getInt("genius_right_count"));
+		chalkGeniusCount.setGeniusWrongCount(results.getInt("genius_wrong_count"));
+		
+		return chalkGeniusCount;
+	}
 	
 	
 	
@@ -6891,8 +7400,240 @@ group by pick_totals.player_id, pick_totals.player_name ;
 	
 	
 	
+	//SELECT_CHALK_GENIUS_TOTAL_RECORDS_QUERY
 	
 	
+	public List<ChalkGeniusRecord> getChalkGeniusTotalRecords(List<String> years, List<String> weekKeys, List<String> players, List<String> teams,
+			List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
+		
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet results = null;
+		
+		List<ChalkGeniusRecord> chalkGeniusRecords = new ArrayList<ChalkGeniusRecord>();
+		
+		try {
+			
+			Map<Integer, Player> playersCache = modelDataService.getPlayersCache();
+			
+			connection = dataSource.getConnection();
+			
+			String chalkGeniusCriteria = createChalkGeniusCriteria(years, weekKeys, players, teams, team1Teams, team2Teams, team1AtTeam2);
+			
+			String query = SELECT_CHALK_GENIUS_TOTAL_RECORDS_QUERY.replace("${WHERE_CLAUSE}", chalkGeniusCriteria);
+			
+			statement = connection.prepareStatement(query);
+			
+			//Players go first...
+			int parameterIndex = 1;
+			if (players != null && players.size() > 0){
+				for (int index = 0; index < players.size(); index++){
+					String player = players.get(index);
+					statement.setString(parameterIndex, player);
+					parameterIndex++;
+				}
+			}
+			
+			//Then weeks
+			if (weekKeys != null && weekKeys.size() > 0){
+				for (int index = 0; index < weekKeys.size(); index++){
+					String weekKey = weekKeys.get(index);
+					statement.setString(parameterIndex, weekKey);
+					parameterIndex++;
+				}
+			}
+			
+			//Then years
+			if (years != null && years.size() > 0){
+				for (int index = 0; index < years.size(); index++){
+					String year = years.get(index);
+					statement.setString(parameterIndex, year);
+					parameterIndex++;
+				}
+			}
+			
+			//Add the teams parameters in a function.
+			parameterIndex = addTeamsParameters(statement, parameterIndex, team1Teams, team2Teams, team1AtTeam2);
+			
+			statement.setFetchSize(5000);
+			
+			results = statement.executeQuery();
+			
+			while (results.next()){
+				ChalkGeniusRecord chalkGeniusCount = mapChalkGeniusRecord(results, playersCache);
+				chalkGeniusRecords.add(chalkGeniusCount);
+			}
+		}
+		catch (Exception e) {
+			log.error("Error getting chalk genius counts!  years = " + years + ", weekKeys = " + weekKeys + ", players = " + players +
+					  ", team1Teams = " + team1Teams + ", team2Teams = " + team2Teams + ", team1AtTeam2 = " + team1AtTeam2, e);		
+		}
+		finally {
+			close(results, statement, connection);
+		}
+		
+		return chalkGeniusRecords;
+	}
+	
+	/**
+	 * 
+	 * This function will create the "criteria" part for the genius/chalk records (basically, the "where" part).
+	 * It's here because we need to do this in a few places and I figured it would be a good idea to just
+	 * do it once and reuse it.  It will add in each argument that it's given and will skip
+	 * the arguments that aren't given.
+	 * 
+	 * @param years
+	 * @param weekKeys
+	 * @param players
+	 * @param teams
+	 * @param team1Teams
+	 * @param team2Teams
+	 * @param team1AtTeam2
+	 * @return
+	 */
+	protected String createChalkGeniusTotalCriteria(List<String> years, List<String> weekKeys, List<String> players, List<String> teams,
+			List<String> team1Teams, List<String> team2Teams, boolean team1AtTeam2){
+		
+		//Steps to do:
+		//	1. Add in the where clauses for the arguments that were given.
+		//	2. That's it.
+		
+		StringBuilder whereClause = new StringBuilder();
+
+		boolean addedWhere = false;
+
+		//First goes player name
+		if (players != null && players.size() > 0){
+			addedWhere = true;
+			whereClause.append("where pl.name in (");
+			for (int index = 0; index < players.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			whereClause.append(") ");
+		}
+		
+		boolean hasYears = years != null && years.size() > 0;
+		boolean hasWeeks = weekKeys != null && weekKeys.size() > 0;
+		
+		if (hasYears || hasWeeks){
+			
+			if (!addedWhere){
+				whereClause.append("where ");
+				addedWhere = true;
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			whereClause.append("g.week_id in (select w.id from week w where ");
+		
+			if (hasWeeks){
+				whereClause.append("w.key in (");
+				for (int index = 0; index < weekKeys.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					whereClause.append("?");
+				}
+				whereClause.append(") ");
+			}
+			
+			if (hasYears){
+				
+				if (hasWeeks){
+					whereClause.append(" and ");
+				}
+				
+				whereClause.append("w.season_id in (select s.id from season s where s.year in (");
+				
+				for (int index = 0; index < years.size(); index++){
+					if (index > 0){
+						whereClause.append(", ");
+					}
+					
+					whereClause.append("?");
+				}
+				
+				whereClause.append("))");
+			}
+			
+			whereClause.append(")");
+		}
+		
+		if (teams != null && teams.size() > 0){
+			
+			if (!addedWhere){
+				whereClause.append("where ");
+				addedWhere = true;
+			}
+			else {
+				whereClause.append(" and ");
+			}
+			
+			whereClause.append("(").append("home_team.abbreviation in (");
+			
+			for (int index = 0; index < teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(") or away_team.abbreviation in (");
+			
+			for (int index = 0; index < teams.size(); index++){
+				if (index > 0){
+					whereClause.append(", ");
+				}
+				whereClause.append("?");
+			}
+			
+			whereClause.append(")").append(")");
+		}
+		
+		//it's all or nothing with both of them
+		if (team1Teams != null && team1Teams.size() > 0 &&
+				team2Teams != null && team2Teams.size() > 0){
+			
+			String teamsWhereClause = createTeamsCriteria(team1Teams, team2Teams, team1AtTeam2);
+			
+			if (Util.hasSomething(teamsWhereClause)){
+				if (addedWhere){
+					whereClause.append(" and ");
+				}
+				else {
+					whereClause.append(" where ");
+					addedWhere = true;
+				}
+				
+				whereClause.append(teamsWhereClause);
+			}
+		}
+		
+		return whereClause.toString();
+	}
+	
+	protected ChalkGeniusRecord mapChalkGeniusRecord(ResultSet results, 
+			Map<Integer, Player> playersCache) throws SQLException {
+		
+		ChalkGeniusRecord chalkGeniusCount = new ChalkGeniusRecord();
+		
+		int playerId = results.getInt("player_id");
+		Player player = playersCache.get(Integer.valueOf(playerId));
+		chalkGeniusCount.setPlayer(player);
+		
+		chalkGeniusCount.setTotalChalkCount(results.getInt("total_chalk_count"));
+		chalkGeniusCount.setChalkRightCount(results.getInt("chalk_right_count"));
+		chalkGeniusCount.setChalkWrongCount(results.getInt("chalk_wrong_count"));
+		chalkGeniusCount.setTotalGeniusCount(results.getInt("total_genius_count"));
+		chalkGeniusCount.setGeniusRightCount(results.getInt("genius_right_count"));
+		chalkGeniusCount.setGeniusWrongCount(results.getInt("genius_wrong_count"));
+		
+		return chalkGeniusCount;
+	}
 	
 	
 	

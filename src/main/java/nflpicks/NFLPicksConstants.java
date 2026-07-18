@@ -265,6 +265,26 @@ public interface NFLPicksConstants {
 	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_RIGHT = "timesPickedToLoseRight";
 	public static final String JSON_COLLECTIVE_PICK_ACCURACY_SUMMARY_TIMES_PICKED_TO_LOSE_WRONG = "timesPickedToLoseWrong";
 	
+	
+	public static final String CHALK_GENIUS_RECORD_SEASON = "season";
+	public static final String CHALK_GENIUS_RECORD_WEEK = "week";
+	public static final String CHALK_GENIUS_RECORD_PLAYER = "player";
+	public static final String CHALK_GENIUS_RECORD_TOTAL_CHALK_COUNT = "totalChalkCount";
+	public static final String CHALK_GENIUS_RECORD_CHALK_RIGHT_COUNT = "chalkRightCount";
+	public static final String CHALK_GENIUS_RECORD_CHALK_WRONG_COUNT = "chalkWrongCount";
+	public static final String CHALK_GENIUS_RECORD_TOTAL_GENIUS_COUNT = "totalGeniusCount";
+	public static final String CHALK_GENIUS_RECORD_GENIUS_RIGHT_COUNT = "geniusRightCount";
+	public static final String CHALK_GENIUS_RECORD_GENIUS_WRONG_COUNT = "geniusWrongCount";
+	
+	
+	public static final String CHALK_GENIUS_TOTAL_RECORD_PLAYER = "player";
+	public static final String CHALK_GENIUS_TOTAL_RECORD_TOTAL_CHALK_COUNT = "totalChalkCount";
+	public static final String CHALK_GENIUS_TOTAL_RECORD_CHALK_RIGHT_COUNT = "chalkRightCount";
+	public static final String CHALK_GENIUS_TOTAL_RECORD_CHALK_WRONG_COUNT = "chalkWrongCount";
+	public static final String CHALK_GENIUS_TOTAL_RECORD_TOTAL_GENIUS_COUNT = "totalGeniusCount";
+	public static final String CHALK_GENIUS_TOTAL_RECORD_GENIUS_RIGHT_COUNT = "geniusRightCount";
+	public static final String CHALK_GENIUS_TOTAL_RECORD_GENIUS_WRONG_COUNT = "geniusWrongCount";
+	
 	/**
 	 * 
 	 * Says we're doing an import of picks with the data manager.

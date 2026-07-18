@@ -640,47 +640,6 @@ function createSeasonProgressionHtml(weekRecords){
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /**
  * 
  * Creates the html for showing who's won the most weeks.  It expects the records to be
@@ -2197,4 +2156,494 @@ function createCollectivePickAccuracySummaryHtml(pickAccuracySummaries){
 	var pickAccuracySummariesHtml = '<table class="standings-table">' + pickAccuracySummariesHeadHtml + pickAccuracySummariesBodyHtml + '</table>';
 	
 	return pickAccuracySummariesHtml;
+}
+
+
+
+
+
+
+function createChalkStandingsHtml(chalkGeniusRecords){
+
+	//Steps to do:
+	//	1. Make the header (add in the year and week if they aren't selected and
+	//	   a header for ties if they are).
+	//	2. Go through and add a row for each record with a link to the picks
+	//	   for the week.
+	//	3. That's pretty much it.
+	
+	var chalkStandingsHtml = '';
+	
+	var chalkStandingsTableHeaderHtml = 
+		'<thead class="standings-table-head">' +
+			'<th class="standings-table-player-header"></th>' +
+			'<th class="standings-table-header-small">Right</th>' + 
+			'<th class="standings-table-header-small">Wrong</th>' +
+			'<th class="standings-table-header-small">%</th>' +
+		'</thead>';
+	
+	if (chalkGeniusRecords.length == 0){
+		var noResultsTable = '<table class="standings-table">' + 
+								'<tbody>' + 
+							 		'<tr class="standings-table-row">' + 
+							 			'<td colspan="6" style="text-align: center;">No results</td>' + 
+							 		'</tr>' + 
+							 	'</tbody>' + 
+							 '</table>';
+		
+		return noResultsTable;
+	}
+	
+	//Need to sort them here since we get both the chalk and genius records back at the same time.
+	sortChalkRecords(chalkGeniusRecords);
+	
+	var chalkStandingsTableBodyHtml = '<tbody>';
+		
+	for (var index = 0; index < chalkGeniusRecords.length; index++){
+		var chalkGeniusRecord = chalkGeniusRecords[index];
+		
+		var recordRank = rank(chalkGeniusRecord, chalkGeniusRecords, function(chalkGeniusRecord1, chalkGeniusRecord2){
+
+			//Most wins goes first.
+			if (chalkGeniusRecord1.chalkRightCount > chalkGeniusRecord2.chalkRightCount){
+				return -1;
+			}
+			else if (chalkGeniusRecord1.chalkRightCount < chalkGeniusRecord2.chalkRightCount){
+				return 1;
+			}
+			//If they have the same number of wins...
+			else {
+				//Fewest losses goes first.
+				if (chalkGeniusRecord1.chalkWrongCount < chalkGeniusRecord2.chalkWrongCount){
+					return -1;
+				}
+				else if (chalkGeniusRecord1.chalkWrongCount > chalkGeniusRecord2.chalkWrongCount){
+					return 1;
+				}
+			}
+			
+			return 0;
+		}, 
+		
+		function (chalkGeniusRecord1, chalkGeniusRecord2){
+			
+			if (chalkGeniusRecord1.player.name == chalkGeniusRecord2.player.name) {
+				return true;
+			}
+			
+			return false;
+		});
+		
+		var rankText = recordRank.rank;
+		if (recordRank.tie){
+			rankText = rankText + 't';
+		}
+
+		var percentageString = getWinningPercentage(chalkGeniusRecord.chalkRightCount, chalkGeniusRecord.chalkWrongCount);
+		
+		var rowHtml = 
+			'<tr class="standings-table-row">' + 
+				'<td class="standings-table-player-cell">' + rankText + '. ' + chalkGeniusRecord.player.name + '</td>' +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.chalkRightCount + '</td>' +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.chalkWrongCount + '</td>' + 
+				'<td class="standings-table-cell">' + percentageString + '</td>' +
+			'</tr>';
+
+		chalkStandingsTableBodyHtml = chalkStandingsTableBodyHtml + rowHtml;
+	}
+	
+	chalkStandingsTableBodyHtml = chalkStandingsTableBodyHtml + '</tbody>';
+	
+	var chalkStandingsHtml = '<table class="standings-table">' + chalkStandingsTableHeaderHtml + chalkStandingsTableBodyHtml + '</table>';
+		
+	return chalkStandingsHtml;
+}
+
+
+function createGeniusStandingsHtml(chalkGeniusRecords){
+
+	//Steps to do:
+	//	1. Make the header (add in the year and week if they aren't selected and
+	//	   a header for ties if they are).
+	//	2. Go through and add a row for each record with a link to the picks
+	//	   for the week.
+	//	3. That's pretty much it.
+	
+	var geniusStandingsHtml = '';
+	
+	var geniusStandingsTableHeaderHtml = 
+		'<thead class="standings-table-head">' +
+			'<th class="standings-table-player-header"></th>' +
+			'<th class="standings-table-header-small">Right</th>' + 
+			'<th class="standings-table-header-small">Wrong</th>' +
+			'<th class="standings-table-header-small">%</th>' +
+		'</thead>';
+	
+	if (chalkGeniusRecords.length == 0){
+		var noResultsTable = '<table class="standings-table">' + 
+								geniusStandingsTableHeaderHtml + 
+								'<tbody>' + 
+							 		'<tr class="standings-table-row">' + 
+							 			'<td colspan="6" style="text-align: center;">No results</td>' + 
+							 		'</tr>' + 
+							 	'</tbody>' + 
+							 '</table>';
+		
+		return noResultsTable;
+	}
+	
+	//Need to sort them here since we get both the chalk and genius records back at the same time.
+	sortGeniusRecords(chalkGeniusRecords);
+	
+	var geniusStandingsTableBodyHtml = '<tbody>';
+		
+	for (var index = 0; index < chalkGeniusRecords.length; index++){
+		var chalkGeniusRecord = chalkGeniusRecords[index];
+		
+		var recordRank = rank(chalkGeniusRecord, chalkGeniusRecords, function(chalkGeniusRecord1, chalkGeniusRecord2){
+
+			//Most wins goes first.
+			if (chalkGeniusRecord1.geniusRightCount > chalkGeniusRecord2.geniusRightCount){
+				return -1;
+			}
+			else if (chalkGeniusRecord1.geniusRightCount < chalkGeniusRecord2.geniusRightCount){
+				return 1;
+			}
+			//If they have the same number of wins...
+			else {
+				//Fewest losses goes first.
+				if (chalkGeniusRecord1.geniusWrongCount < chalkGeniusRecord2.geniusWrongCount){
+					return -1;
+				}
+				else if (chalkGeniusRecord1.geniusWrongCount > chalkGeniusRecord2.geniusWrongCount){
+					return 1;
+				}
+			}
+			
+			return 0;
+		}, 
+		
+		function (chalkGeniusRecord1, chalkGeniusRecord2){
+			
+			if (chalkGeniusRecord1.player.name == chalkGeniusRecord2.player.name) {
+				return true;
+			}
+			
+			return false;
+		});
+		
+		var rankText = recordRank.rank;
+		if (recordRank.tie){
+			rankText = rankText + 't';
+		}
+
+		var percentageString = getWinningPercentage(chalkGeniusRecord.geniusRightCount, chalkGeniusRecord.geniusWrongCount);
+		
+		var rowHtml = 
+			'<tr class="standings-table-row">' + 
+				'<td class="standings-table-player-cell">' + rankText + '. ' + chalkGeniusRecord.player.name + '</td>' +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.geniusRightCount + '</td>' +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.geniusWrongCount + '</td>' + 
+				'<td class="standings-table-cell">' + percentageString + '</td>' +
+			'</tr>';
+
+		geniusStandingsTableBodyHtml = geniusStandingsTableBodyHtml + rowHtml;
+	}
+	
+	geniusStandingsTableBodyHtml = geniusStandingsTableBodyHtml + '</tbody>';
+	
+	var geniusStandingsHtml = '<table class="standings-table">' + geniusStandingsTableHeaderHtml + geniusStandingsTableBodyHtml + '</table>';
+		
+	return geniusStandingsHtml;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+function createChalkStandingsByWeekHtml(chalkGeniusRecords){
+
+	//Steps to do:
+	//	1. Make the header (add in the year and week if they aren't selected and
+	//	   a header for ties if they are).
+	//	2. Go through and add a row for each record with a link to the picks
+	//	   for the week.
+	//	3. That's pretty much it.
+	
+	var chalkStandingsHtml = '';
+	
+	var isYearSelected = isSpecificYearSelected();
+	var yearHeader = '';
+	if (!isYearSelected){
+		yearHeader = '<th class="standings-table-header">Year</th>';
+	}
+	
+	var isWeekSelected = isASingleWeekSelected();
+	var weekHeader = '';
+	if (!isWeekSelected){
+		isWeekSelected = false;
+		weekHeader = '<th class="standings-table-header">Week</th>';
+	}
+	
+	var chalkStandingsTableHeaderHtml = 
+		'<thead class="standings-table-head">' +
+			'<th class="standings-table-player-header"></th>' +
+			yearHeader + 
+			weekHeader +
+			'<th class="standings-table-header-small">Right</th>' + 
+			'<th class="standings-table-header-small">Wrong</th>' +
+			'<th class="standings-table-header-small">%</th>' +
+		'</thead>';
+	
+	if (chalkGeniusRecords.length == 0){
+		var noResultsTable = '<table class="standings-table">' + 
+								chalkStandingsTableHeaderHtml + 
+								'<tbody>' + 
+							 		'<tr class="standings-table-row">' + 
+							 			'<td colspan="6" style="text-align: center;">No results</td>' + 
+							 		'</tr>' + 
+							 	'</tbody>' + 
+							 '</table>';
+		
+		return noResultsTable;
+	}
+	
+	//Need to sort them here since we get both the chalk and genius records back at the same time.
+	sortChalkRecords(chalkGeniusRecords);
+	
+	var chalkStandingsTableBodyHtml = '<tbody>';
+		
+	for (var index = 0; index < chalkGeniusRecords.length; index++){
+		var chalkGeniusRecord = chalkGeniusRecords[index];
+		
+		var recordRank = rank(chalkGeniusRecord, chalkGeniusRecords, function(chalkGeniusRecord1, chalkGeniusRecord2){
+
+			//Most wins goes first.
+			if (chalkGeniusRecord1.chalkRightCount > chalkGeniusRecord2.chalkRightCount){
+				return -1;
+			}
+			else if (chalkGeniusRecord1.chalkRightCount < chalkGeniusRecord2.chalkRightCount){
+				return 1;
+			}
+			//If they have the same number of wins...
+			else {
+				//Fewest losses goes first.
+				if (chalkGeniusRecord1.chalkWrongCount < chalkGeniusRecord2.chalkWrongCount){
+					return -1;
+				}
+				else if (chalkGeniusRecord1.chalkWrongCount > chalkGeniusRecord2.chalkWrongCount){
+					return 1;
+				}
+			}
+			
+			return 0;
+		}, 
+		
+		function (chalkGeniusRecord1, chalkGeniusRecord2){
+			
+			if (chalkGeniusRecord1.player.name == chalkGeniusRecord2.player.name &&
+					chalkGeniusRecord1.season.year == chalkGeniusRecord2.season.year &&
+					chalkGeniusRecord1.week.label == chalkGeniusRecord2.week.label) {
+				return true;
+			}
+			
+			return false;
+		});
+		
+		var rankText = recordRank.rank;
+		if (recordRank.tie){
+			rankText = rankText + 't';
+		}
+
+		var percentageString = getWinningPercentage(chalkGeniusRecord.chalkRightCount, chalkGeniusRecord.chalkWrongCount);
+		
+		var yearCell = '';
+		if (!isYearSelected){
+			yearCell = '<td class="standings-table-cell">' + chalkGeniusRecord.season.year + '</td>';
+		}
+		
+		var weekCell = '';
+		if (!isWeekSelected){
+			var labelToUse = shortenWeekLabel(chalkGeniusRecord.week.label);
+			//function createPicksLink(linkText, year, week, team, player){
+			var picksLink = createPicksLink(labelToUse, chalkGeniusRecord.season.year, chalkGeniusRecord.week.weekKey, null, null, chalkGeniusRecord.player.name);
+			weekCell = '<td class="standings-table-cell">' + picksLink + '</td>';
+		}
+
+		var rowHtml = 
+			'<tr class="standings-table-row">' + 
+				'<td class="standings-table-player-cell">' + rankText + '. ' + chalkGeniusRecord.player.name + '</td>' +
+				yearCell +
+				weekCell +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.chalkRightCount + '</td>' +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.chalkWrongCount + '</td>' + 
+				'<td class="standings-table-cell">' + percentageString + '</td>' +
+			'</tr>';
+
+		chalkStandingsTableBodyHtml = chalkStandingsTableBodyHtml + rowHtml;
+	}
+	
+	chalkStandingsTableBodyHtml = chalkStandingsTableBodyHtml + '</tbody>';
+	
+	var chalkStandingsHtml = '<table class="standings-table">' + chalkStandingsTableHeaderHtml + chalkStandingsTableBodyHtml + '</table>';
+		
+	return chalkStandingsHtml;
+}
+
+
+function createGeniusStandingsByWeekHtml(chalkGeniusRecords){
+
+	//Steps to do:
+	//	1. Make the header (add in the year and week if they aren't selected and
+	//	   a header for ties if they are).
+	//	2. Go through and add a row for each record with a link to the picks
+	//	   for the week.
+	//	3. That's pretty much it.
+	
+	var geniusStandingsHtml = '';
+	
+	var isYearSelected = isSpecificYearSelected();
+	var yearHeader = '';
+	if (!isYearSelected){
+		yearHeader = '<th class="standings-table-header">Year</th>';
+	}
+	
+	var isWeekSelected = isASingleWeekSelected();
+	var weekHeader = '';
+	if (!isWeekSelected){
+		isWeekSelected = false;
+		weekHeader = '<th class="standings-table-header">Week</th>';
+	}
+	
+	var geniusStandingsTableHeaderHtml = 
+		'<thead class="standings-table-head">' +
+			'<th class="standings-table-player-header"></th>' +
+			yearHeader + 
+			weekHeader +
+			'<th class="standings-table-header-small">Right</th>' + 
+			'<th class="standings-table-header-small">Wrong</th>' +
+			'<th class="standings-table-header-small">%</th>' +
+		'</thead>';
+	
+	if (chalkGeniusRecords.length == 0){
+		var noResultsTable = '<table class="standings-table">' + 
+								geniusStandingsTableHeaderHtml + 
+								'<tbody>' + 
+							 		'<tr class="standings-table-row">' + 
+							 			'<td colspan="6" style="text-align: center;">No results</td>' + 
+							 		'</tr>' + 
+							 	'</tbody>' + 
+							 '</table>';
+		
+		return noResultsTable;
+	}
+	
+	//Need to sort them here since we get both the chalk and genius records back at the same time.
+	sortGeniusRecords(chalkGeniusRecords);
+	
+	var geniusStandingsTableBodyHtml = '<tbody>';
+		
+	for (var index = 0; index < chalkGeniusRecords.length; index++){
+		var chalkGeniusRecord = chalkGeniusRecords[index];
+		
+		var recordRank = rank(chalkGeniusRecord, chalkGeniusRecords, function(chalkGeniusRecord1, chalkGeniusRecord2){
+
+			//Most wins goes first.
+			if (chalkGeniusRecord1.geniusRightCount > chalkGeniusRecord2.geniusRightCount){
+				return -1;
+			}
+			else if (chalkGeniusRecord1.geniusRightCount < chalkGeniusRecord2.geniusRightCount){
+				return 1;
+			}
+			//If they have the same number of wins...
+			else {
+				//Fewest losses goes first.
+				if (chalkGeniusRecord1.geniusWrongCount < chalkGeniusRecord2.geniusWrongCount){
+					return -1;
+				}
+				else if (chalkGeniusRecord1.geniusWrongCount > chalkGeniusRecord2.geniusWrongCount){
+					return 1;
+				}
+			}
+			
+			return 0;
+		}, 
+		
+		function (chalkGeniusRecord1, chalkGeniusRecord2){
+			
+			if (chalkGeniusRecord1.player.name == chalkGeniusRecord2.player.name &&
+					chalkGeniusRecord1.season.year == chalkGeniusRecord2.season.year &&
+					chalkGeniusRecord1.week.label == chalkGeniusRecord2.week.label) {
+				return true;
+			}
+			
+			return false;
+		});
+		
+		var rankText = recordRank.rank;
+		if (recordRank.tie){
+			rankText = rankText + 't';
+		}
+
+		var percentageString = getWinningPercentage(chalkGeniusRecord.geniusRightCount, chalkGeniusRecord.geniusWrongCount);
+		
+		var yearCell = '';
+		if (!isYearSelected){
+			yearCell = '<td class="standings-table-cell">' + chalkGeniusRecord.season.year + '</td>';
+		}
+		
+		var weekCell = '';
+		if (!isWeekSelected){
+			var labelToUse = shortenWeekLabel(chalkGeniusRecord.week.label);
+			//function createPicksLink(linkText, year, week, team, player){
+			var picksLink = createPicksLink(labelToUse, chalkGeniusRecord.season.year, chalkGeniusRecord.week.weekKey, null, null, chalkGeniusRecord.player.name);
+			weekCell = '<td class="standings-table-cell">' + picksLink + '</td>';
+		}
+
+		var rowHtml = 
+			'<tr class="standings-table-row">' + 
+				'<td class="standings-table-player-cell">' + rankText + '. ' + chalkGeniusRecord.player.name + '</td>' +
+				yearCell +
+				weekCell +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.geniusRightCount + '</td>' +
+				'<td class="standings-table-cell">' + chalkGeniusRecord.geniusWrongCount + '</td>' + 
+				'<td class="standings-table-cell">' + percentageString + '</td>' +
+			'</tr>';
+
+		geniusStandingsTableBodyHtml = geniusStandingsTableBodyHtml + rowHtml;
+	}
+	
+	geniusStandingsTableBodyHtml = geniusStandingsTableBodyHtml + '</tbody>';
+	
+	var geniusStandingsHtml = '<table class="standings-table">' + geniusStandingsTableHeaderHtml + geniusStandingsTableBodyHtml + '</table>';
+		
+	return geniusStandingsHtml;
 }

@@ -279,6 +279,7 @@ function getSelectionCriteriaAndInitialize(){
 		$('#selectorContainer').append(yearSelectorHtml);
 		
 		var weekOptions = [{label: 'All weeks', value: 'all'},
+						   {label: 'This week', value: 'current_week'},
 		                   {label: 'Regular season', value: 'regular_season'},
 		                   {label: 'Playoffs', value: 'playoffs'},
 		                   {label: 'Week 1', value: '1'}, {label: 'Week 2', value: '2'},
@@ -389,7 +390,9 @@ function getSelectionCriteriaAndInitialize(){
 		                       {label: 'Week Comparison', value: 'weekComparison'},
 		                       {label: 'Season Progression', value: 'seasonProgression'},
 		                       {label: 'Collective Records', value: 'collectiveRecordSummary'},
-		                       {label: 'Collective Pick Accuracy', value: 'collectivePickAccuracy'}];
+		                       {label: 'Collective Pick Accuracy', value: 'collectivePickAccuracy'},
+						   	   {label: 'Chalk standings', value: 'chalkStandings'},
+						   	   {label: 'Genius standings', value: 'geniusStandings'}];
 		
 		//Only add in the division title options if divisions are enabled.
 		if (NFL_PICKS_GLOBAL.divisionsEnabled){
@@ -943,6 +946,14 @@ function updateStats(){
 		else if ('collectivePickAccuracy' == statName){
 			var collectivePickAccuracySummary = $.parseJSON(data);
 			statsHtml = createCollectivePickAccuracySummaryHtml(collectivePickAccuracySummary);
+		}
+		else if ('chalkStandings' == statName){
+			var chalkGeniusRecords = $.parseJSON(data);
+			statsHtml = createChalkStandingsHtml(chalkGeniusRecords);
+		}
+		else if ('geniusStandings' == statName){
+			var chalkGeniusRecords = $.parseJSON(data);
+			statsHtml = createGeniusStandingsHtml(chalkGeniusRecords);
 		}
 		
 		setContent(statsHtml);

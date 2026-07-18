@@ -537,6 +537,9 @@ function getWeekValuesForRequest(){
 			var playoffWeeks = getPlayoffWeeksForSelectedYears();
 			valuesToSend = valuesToSend.concat(playoffWeeks);
 		}
+		else if ('current_week' == selectedValue){
+			//get current week
+		}
 		else {
 			valuesToSend.push(selectedValue);
 		}
@@ -821,4 +824,12 @@ function setSelectedWeeks(weeks){
 	setCurrentWeekSelections(weekValuesArray);
 	
 	NFL_PICKS_GLOBAL.selections.weeks = weeksArray;
+}
+
+function getCurrentWeek(){
+	return NFL_PICKS_GLOBAL.currentWeekKey;
+}
+
+function getCurrentYEAR(){
+	return NFL_PICKS_GLOBAL.currentYear;
 }

@@ -314,6 +314,19 @@ function updateStatsSelectors(type){
 		showWeeksLink();
 		showTeamsLink();
 	}
+	else if ('chalkStandings' == statName){
+		showPlayersLink();
+		showYearsLink();
+		showWeeksLink();
+		showTeamsLink();
+	}
+	else if ('geniusStandings' == statName){
+		showPlayersLink();
+		showYearsLink();
+		showWeeksLink();
+		showTeamsLink();
+	}
+	
 	setPreviousType(type);
 }
 
