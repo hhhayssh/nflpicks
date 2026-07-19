@@ -379,25 +379,25 @@ function getSelectionCriteriaAndInitialize(){
 		NFL_PICKS_GLOBAL.teams = teamOptions;
 		
 		var statNameOptions = [{label: 'Champions', value: 'champions'},
-		                       {label: 'Championship Standings', value: 'championshipStandings'},
-		                       {label: 'Season Standings', value: 'seasonStandings'},
+							   {label: 'Championship Standings', value: 'championshipStandings'},
+							   {label: 'Pick Splits', value: 'pickSplits'},
+							   {label: 'Chalk standings', value: 'chalkStandings'},
+							   {label: 'Genius standings', value: 'geniusStandings'},
+							   {label: 'Pick Accuracy', value: 'pickAccuracy'},
+							   {label: 'Season Progression', value: 'seasonProgression'},
+							   {label: 'Season Standings', value: 'seasonStandings'},
 		                       {label: 'Week Standings', value: 'weekStandings'},
 		                       {label: 'Weeks Won Standings', value: 'weeksWonStandings'},
 		                       {label: 'Weeks Won By Week', value: 'weeksWonByWeek'},
 		                       {label: 'Week Records By Player', value: 'weekRecordsByPlayer'},
-		                       {label: 'Pick Accuracy', value: 'pickAccuracy'},
-		                       {label: 'Pick Splits', value: 'pickSplits'},
 		                       {label: 'Week Comparison', value: 'weekComparison'},
-		                       {label: 'Season Progression', value: 'seasonProgression'},
 		                       {label: 'Collective Records', value: 'collectiveRecordSummary'},
-		                       {label: 'Collective Pick Accuracy', value: 'collectivePickAccuracy'},
-						   	   {label: 'Chalk standings', value: 'chalkStandings'},
-						   	   {label: 'Genius standings', value: 'geniusStandings'}];
+		                       {label: 'Collective Pick Accuracy', value: 'collectivePickAccuracy'}];
 		
 		//Only add in the division title options if divisions are enabled.
 		if (NFL_PICKS_GLOBAL.divisionsEnabled){
-			statNameOptions.splice(2, 0, {label: 'Division Titles', value: 'divisionTitles'});
-			statNameOptions.splice(3, 0, {label: 'Division Title Standings', value: 'divisionTitleStandings'});
+			statNameOptions.push({label: 'Division Titles', value: 'divisionTitles'});
+			statNameOptions.push({label: 'Division Title Standings', value: 'divisionTitleStandings'});
 		}
 
 		var statNameSelectorHtml = createStatNameSelectorHtml(statNameOptions);

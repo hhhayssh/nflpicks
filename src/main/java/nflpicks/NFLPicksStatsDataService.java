@@ -1613,8 +1613,8 @@ order by season_id, week_id, player_id;
 			"	   				losing_team_id,  " +
 			"	   				losing_team_count,  " +
 			"	   				picked_team_id,  " +
-			"	   				(case when winning_team_count >= losing_team_count then winning_team_id  " +
-			"	   	     			  when losing_team_count >= winning_team_count then losing_team_id  " +
+			"	   				(case when winning_team_count > losing_team_count then winning_team_id  " +
+			"	   	     			  when losing_team_count > winning_team_count then losing_team_id  " +
 			"	   				 end) as chalk_team_id,  " +
 			"	   				(case when winning_team_count < losing_team_count then winning_team_id  " +
 			"	   	     			  when losing_team_count < winning_team_count then losing_team_id  " +
@@ -1699,8 +1699,8 @@ order by season_id, week_id, player_id;
 			"	   				losing_team_id,  " +
 			"	   				losing_team_count,  " +
 			"	   				picked_team_id,  " +
-			"	   				(case when winning_team_count >= losing_team_count then winning_team_id  " +
-			"	   	     			  when losing_team_count >= winning_team_count then losing_team_id  " +
+			"	   				(case when winning_team_count > losing_team_count then winning_team_id  " +
+			"	   	     			  when losing_team_count > winning_team_count then losing_team_id  " +
 			"	   				 end) as chalk_team_id,  " +
 			"	   				(case when winning_team_count < losing_team_count then winning_team_id  " +
 			"	   	     			  when losing_team_count < winning_team_count then losing_team_id  " +

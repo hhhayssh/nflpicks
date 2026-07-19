@@ -1159,8 +1159,7 @@ function createChampionsHtml(championships){
 	
 	championshipsBodyHtml = championshipsBodyHtml + '</tbody>';
 	
-	var championshipsHtml = '<table class="standings-table">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>' + 
-						    '<div class="champion-promos-link-container"><a href="champions.html">Don\'t you forget about me...</a></div>';
+	var championshipsHtml = '<table class="standings-table">' + championshipsHeaderHtml + championshipsBodyHtml + '</table>';
 	
 	return championshipsHtml;
 }
